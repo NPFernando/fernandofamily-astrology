@@ -1,0 +1,116 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useLocale } from "@/lib/locale-context";
+import { translateEnum } from "@/lib/i18n";
+import type { SubPeriod } from "@/lib/api-client";
+
+function formatDuration(ms: number) {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+}
+
+export function LiveCountdown({
+  current,
+  next,
+  serverTime,
+  fetchedAtClientMs,
+  onExpire,
+  isStale = false,
+}: {
+  current: SubPeriod | null;
+  next: SubPeriod | null;
+  serverTime: Date | null;
+  fetchedAtClientMs: number;
+  onExpire: () => void;
+  isStale?: boolean;
+}) {
+  const { dict, locale } = useLocale();
+  // Compute the client/server clock offset once per fetch, then apply it
+  // locally every tick rather than trusting the client clock raw.
+  const skewMsRef = useRef(0);
+  useEffect(() => {
+    skewMsRef.current = serverTime ? serverTime.getTime() - fetchedAtClientMs : 0;
+  }, [serverTime, fetchedAtClientMs]);
+
+  // skewMsRef is always still 0 at first render (the effect above hasn't run
+  // yet), so the initial value is just Date.now() — no ref read needed here.
+  const [now, setNow] = useState(() => Date.now());
+  const expiredRef = useRef(false);
+
+  useEffect(() => {
+    expiredRef.current = false;
+    const interval = window.setInterval(() => {
+      setNow(Date.now() + skewMsRef.current);
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, [current?.id]);
+
+  useEffect(() => {
+    function onVisibility() {
+      if (document.visibilityState === "visible") onExpire();
+    }
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("online", onExpire);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("online", onExpire);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const endsAtMs = current ? new Date(current.ends_at).getTime() : null;
+  const remainingMs = endsAtMs !== null ? endsAtMs - now : null;
+  const expired = remainingMs !== null && remainingMs <= 0;
+
+  // Never render an expired period as current — trigger a refetch instead of
+  // showing a stale or negative countdown. This runs as an effect (not during
+  // render) so reading/resetting the ref is safe; the ref just guards against
+  // calling onExpire more than once per period while waiting for a refetch.
+  useEffect(() => {
+    if (expired && !expiredRef.current && !isStale) {
+      expiredRef.current = true;
+      onExpire();
+    }
+  }, [expired, isStale, onExpire]);
+
+  if (!current) {
+    return <p className="text-sm opacity-70">{dict.ui.loading}</p>;
+  }
+
+  // current is narrowed non-null past this point; recompute plainly rather
+  // than threading the nullable value computed above through JSX.
+  const remaining = new Date(current.ends_at).getTime() - now;
+
+  return (
+    <div className="flex flex-col gap-1 rounded-xl border border-accent/30 bg-accent/5 p-4">
+      {isStale && (
+        <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">{dict.ui.offlineCachedNotice}</p>
+      )}
+      <span className="text-xs uppercase opacity-60">{dict.ui.liveNow}</span>
+      <div className="flex items-baseline gap-2">
+        <span className="text-3xl font-bold tabular-nums text-accent">
+          {remaining > 0 ? formatDuration(remaining) : "00:00"}
+        </span>
+        <span className="text-xs opacity-60">{dict.ui.timeRemaining}</span>
+      </div>
+      <p className="text-sm">
+        {translateEnum(dict, "birds", current.sub_bird)} · {translateEnum(dict, "activities", current.sub_activity)}
+      </p>
+      <p className="text-xs opacity-70">
+        {dict.ui.endsAt}: {new Date(current.ends_at).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US")}
+      </p>
+      {next && (
+        <p className="mt-2 text-xs opacity-70">
+          {dict.ui.nextPeriod}: {translateEnum(dict, "birds", next.sub_bird)} ·{" "}
+          {translateEnum(dict, "activities", next.sub_activity)} @{" "}
+          {new Date(next.starts_at).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US")}
+        </p>
+      )}
+    </div>
+  );
+}

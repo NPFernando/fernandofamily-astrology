@@ -7,6 +7,7 @@ import { LocaleProvider } from "@/lib/locale-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import { Nav } from "@/components/layout/Nav";
 import { Footer } from "@/components/layout/Footer";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { PUBLIC_BASE_URL } from "@/lib/site-config";
 
 const bodyFont = Inter({ variable: "--font-body", subsets: ["latin"] });
@@ -51,6 +52,7 @@ export default async function LocaleLayout({
       <body className="flex min-h-full flex-col">
         <ThemeProvider>
           <LocaleProvider locale={locale}>
+            <ServiceWorkerRegister />
             <Nav />
             <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">{children}</main>
             <Footer />

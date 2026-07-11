@@ -12,6 +12,13 @@ const ROOTS = ["app", "components"];
 const TEXT_NODE = />\s*([^<>{}\n][^<>{}\n]{2,})\s*</g;
 // Ignore pure punctuation/whitespace/numeric content, and known-safe tokens.
 const SAFE = /^[\s\d.,:/%-]*$/;
+// The regex above has no real notion of JSX vs. JS: a `>=`/`>` comparison or a
+// self-closing tag's `/>` immediately followed by `&&`/ternary JSX (e.g.
+// `{a.length > 0 && (<Foo />)}` or `cond ? (<A />) : (<B />)`) produces a
+// spurious "> ... <" span that looks like a text node but is actually JS
+// control flow between elements. Real translated UI text never contains these
+// tokens, so treat their presence as "this is code, not prose" and skip it.
+const CODE_LIKE = /(&&|\|\||=>|===|!==|\(|\)|\.length\b|typeof\s)/;
 const EXCEPTION_FILES = new Set([]); // add relative paths here if a deliberate exception is ever needed
 
 let violations = [];
@@ -36,6 +43,7 @@ function checkFile(path) {
   while ((m = TEXT_NODE.exec(src))) {
     const text = m[1].trim();
     if (SAFE.test(text)) continue;
+    if (CODE_LIKE.test(text)) continue;
     if (text.split(/\s+/).length < 2) continue; // single tokens are usually fine (icons, symbols)
     const line = src.slice(0, m.index).split("\n").length;
     violations.push(`${path}:${line}: hardcoded JSX text "${text.slice(0, 60)}"`);

@@ -141,6 +141,17 @@ export class ApiError extends Error {
 }
 
 async function postJson<TResponse>(path: string, body: unknown): Promise<TResponse> {
+  const { data } = await postJsonWithMeta<TResponse>(path, body);
+  return data;
+}
+
+// The response model has no "generated at" field of its own, so the HTTP
+// `Date` response header stands in as the server-time reference for
+// client/server clock-skew correction in the live countdown.
+async function postJsonWithMeta<TResponse>(
+  path: string,
+  body: unknown,
+): Promise<{ data: TResponse; serverTime: Date | null }> {
   const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -148,7 +159,8 @@ async function postJson<TResponse>(path: string, body: unknown): Promise<TRespon
   });
   const data = await res.json().catch(() => null);
   if (!res.ok) throw new ApiError(res.status, data);
-  return data as TResponse;
+  const dateHeader = res.headers.get("date");
+  return { data: data as TResponse, serverTime: dateHeader ? new Date(dateHeader) : null };
 }
 
 export function fetchBirthBird(body: BirthBirdRequest): Promise<BirthBirdResponse> {
@@ -157,6 +169,18 @@ export function fetchBirthBird(body: BirthBirdRequest): Promise<BirthBirdRespons
 
 export function fetchSchedule(body: ScheduleRequest): Promise<ScheduleResponse> {
   return postJson<ScheduleResponse>("/schedule", body);
+}
+
+export function fetchScheduleWithServerTime(
+  body: ScheduleRequest,
+): Promise<{ data: ScheduleResponse; serverTime: Date | null }> {
+  return postJsonWithMeta<ScheduleResponse>("/schedule", body);
+}
+
+export function fetchCurrentWithServerTime(
+  body: ScheduleRequest,
+): Promise<{ data: CurrentResponse; serverTime: Date | null }> {
+  return postJsonWithMeta<CurrentResponse>("/current", body);
 }
 
 export function fetchCurrent(body: ScheduleRequest): Promise<CurrentResponse> {

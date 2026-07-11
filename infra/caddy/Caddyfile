@@ -1,0 +1,18 @@
+# Reference configuration for self-hosters who don't already run a reverse
+# proxy. The production deployment of astrology.fernandofamily.com does NOT
+# use this — that host already runs nginx for other sites, so it uses an
+# nginx server block instead (see docs/deployment/dns-and-https.md). This
+# file is provided so anyone self-hosting this project from scratch has a
+# working, automatic-HTTPS starting point.
+
+astrology.fernandofamily.com {
+    encode zstd gzip
+
+    handle /api/* {
+        reverse_proxy api:8000
+    }
+
+    handle {
+        reverse_proxy web:3000
+    }
+}

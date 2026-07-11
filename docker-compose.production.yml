@@ -1,0 +1,29 @@
+services:
+  api:
+    build:
+      args:
+        GIT_SHA: ${GIT_SHA}
+    ports:
+      # Loopback only — nginx on the host is the public edge (see
+      # docs/deployment/dns-and-https.md), and it proxies to these.
+      - "127.0.0.1:8100:8000"
+    env_file:
+      - .env
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  web:
+    ports:
+      - "127.0.0.1:3100:3000"
+    env_file:
+      - .env
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

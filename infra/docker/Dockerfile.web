@@ -1,0 +1,49 @@
+# syntax=docker/dockerfile:1
+# Build context: repository root (needs apps/web/* and packages/feature-registry,
+# which apps/web imports via a relative tsconfig path outside its own directory).
+ARG NODE_VERSION=22-slim
+
+FROM node:${NODE_VERSION} AS deps
+RUN corepack enable
+WORKDIR /repo
+COPY packages/feature-registry ./packages/feature-registry
+COPY apps/web/package.json apps/web/pnpm-lock.yaml apps/web/pnpm-workspace.yaml ./apps/web/
+WORKDIR /repo/apps/web
+RUN pnpm install --frozen-lockfile
+
+FROM node:${NODE_VERSION} AS builder
+RUN corepack enable
+ENV CI=true
+# next.config.ts's rewrites() reads API_PROXY_TARGET at config-load time, and
+# Next.js's standalone output resolves/serializes that config at BUILD time,
+# not at container start — so this must be set here, not just at `docker run`.
+# "api" is this image's expected Compose service/network-alias for the
+# backend (see docker-compose.yml); override at build time only if you
+# deploy the containers under a different network topology.
+ARG API_PROXY_TARGET=http://api:8000
+ENV API_PROXY_TARGET=${API_PROXY_TARGET}
+WORKDIR /repo
+COPY packages/feature-registry ./packages/feature-registry
+COPY --from=deps /repo/apps/web/node_modules ./apps/web/node_modules
+COPY apps/web ./apps/web
+WORKDIR /repo/apps/web
+RUN pnpm build
+
+FROM node:${NODE_VERSION} AS runtime
+ENV NODE_ENV=production \
+    PORT=3000 \
+    HOSTNAME=0.0.0.0
+RUN groupadd --system app && useradd --system --gid app --home /app app
+WORKDIR /app
+# next.config.ts sets outputFileTracingRoot to the monorepo root, so the
+# standalone server (with its own traced node_modules) is nested under
+# apps/web within the traced output.
+COPY --from=builder /repo/apps/web/.next/standalone/apps/web ./
+COPY --from=builder /repo/apps/web/.next/static ./.next/static
+COPY --from=builder /repo/apps/web/public ./public
+RUN chown -R app:app /app
+USER app
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:3000/en').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+CMD ["node", "server.js"]

@@ -1,0 +1,23 @@
+{
+  "repository": "https://github.com/naturalstupid/PyJHora",
+  "version": "4.8.7",
+  "commit": "ca22995709bd60e371e7820a1a5efc80ce4cf821",
+  "vendored_at": "2026-07-11T08:56:00Z",
+  "manifest": "MANIFEST.sha256",
+  "runtime_dependencies": [
+    "pyswisseph==2.10.3.2",
+    "numpy",
+    "pytz",
+    "geopy",
+    "requests",
+    "timezonefinder",
+    "python-dateutil",
+    "certifi",
+    "geocoder==1.38.1"
+  ],
+  "excluded_dependencies": [
+    "PyQt6",
+    "pyqtgraph"
+  ],
+  "excluded_dependencies_reason": "Confirmed by direct testing (import + sample sunrise/vaara/paksha/nakshatra calculations) that jhora.panchanga.drik and jhora.panchanga.pancha_paksha produce identical results with and without PyQt6/pyqtgraph installed. Neither is imported by this call chain (jhora, jhora.config, jhora.const, jhora.utils, jhora.panchanga.drik, jhora.panchanga.pancha_paksha) at module load time. Both are excluded from the production runtime."
+}

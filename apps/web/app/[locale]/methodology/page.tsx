@@ -1,10 +1,18 @@
-"use client";
-
-import { useLocale } from "@/lib/locale-context";
+import type { Metadata } from "next";
+import { getDictionary } from "@/lib/i18n";
+import { localizedPageMetadata, resolveLocale } from "@/lib/page-metadata";
 import { PUBLIC_REPOSITORY_URL } from "@/lib/site-config";
 
-export default function MethodologyPage() {
-  const { dict } = useLocale();
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  return localizedPageMetadata(params, "methodology", "/methodology");
+}
+
+export default async function MethodologyPage({ params }: { params: Promise<{ locale: string }> }) {
+  const dict = getDictionary(await resolveLocale(params));
   const m = dict.pages.methodology;
   return (
     <article className="max-w-2xl">

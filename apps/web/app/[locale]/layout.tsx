@@ -27,11 +27,27 @@ export async function generateMetadata({
   const dict = getDictionary(locale);
   return {
     metadataBase: new URL(PUBLIC_BASE_URL),
-    title: dict.platform.name,
+    title: {
+      default: dict.platform.name,
+      template: `%s | ${dict.platform.name}`,
+    },
     description: dict.platform.tagline,
     alternates: {
       canonical: `/${locale}`,
       languages: { en: "/en", si: "/si" },
+    },
+    icons: {
+      apple: "/icons/apple-touch-icon.png",
+    },
+    openGraph: {
+      siteName: dict.platform.name,
+      type: "website",
+      locale: locale === "si" ? "si_LK" : "en_US",
+      images: [{ url: "/og/og-default.png", width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      images: ["/og/og-default.png"],
     },
   };
 }

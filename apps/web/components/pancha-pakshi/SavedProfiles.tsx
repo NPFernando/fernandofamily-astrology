@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { translateEnum, nakshatraName } from "@/lib/i18n";
+import { BIRD_ICONS } from "@/components/icons/birds";
+import type { BirdId } from "@/lib/api-client";
 import {
   listProfiles,
   addProfile,
@@ -103,8 +105,9 @@ export function SavedProfiles({
                 <button
                   type="button"
                   onClick={() => onPick(p)}
-                  className="rounded-l-full py-1.5 pl-3 pr-1 hover:bg-black/5 dark:hover:bg-white/10"
+                  className="flex items-center gap-1.5 rounded-l-full py-1.5 pl-3 pr-1 hover:bg-black/5 dark:hover:bg-white/10"
                 >
+                  {p.bird && <ProfileBirdIcon bird={p.bird} />}
                   {chipText(p)}
                 </button>
                 <button
@@ -132,4 +135,9 @@ export function SavedProfiles({
       )}
     </div>
   );
+}
+
+function ProfileBirdIcon({ bird }: { bird: BirdId }) {
+  const Icon = BIRD_ICONS[bird];
+  return <Icon className="shrink-0 text-accent" />;
 }

@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { translateEnum } from "@/lib/i18n";
 import type { MajorPeriod, ScheduleResponse, SubPeriod } from "@/lib/api-client";
 import { ACTIVITY_COLORS } from "./activityColors";
+import { ACTIVITY_ICONS } from "@/components/icons/activities";
+import { BIRD_ICONS } from "@/components/icons/birds";
+import { DayTimelineBar } from "./DayTimelineBar";
 
 function formatTime(iso: string, locale: string) {
   return new Date(iso).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US", {
@@ -30,8 +33,22 @@ export function ScheduleTimeline({ schedule }: { schedule: ScheduleResponse }) {
   const dayPeriods = schedule.major_periods.filter((p) => p.kind === "day");
   const nightPeriods = schedule.major_periods.filter((p) => p.kind === "night");
 
+  // Tapping a segment in the overview bar expands that major period's card
+  // and brings it into view — the bar is the map, the cards are the detail.
+  const selectFromBar = useCallback((majorIndex: number) => {
+    setExpanded((prev) => new Set(prev).add(majorIndex));
+    requestAnimationFrame(() => {
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      document
+        .getElementById(`major-period-${majorIndex}`)
+        ?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+    });
+  }, []);
+
   return (
     <div className="flex flex-col gap-4 print:gap-2">
+      <DayTimelineBar schedule={schedule} onSelectMajor={selectFromBar} />
+
       <div className="flex items-center justify-between print:hidden">
         <div className="flex gap-2 text-sm">
           <ViewButton active={view === "timeline"} onClick={() => setView("timeline")}>
@@ -144,9 +161,12 @@ function MajorPeriodCard({
   const { dict } = useLocale();
   const color = ACTIVITY_COLORS[period.main_activity];
   const isCurrent = period.sub_periods.some((s) => s.is_current);
+  const BirdIcon = BIRD_ICONS[period.main_bird];
+  const ActivityIcon = ACTIVITY_ICONS[period.main_activity];
 
   return (
     <div
+      id={`major-period-${period.index}`}
       className={`overflow-hidden rounded-xl border ${
         isCurrent ? "border-accent" : "border-black/10 dark:border-white/10"
       }`}
@@ -159,8 +179,11 @@ function MajorPeriodCard({
         className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
       >
         <div className="flex flex-col">
-          <span className="text-sm font-semibold">
-            {translateEnum(dict, "birds", period.main_bird)} — {translateEnum(dict, "activities", period.main_activity)}
+          <span className="flex items-center gap-1.5 text-sm font-semibold">
+            <BirdIcon className="shrink-0 text-base opacity-80" />
+            {translateEnum(dict, "birds", period.main_bird)} —{" "}
+            <ActivityIcon className="shrink-0 text-base" style={{ color }} />
+            {translateEnum(dict, "activities", period.main_activity)}
           </span>
           <span className="text-xs opacity-70">
             {formatTime(period.starts_at, locale)} – {formatTime(period.ends_at, locale)}
@@ -224,23 +247,30 @@ function SubPeriodTimeline({ subPeriods, locale }: { subPeriods: SubPeriod[]; lo
   const { dict } = useLocale();
   return (
     <ul className="flex flex-col gap-1 border-t border-black/10 p-3 dark:border-white/10">
-      {subPeriods.map((sp) => (
-        <li
-          key={sp.id}
-          className={`flex items-center justify-between rounded-lg px-3 py-2 text-xs ${
-            sp.is_current ? "bg-accent/10 font-semibold" : "bg-black/[.02] dark:bg-white/[.04]"
-          }`}
-          style={{ borderLeft: `3px solid ${ACTIVITY_COLORS[sp.sub_activity]}` }}
-        >
-          <span>
-            {formatTime(sp.starts_at, locale)} – {formatTime(sp.ends_at, locale)}
-          </span>
-          <span>
-            {translateEnum(dict, "birds", sp.sub_bird)} · {translateEnum(dict, "activities", sp.sub_activity)}
-          </span>
-          <span className="opacity-70">{translateEnum(dict, "effects", sp.effect)}</span>
-        </li>
-      ))}
+      {subPeriods.map((sp) => {
+        const SubBirdIcon = BIRD_ICONS[sp.sub_bird];
+        const SubActivityIcon = ACTIVITY_ICONS[sp.sub_activity];
+        return (
+          <li
+            key={sp.id}
+            className={`flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs ${
+              sp.is_current ? "bg-accent/10 font-semibold" : "bg-black/[.02] dark:bg-white/[.04]"
+            }`}
+            style={{ borderLeft: `3px solid ${ACTIVITY_COLORS[sp.sub_activity]}` }}
+          >
+            <span>
+              {formatTime(sp.starts_at, locale)} – {formatTime(sp.ends_at, locale)}
+            </span>
+            <span className="flex items-center gap-1">
+              <SubBirdIcon className="shrink-0 opacity-80" />
+              {translateEnum(dict, "birds", sp.sub_bird)} ·{" "}
+              <SubActivityIcon className="shrink-0" style={{ color: ACTIVITY_COLORS[sp.sub_activity] }} />
+              {translateEnum(dict, "activities", sp.sub_activity)}
+            </span>
+            <span className="opacity-70">{translateEnum(dict, "effects", sp.effect)}</span>
+          </li>
+        );
+      })}
     </ul>
   );
 }

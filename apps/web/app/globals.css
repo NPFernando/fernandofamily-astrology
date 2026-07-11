@@ -29,3 +29,65 @@ body {
   color: var(--foreground);
   font-family: var(--font-body), var(--font-sinhala), sans-serif;
 }
+
+/* Dawn-gradient hero (landing page). Pure CSS — no image download. The dark
+   theme gets a dusk variant of the same palette. */
+.hero-dawn {
+  background: linear-gradient(165deg, #1e1b4b 0%, #4c1d95 35%, #b45309 75%, #f5b942 100%);
+}
+.dark .hero-dawn {
+  background: linear-gradient(165deg, #0b0a1c 0%, #312e81 45%, #7c2d12 85%, #b45309 100%);
+}
+
+/* Motion: every animation lives behind prefers-reduced-motion so the site is
+   completely still for users who ask for that. Calm and purposeful only. */
+@media (prefers-reduced-motion: no-preference) {
+  /* One soft expanding glow when the current period changes (element is
+     remounted with a new key on period change, retriggering this). */
+  @keyframes period-glow {
+    from {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent);
+    }
+    to {
+      box-shadow: 0 0 0 16px transparent;
+    }
+  }
+  .animate-period-change {
+    animation: period-glow 1.1s ease-out 1;
+  }
+
+  /* Gentle attention pulse on the countdown during its final minute. */
+  @keyframes soft-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.55;
+    }
+  }
+  .animate-final-minute {
+    animation: soft-pulse 1.4s ease-in-out infinite;
+  }
+
+  /* Small fade/slide when switching input-method tabs. */
+  @keyframes panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .animate-panel-in {
+    animation: panel-in 180ms ease-out 1;
+  }
+
+  /* The timeline bar's "now" marker glides rather than jumps (repositions
+     every 30s). */
+  .now-marker {
+    transition: left 700ms ease;
+  }
+}

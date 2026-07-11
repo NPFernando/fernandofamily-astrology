@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { translateEnum } from "@/lib/i18n";
 import type { SubPeriod } from "@/lib/api-client";
+import { BIRD_ICONS } from "@/components/icons/birds";
+import { ACTIVITY_ICONS } from "@/components/icons/activities";
+import { ACTIVITY_COLORS } from "./activityColors";
 
 function formatDuration(ms: number) {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
@@ -85,21 +88,34 @@ export function LiveCountdown({
   // current is narrowed non-null past this point; recompute plainly rather
   // than threading the nullable value computed above through JSX.
   const remaining = new Date(current.ends_at).getTime() - now;
+  const inFinalMinute = remaining > 0 && remaining <= 60_000 && !isStale;
+  const SubBirdIcon = BIRD_ICONS[current.sub_bird];
+  const SubActivityIcon = ACTIVITY_ICONS[current.sub_activity];
 
   return (
-    <div className="flex flex-col gap-1 rounded-xl border border-accent/30 bg-accent/5 p-4">
+    // Keyed by period id: a period change remounts the card, which retriggers
+    // the one-shot glow animation (no-op under prefers-reduced-motion).
+    <div
+      key={current.id}
+      className="animate-period-change flex flex-col gap-1 rounded-xl border border-accent/30 bg-accent/5 p-4"
+    >
       {isStale && (
         <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">{dict.ui.offlineCachedNotice}</p>
       )}
       <span className="text-xs uppercase opacity-60">{dict.ui.liveNow}</span>
       <div className="flex items-baseline gap-2">
-        <span className="text-3xl font-bold tabular-nums text-accent">
+        <span
+          className={`text-3xl font-bold tabular-nums text-accent ${inFinalMinute ? "animate-final-minute" : ""}`}
+        >
           {remaining > 0 ? formatDuration(remaining) : "00:00"}
         </span>
         <span className="text-xs opacity-60">{dict.ui.timeRemaining}</span>
       </div>
-      <p className="text-sm">
-        {translateEnum(dict, "birds", current.sub_bird)} · {translateEnum(dict, "activities", current.sub_activity)}
+      <p className="flex items-center gap-1.5 text-sm">
+        <SubBirdIcon className="shrink-0 text-base opacity-80" />
+        {translateEnum(dict, "birds", current.sub_bird)} ·{" "}
+        <SubActivityIcon className="shrink-0 text-base" style={{ color: ACTIVITY_COLORS[current.sub_activity] }} />
+        {translateEnum(dict, "activities", current.sub_activity)}
       </p>
       <p className="text-xs opacity-70">
         {dict.ui.endsAt}: {new Date(current.ends_at).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US")}

@@ -1,10 +1,18 @@
-"use client";
-
-import { useLocale } from "@/lib/locale-context";
+import type { Metadata } from "next";
+import { getDictionary } from "@/lib/i18n";
+import { localizedPageMetadata, resolveLocale } from "@/lib/page-metadata";
 import { PUBLIC_REPOSITORY_URL } from "@/lib/site-config";
 
-export default function LicensingPage() {
-  const { dict } = useLocale();
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  return localizedPageMetadata(params, "licensing", "/licensing");
+}
+
+export default async function LicensingPage({ params }: { params: Promise<{ locale: string }> }) {
+  const dict = getDictionary(await resolveLocale(params));
   return (
     <article className="max-w-2xl">
       <h1 className="text-2xl font-bold">{dict.pages.licensing.title}</h1>

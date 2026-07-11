@@ -146,7 +146,12 @@
     "savedProfiles": "Saved profiles",
     "deleteProfile": "Remove",
     "profileSaved": "Profile saved",
-    "syncedToAccount": "Synced to your account"
+    "syncedToAccount": "Synced to your account",
+    "retry": "Try again",
+    "errorTitle": "Something went wrong",
+    "dayTimelineBar": "Sunrise-to-sunrise timeline",
+    "now": "Now",
+    "availableTools": "Available tools"
   },
   "disclaimer": {
     "text": "Pancha Pakshi is a traditional astrological system. The information shown here is provided for cultural and informational purposes and is not scientifically validated. It must not replace medical, legal, financial, safety or other professional advice."
@@ -180,6 +185,35 @@
       "timezones": "All calculations use IANA timezones and account for daylight-saving transitions on the specific date requested.",
       "limitations": "This is a traditional system provided for cultural and informational purposes; see the disclaimer for its limits.",
       "sourceLinkLabel": "Read the full calculation methodology in the source repository"
+    }
+  },
+  "metadata": {
+    "landing": {
+      "description": "Open-source bilingual astrology platform with an accurate live Pancha Pakshi timetable calculated from real sunrise and sunset times."
+    },
+    "panchaPakshi": {
+      "title": "Pancha Pakshi Live Timetable",
+      "description": "Find your birth bird and follow a live sunrise-to-sunrise Pancha Pakshi timetable with all ten major periods and fifty sub-periods, calculated for your location."
+    },
+    "about": {
+      "title": "About",
+      "description": "About Fernando Family Astrology and the open-source engine behind it."
+    },
+    "disclaimer": {
+      "title": "Disclaimer",
+      "description": "Pancha Pakshi is a traditional astrological system provided for cultural and informational purposes."
+    },
+    "privacy": {
+      "title": "Privacy",
+      "description": "No accounts required; birth details are never stored, logged or shared."
+    },
+    "licensing": {
+      "title": "Licence",
+      "description": "AGPL-3.0 licensing, source code access and third-party attribution."
+    },
+    "methodology": {
+      "title": "Methodology",
+      "description": "How the sunrise-based Pancha Pakshi day, birth-bird mapping and periods are calculated."
     }
   }
 }

@@ -5,6 +5,7 @@ import { useLocale } from "@/lib/locale-context";
 import type { BirdId, BirdSelectionInput } from "@/lib/api-client";
 import { LocationPicker, type LocationValue } from "./LocationPicker";
 import { TargetDateTimeFields, nowAsTargetDateTime, type TargetDateTime } from "./TargetDateTimeFields";
+import { BIRD_ICONS } from "@/components/icons/birds";
 
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
 
@@ -21,20 +22,24 @@ export function BirdSelector({ onSubmit }: { onSubmit: (input: BirdSelectionInpu
       <div>
         <p className="mb-2 text-sm opacity-70">{dict.ui.selectBird}</p>
         <div className="flex flex-wrap gap-2">
-          {BIRDS.map((b) => (
-            <button
-              key={b}
-              type="button"
-              onClick={() => setBird(b)}
-              className={`rounded-full border px-4 py-2 text-sm ${
-                bird === b
-                  ? "border-accent bg-accent/10 font-semibold text-accent"
-                  : "border-black/10 opacity-80 hover:opacity-100 dark:border-white/20"
-              }`}
-            >
-              {dict.enums.birds[b]}
-            </button>
-          ))}
+          {BIRDS.map((b) => {
+            const Icon = BIRD_ICONS[b];
+            return (
+              <button
+                key={b}
+                type="button"
+                onClick={() => setBird(b)}
+                className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm ${
+                  bird === b
+                    ? "border-accent bg-accent/10 font-semibold text-accent"
+                    : "border-black/10 opacity-80 hover:opacity-100 dark:border-white/20"
+                }`}
+              >
+                <Icon className="text-lg" />
+                {dict.enums.birds[b]}
+              </button>
+            );
+          })}
         </div>
       </div>
 

@@ -44,6 +44,13 @@ from the runtime image.
 
 ## Frontend dependencies, fonts, and icons
 
-To be appended here as they are selected during frontend implementation —
-only originally-licensed or open-licensed fonts, icons, and packages will be
-used (see the platform spec's prohibition on unlicensed/commercial assets).
+- **Inter** (Latin body text) and **Noto Sans Sinhala** (Sinhala text) —
+  both under the SIL Open Font License 1.1, loaded via `next/font/google` in
+  `apps/web/app/[locale]/layout.tsx`. `next/font` downloads and self-hosts
+  these font files at build time; there is no runtime request to Google or
+  any third party from the deployed site.
+- **App icon** (`apps/web/public/icons/icon.svg`) is original artwork
+  created for this project, not copied from any commercial or copyrighted
+  source.
+- **Next.js / React / Tailwind CSS** and their build tooling — each under
+  their own permissive (MIT) licenses, used unmodified via npm/pnpm.

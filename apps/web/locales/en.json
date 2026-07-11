@@ -1,0 +1,141 @@
+{
+  "platform": {
+    "name": "Fernando Family Astrology",
+    "tagline": "Traditional astrology tools, calculated precisely."
+  },
+  "features": {
+    "panchaPakshi": {
+      "title": "Pancha Pakshi Live",
+      "description": "A live, sunrise-based Pancha Pakshi timetable for any location and birth bird."
+    }
+  },
+  "nav": {
+    "home": "Home",
+    "panchaPakshi": "Pancha Pakshi",
+    "about": "About",
+    "methodology": "Methodology",
+    "privacy": "Privacy",
+    "disclaimer": "Disclaimer",
+    "licensing": "Licence",
+    "sourceCode": "Source code"
+  },
+  "enums": {
+    "birds": {
+      "vulture": "Vulture",
+      "owl": "Owl",
+      "crow": "Crow",
+      "cock": "Cock",
+      "peacock": "Peacock"
+    },
+    "activities": {
+      "ruling": "Ruling (Raja)",
+      "eating": "Eating (Bhojana)",
+      "walking": "Walking (Gamana)",
+      "sleeping": "Sleeping (Nidra)",
+      "dying": "Marana"
+    },
+    "effects": {
+      "very_bad": "Very unfavourable",
+      "bad": "Unfavourable",
+      "average": "Average",
+      "good": "Favourable",
+      "very_good": "Very favourable"
+    },
+    "relations": {
+      "enemy": "Enemy",
+      "same": "Same",
+      "friend": "Friend"
+    },
+    "paksha": {
+      "waxing": "Waxing Moon / Shukla Paksha",
+      "waning": "Waning Moon / Krishna Paksha"
+    },
+    "weekdays": {
+      "sunday": "Sunday",
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday"
+    }
+  },
+  "ui": {
+    "liveNow": "Live now",
+    "currentPeriod": "Current period",
+    "nextPeriod": "Next period",
+    "timeRemaining": "Time remaining",
+    "daytime": "Daytime",
+    "nighttime": "Nighttime",
+    "schedule": "Schedule",
+    "timeline": "Timeline",
+    "birthDetails": "Birth details",
+    "birthBird": "Birth bird",
+    "birthNakshatra": "Birth Nakshatra",
+    "location": "Location",
+    "timezone": "Timezone",
+    "calculate": "Calculate",
+    "useMyLocation": "Use my location",
+    "searchPlace": "Search for a place",
+    "manualEntry": "Enter coordinates manually",
+    "recentLocations": "Recent locations",
+    "clearSavedLocations": "Clear saved locations",
+    "clearSavedPreferences": "Clear saved preferences",
+    "currentLocation": "Current location",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "birthDate": "Birth date",
+    "birthTime": "Birth time",
+    "targetDate": "Date",
+    "targetTime": "Time",
+    "methodBirthDetails": "Birth details",
+    "methodKnownNakshatra": "Known Nakshatra and Paksha",
+    "methodDirectBird": "Direct bird selection",
+    "sunrise": "Sunrise",
+    "sunset": "Sunset",
+    "nextSunrise": "Next sunrise",
+    "paduPakshi": "Padu Pakshi",
+    "bharanaPakshi": "Bharana Pakshi",
+    "rating": "Rating",
+    "cached": "Cached",
+    "generatedAt": "Generated at",
+    "loading": "Loading",
+    "error": "Something went wrong",
+    "languageSwitch": "English | සිංහල",
+    "switchToLightMode": "Switch to light mode",
+    "switchToDarkMode": "Switch to dark mode"
+  },
+  "disclaimer": {
+    "text": "Pancha Pakshi is a traditional astrological system. The information shown here is provided for cultural and informational purposes and is not scientifically validated. It must not replace medical, legal, financial, safety or other professional advice."
+  },
+  "pages": {
+    "about": {
+      "title": "About",
+      "body": "Fernando Family Astrology is an open-source platform for traditional astrology tools, built to be precise, bilingual, and transparent about how every number is calculated. The first tool is a live Pancha Pakshi timetable, calculated from real sunrise and sunset times for your exact location rather than a fixed schedule. Every calculation is powered by an openly licensed, version-pinned engine, and the full source code is public."
+    },
+    "privacy": {
+      "title": "Privacy",
+      "noAccounts": "This platform does not require or offer user accounts.",
+      "birthDataHandling": "Birth details and precise location you enter are used only to compute the result you asked for. They are never stored on the server, never written to logs, never sent to analytics, and never included in a shareable link.",
+      "localStorageTitle": "What's stored in your browser",
+      "localStorageBody": "Only non-sensitive preferences are saved locally on your device: your chosen language, light/dark theme, last-selected bird, a short list of recent locations, and the last successfully calculated schedule (so it can be shown while offline). None of this is birth date, birth time, or precise coordinates tied to a real event.",
+      "clearAction": "You can remove everything saved locally at any time."
+    },
+    "licensing": {
+      "title": "Licence",
+      "body": "This entire repository is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). The Pancha Pakshi calculation engine is powered by PyJHora, pinned to release V4.8.7 (commit ca22995), also AGPL-3.0. Because this is a network service built on AGPL-3.0 code, the corresponding source for exactly what's running is always available from the public repository linked below.",
+      "engineLabel": "Calculation engine",
+      "engineValue": "PyJHora V4.8.7 (commit ca22995), AGPL-3.0",
+      "repoLinkLabel": "View full licensing details and source code"
+    },
+    "methodology": {
+      "title": "Methodology",
+      "sunriseDay": "A Pancha Pakshi day runs from sunrise to the next sunrise, not from midnight to midnight. Sunrise, sunset, and the following sunrise are calculated precisely for your exact latitude, longitude, and timezone.",
+      "birdMapping": "Your birth bird is derived from your birth Nakshatra and Paksha (waxing or waning moon), following the traditional five-bird mapping, or can be selected directly if your birth details aren't known.",
+      "periods": "Each day is divided into 10 major periods (5 during the day, 5 at night) and 50 detailed sub-periods (5 within each major period), sourced from the pinned calculation engine's reference data — never invented or manually entered.",
+      "timezones": "All calculations use IANA timezones and account for daylight-saving transitions on the specific date requested.",
+      "limitations": "This is a traditional system provided for cultural and informational purposes; see the disclaimer for its limits.",
+      "sourceLinkLabel": "Read the full calculation methodology in the source repository"
+    }
+  }
+}

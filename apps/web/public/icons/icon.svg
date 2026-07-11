@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Original artwork for this project: a stylized sunrise-over-feather mark. -->
+  <rect width="512" height="512" rx="96" fill="#7c2d12"/>
+  <circle cx="256" cy="200" r="120" fill="#f5b942"/>
+  <path d="M256 200 m-70 0 a70 70 0 1 0 140 0 a70 70 0 1 0 -140 0" fill="#7c2d12"/>
+  <circle cx="256" cy="200" r="34" fill="#f5b942"/>
+  <path d="M40 420 Q256 320 472 420 L472 460 Q256 380 40 460 Z" fill="#fde68a"/>
+</svg>

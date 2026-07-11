@@ -32,3 +32,5 @@ build/
 # Logs
 *.log
 npm-debug.log*
+apps/web/.next/
+apps/web/tsconfig.tsbuildinfo

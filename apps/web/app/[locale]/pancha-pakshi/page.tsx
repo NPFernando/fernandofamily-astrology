@@ -39,6 +39,38 @@ function saveCachedSchedule(schedule: ScheduleResponse) {
   );
 }
 
+// Separate from the localStorage PWA offline cache above: this survives a
+// client-side route change within the same browser tab (e.g. switching
+// language, which navigates from /en/pancha-pakshi to /si/pancha-pakshi and
+// remounts this page under the new [locale] segment, wiping normal React
+// state) but not a new tab/session — so a restore from here is genuinely
+// still-live data, never mislabeled as offline/stale. Holds only the
+// computed schedule response, never the birth-data request that produced it.
+const SESSION_SCHEDULE_KEY = "ff_session_schedule";
+
+type SessionSchedule = { schedule: ScheduleResponse; serverTimeIso: string | null; fetchedAtClientMs: number };
+
+function loadSessionSchedule(): SessionSchedule | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(SESSION_SCHEDULE_KEY);
+    return raw ? (JSON.parse(raw) as SessionSchedule) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveSessionSchedule(schedule: ScheduleResponse, serverTime: Date | null, fetchedAtClientMs: number) {
+  window.sessionStorage.setItem(
+    SESSION_SCHEDULE_KEY,
+    JSON.stringify({
+      schedule,
+      serverTimeIso: serverTime ? serverTime.toISOString() : null,
+      fetchedAtClientMs,
+    } satisfies SessionSchedule),
+  );
+}
+
 export default function PanchaPakshiPage() {
   const { dict, locale } = useLocale();
   const [method, setMethod] = useState<Method>("bird");
@@ -71,18 +103,40 @@ export default function PanchaPakshiPage() {
     };
   }, []);
 
+  useEffect(() => {
+    // Restores a schedule lost to the remount that happens when switching
+    // language (the locale segment changing navigates to a new pathname,
+    // which unmounts this page). Same-tab-session only, so this never
+    // resurrects genuinely old data across a new visit — see
+    // loadSessionSchedule's comment.
+    const restored = loadSessionSchedule();
+    if (restored) {
+      /* eslint-disable react-hooks/set-state-in-effect -- one-time hydration
+         from sessionStorage on mount, same pattern as the isOnline effect
+         above; there's no "external system" to subscribe to here instead. */
+      setSchedule(restored.schedule);
+      setServerTime(restored.serverTimeIso ? new Date(restored.serverTimeIso) : null);
+      setFetchedAtClientMs(restored.fetchedAtClientMs);
+      setIsStale(false);
+      setCachedAtIso(null);
+      /* eslint-enable react-hooks/set-state-in-effect */
+    }
+  }, []);
+
   const runSchedule = useCallback(async (request: ScheduleRequest) => {
     setLastRequest(request);
     setLoading(true);
     setError(null);
     try {
       const { data, serverTime: st } = await fetchScheduleWithServerTime(request);
+      const fetchedAtMs = Date.now();
       setSchedule(data);
       setServerTime(st);
-      setFetchedAtClientMs(Date.now());
+      setFetchedAtClientMs(fetchedAtMs);
       setIsStale(false);
       setCachedAtIso(null);
       saveCachedSchedule(data);
+      saveSessionSchedule(data, st, fetchedAtMs);
     } catch (e) {
       // Offline / request failed — fall back to the last cached schedule,
       // clearly labeled as cached, never presented as live. No client-side

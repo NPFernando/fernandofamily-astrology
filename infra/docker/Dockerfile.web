@@ -34,15 +34,18 @@ ENV NODE_ENV=production \
     PORT=3000 \
     HOSTNAME=0.0.0.0
 RUN groupadd --system app && useradd --system --gid app --home /app app
-WORKDIR /app
 # next.config.ts sets outputFileTracingRoot to the monorepo root, so the
-# standalone server (with its own traced node_modules) is nested under
-# apps/web within the traced output.
-COPY --from=builder /repo/apps/web/.next/standalone/apps/web ./
-COPY --from=builder /repo/apps/web/.next/static ./.next/static
-COPY --from=builder /repo/apps/web/public ./public
+# standalone output nests the server under apps/web. Copy the tree from its
+# ROOT, not from apps/web: the traced node_modules are pnpm-style symlink
+# farms, and Turbopack's external aliases (.next/node_modules/pg-<hash>)
+# point 4 levels up and back down into apps/web/node_modules/.pnpm — links
+# that dangle unless the full standalone directory structure is preserved.
+COPY --from=builder /repo/apps/web/.next/standalone /app
+COPY --from=builder /repo/apps/web/.next/static /app/apps/web/.next/static
+COPY --from=builder /repo/apps/web/public /app/apps/web/public
 RUN chown -R app:app /app
 USER app
+WORKDIR /app/apps/web
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:3000/en').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"

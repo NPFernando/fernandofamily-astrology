@@ -13,5 +13,5 @@ if [[ ! "$IMAGE_TAG" =~ ^[a-zA-Z0-9._-]{1,64}$ ]]; then
   exit 1
 fi
 
-cd /srv/projects/dev/fernandofamily-astrology
+cd /home/ubuntu/workspace/projects/fernandofamily-astrology
 exec bash infra/deploy/deploy.sh "$IMAGE_TAG"

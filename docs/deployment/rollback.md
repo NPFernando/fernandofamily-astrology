@@ -15,7 +15,7 @@ tag in a `.last-good-tag` file on the production host. On each deploy:
 ## Manual rollback
 
 ```bash
-cd /srv/projects/dev/fernandofamily-astrology   # or wherever it's deployed
+cd /home/ubuntu/workspace/projects/fernandofamily-astrology   # or wherever it's deployed
 cat .last-good-tag                               # see what "known good" currently is
 IMAGE_TAG=<previous-good-sha> docker compose \
   -f docker-compose.yml -f docker-compose.production.yml up -d --no-build

@@ -1,0 +1,10 @@
+# Default owner for everything not otherwise specified.
+*                                   @NPFernando
+
+# The vendored engine and its checksum manifest — changes here need extra
+# scrutiny, since they affect calculation correctness and AGPL provenance.
+/apps/api/vendor/                  @NPFernando
+
+# Production deployment surface.
+/infra/                            @NPFernando
+/.github/workflows/                @NPFernando

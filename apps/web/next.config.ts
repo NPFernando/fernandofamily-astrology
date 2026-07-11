@@ -16,7 +16,16 @@ const nextConfig: NextConfig = {
     root: path.join(__dirname, "../.."),
   },
   async rewrites() {
-    return [{ source: "/api/:path*", destination: `${API_PROXY_TARGET}/api/:path*` }];
+    // `fallback` (not the default afterFiles) is load-bearing: afterFiles
+    // rewrites run BEFORE dynamic routes are matched, so a plain rewrite
+    // here would swallow /api/auth/[...nextauth] and /api/account/*/[id]
+    // and proxy them to FastAPI. Fallback rewrites only apply when no Next
+    // route — static or dynamic — matched the request.
+    return {
+      beforeFiles: [],
+      afterFiles: [],
+      fallback: [{ source: "/api/:path*", destination: `${API_PROXY_TARGET}/api/:path*` }],
+    };
   },
 };
 

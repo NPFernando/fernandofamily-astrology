@@ -1,11 +1,17 @@
 # Privacy
 
-## No accounts, no server-side storage of birth data
+## Accounts are optional; birth data never lives on the server
 
-This app doesn't require an account, and doesn't store birth details (date,
-time, or precise location) anywhere on the server. Each calculation request
-is processed and its result returned; nothing about the request itself is
-retained afterward.
+This app doesn't require an account. Everything works anonymously, with all
+data kept on your device. Each calculation request is processed and its
+result returned; nothing about the request itself is retained afterward.
+
+An **invite-only Google sign-in** exists for syncing saved profiles and
+preferences across devices. When signed in, the server stores only: a label
+you chose, plus the derived bird — or nakshatra and paksha. **Raw birth
+date, time, and coordinates are never stored server-side, signed in or
+not** (they're not even sent to the account endpoints). Who may sign in is
+controlled by an explicit server-side allowlist.
 
 Birth data and precise coordinates are never:
 

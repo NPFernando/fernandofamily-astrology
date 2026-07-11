@@ -15,6 +15,10 @@ import { NakshatraPakshaForm } from "@/components/pancha-pakshi/NakshatraPakshaF
 import { BirdSelector } from "@/components/pancha-pakshi/BirdSelector";
 import { ScheduleTimeline } from "@/components/pancha-pakshi/ScheduleTimeline";
 import { LiveCountdown } from "@/components/pancha-pakshi/LiveCountdown";
+import { SavedProfiles } from "@/components/pancha-pakshi/SavedProfiles";
+import { DEFAULT_LOCATION, mostRecentLocation } from "@/components/pancha-pakshi/LocationPicker";
+import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
+import type { SavedProfile } from "@/lib/profiles";
 
 type Method = "birth_datetime" | "nakshatra_paksha" | "bird";
 
@@ -160,6 +164,46 @@ export default function PanchaPakshiPage() {
     if (lastRequest && isOnline) runSchedule(lastRequest);
   }, [lastRequest, isOnline, runSchedule]);
 
+  // The identity of the current result, offered as "save as profile". Only
+  // the derived bird (or the entered nakshatra+paksha) is kept — a result
+  // computed from full birth details deliberately saves just the bird.
+  const saveCandidate: Omit<SavedProfile, "id" | "created_at" | "label"> | null =
+    schedule && lastRequest
+      ? lastRequest.method === "nakshatra_paksha"
+        ? {
+            bird: null,
+            nakshatra_index: lastRequest.nakshatra_index,
+            paksha: lastRequest.paksha,
+          }
+        : { bird: schedule.birth_bird, nakshatra_index: null, paksha: null }
+      : null;
+
+  const scheduleFromProfile = useCallback(
+    (profile: SavedProfile) => {
+      const location = mostRecentLocation() ?? DEFAULT_LOCATION;
+      const target = nowAsTargetDateTime();
+      const base = {
+        target_date: target.date,
+        target_time: target.time,
+        location_name: location.name,
+        latitude: location.latitude,
+        longitude: location.longitude,
+        iana_tz: location.iana_tz,
+      };
+      if (profile.bird) {
+        runSchedule({ ...base, method: "bird", bird: profile.bird });
+      } else if (profile.nakshatra_index && profile.paksha) {
+        runSchedule({
+          ...base,
+          method: "nakshatra_paksha",
+          nakshatra_index: profile.nakshatra_index,
+          paksha: profile.paksha,
+        });
+      }
+    },
+    [runSchedule],
+  );
+
   const tabs: { id: Method; label: string }[] = [
     { id: "birth_datetime", label: dict.ui.methodBirthDetails },
     { id: "nakshatra_paksha", label: dict.ui.methodKnownNakshatra },
@@ -208,6 +252,8 @@ export default function PanchaPakshiPage() {
           <ScheduleTimeline schedule={schedule} />
         </div>
       )}
+
+      <SavedProfiles onPick={scheduleFromProfile} saveCandidate={saveCandidate} />
 
       <div role="tablist" aria-label={dict.ui.birthDetails} className="flex gap-2 border-b border-black/10 dark:border-white/10">
         {tabs.map((tab) => (

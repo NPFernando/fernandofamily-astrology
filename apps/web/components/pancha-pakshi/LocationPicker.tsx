@@ -38,6 +38,20 @@ export function clearRecentLocations() {
   window.localStorage.removeItem(RECENT_LOCATIONS_KEY);
 }
 
+// The platform's configured default (Colombo) — used when something needs a
+// location before the user has picked one, e.g. scheduling from a saved
+// profile chip on a fresh device.
+export const DEFAULT_LOCATION: LocationValue = {
+  name: "Colombo, Sri Lanka",
+  latitude: 6.9271,
+  longitude: 79.8612,
+  iana_tz: "Asia/Colombo",
+};
+
+export function mostRecentLocation(): LocationValue | null {
+  return loadRecent()[0] ?? null;
+}
+
 type Tab = "device" | "search" | "manual";
 
 type SearchResult = {

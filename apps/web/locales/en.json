@@ -136,7 +136,17 @@
     "endsAt": "Ends",
     "day": "Day",
     "night": "Night",
-    "current": "Current"
+    "current": "Current",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "signInInviteOnly": "Sign-in is currently invite-only.",
+    "signInFailed": "Sign-in failed. Please try again.",
+    "saveAsProfile": "Save as profile",
+    "profileLabelPrompt": "Name for this profile (e.g. a family member)",
+    "savedProfiles": "Saved profiles",
+    "deleteProfile": "Remove",
+    "profileSaved": "Profile saved",
+    "syncedToAccount": "Synced to your account"
   },
   "disclaimer": {
     "text": "Pancha Pakshi is a traditional astrological system. The information shown here is provided for cultural and informational purposes and is not scientifically validated. It must not replace medical, legal, financial, safety or other professional advice."
@@ -148,11 +158,12 @@
     },
     "privacy": {
       "title": "Privacy",
-      "noAccounts": "This platform does not require or offer user accounts.",
+      "noAccounts": "Accounts are optional. Everything works without signing in, with all data kept on your device. An invite-only Google sign-in exists for syncing saved profiles across devices.",
       "birthDataHandling": "Birth details and precise location you enter are used only to compute the result you asked for. They are never stored on the server, never written to logs, never sent to analytics, and never included in a shareable link.",
       "localStorageTitle": "What's stored in your browser",
       "localStorageBody": "Only non-sensitive preferences are saved locally on your device: your chosen language, light/dark theme, last-selected bird, a short list of recent locations, and the last successfully calculated schedule (so it can be shown while offline). None of this is birth date, birth time, or precise coordinates tied to a real event.",
-      "clearAction": "You can remove everything saved locally at any time."
+      "clearAction": "You can remove everything saved locally at any time.",
+      "accountsBody": "If you sign in (currently invite-only), your saved profiles and preferences sync to the server so they follow you across devices. Only a label plus the derived bird — or nakshatra and paksha — is stored server-side. Raw birth date, time, and coordinates are never stored on the server, signed in or not."
     },
     "licensing": {
       "title": "Licence",

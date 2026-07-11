@@ -12,6 +12,7 @@ export default function PrivacyPage() {
     <article className="max-w-2xl">
       <h1 className="text-2xl font-bold">{dict.pages.privacy.title}</h1>
       <p className="mt-4 leading-relaxed">{dict.pages.privacy.noAccounts}</p>
+      <p className="mt-4 leading-relaxed">{dict.pages.privacy.accountsBody}</p>
       <p className="mt-4 leading-relaxed">{dict.pages.privacy.birthDataHandling}</p>
       <h2 className="mt-6 text-lg font-semibold">{dict.pages.privacy.localStorageTitle}</h2>
       <p className="mt-2 leading-relaxed">{dict.pages.privacy.localStorageBody}</p>

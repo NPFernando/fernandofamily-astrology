@@ -25,6 +25,11 @@ services:
     image: ${WEB_IMAGE:-ghcr.io/npfernando/fernandofamily-astrology-web}:${IMAGE_TAG:-latest}
     ports: !override
       - "127.0.0.1:3100:3000"
+    # Lets the web container reach the host's Postgres for account
+    # profiles/preferences (pg_hba on the host restricts containers to the
+    # astrology database + role only).
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     env_file:
       - .env
     restart: unless-stopped

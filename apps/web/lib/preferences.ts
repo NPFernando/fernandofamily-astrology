@@ -8,6 +8,7 @@ const PREFERENCE_KEYS = [
   "ff_selected_bird",
   "ff_recent_locations",
   "ff_last_schedule_cache",
+  "ff_saved_profiles",
 ] as const;
 
 export function clearSavedPreferences() {

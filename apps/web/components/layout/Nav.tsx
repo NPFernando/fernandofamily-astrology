@@ -6,6 +6,7 @@ import { enabledFeatures } from "@/lib/feature-registry";
 import { resolveKey } from "@/lib/i18n";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { LanguageSwitch } from "@/components/layout/LanguageSwitch";
+import { AccountMenu } from "@/components/layout/AccountMenu";
 
 export function Nav() {
   const { locale, dict } = useLocale();
@@ -33,6 +34,7 @@ export function Nav() {
         <div className="flex items-center gap-3">
           <LanguageSwitch />
           <ThemeToggle />
+          <AccountMenu />
         </div>
       </nav>
     </header>

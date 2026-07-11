@@ -1,6 +1,7 @@
 import hashlib
 import json
 from datetime import datetime, time as time_type
+from functools import lru_cache
 from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, Response
@@ -20,6 +21,10 @@ from app.modules.pancha_pakshi.requests import (
 router = APIRouter(prefix="/api/v1/pancha-pakshi", tags=["pancha-pakshi"])
 
 
+# Vendor files are immutable for the lifetime of a container (checksummed at
+# build time), so the metadata — which re-reads pin.json and hashes the whole
+# manifest — is computed once, not on every schedule request.
+@lru_cache(maxsize=1)
 def _engine_metadata() -> EngineMetadata:
     from pathlib import Path
 

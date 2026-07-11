@@ -1,0 +1,32 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Confirm .env.example's PyJHora pin matches the vendored manifest
+        run: |
+          set -euo pipefail
+          ENV_COMMIT=$(grep -E '^PYJHORA_COMMIT=' .env.example | cut -d= -f2)
+          PIN_COMMIT=$(python3 -c "import json; print(json.load(open('apps/api/vendor/pin.json'))['commit'])")
+          echo ".env.example PYJHORA_COMMIT=$ENV_COMMIT"
+          echo "vendor/pin.json commit=$PIN_COMMIT"
+          if [ "$ENV_COMMIT" != "$PIN_COMMIT" ]; then
+            echo "::error::PYJHORA_COMMIT in .env.example ($ENV_COMMIT) does not match apps/api/vendor/pin.json ($PIN_COMMIT) — the vendored engine was updated without updating the documented pin, or vice versa."
+            exit 1
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true

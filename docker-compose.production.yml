@@ -1,11 +1,16 @@
 services:
   api:
+    # Deploy pulls pre-built multi-arch images from GHCR rather than
+    # rebuilding on the production host — see infra/deploy/deploy.sh.
+    image: ${API_IMAGE:-ghcr.io/npfernando/fernandofamily-astrology-api}:${IMAGE_TAG:-latest}
     build:
       args:
         GIT_SHA: ${GIT_SHA}
-    ports:
-      # Loopback only — nginx on the host is the public edge (see
-      # docs/deployment/dns-and-https.md), and it proxies to these.
+    # !override (not merge) — Compose concatenates list-type keys like
+    # `ports` across files by default, which would leave the base file's
+    # 0.0.0.0:8000 binding active alongside this one. This must fully
+    # replace it, not add to it, or "loopback only" wouldn't be true.
+    ports: !override
       - "127.0.0.1:8100:8000"
     env_file:
       - .env
@@ -17,7 +22,8 @@ services:
         max-file: "3"
 
   web:
-    ports:
+    image: ${WEB_IMAGE:-ghcr.io/npfernando/fernandofamily-astrology-web}:${IMAGE_TAG:-latest}
+    ports: !override
       - "127.0.0.1:3100:3000"
     env_file:
       - .env

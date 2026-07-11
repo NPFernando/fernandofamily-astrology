@@ -1,0 +1,33 @@
+name: Deploy
+
+# Triggers after build.yml finishes on main. Gated behind the "production"
+# GitHub Environment — configure required reviewers on that Environment in
+# repo settings to require manual approval before this job runs; this
+# workflow does not (and should not) configure that itself.
+on:
+  workflow_run:
+    workflows: ["Build and publish images"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_SSH_HOST }}
+          username: ${{ secrets.DEPLOY_SSH_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd "${DEPLOY_PATH:-/srv/projects/prod/fernandofamily-astrology}"
+            git fetch origin main
+            git checkout "${{ github.event.workflow_run.head_sha }}"
+            bash infra/deploy/deploy.sh "${{ github.event.workflow_run.head_sha }}"

@@ -19,15 +19,17 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
+      # The deploy key's authorized_keys entry on the production host uses a
+      # forced `command=` restriction: no matter what "script" is sent over
+      # SSH, sshd always runs infra/deploy/run-deploy.sh instead, passing
+      # whatever was requested here as $SSH_ORIGINAL_COMMAND. That wrapper
+      # validates it's a bare image tag and then runs deploy.sh itself (which
+      # already does its own `docker compose pull` from GHCR) — so the only
+      # thing that needs to cross the wire is the tag, not a shell script.
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.DEPLOY_SSH_HOST }}
           username: ${{ secrets.DEPLOY_SSH_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script: |
-            set -euo pipefail
-            cd "${DEPLOY_PATH:-/srv/projects/prod/fernandofamily-astrology}"
-            git fetch origin main
-            git checkout "${{ github.event.workflow_run.head_sha }}"
-            bash infra/deploy/deploy.sh "${{ github.event.workflow_run.head_sha }}"
+          script: ${{ github.event.workflow_run.head_sha }}

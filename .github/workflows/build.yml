@@ -10,12 +10,24 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  API_IMAGE: ghcr.io/${{ github.repository_owner }}/fernandofamily-astrology-api
-  WEB_IMAGE: ghcr.io/${{ github.repository_owner }}/fernandofamily-astrology-web
 
 jobs:
-  build-api:
+  vars:
     runs-on: ubuntu-latest
+    outputs:
+      owner: ${{ steps.lower.outputs.owner }}
+    steps:
+      - name: Lowercase the repository owner (GHCR requires lowercase image names)
+        id: lower
+        run: echo "owner=${OWNER,,}" >> "$GITHUB_OUTPUT"
+        env:
+          OWNER: ${{ github.repository_owner }}
+
+  build-api:
+    needs: vars
+    runs-on: ubuntu-latest
+    env:
+      API_IMAGE: ghcr.io/${{ needs.vars.outputs.owner }}/fernandofamily-astrology-api
     steps:
       - uses: actions/checkout@v4
 
@@ -41,7 +53,10 @@ jobs:
             ${{ env.API_IMAGE }}:latest
 
   build-web:
+    needs: vars
     runs-on: ubuntu-latest
+    env:
+      WEB_IMAGE: ghcr.io/${{ needs.vars.outputs.owner }}/fernandofamily-astrology-web
     steps:
       - uses: actions/checkout@v4
 

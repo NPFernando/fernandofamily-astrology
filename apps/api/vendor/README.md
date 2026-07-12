@@ -75,3 +75,37 @@ build, and readiness checks.
 3. Update `PYJHORA_VERSION`/`PYJHORA_COMMIT` in `.env.example` to match.
 4. Never silently reuse a previous checksum manifest — always regenerate it
    from the newly fetched source.
+
+## Image vs repo profiles
+
+The repository keeps the complete vendored dataset (see
+`FUTURE_DATA_USES.md` for why and what the retained data enables). The
+Docker image ships a trimmed copy — everything except `jhora/data/ephe/`,
+plus only `sepl_18.se1`, `semo_18.se1`, and `seleapsec.txt` (1800–2399 CE
+coverage; ~3 MB instead of ~105 MB).
+
+- `MANIFEST.sha256` — full repo tree (verified in CI and at the start of the
+  Docker build; `--profile repo`).
+- `MANIFEST.image.sha256` — the shipped subset (verified after the trimmed
+  copy is assembled in the build and by the readiness probe inside the
+  container, which runs with `FF_VENDOR_PROFILE=image`; `--profile image`).
+
+Regenerate the image manifest after changing the curated file list (keep it
+in sync with the `cp` list in `infra/docker/Dockerfile.api`):
+
+```bash
+cd apps/api
+python3 - <<'PY'
+keep = {"data/ephe/sepl_18.se1", "data/ephe/semo_18.se1", "data/ephe/seleapsec.txt"}
+lines = [l for l in open("vendor/MANIFEST.sha256").read().splitlines()
+         if l.strip() and (not l.split("  ", 1)[1].startswith("data/ephe/")
+                           or l.split("  ", 1)[1] in keep)]
+open("vendor/MANIFEST.image.sha256", "w").write("\n".join(lines) + "\n")
+PY
+```
+
+Outside the shipped 1800–2399 range, swisseph does **not** raise — it
+silently falls back to its built-in lower-precision theory. That's why the
+API rejects out-of-range dates with a controlled error when
+`FF_VENDOR_PROFILE=image` (see `validation.py`): silent approximation is
+never acceptable here.

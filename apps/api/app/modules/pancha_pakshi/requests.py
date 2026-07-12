@@ -4,7 +4,7 @@ from typing import Annotated, Literal, Union
 
 from pydantic import BaseModel, Field
 
-from app.modules.pancha_pakshi.enums import BirdId, PakshaId
+from app.modules.pancha_pakshi.enums import BirdId, PakshaId, PeriodKind
 
 
 class _TargetAndLocation(BaseModel):
@@ -48,6 +48,34 @@ ScheduleRequest = Annotated[
 # resolve a bird from birth information — "bird" is direct selection, there is
 # nothing to compute.
 BirthBirdRequest = Annotated[Union[BirthDateTimeInput, NakshatraPakshaInput], Field(discriminator="method")]
+
+
+# Auspicious-window search: same three input methods; target_date acts as the
+# START date and target_time as the time-of-day each daily schedule is
+# computed for. days is capped low because each day costs one full schedule
+# computation server-side.
+class _WindowsParams(BaseModel):
+    days: int = Field(default=7, ge=1, le=14)
+    min_effect: Literal["good", "very_good"] = "good"
+    kinds: list[PeriodKind] | None = None
+
+
+class BirthDateTimeWindowsInput(BirthDateTimeInput, _WindowsParams):
+    pass
+
+
+class NakshatraPakshaWindowsInput(NakshatraPakshaInput, _WindowsParams):
+    pass
+
+
+class BirdSelectionWindowsInput(BirdSelectionInput, _WindowsParams):
+    pass
+
+
+WindowsRequest = Annotated[
+    Union[BirthDateTimeWindowsInput, NakshatraPakshaWindowsInput, BirdSelectionWindowsInput],
+    Field(discriminator="method"),
+]
 
 
 class BirthBirdResponse(BaseModel):

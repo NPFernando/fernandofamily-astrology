@@ -16,6 +16,7 @@ from app.modules.pancha_pakshi.requests import (
     BirthDateTimeInput,
     NakshatraPakshaInput,
     ScheduleRequest,
+    WindowsRequest,
 )
 
 router = APIRouter(prefix="/api/v1/pancha-pakshi", tags=["pancha-pakshi"])
@@ -107,6 +108,53 @@ def schedule(body: ScheduleRequest) -> ScheduleResponse:
 def current(body: ScheduleRequest) -> dict:
     result = _resolve_schedule(body)
     return {"current_period": result.current_period, "next_period": result.next_period}
+
+
+_WINDOW_EFFECTS = {
+    "good": {"good", "very_good"},
+    "very_good": {"very_good"},
+}
+
+
+# One windows call computes up to 14 full schedules (the request model caps
+# `days`) — that's fine at current traffic under the shared per-IP limiter,
+# but give this route its own tighter bucket if it's ever abused.
+@router.post("/windows", dependencies=[Depends(enforce_rate_limit)])
+def windows(body: WindowsRequest) -> dict:
+    from datetime import timedelta
+
+    wanted_effects = _WINDOW_EFFECTS[body.min_effect]
+    wanted_kinds = {k.value for k in body.kinds} if body.kinds else None
+
+    results = []
+    first_schedule = None
+    for offset in range(body.days):
+        day_body = body.model_copy(update={"target_date": body.target_date + timedelta(days=offset)})
+        schedule = _resolve_schedule(day_body)
+        if first_schedule is None:
+            first_schedule = schedule
+        # The schedule's own sunrise date is the effective Pancha Pakshi date
+        # (a before-sunrise target time rolls back a day, so it can differ
+        # from the requested calendar date).
+        effective_date = schedule.sunrise.date().isoformat()
+        for major in schedule.major_periods:
+            for sp in major.sub_periods:
+                if sp.effect.value not in wanted_effects:
+                    continue
+                if wanted_kinds is not None and sp.kind.value not in wanted_kinds:
+                    continue
+                results.append({**sp.model_dump(), "effective_date": effective_date})
+
+    assert first_schedule is not None  # days >= 1 per the request model
+    return {
+        "engine": first_schedule.engine,
+        "location": first_schedule.location,
+        "birth_bird": first_schedule.birth_bird,
+        "from_date": body.target_date.isoformat(),
+        "days": body.days,
+        "min_effect": body.min_effect,
+        "windows": results,
+    }
 
 
 @router.get("/metadata", response_model=EngineMetadata)

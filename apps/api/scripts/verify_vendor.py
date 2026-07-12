@@ -9,15 +9,26 @@ import argparse
 import csv
 import hashlib
 import json
+import os
 import sys
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 API_DIR = SCRIPT_DIR.parent
-VENDOR_DIR = API_DIR / "vendor"
+# FF_VENDOR_DIR: alternate vendor tree (tests verifying a trimmed copy).
+VENDOR_DIR = Path(os.environ.get("FF_VENDOR_DIR") or API_DIR / "vendor")
 JHORA_DIR = VENDOR_DIR / "jhora"
-MANIFEST_PATH = VENDOR_DIR / "MANIFEST.sha256"
+# Profiles: "repo" verifies the full manifest (complete checkout, CI);
+# "image" verifies MANIFEST.image.sha256 — the subset the Docker image ships
+# (ephemeris trimmed to the supported 1800-2399 range; see vendor/README.md).
+# The Docker image sets FF_VENDOR_PROFILE=image so readiness picks the right
+# manifest without guessing from which files happen to exist.
+DEFAULT_PROFILE = os.environ.get("FF_VENDOR_PROFILE", "repo")
 PIN_PATH = VENDOR_DIR / "pin.json"
+
+
+def manifest_path_for(profile: str) -> Path:
+    return VENDOR_DIR / ("MANIFEST.image.sha256" if profile == "image" else "MANIFEST.sha256")
 
 EXPECTED_CSV_HEADER = [
     "week_day_index", "paksha_index", "daynight_index", "nak_bird_index",
@@ -34,12 +45,13 @@ class VerificationError(Exception):
     pass
 
 
-def verify_checksums() -> int:
-    if not MANIFEST_PATH.exists():
-        raise VerificationError(f"manifest not found: {MANIFEST_PATH}")
+def verify_checksums(profile: str) -> int:
+    manifest = manifest_path_for(profile)
+    if not manifest.exists():
+        raise VerificationError(f"manifest not found: {manifest}")
     failures = []
     checked = 0
-    for line in MANIFEST_PATH.read_text().splitlines():
+    for line in manifest.read_text().splitlines():
         if not line.strip():
             continue
         expected_hash, rel_path = line.split("  ", 1)
@@ -131,9 +143,10 @@ def verify_engine_import_and_calc(full: bool) -> dict:
     }
 
 
-def run_verification(mode: str) -> dict:
+def run_verification(mode: str, profile: str = DEFAULT_PROFILE) -> dict:
     results = {
-        "files_checked": verify_checksums(),
+        "profile": profile,
+        "files_checked": verify_checksums(profile),
         "csv_data_rows": verify_csv_schema(),
         "pin": verify_pin_metadata(),
         "engine": verify_engine_import_and_calc(full=(mode == "full")),
@@ -144,15 +157,16 @@ def run_verification(mode: str) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Verify vendored PyJHora engine integrity")
     parser.add_argument("--mode", choices=["full", "fast"], default="full")
+    parser.add_argument("--profile", choices=["repo", "image"], default=DEFAULT_PROFILE)
     args = parser.parse_args()
     try:
-        results = run_verification(args.mode)
+        results = run_verification(args.mode, args.profile)
     except VerificationError as exc:
-        print(f"VENDOR VERIFICATION FAILED ({args.mode} mode):", file=sys.stderr)
+        print(f"VENDOR VERIFICATION FAILED ({args.mode} mode, {args.profile} profile):", file=sys.stderr)
         print(str(exc), file=sys.stderr)
         sys.exit(1)
 
-    print(f"Vendor verification passed ({args.mode} mode).")
+    print(f"Vendor verification passed ({args.mode} mode, {args.profile} profile).")
     print(f"  Checksummed files: {results['files_checked']}")
     print(f"  CSV data rows: {results['csv_data_rows']}")
     print(f"  Pinned commit: {results['pin']['commit']}")

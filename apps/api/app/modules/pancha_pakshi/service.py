@@ -28,6 +28,8 @@ def schedule_from_birth_datetime(
     engine: EngineMetadata,
 ) -> ScheduleResponse:
     tz = validation.validate_location(latitude, longitude, iana_tz)
+    validation.validate_supported_date(birth_date, "birth_date")
+    validation.validate_supported_date(target_date, "target_date")
     birth_bird = calculator.compute_birth_bird(
         birth_date.year,
         birth_date.month,
@@ -75,6 +77,7 @@ def schedule_from_nakshatra_paksha(
 ) -> ScheduleResponse:
     validation.validate_nakshatra_index(nakshatra_index)
     tz = validation.validate_location(latitude, longitude, iana_tz)
+    validation.validate_supported_date(target_date, "target_date")
     paksha_column = 0 if paksha == PakshaId.waxing else 1
     bird_1based = repository.BIRTH_BIRD_TABLE[nakshatra_index - 1][paksha_column]
     birth_bird = repository.BIRD_ORDER[bird_1based - 1]
@@ -111,6 +114,7 @@ def schedule_from_bird(
     engine: EngineMetadata,
 ) -> ScheduleResponse:
     tz = validation.validate_location(latitude, longitude, iana_tz)
+    validation.validate_supported_date(target_date, "target_date")
     _, _, offset_hours, _ = calculator.resolve_effective_jd(
         target_date.year, target_date.month, target_date.day, target_time.hour, target_time.minute, target_time.second,
         location_name, latitude, longitude, tz,
@@ -131,3 +135,4 @@ def schedule_from_bird(
         location,
         engine,
     )
+

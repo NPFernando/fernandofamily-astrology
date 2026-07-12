@@ -1,4 +1,5 @@
 import csv
+import os
 from pathlib import Path
 
 from app.modules.pancha_pakshi.enums import ActivityId, BirdId, EffectId, RelationId, WeekdayId
@@ -40,7 +41,8 @@ BIRTH_BIRD_TABLE: list[tuple[int, int]] = (
 )
 assert len(BIRTH_BIRD_TABLE) == 27
 
-_CSV_PATH = Path(__file__).resolve().parents[3] / "vendor" / "jhora" / "data" / "pancha_pakshi_db.csv"
+_VENDOR_DIR = Path(os.environ.get("FF_VENDOR_DIR") or Path(__file__).resolve().parents[3] / "vendor")
+_CSV_PATH = _VENDOR_DIR / "jhora" / "data" / "pancha_pakshi_db.csv"
 
 _EXPECTED_COLUMNS = [
     "week_day_index",

@@ -67,3 +67,74 @@ jobs:
       - name: Test (i18n hygiene, no-birth-fields-in-URL)
         working-directory: apps/web
         run: pnpm test
+
+  contracts-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build tools
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends gcc g++
+
+      - name: Install API dependencies into a venv (generate.mjs expects apps/api/.venv)
+        working-directory: apps/api
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -r requirements.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Enable Corepack (pnpm)
+        run: corepack enable
+
+      - name: Install web dependencies (provides openapi-typescript)
+        working-directory: apps/web
+        run: pnpm install --frozen-lockfile
+
+      - name: Regenerate contracts and fail on drift
+        run: |
+          node packages/contracts/generate.mjs
+          git diff --exit-code packages/contracts/openapi.json packages/contracts/api-types.d.ts
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build tools
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends gcc g++
+
+      - name: Install API dependencies into a venv (playwright webServer launches it)
+        working-directory: apps/api
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -r requirements.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Enable Corepack (pnpm)
+        run: corepack enable
+
+      - name: Install web dependencies
+        working-directory: apps/web
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright chromium
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E suite (builds web, launches API + web via playwright webServer)
+        working-directory: apps/web
+        run: pnpm e2e

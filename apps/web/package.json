@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node scripts/check-i18n-hygiene.mjs && node scripts/check-no-birth-fields-in-urls.mjs"
+    "test": "node scripts/check-i18n-hygiene.mjs && node scripts/check-no-birth-fields-in-urls.mjs",
+    "e2e": "API_PROXY_TARGET=http://127.0.0.1:8199 next build && playwright test",
+    "e2e:only": "playwright test"
   },
   "dependencies": {
     "next": "16.2.10",
@@ -18,6 +20,7 @@
     "tz-lookup": "^6.1.25"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/pg": "^8.20.0",
@@ -26,6 +29,7 @@
     "@types/tz-lookup": "^6.1.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
+    "openapi-typescript": "^7.13.0",
     "sharp": "^0.35.3",
     "tailwindcss": "^4",
     "typescript": "^5"

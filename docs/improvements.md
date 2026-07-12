@@ -5,6 +5,28 @@ performance, ops), prioritized. Effort: S (&lt; half a day), M (a day or two),
 L (multi-day). Items reference real code as it exists today — re-verify
 against the current tree before acting on an old copy of this document.
 
+## Status (updated after the round-3 implementation pass)
+
+**Shipped since this audit was written:** all four P0s (proxy-aware rate
+limiting + idle-bucket eviction, cached engine metadata, per-page metadata
+via server components); P1 items 1 (server components), 2 (visual pass:
+original bird/activity icons, dawn hero, design tokens now in
+`packages/design-system`), 3 (proportional sunrise→sunrise timeline bar),
+4 (motion behind `prefers-reduced-motion`), 5 (OG image + JSON-LD),
+6 (**auspicious-windows endpoint** `POST /windows` + week view + "Best times
+today" card), and 7 (committed Playwright E2E suite, `pnpm e2e`, in CI);
+P3's contracts codegen (`packages/contracts/generate.mjs` + CI drift check).
+Also shipped beyond the audit: zero-click first result, date navigation,
+legend, sticky current bar, saved profiles (local + account sync), the
+invite-only auth scaffold, an image-level ephemeris trim
+(`apps/api/vendor/FUTURE_DATA_USES.md`), and ten bug fixes from a follow-up
+hunt (pool crash guard, stale-closure refetch, profile merge races, search
+debounce/abort, skew-consistent timeline, sw.js cache hygiene, and more).
+
+**Still open:** remaining P2 items (install-prompt UX, iOS PWA quirks,
+per-page OG variants), web-push notifications, and everything in
+`docs/roadmap.md`'s backlog.
+
 ## P0 — quick wins / genuine defects
 
 1. **Rate limiter counts all users as one client** (S) —

@@ -91,7 +91,11 @@ export function WeekView({
           { weekday: "short", month: "short", day: "numeric" },
         );
         return (
-          <div key={date} className="rounded-xl border border-black/10 p-2.5 dark:border-white/10">
+          <div
+            key={date}
+            data-testid="week-day"
+            className="rounded-xl border border-black/10 p-2.5 dark:border-white/10"
+          >
             <button
               type="button"
               onClick={() => onPickDay(date)}
@@ -110,6 +114,7 @@ export function WeekView({
                     <li key={`${w.effective_date}-${w.id}`}>
                       <button
                         type="button"
+                        data-testid="week-window-chip"
                         onClick={() => onPickDay(date)}
                         title={`${translateEnum(dict, "birds", w.sub_bird)} · ${translateEnum(dict, "activities", w.sub_activity)} · ${translateEnum(dict, "effects", w.effect)}`}
                         className="flex w-full items-center gap-1 rounded-md border border-black/5 px-1.5 py-1 text-left text-xs hover:border-accent/50 dark:border-white/10"

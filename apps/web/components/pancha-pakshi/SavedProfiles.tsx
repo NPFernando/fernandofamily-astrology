@@ -12,10 +12,12 @@ import {
   mergeLocalToServerOnce,
   type SavedProfile,
 } from "@/lib/profiles";
+import { useSessionProbe } from "@/lib/use-session-probe";
 
 // Renders the saved-profile chips and exposes a save affordance for the
-// current result. Session state is probed the same way AccountMenu does —
-// a 404 from the session endpoint simply means "anonymous, local-only".
+// current result. Session state comes from the shared probe (one request per
+// page load, shared with AccountMenu — see lib/use-session-probe.ts); a
+// disabled auth system simply means "anonymous, local-only".
 export function SavedProfiles({
   onPick,
   saveCandidate,
@@ -26,8 +28,9 @@ export function SavedProfiles({
   saveCandidate: Omit<SavedProfile, "id" | "created_at" | "label"> | null;
 }) {
   const { dict, locale } = useLocale();
+  const probe = useSessionProbe();
+  const signedIn = Boolean(probe.user?.email);
   const [profiles, setProfiles] = useState<SavedProfile[]>([]);
-  const [signedIn, setSignedIn] = useState(false);
   const [saving, setSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
 
@@ -36,27 +39,16 @@ export function SavedProfiles({
   }, []);
 
   useEffect(() => {
+    if (!probe.loaded) return;
     let cancelled = false;
     (async () => {
-      let isSignedIn = false;
-      try {
-        const res = await fetch("/api/auth/session");
-        if (res.ok) {
-          const data = await res.json();
-          isSignedIn = Boolean(data?.user?.email);
-        }
-      } catch {
-        // network hiccup -> stay local
-      }
-      if (cancelled) return;
-      setSignedIn(isSignedIn);
-      if (isSignedIn) await mergeLocalToServerOnce();
-      if (!cancelled) await refresh(isSignedIn);
+      if (signedIn) await mergeLocalToServerOnce();
+      if (!cancelled) await refresh(signedIn);
     })();
     return () => {
       cancelled = true;
     };
-  }, [refresh]);
+  }, [probe.loaded, signedIn, refresh]);
 
   async function handleSave() {
     if (!saveCandidate) return;

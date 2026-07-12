@@ -3,7 +3,10 @@
 Open-source bilingual (English / Sinhala) astrology platform powering
 [astrology.fernandofamily.com](https://astrology.fernandofamily.com), starting
 with an accurate, live **Pancha Pakshi** timetable
-([`/pancha-pakshi`](https://astrology.fernandofamily.com/pancha-pakshi)).
+([`/pancha-pakshi`](https://astrology.fernandofamily.com/pancha-pakshi)) —
+zero-click today view, date navigation, timeline/table/week views, favourable-
+window search (`POST /api/v1/pancha-pakshi/windows`), and saved profiles that
+stay on your device (with optional invite-only account sync).
 
 This repository is public because it depends on AGPL-3.0-licensed code
 (PyJHora, Swiss Ephemeris) and the deployed site must make the corresponding
@@ -114,6 +117,13 @@ are GitHub Actions repository secrets, never files in this repo.
   birth fields on any `GET` route).
 - Frontend: `pnpm test` — i18n hygiene (no hardcoded user-facing strings),
   no-birth-fields-in-URLs.
+- End-to-end: `pnpm e2e` (from `apps/web`, needs `apps/api/.venv`) — real
+  Chromium against the production build + real API: all three input methods
+  in both locales, zero-click load, saved profiles, language persistence,
+  table/week views, date navigation, mobile 360px, and a no-birth-data-in-URLs
+  watcher across every flow.
+- Contracts: `node packages/contracts/generate.mjs` regenerates the OpenAPI
+  schema + TypeScript types; CI fails if they drift from the committed copies.
 - CI runs all of the above on every push/PR — see
   [`docs/deployment/github-actions.md`](docs/deployment/github-actions.md).
 

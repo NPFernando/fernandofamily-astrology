@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -19,8 +23,18 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"],
-      "@fernandofamily/feature-registry": ["../../packages/feature-registry/index.ts"]
+      "@/*": [
+        "./*"
+      ],
+      "@fernandofamily/feature-registry": [
+        "../../packages/feature-registry/index.ts"
+      ],
+      "@fernandofamily/design-system": [
+        "../../packages/design-system/tokens.ts"
+      ],
+      "@fernandofamily/contracts": [
+        "../../packages/contracts/api-types.d.ts"
+      ]
     }
   },
   "include": [
@@ -30,7 +44,11 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts",
-    "../../packages/feature-registry/index.ts"
+    "../../packages/feature-registry/index.ts",
+    "../../packages/design-system/tokens.ts",
+    "../../packages/contracts/api-types.d.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

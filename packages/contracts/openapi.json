@@ -1,0 +1,1359 @@
+{
+  "components": {
+    "schemas": {
+      "ActivityId": {
+        "enum": [
+          "ruling",
+          "eating",
+          "walking",
+          "sleeping",
+          "dying"
+        ],
+        "title": "ActivityId",
+        "type": "string"
+      },
+      "BirdId": {
+        "enum": [
+          "vulture",
+          "owl",
+          "crow",
+          "cock",
+          "peacock"
+        ],
+        "title": "BirdId",
+        "type": "string"
+      },
+      "BirdSelectionInput": {
+        "properties": {
+          "as_of_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Date"
+          },
+          "as_of_time": {
+            "anyOf": [
+              {
+                "format": "time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Time"
+          },
+          "bird": {
+            "$ref": "#/components/schemas/BirdId"
+          },
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "method": {
+            "const": "bird",
+            "title": "Method",
+            "type": "string"
+          },
+          "target_date": {
+            "format": "date",
+            "title": "Target Date",
+            "type": "string"
+          },
+          "target_time": {
+            "format": "time",
+            "title": "Target Time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_date",
+          "target_time",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz",
+          "method",
+          "bird"
+        ],
+        "title": "BirdSelectionInput",
+        "type": "object"
+      },
+      "BirdSelectionWindowsInput": {
+        "properties": {
+          "as_of_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Date"
+          },
+          "as_of_time": {
+            "anyOf": [
+              {
+                "format": "time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Time"
+          },
+          "bird": {
+            "$ref": "#/components/schemas/BirdId"
+          },
+          "days": {
+            "default": 7,
+            "maximum": 14.0,
+            "minimum": 1.0,
+            "title": "Days",
+            "type": "integer"
+          },
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "kinds": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PeriodKind"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kinds"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "method": {
+            "const": "bird",
+            "title": "Method",
+            "type": "string"
+          },
+          "min_effect": {
+            "default": "good",
+            "enum": [
+              "good",
+              "very_good"
+            ],
+            "title": "Min Effect",
+            "type": "string"
+          },
+          "target_date": {
+            "format": "date",
+            "title": "Target Date",
+            "type": "string"
+          },
+          "target_time": {
+            "format": "time",
+            "title": "Target Time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_date",
+          "target_time",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz",
+          "method",
+          "bird"
+        ],
+        "title": "BirdSelectionWindowsInput",
+        "type": "object"
+      },
+      "BirthBirdResponse": {
+        "properties": {
+          "bharana_pakshi": {
+            "$ref": "#/components/schemas/BirdId"
+          },
+          "birth_bird": {
+            "$ref": "#/components/schemas/BirdId"
+          },
+          "padu_pakshi": {
+            "$ref": "#/components/schemas/BirdId"
+          }
+        },
+        "required": [
+          "birth_bird",
+          "padu_pakshi",
+          "bharana_pakshi"
+        ],
+        "title": "BirthBirdResponse",
+        "type": "object"
+      },
+      "BirthDateTimeInput": {
+        "properties": {
+          "as_of_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Date"
+          },
+          "as_of_time": {
+            "anyOf": [
+              {
+                "format": "time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Time"
+          },
+          "birth_date": {
+            "format": "date",
+            "title": "Birth Date",
+            "type": "string"
+          },
+          "birth_time": {
+            "format": "time",
+            "title": "Birth Time",
+            "type": "string"
+          },
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "method": {
+            "const": "birth_datetime",
+            "title": "Method",
+            "type": "string"
+          },
+          "target_date": {
+            "format": "date",
+            "title": "Target Date",
+            "type": "string"
+          },
+          "target_time": {
+            "format": "time",
+            "title": "Target Time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_date",
+          "target_time",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz",
+          "method",
+          "birth_date",
+          "birth_time"
+        ],
+        "title": "BirthDateTimeInput",
+        "type": "object"
+      },
+      "BirthDateTimeWindowsInput": {
+        "properties": {
+          "as_of_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Date"
+          },
+          "as_of_time": {
+            "anyOf": [
+              {
+                "format": "time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Time"
+          },
+          "birth_date": {
+            "format": "date",
+            "title": "Birth Date",
+            "type": "string"
+          },
+          "birth_time": {
+            "format": "time",
+            "title": "Birth Time",
+            "type": "string"
+          },
+          "days": {
+            "default": 7,
+            "maximum": 14.0,
+            "minimum": 1.0,
+            "title": "Days",
+            "type": "integer"
+          },
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "kinds": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PeriodKind"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kinds"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "method": {
+            "const": "birth_datetime",
+            "title": "Method",
+            "type": "string"
+          },
+          "min_effect": {
+            "default": "good",
+            "enum": [
+              "good",
+              "very_good"
+            ],
+            "title": "Min Effect",
+            "type": "string"
+          },
+          "target_date": {
+            "format": "date",
+            "title": "Target Date",
+            "type": "string"
+          },
+          "target_time": {
+            "format": "time",
+            "title": "Target Time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_date",
+          "target_time",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz",
+          "method",
+          "birth_date",
+          "birth_time"
+        ],
+        "title": "BirthDateTimeWindowsInput",
+        "type": "object"
+      },
+      "EffectId": {
+        "enum": [
+          "very_bad",
+          "bad",
+          "average",
+          "good",
+          "very_good"
+        ],
+        "title": "EffectId",
+        "type": "string"
+      },
+      "EngineMetadata": {
+        "properties": {
+          "commit": {
+            "title": "Commit",
+            "type": "string"
+          },
+          "csv_checksum": {
+            "title": "Csv Checksum",
+            "type": "string"
+          },
+          "deployed_commit": {
+            "title": "Deployed Commit",
+            "type": "string"
+          },
+          "ephemeris_manifest_checksum": {
+            "title": "Ephemeris Manifest Checksum",
+            "type": "string"
+          },
+          "name": {
+            "default": "PyJHora",
+            "title": "Name",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "commit",
+          "csv_checksum",
+          "ephemeris_manifest_checksum",
+          "deployed_commit"
+        ],
+        "title": "EngineMetadata",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "Location": {
+        "properties": {
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "utc_offset_minutes": {
+            "title": "Utc Offset Minutes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "latitude",
+          "longitude",
+          "iana_tz",
+          "utc_offset_minutes"
+        ],
+        "title": "Location",
+        "type": "object"
+      },
+      "MajorPeriod": {
+        "properties": {
+          "bharana_pakshi": {
+            "$ref": "#/components/schemas/BirdId"
+          },
+          "ends_at": {
+            "format": "date-time",
+            "title": "Ends At",
+            "type": "string"
+          },
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PeriodKind"
+          },
+          "main_activity": {
+            "$ref": "#/components/schemas/ActivityId"
+          },
+          "main_bird": {
+            "$ref": "#/components/schemas/BirdId"
+          },
+          "padu_pakshi": {
+            "$ref": "#/components/schemas/BirdId"
+          },
+          "starts_at": {
+            "format": "date-time",
+            "title": "Starts At",
+            "type": "string"
+          },
+          "sub_periods": {
+            "items": {
+              "$ref": "#/components/schemas/SubPeriod"
+            },
+            "title": "Sub Periods",
+            "type": "array"
+          }
+        },
+        "required": [
+          "index",
+          "kind",
+          "main_bird",
+          "main_activity",
+          "starts_at",
+          "ends_at",
+          "padu_pakshi",
+          "bharana_pakshi",
+          "sub_periods"
+        ],
+        "title": "MajorPeriod",
+        "type": "object"
+      },
+      "NakshatraPakshaInput": {
+        "properties": {
+          "as_of_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Date"
+          },
+          "as_of_time": {
+            "anyOf": [
+              {
+                "format": "time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Time"
+          },
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "method": {
+            "const": "nakshatra_paksha",
+            "title": "Method",
+            "type": "string"
+          },
+          "nakshatra_index": {
+            "title": "Nakshatra Index",
+            "type": "integer"
+          },
+          "paksha": {
+            "$ref": "#/components/schemas/PakshaId"
+          },
+          "target_date": {
+            "format": "date",
+            "title": "Target Date",
+            "type": "string"
+          },
+          "target_time": {
+            "format": "time",
+            "title": "Target Time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_date",
+          "target_time",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz",
+          "method",
+          "nakshatra_index",
+          "paksha"
+        ],
+        "title": "NakshatraPakshaInput",
+        "type": "object"
+      },
+      "NakshatraPakshaWindowsInput": {
+        "properties": {
+          "as_of_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Date"
+          },
+          "as_of_time": {
+            "anyOf": [
+              {
+                "format": "time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Time"
+          },
+          "days": {
+            "default": 7,
+            "maximum": 14.0,
+            "minimum": 1.0,
+            "title": "Days",
+            "type": "integer"
+          },
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "kinds": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PeriodKind"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kinds"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "method": {
+            "const": "nakshatra_paksha",
+            "title": "Method",
+            "type": "string"
+          },
+          "min_effect": {
+            "default": "good",
+            "enum": [
+              "good",
+              "very_good"
+            ],
+            "title": "Min Effect",
+            "type": "string"
+          },
+          "nakshatra_index": {
+            "title": "Nakshatra Index",
+            "type": "integer"
+          },
+          "paksha": {
+            "$ref": "#/components/schemas/PakshaId"
+          },
+          "target_date": {
+            "format": "date",
+            "title": "Target Date",
+            "type": "string"
+          },
+          "target_time": {
+            "format": "time",
+            "title": "Target Time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_date",
+          "target_time",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz",
+          "method",
+          "nakshatra_index",
+          "paksha"
+        ],
+        "title": "NakshatraPakshaWindowsInput",
+        "type": "object"
+      },
+      "PakshaId": {
+        "enum": [
+          "waxing",
+          "waning"
+        ],
+        "title": "PakshaId",
+        "type": "string"
+      },
+      "PeriodKind": {
+        "enum": [
+          "day",
+          "night"
+        ],
+        "title": "PeriodKind",
+        "type": "string"
+      },
+      "RelationId": {
+        "enum": [
+          "enemy",
+          "same",
+          "friend"
+        ],
+        "title": "RelationId",
+        "type": "string"
+      },
+      "ScheduleResponse": {
+        "properties": {
+          "bharana_pakshi": {
+            "$ref": "#/components/schemas/BirdId"
+          },
+          "birth_bird": {
+            "$ref": "#/components/schemas/BirdId"
+          },
+          "current_period": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SubPeriod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "engine": {
+            "$ref": "#/components/schemas/EngineMetadata"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "major_periods": {
+            "items": {
+              "$ref": "#/components/schemas/MajorPeriod"
+            },
+            "title": "Major Periods",
+            "type": "array"
+          },
+          "next_period": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SubPeriod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "next_sunrise": {
+            "format": "date-time",
+            "title": "Next Sunrise",
+            "type": "string"
+          },
+          "padu_pakshi": {
+            "$ref": "#/components/schemas/BirdId"
+          },
+          "paksha": {
+            "$ref": "#/components/schemas/PakshaId"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/ScheduleSummary"
+          },
+          "sunrise": {
+            "format": "date-time",
+            "title": "Sunrise",
+            "type": "string"
+          },
+          "sunset": {
+            "format": "date-time",
+            "title": "Sunset",
+            "type": "string"
+          },
+          "weekday": {
+            "$ref": "#/components/schemas/WeekdayId"
+          }
+        },
+        "required": [
+          "engine",
+          "location",
+          "sunrise",
+          "sunset",
+          "next_sunrise",
+          "birth_bird",
+          "paksha",
+          "weekday",
+          "padu_pakshi",
+          "bharana_pakshi",
+          "current_period",
+          "next_period",
+          "major_periods",
+          "summary"
+        ],
+        "title": "ScheduleResponse",
+        "type": "object"
+      },
+      "ScheduleSummary": {
+        "properties": {
+          "major_period_count": {
+            "default": 10,
+            "title": "Major Period Count",
+            "type": "integer"
+          },
+          "sub_period_count": {
+            "default": 50,
+            "title": "Sub Period Count",
+            "type": "integer"
+          }
+        },
+        "title": "ScheduleSummary",
+        "type": "object"
+      },
+      "SubPeriod": {
+        "properties": {
+          "duration_seconds": {
+            "title": "Duration Seconds",
+            "type": "integer"
+          },
+          "effect": {
+            "$ref": "#/components/schemas/EffectId"
+          },
+          "ends_at": {
+            "format": "date-time",
+            "title": "Ends At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_current": {
+            "title": "Is Current",
+            "type": "boolean"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PeriodKind"
+          },
+          "main_activity": {
+            "$ref": "#/components/schemas/ActivityId"
+          },
+          "main_bird": {
+            "$ref": "#/components/schemas/BirdId"
+          },
+          "major_index": {
+            "title": "Major Index",
+            "type": "integer"
+          },
+          "power_factor": {
+            "title": "Power Factor",
+            "type": "number"
+          },
+          "rating": {
+            "title": "Rating",
+            "type": "number"
+          },
+          "relation": {
+            "$ref": "#/components/schemas/RelationId"
+          },
+          "starts_at": {
+            "format": "date-time",
+            "title": "Starts At",
+            "type": "string"
+          },
+          "sub_activity": {
+            "$ref": "#/components/schemas/ActivityId"
+          },
+          "sub_bird": {
+            "$ref": "#/components/schemas/BirdId"
+          },
+          "sub_index": {
+            "title": "Sub Index",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "major_index",
+          "sub_index",
+          "starts_at",
+          "ends_at",
+          "duration_seconds",
+          "main_bird",
+          "main_activity",
+          "sub_bird",
+          "sub_activity",
+          "relation",
+          "power_factor",
+          "effect",
+          "rating",
+          "is_current"
+        ],
+        "title": "SubPeriod",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "WeekdayId": {
+        "enum": [
+          "sunday",
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday"
+        ],
+        "title": "WeekdayId",
+        "type": "string"
+      }
+    }
+  },
+  "info": {
+    "description": "Fernando Family Astrology API",
+    "title": "Fernando Family Astrology",
+    "version": "4.8.7"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/health/live": {
+      "get": {
+        "operationId": "live_api_v1_health_live_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Live Api V1 Health Live Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Live",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/v1/health/ready": {
+      "get": {
+        "operationId": "ready_api_v1_health_ready_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Ready Api V1 Health Ready Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Ready",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/v1/metadata": {
+      "get": {
+        "operationId": "platform_metadata_api_v1_metadata_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Platform Metadata Api V1 Metadata Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Platform Metadata",
+        "tags": [
+          "platform"
+        ]
+      }
+    },
+    "/api/v1/pancha-pakshi/birth-bird": {
+      "post": {
+        "operationId": "birth_bird_api_v1_pancha_pakshi_birth_bird_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "discriminator": {
+                  "mapping": {
+                    "birth_datetime": "#/components/schemas/BirthDateTimeInput",
+                    "nakshatra_paksha": "#/components/schemas/NakshatraPakshaInput"
+                  },
+                  "propertyName": "method"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/BirthDateTimeInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/NakshatraPakshaInput"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BirthBirdResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Birth Bird",
+        "tags": [
+          "pancha-pakshi"
+        ]
+      }
+    },
+    "/api/v1/pancha-pakshi/current": {
+      "post": {
+        "operationId": "current_api_v1_pancha_pakshi_current_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "discriminator": {
+                  "mapping": {
+                    "bird": "#/components/schemas/BirdSelectionInput",
+                    "birth_datetime": "#/components/schemas/BirthDateTimeInput",
+                    "nakshatra_paksha": "#/components/schemas/NakshatraPakshaInput"
+                  },
+                  "propertyName": "method"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/BirthDateTimeInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/NakshatraPakshaInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/BirdSelectionInput"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Current Api V1 Pancha Pakshi Current Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Current",
+        "tags": [
+          "pancha-pakshi"
+        ]
+      }
+    },
+    "/api/v1/pancha-pakshi/metadata": {
+      "get": {
+        "operationId": "metadata_api_v1_pancha_pakshi_metadata_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EngineMetadata"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Metadata",
+        "tags": [
+          "pancha-pakshi"
+        ]
+      }
+    },
+    "/api/v1/pancha-pakshi/schedule": {
+      "post": {
+        "operationId": "schedule_api_v1_pancha_pakshi_schedule_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "discriminator": {
+                  "mapping": {
+                    "bird": "#/components/schemas/BirdSelectionInput",
+                    "birth_datetime": "#/components/schemas/BirthDateTimeInput",
+                    "nakshatra_paksha": "#/components/schemas/NakshatraPakshaInput"
+                  },
+                  "propertyName": "method"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/BirthDateTimeInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/NakshatraPakshaInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/BirdSelectionInput"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Schedule",
+        "tags": [
+          "pancha-pakshi"
+        ]
+      }
+    },
+    "/api/v1/pancha-pakshi/windows": {
+      "post": {
+        "operationId": "windows_api_v1_pancha_pakshi_windows_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "discriminator": {
+                  "mapping": {
+                    "bird": "#/components/schemas/BirdSelectionWindowsInput",
+                    "birth_datetime": "#/components/schemas/BirthDateTimeWindowsInput",
+                    "nakshatra_paksha": "#/components/schemas/NakshatraPakshaWindowsInput"
+                  },
+                  "propertyName": "method"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/BirthDateTimeWindowsInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/NakshatraPakshaWindowsInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/BirdSelectionWindowsInput"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Windows Api V1 Pancha Pakshi Windows Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Windows",
+        "tags": [
+          "pancha-pakshi"
+        ]
+      }
+    }
+  }
+}

@@ -3,49 +3,22 @@
 import { useEffect, useRef, useState } from "react";
 import { signIn, signOut } from "next-auth/react";
 import { useLocale } from "@/lib/locale-context";
+import { useSessionProbe } from "@/lib/use-session-probe";
 
-type SessionInfo = { email: string; name?: string; image?: string } | null;
-
-// Self-detecting: probes /api/auth/session once on mount. When auth isn't
-// configured that route is a 404 (see app/api/auth/[...nextauth]/route.ts)
-// and this component renders nothing at all — the pre-auth UI, unchanged.
-// The flag can't be decided server-side in the layout: locale pages are
-// statically prerendered at image build time (without secrets, which must
-// never be baked into a published image), so only a runtime probe reflects
-// the deployed container's actual env. signIn/signOut from next-auth/react
-// handle the CSRF handshake and work without a <SessionProvider>.
+// Self-detecting via the shared session probe (one network request per page
+// load, shared with SavedProfiles — see lib/use-session-probe.ts). When auth
+// isn't configured the probe reports disabled and this renders nothing at
+// all — the pre-auth UI, unchanged. The flag can't be decided server-side in
+// the layout: locale pages are statically prerendered at image build time
+// (without secrets, which must never be baked into a published image), so
+// only a runtime probe reflects the deployed container's actual env.
+// signIn/signOut from next-auth/react handle the CSRF handshake and work
+// without a <SessionProvider>.
 export function AccountMenu() {
   const { dict } = useLocale();
-  const [enabled, setEnabled] = useState(false);
-  const [session, setSession] = useState<SessionInfo>(null);
-  const [loaded, setLoaded] = useState(false);
+  const { loaded, enabled, user: session } = useSessionProbe();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/auth/session")
-      .then((r) => {
-        if (!r.ok) return undefined; // 404 -> auth disabled
-        return r.json();
-      })
-      .then((data) => {
-        if (cancelled) return;
-        if (data !== undefined) {
-          setEnabled(true);
-          setSession(
-            data?.user?.email
-              ? { email: data.user.email, name: data.user.name, image: data.user.image }
-              : null,
-          );
-        }
-        setLoaded(true);
-      })
-      .catch(() => setLoaded(true));
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     function onOutside(e: MouseEvent) {

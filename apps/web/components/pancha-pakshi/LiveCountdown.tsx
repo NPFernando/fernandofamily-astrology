@@ -89,6 +89,8 @@ export function LiveCountdown({
   // than threading the nullable value computed above through JSX.
   const remaining = new Date(current.ends_at).getTime() - now;
   const inFinalMinute = remaining > 0 && remaining <= 60_000 && !isStale;
+  const MainBirdIcon = BIRD_ICONS[current.main_bird];
+  const MainActivityIcon = ACTIVITY_ICONS[current.main_activity];
   const SubBirdIcon = BIRD_ICONS[current.sub_bird];
   const SubActivityIcon = ACTIVITY_ICONS[current.sub_activity];
 
@@ -111,7 +113,18 @@ export function LiveCountdown({
         </span>
         <span className="text-xs opacity-60">{dict.ui.timeRemaining}</span>
       </div>
+      {/* The user's own (main) bird stays constant all day; the sub-bird
+          rotates through all five birds every major period. Showing only the
+          sub-bird read as "wrong bird" — label both lines explicitly. */}
+      <p className="flex items-center gap-1.5 text-sm font-medium">
+        <span className="text-xs uppercase opacity-60">{dict.ui.mainBird}:</span>
+        <MainBirdIcon className="shrink-0 text-base opacity-80" />
+        {translateEnum(dict, "birds", current.main_bird)} ·{" "}
+        <MainActivityIcon className="shrink-0 text-base" style={{ color: ACTIVITY_COLORS[current.main_activity] }} />
+        {translateEnum(dict, "activities", current.main_activity)}
+      </p>
       <p className="flex items-center gap-1.5 text-sm">
+        <span className="text-xs uppercase opacity-60">{dict.ui.subBird}:</span>
         <SubBirdIcon className="shrink-0 text-base opacity-80" />
         {translateEnum(dict, "birds", current.sub_bird)} ·{" "}
         <SubActivityIcon className="shrink-0 text-base" style={{ color: ACTIVITY_COLORS[current.sub_activity] }} />

@@ -134,7 +134,11 @@ function PeriodGroup({
             key={period.index}
             period={period}
             view={view}
-            isExpanded={expanded.has(period.index)}
+            // Table view is the full timetable: every period's rows visible
+            // without per-card expanding (collapsed-by-default made the view
+            // toggle look like it did nothing). Collapse only applies to the
+            // timeline view.
+            isExpanded={view === "table" || expanded.has(period.index)}
             onToggle={() => onToggle(period.index)}
             locale={locale}
           />
@@ -194,9 +198,11 @@ function MajorPeriodCard({
             {dict.ui.current}
           </span>
         )}
-        <span aria-hidden className="text-xs opacity-60">
-          {isExpanded ? dict.ui.collapse : dict.ui.expand}
-        </span>
+        {view !== "table" && (
+          <span aria-hidden className="text-xs opacity-60">
+            {isExpanded ? dict.ui.collapse : dict.ui.expand}
+          </span>
+        )}
       </button>
 
       {isExpanded &&

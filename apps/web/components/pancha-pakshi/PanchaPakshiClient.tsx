@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { resolveKey, translateEnum } from "@/lib/i18n";
 import { features } from "@/lib/feature-registry";
@@ -19,7 +19,12 @@ import { ScheduleSkeleton } from "@/components/pancha-pakshi/ScheduleSkeleton";
 import { SavedProfiles } from "@/components/pancha-pakshi/SavedProfiles";
 import { DEFAULT_LOCATION, mostRecentLocation } from "@/components/pancha-pakshi/LocationPicker";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
-import type { SavedProfile } from "@/lib/profiles";
+import { listLocalProfiles, type SavedProfile } from "@/lib/profiles";
+import { BestWindows } from "@/components/pancha-pakshi/BestWindows";
+import { DateNav } from "@/components/pancha-pakshi/DateNav";
+import { Legend } from "@/components/pancha-pakshi/Legend";
+import { StickyCurrentBar } from "@/components/pancha-pakshi/StickyCurrentBar";
+import type { BirdId } from "@/lib/api-client";
 
 type Method = "birth_datetime" | "nakshatra_paksha" | "bird";
 
@@ -90,6 +95,8 @@ export function PanchaPakshiClient() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isOnline, setIsOnline] = useState(true);
+  const [usedDefaults, setUsedDefaults] = useState(false);
+  const countdownCardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Deferred to an effect (not a lazy useState initializer) so the first
@@ -108,25 +115,6 @@ export function PanchaPakshiClient() {
     };
   }, []);
 
-  useEffect(() => {
-    // Restores a schedule lost to the remount that happens when switching
-    // language (the locale segment changing navigates to a new pathname,
-    // which unmounts this page). Same-tab-session only, so this never
-    // resurrects genuinely old data across a new visit — see
-    // loadSessionSchedule's comment.
-    const restored = loadSessionSchedule();
-    if (restored) {
-      /* eslint-disable react-hooks/set-state-in-effect -- one-time hydration
-         from sessionStorage on mount, same pattern as the isOnline effect
-         above; there's no "external system" to subscribe to here instead. */
-      setSchedule(restored.schedule);
-      setServerTime(restored.serverTimeIso ? new Date(restored.serverTimeIso) : null);
-      setFetchedAtClientMs(restored.fetchedAtClientMs);
-      setIsStale(false);
-      setCachedAtIso(null);
-      /* eslint-enable react-hooks/set-state-in-effect */
-    }
-  }, []);
 
   const runSchedule = useCallback(async (request: ScheduleRequest) => {
     setLastRequest(request);
@@ -180,9 +168,85 @@ export function PanchaPakshiClient() {
     }
   }, [dict.ui.error]);
 
+  useEffect(() => {
+    // Restores a schedule lost to the remount that happens when switching
+    // language (the locale segment changing navigates to a new pathname,
+    // which unmounts this page). Same-tab-session only, so this never
+    // resurrects genuinely old data across a new visit — see
+    // loadSessionSchedule's comment.
+    const restored = loadSessionSchedule();
+    if (restored) {
+      /* eslint-disable react-hooks/set-state-in-effect -- one-time hydration
+         from sessionStorage on mount, same pattern as the isOnline effect
+         above; there's no "external system" to subscribe to here instead. */
+      setSchedule(restored.schedule);
+      setServerTime(restored.serverTimeIso ? new Date(restored.serverTimeIso) : null);
+      setFetchedAtClientMs(restored.fetchedAtClientMs);
+      setIsStale(false);
+      setCachedAtIso(null);
+      /* eslint-enable react-hooks/set-state-in-effect */
+      return;
+    }
+    // Zero-click first result: nothing restored, so compute immediately from
+    // the best available default — the newest saved profile, else the last
+    // explicitly selected bird, else the platform default (peacock) — at the
+    // most recent location (else Colombo). The forms stay fully usable while
+    // this loads; the notice under the result offers the change affordance.
+    if (navigator.onLine === false) return;
+    const localProfiles = listLocalProfiles();
+    const newest = localProfiles[localProfiles.length - 1];
+    const storedBird = window.localStorage.getItem("ff_selected_bird") as BirdId | null;
+    const location = mostRecentLocation() ?? DEFAULT_LOCATION;
+    const target = nowAsTargetDateTime();
+    const base = {
+      target_date: target.date,
+      target_time: target.time,
+      location_name: location.name,
+      latitude: location.latitude,
+      longitude: location.longitude,
+      iana_tz: location.iana_tz,
+    };
+    setUsedDefaults(true);
+    if (newest?.bird) {
+      void runSchedule({ ...base, method: "bird", bird: newest.bird });
+    } else if (newest?.nakshatra_index && newest?.paksha) {
+      void runSchedule({
+        ...base,
+        method: "nakshatra_paksha",
+        nakshatra_index: newest.nakshatra_index,
+        paksha: newest.paksha,
+      });
+    } else {
+      void runSchedule({ ...base, method: "bird", bird: storedBird ?? "peacock" });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const refetch = useCallback(() => {
     if (lastRequest && isOnline) runSchedule(lastRequest);
   }, [lastRequest, isOnline, runSchedule]);
+
+  // Explicit user submissions (forms, profile chips) clear the "showing
+  // defaults" notice and remember a directly-chosen bird for next visit's
+  // zero-click default.
+  const runUserSchedule = useCallback(
+    (request: ScheduleRequest) => {
+      setUsedDefaults(false);
+      if (request.method === "bird") {
+        window.localStorage.setItem("ff_selected_bird", request.bird);
+      }
+      void runSchedule(request);
+    },
+    [runSchedule],
+  );
+
+  const changeDate = useCallback(
+    (date: string) => {
+      if (!lastRequest) return;
+      void runSchedule({ ...lastRequest, target_date: date });
+    },
+    [lastRequest, runSchedule],
+  );
 
   // The identity of the current result, offered as "save as profile". Only
   // the derived bird (or the entered nakshatra+paksha) is kept — a result
@@ -211,9 +275,9 @@ export function PanchaPakshiClient() {
         iana_tz: location.iana_tz,
       };
       if (profile.bird) {
-        runSchedule({ ...base, method: "bird", bird: profile.bird });
+        runUserSchedule({ ...base, method: "bird", bird: profile.bird });
       } else if (profile.nakshatra_index && profile.paksha) {
-        runSchedule({
+        runUserSchedule({
           ...base,
           method: "nakshatra_paksha",
           nakshatra_index: profile.nakshatra_index,
@@ -221,8 +285,31 @@ export function PanchaPakshiClient() {
         });
       }
     },
-    [runSchedule],
+    [runUserSchedule],
   );
+
+  const skewMs = serverTime ? serverTime.getTime() - fetchedAtClientMs : 0;
+  const displayedDate =
+    lastRequest?.target_date ?? (schedule ? schedule.sunrise.slice(0, 10) : nowAsTargetDateTime().date);
+  // The countdown is only meaningful when the displayed sunrise-to-sunrise
+  // window actually contains "now" — comparing calendar dates would misfire
+  // around the before-sunrise rollback, so compare against the window itself.
+  // Render-pure "now": the (skew-corrected) moment of the last fetch. The
+  // countdown's own boundary refetch refreshes fetchedAtClientMs whenever a
+  // period rolls over, so this stays accurate without reading Date.now()
+  // during render.
+  const nowAtFetch = fetchedAtClientMs + skewMs;
+  const windowContainsNow = schedule
+    ? nowAtFetch >= new Date(schedule.sunrise).getTime() &&
+      nowAtFetch < new Date(schedule.next_sunrise).getTime()
+    : true;
+
+  const scrollToMajor = useCallback((majorIndex: number) => {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document
+      .getElementById(`major-period-${majorIndex}`)
+      ?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+  }, []);
 
   const tabs: { id: Method; label: string }[] = [
     { id: "birth_datetime", label: dict.ui.methodBirthDetails },
@@ -251,14 +338,47 @@ export function PanchaPakshiClient() {
               {new Date(cachedAtIso).toLocaleString(locale === "si" ? "si-LK" : "en-US")} · {schedule.location.name}
             </p>
           )}
-          <LiveCountdown
-            current={schedule.current_period}
-            next={schedule.next_period}
-            serverTime={serverTime}
-            fetchedAtClientMs={fetchedAtClientMs}
-            onExpire={refetch}
-            isStale={isStale}
+          {usedDefaults && !isStale && (
+            <p className="rounded-lg border border-sky-500/40 bg-sky-500/10 px-3 py-2 text-xs">
+              {dict.ui.showingFor}: {translateEnum(dict, "birds", schedule.birth_bird)} ·{" "}
+              {schedule.location.name} — {dict.ui.defaultsNotice}
+            </p>
+          )}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <DateNav date={displayedDate} onChange={changeDate} />
+            {!windowContainsNow && (
+              <button
+                type="button"
+                onClick={() => changeDate(nowAsTargetDateTime().date)}
+                className="rounded-lg border border-accent/40 px-3 py-1.5 text-sm text-accent hover:bg-accent/10"
+              >
+                {dict.ui.backToToday}
+              </button>
+            )}
+          </div>
+          {windowContainsNow ? (
+            <div ref={countdownCardRef}>
+              <LiveCountdown
+                current={schedule.current_period}
+                next={schedule.next_period}
+                serverTime={serverTime}
+                fetchedAtClientMs={fetchedAtClientMs}
+                onExpire={refetch}
+                isStale={isStale}
+              />
+            </div>
+          ) : (
+            <p className="rounded-lg border border-black/10 px-3 py-2 text-sm opacity-80 dark:border-white/10">
+              {dict.ui.viewingAnotherDay}
+            </p>
+          )}
+          <StickyCurrentBar
+            current={windowContainsNow ? schedule.current_period : null}
+            skewMs={skewMs}
+            watchRef={countdownCardRef}
           />
+          <BestWindows schedule={schedule} skewMs={skewMs} onSelect={scrollToMajor} />
+          <Legend />
           <div className="grid grid-cols-2 gap-3 rounded-xl border border-black/10 p-4 text-sm dark:border-white/10 sm:grid-cols-4">
             <Fact label={dict.ui.location} value={schedule.location.name} />
             <Fact label={dict.ui.weekday} value={translateEnum(dict, "weekdays", schedule.weekday)} />
@@ -271,7 +391,9 @@ export function PanchaPakshiClient() {
           </div>
           <ScheduleTimeline
             schedule={schedule}
-            skewMs={serverTime ? serverTime.getTime() - fetchedAtClientMs : 0}
+            skewMs={skewMs}
+            weekRequest={lastRequest ?? undefined}
+            onPickDay={changeDate}
           />
         </div>
       )}
@@ -321,9 +443,9 @@ export function PanchaPakshiClient() {
         role="tabpanel"
         className="animate-panel-in rounded-xl border border-black/10 p-6 dark:border-white/10"
       >
-        {method === "birth_datetime" && <BirthInputForm onSubmit={runSchedule} />}
-        {method === "nakshatra_paksha" && <NakshatraPakshaForm onSubmit={runSchedule} />}
-        {method === "bird" && <BirdSelector onSubmit={runSchedule} />}
+        {method === "birth_datetime" && <BirthInputForm onSubmit={runUserSchedule} />}
+        {method === "nakshatra_paksha" && <NakshatraPakshaForm onSubmit={runUserSchedule} />}
+        {method === "bird" && <BirdSelector onSubmit={runUserSchedule} />}
       </section>
     </div>
   );

@@ -130,6 +130,25 @@ export type CurrentResponse = {
   next_period: SubPeriod | null;
 };
 
+// Multi-day auspicious-window search (week view). The request reuses the
+// schedule request shape with target_date as the range start.
+export type WindowsRequest = ScheduleRequest & {
+  days: number;
+  min_effect: "good" | "very_good";
+};
+
+export type WindowEntry = SubPeriod & { effective_date: string };
+
+export type WindowsResponse = {
+  engine: EngineMetadata;
+  location: Location;
+  birth_bird: BirdId;
+  from_date: string;
+  days: number;
+  min_effect: "good" | "very_good";
+  windows: WindowEntry[];
+};
+
 export class ApiError extends Error {
   status: number;
   body: unknown;
@@ -185,6 +204,10 @@ export function fetchCurrentWithServerTime(
 
 export function fetchCurrent(body: ScheduleRequest): Promise<CurrentResponse> {
   return postJson<CurrentResponse>("/current", body);
+}
+
+export function fetchWindows(body: WindowsRequest): Promise<WindowsResponse> {
+  return postJson<WindowsResponse>("/windows", body);
 }
 
 export async function fetchMetadata(): Promise<EngineMetadata> {

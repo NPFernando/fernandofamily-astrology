@@ -8,6 +8,8 @@ import { ACTIVITY_COLORS } from "./activityColors";
 import { ACTIVITY_ICONS } from "@/components/icons/activities";
 import { BIRD_ICONS } from "@/components/icons/birds";
 import { DayTimelineBar } from "./DayTimelineBar";
+import { WeekView } from "./WeekView";
+import type { ScheduleRequest } from "@/lib/api-client";
 
 function formatTime(iso: string, locale: string) {
   return new Date(iso).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US", {
@@ -19,19 +21,25 @@ function formatTime(iso: string, locale: string) {
 export function ScheduleTimeline({
   schedule,
   skewMs = 0,
+  weekRequest,
+  onPickDay,
 }: {
   schedule: ScheduleResponse;
   skewMs?: number;
+  // When provided, a third "Week" view becomes available: a 7-day overview
+  // of favourable windows starting from this request's target date.
+  weekRequest?: ScheduleRequest;
+  onPickDay?: (date: string) => void;
 }) {
   const { dict, locale } = useLocale();
-  const [view, setView] = useState<"timeline" | "table">("timeline");
+  const [view, setView] = useState<"timeline" | "table" | "week">("timeline");
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
 
   function toggle(index: number) {
     // In table view every period renders expanded regardless of this set, so
     // header clicks there must not mutate it — they'd invisibly accumulate
     // expansions that surprise the user after switching back to timeline.
-    if (view === "table") return;
+    if (view !== "timeline") return;
     setExpanded((prev) => {
       const next = new Set(prev);
       if (next.has(index)) next.delete(index);
@@ -67,6 +75,11 @@ export function ScheduleTimeline({
           <ViewButton active={view === "table"} onClick={() => setView("table")}>
             {dict.ui.tableView}
           </ViewButton>
+          {weekRequest && onPickDay && (
+            <ViewButton active={view === "week"} onClick={() => setView("week")}>
+              {dict.ui.weekView}
+            </ViewButton>
+          )}
         </div>
         <button
           type="button"
@@ -77,22 +90,28 @@ export function ScheduleTimeline({
         </button>
       </div>
 
-      <PeriodGroup
-        title={dict.ui.daytime}
-        periods={dayPeriods}
-        view={view}
-        expanded={expanded}
-        onToggle={toggle}
-        locale={locale}
-      />
-      <PeriodGroup
-        title={dict.ui.nighttime}
-        periods={nightPeriods}
-        view={view}
-        expanded={expanded}
-        onToggle={toggle}
-        locale={locale}
-      />
+      {view === "week" && weekRequest && onPickDay ? (
+        <WeekView request={weekRequest} onPickDay={onPickDay} />
+      ) : (
+        <>
+          <PeriodGroup
+            title={dict.ui.daytime}
+            periods={dayPeriods}
+            view={view}
+            expanded={expanded}
+            onToggle={toggle}
+            locale={locale}
+          />
+          <PeriodGroup
+            title={dict.ui.nighttime}
+            periods={nightPeriods}
+            view={view}
+            expanded={expanded}
+            onToggle={toggle}
+            locale={locale}
+          />
+        </>
+      )}
     </div>
   );
 }
@@ -132,7 +151,7 @@ function PeriodGroup({
 }: {
   title: string;
   periods: MajorPeriod[];
-  view: "timeline" | "table";
+  view: "timeline" | "table" | "week";
   expanded: Set<number>;
   onToggle: (i: number) => void;
   locale: string;
@@ -170,7 +189,7 @@ function MajorPeriodCard({
   locale,
 }: {
   period: MajorPeriod;
-  view: "timeline" | "table";
+  view: "timeline" | "table" | "week";
   isExpanded: boolean;
   onToggle: () => void;
   locale: string;

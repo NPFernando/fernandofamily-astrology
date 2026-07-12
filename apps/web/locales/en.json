@@ -151,7 +151,23 @@
     "errorTitle": "Something went wrong",
     "dayTimelineBar": "Sunrise-to-sunrise timeline",
     "now": "Now",
-    "availableTools": "Available tools"
+    "availableTools": "Available tools",
+    "defaultsNotice": "using defaults — pick your own bird or details below",
+    "showingFor": "Showing",
+    "previousDay": "Previous day",
+    "nextDay": "Next day",
+    "pickDate": "Pick a date",
+    "viewingAnotherDay": "You are viewing another day's timetable — the live countdown applies only to the current period.",
+    "backToToday": "Back to today",
+    "legend": "Colour & symbol guide",
+    "legendActivities": "Activities",
+    "legendEffects": "Effects",
+    "bestWindowsToday": "Best times today",
+    "noWindowsLeft": "No favourable periods remain today.",
+    "weekView": "Week",
+    "weekUnavailable": "The week overview is not available right now — please try again later.",
+    "weekLoading": "Loading week overview…",
+    "goodWindows": "favourable periods"
   },
   "disclaimer": {
     "text": "Pancha Pakshi is a traditional astrological system. The information shown here is provided for cultural and informational purposes and is not scientifically validated. It must not replace medical, legal, financial, safety or other professional advice."

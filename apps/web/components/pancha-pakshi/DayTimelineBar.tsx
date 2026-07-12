@@ -17,15 +17,24 @@ function pct(fromMs: number, toMs: number, totalMs: number) {
 export function DayTimelineBar({
   schedule,
   onSelectMajor,
+  skewMs = 0,
 }: {
   schedule: ScheduleResponse;
   onSelectMajor: (majorIndex: number) => void;
+  // Server-vs-client clock offset (same value LiveCountdown uses). Without
+  // it, the gliding marker (client clock) and the is_current ring (server
+  // clock) disagree on wrong-clocked devices — two contradicting "now"s.
+  skewMs?: number;
 }) {
   const { dict, locale } = useLocale();
-  const [nowMs, setNowMs] = useState(() => Date.now());
+  // State holds the raw client clock; the skew is applied at render time
+  // below, so a skew change reflects immediately without needing a setState
+  // inside the effect.
+  const [clientNowMs, setClientNowMs] = useState(() => Date.now());
+  const nowMs = clientNowMs + skewMs;
 
   useEffect(() => {
-    const interval = window.setInterval(() => setNowMs(Date.now()), 30_000);
+    const interval = window.setInterval(() => setClientNowMs(Date.now()), 30_000);
     return () => window.clearInterval(interval);
   }, []);
 

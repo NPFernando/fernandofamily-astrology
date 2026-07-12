@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import tzlookup from "tz-lookup";
 import { useLocale } from "@/lib/locale-context";
 
@@ -80,6 +80,15 @@ export function LocationPicker({
   const [manualLat, setManualLat] = useState("");
   const [manualLon, setManualLon] = useState("");
   const [manualTz, setManualTz] = useState("");
+  const searchDebounceRef = useRef<number | null>(null);
+  const searchAbortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (searchDebounceRef.current) window.clearTimeout(searchDebounceRef.current);
+      searchAbortRef.current?.abort();
+    };
+  }, []);
 
   useEffect(() => {
     // Deliberately deferred to an effect rather than a lazy useState
@@ -129,40 +138,55 @@ export function LocationPicker({
     );
   }
 
-  async function runSearch(term: string) {
+  function runSearch(term: string) {
     setSearchTerm(term);
+    if (searchDebounceRef.current) window.clearTimeout(searchDebounceRef.current);
     if (term.trim().length < 2) {
+      searchAbortRef.current?.abort();
       setResults([]);
+      setSearching(false);
       return;
     }
-    setSearching(true);
-    try {
-      const res = await fetch(
+    // Debounce + abort: without these, every keystroke fired its own fetch
+    // ("Colombo" = 7 requests, rate-limit fodder) and a slow earlier response
+    // could resolve after a faster later one, overwriting fresher results.
+    searchDebounceRef.current = window.setTimeout(() => {
+      searchAbortRef.current?.abort();
+      const controller = new AbortController();
+      searchAbortRef.current = controller;
+      setSearching(true);
+      fetch(
         `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(term)}&count=6&language=en`,
-      );
-      const data = await res.json();
-      type OpenMeteoResult = {
-        name: string;
-        latitude: number;
-        longitude: number;
-        timezone: string;
-        country?: string;
-        admin1?: string;
-      };
-      const mapped: SearchResult[] = (data.results ?? []).map((r: OpenMeteoResult) => ({
-        name: r.name,
-        latitude: r.latitude,
-        longitude: r.longitude,
-        timezone: r.timezone,
-        country: r.country,
-        admin1: r.admin1,
-      }));
-      setResults(mapped);
-    } catch {
-      setResults([]);
-    } finally {
-      setSearching(false);
-    }
+        { signal: controller.signal },
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          if (controller.signal.aborted) return;
+          type OpenMeteoResult = {
+            name: string;
+            latitude: number;
+            longitude: number;
+            timezone: string;
+            country?: string;
+            admin1?: string;
+          };
+          const mapped: SearchResult[] = (data.results ?? []).map((r: OpenMeteoResult) => ({
+            name: r.name,
+            latitude: r.latitude,
+            longitude: r.longitude,
+            timezone: r.timezone,
+            country: r.country,
+            admin1: r.admin1,
+          }));
+          setResults(mapped);
+          setSearching(false);
+        })
+        .catch(() => {
+          if (controller.signal.aborted) return; // superseded, not an error
+          setResults([]);
+          setSearching(false);
+        });
+    }, 300);
   }
 
   function submitManual() {

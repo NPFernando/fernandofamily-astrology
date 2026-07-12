@@ -47,10 +47,20 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     fetch(request)
       .then((response) => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(request, copy)).catch(() => undefined);
+        // Only cache good, same-origin responses: a 404/5xx served mid-deploy
+        // (or an opaque redirect) written into the shell cache would later be
+        // served offline in place of a working page.
+        if (response.ok && response.type === "basic") {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy)).catch(() => undefined);
+        }
         return response;
       })
-      .catch(() => caches.match(request).then((cached) => cached ?? caches.match("/si"))),
+      .catch(() => {
+        // Offline fallback shell must match the user's locale — an English
+        // user hitting an uncached path shouldn't land on the Sinhala shell.
+        const fallback = url.pathname.startsWith("/en") ? "/en" : "/si";
+        return caches.match(request).then((cached) => cached ?? caches.match(fallback));
+      }),
   );
 });

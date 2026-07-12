@@ -16,12 +16,22 @@ function formatTime(iso: string, locale: string) {
   });
 }
 
-export function ScheduleTimeline({ schedule }: { schedule: ScheduleResponse }) {
+export function ScheduleTimeline({
+  schedule,
+  skewMs = 0,
+}: {
+  schedule: ScheduleResponse;
+  skewMs?: number;
+}) {
   const { dict, locale } = useLocale();
   const [view, setView] = useState<"timeline" | "table">("timeline");
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
 
   function toggle(index: number) {
+    // In table view every period renders expanded regardless of this set, so
+    // header clicks there must not mutate it — they'd invisibly accumulate
+    // expansions that surprise the user after switching back to timeline.
+    if (view === "table") return;
     setExpanded((prev) => {
       const next = new Set(prev);
       if (next.has(index)) next.delete(index);
@@ -47,7 +57,7 @@ export function ScheduleTimeline({ schedule }: { schedule: ScheduleResponse }) {
 
   return (
     <div className="flex flex-col gap-4 print:gap-2">
-      <DayTimelineBar schedule={schedule} onSelectMajor={selectFromBar} />
+      <DayTimelineBar schedule={schedule} onSelectMajor={selectFromBar} skewMs={skewMs} />
 
       <div className="flex items-center justify-between print:hidden">
         <div className="flex gap-2 text-sm">
@@ -85,28 +95,31 @@ export function ScheduleTimeline({ schedule }: { schedule: ScheduleResponse }) {
       />
     </div>
   );
+}
 
-  function ViewButton({
-    active,
-    onClick,
-    children,
-  }: {
-    active: boolean;
-    onClick: () => void;
-    children: React.ReactNode;
-  }) {
-    return (
-      <button
-        type="button"
-        onClick={onClick}
-        className={`rounded-full border px-3 py-1 ${
-          active ? "border-accent bg-accent/10 font-semibold text-accent" : "border-black/10 opacity-70 dark:border-white/20"
-        }`}
-      >
-        {children}
-      </button>
-    );
-  }
+// Module scope, not nested in ScheduleTimeline: a component defined inside
+// another's body is a brand-new type every render, forcing React to unmount
+// and remount it (and drop focus) on each parent re-render.
+function ViewButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-full border px-3 py-1 ${
+        active ? "border-accent bg-accent/10 font-semibold text-accent" : "border-black/10 opacity-70 dark:border-white/20"
+      }`}
+    >
+      {children}
+    </button>
+  );
 }
 
 function PeriodGroup({

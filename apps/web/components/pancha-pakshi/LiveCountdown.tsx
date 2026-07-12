@@ -53,17 +53,29 @@ export function LiveCountdown({
     return () => window.clearInterval(interval);
   }, [current?.id]);
 
+  // The listeners below live for the component's whole life ([] deps), but
+  // onExpire is recreated whenever the page's lastRequest changes — capturing
+  // it directly would refetch the FIRST schedule forever (tab-restore after
+  // computing a second schedule clobbered it with the old one). Route calls
+  // through a ref that always holds the latest callback instead.
+  const onExpireRef = useRef(onExpire);
+  useEffect(() => {
+    onExpireRef.current = onExpire;
+  }, [onExpire]);
+
   useEffect(() => {
     function onVisibility() {
-      if (document.visibilityState === "visible") onExpire();
+      if (document.visibilityState === "visible") onExpireRef.current();
+    }
+    function onOnline() {
+      onExpireRef.current();
     }
     document.addEventListener("visibilitychange", onVisibility);
-    window.addEventListener("online", onExpire);
+    window.addEventListener("online", onOnline);
     return () => {
       document.removeEventListener("visibilitychange", onVisibility);
-      window.removeEventListener("online", onExpire);
+      window.removeEventListener("online", onOnline);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const endsAtMs = current ? new Date(current.ends_at).getTime() : null;

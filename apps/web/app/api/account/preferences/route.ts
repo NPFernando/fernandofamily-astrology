@@ -50,14 +50,19 @@ export async function PUT(request: Request) {
     defaultLocation = raw;
   }
 
+  // Partial-update semantics: a PUT carrying only {theme} must not null out
+  // the other columns — COALESCE keeps the stored value wherever the request
+  // omitted a field. (Consequence: fields can be set but not cleared via
+  // this endpoint; acceptable for preferences, revisit if clearing is ever
+  // needed.)
   const rows = await query(
     `INSERT INTO preferences (owner_email, locale, theme, default_bird, default_location, updated_at)
      VALUES ($1, $2, $3, $4, $5::jsonb, now())
      ON CONFLICT (owner_email) DO UPDATE
-        SET locale = EXCLUDED.locale,
-            theme = EXCLUDED.theme,
-            default_bird = EXCLUDED.default_bird,
-            default_location = EXCLUDED.default_location,
+        SET locale = COALESCE(EXCLUDED.locale, preferences.locale),
+            theme = COALESCE(EXCLUDED.theme, preferences.theme),
+            default_bird = COALESCE(EXCLUDED.default_bird, preferences.default_bird),
+            default_location = COALESCE(EXCLUDED.default_location, preferences.default_location),
             updated_at = now()
      RETURNING locale, theme, default_bird, default_location, updated_at`,
     [gate.email, locale, theme, defaultBird, defaultLocation],

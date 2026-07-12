@@ -16,6 +16,14 @@ export function getPool(): Pool {
     const url = process.env.ASTROLOGY_DATABASE_URL;
     if (!url) throw new Error("ASTROLOGY_DATABASE_URL is not set");
     pool = new Pool({ connectionString: url, max: 5 });
+    // Without an 'error' listener, an idle pooled client dropping (Postgres
+    // restart, network blip) emits an unhandled 'error' event — which in
+    // Node crashes the entire process, taking the whole site down rather
+    // than just failing one request. The pool discards the broken client
+    // and opens a fresh one on next use; logging is all we should do here.
+    pool.on("error", (err) => {
+      console.error("astrology db pool: idle client error", err.message);
+    });
   }
   return pool;
 }

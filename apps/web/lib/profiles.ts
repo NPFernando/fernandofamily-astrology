@@ -100,7 +100,15 @@ async function removeServerProfile(id: string): Promise<boolean> {
 export async function listProfiles(signedIn: boolean): Promise<SavedProfile[]> {
   if (!signedIn) return listLocalProfiles();
   const server = await listServerProfiles();
-  return server ?? listLocalProfiles();
+  if (server === null) return listLocalProfiles();
+  // Merge, not replace: a profile saved while signed in can land only in
+  // localStorage (server write failed — validation, transient 5xx). If the
+  // signed-in read showed the server list alone, that just-saved profile
+  // would visibly vanish. Server rows win on identity collisions.
+  const localOnly = listLocalProfiles().filter(
+    (local) => !server.some((s) => sameIdentity(s, local)),
+  );
+  return [...server, ...localOnly];
 }
 
 export async function addProfile(
@@ -128,6 +136,13 @@ export async function mergeLocalToServerOnce(): Promise<void> {
   if (window.sessionStorage.getItem(MERGE_DONE_KEY)) return;
   const server = await listServerProfiles();
   if (server === null) return; // not actually signed in / backend off
+  // Flag BEFORE uploading, not after: the merge is a sequence of network
+  // round-trips, and a language-switch remount mid-merge would re-enter with
+  // the flag unset and a server snapshot that misses the in-flight inserts —
+  // duplicating rows. Marking "merge attempted" up front makes re-entry a
+  // no-op; any individual upload that failed is still visible via the merged
+  // read in listProfiles (server + local-only), so nothing is lost.
+  window.sessionStorage.setItem(MERGE_DONE_KEY, "1");
   for (const local of loadLocal()) {
     if (!server.some((s) => sameIdentity(s, local))) {
       await addServerProfile({
@@ -138,5 +153,4 @@ export async function mergeLocalToServerOnce(): Promise<void> {
       });
     }
   }
-  window.sessionStorage.setItem(MERGE_DONE_KEY, "1");
 }

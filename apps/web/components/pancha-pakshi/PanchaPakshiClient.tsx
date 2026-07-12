@@ -133,8 +133,27 @@ export function PanchaPakshiClient() {
     setLoading(true);
     setError(null);
     try {
-      const { data, serverTime: st } = await fetchScheduleWithServerTime(request);
-      const fetchedAtMs = Date.now();
+      let { data, serverTime: st } = await fetchScheduleWithServerTime(request);
+      let fetchedAtMs = Date.now();
+      // A tab left open past next_sunrise would otherwise freeze: the
+      // refetch replays the original target date, the server correctly says
+      // "nothing in that window is current anymore" (current_period null),
+      // and the countdown shows loading forever. When that happens, roll the
+      // request forward to now — a single follow-up fetch, not recursion, so
+      // a still-null response can't loop.
+      const referenceNow = st ? st.getTime() : fetchedAtMs;
+      if (data.current_period === null && new Date(data.next_sunrise).getTime() <= referenceNow) {
+        const now = new Date(referenceNow);
+        const pad = (n: number) => String(n).padStart(2, "0");
+        const rolled: ScheduleRequest = {
+          ...request,
+          target_date: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
+          target_time: `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`,
+        };
+        setLastRequest(rolled);
+        ({ data, serverTime: st } = await fetchScheduleWithServerTime(rolled));
+        fetchedAtMs = Date.now();
+      }
       setSchedule(data);
       setServerTime(st);
       setFetchedAtClientMs(fetchedAtMs);
@@ -250,7 +269,10 @@ export function PanchaPakshiClient() {
             <Fact label={dict.ui.nextSunrise} value={new Date(schedule.next_sunrise).toLocaleTimeString()} />
             <Fact label={dict.ui.paduPakshi} value={translateEnum(dict, "birds", schedule.padu_pakshi)} />
           </div>
-          <ScheduleTimeline schedule={schedule} />
+          <ScheduleTimeline
+            schedule={schedule}
+            skewMs={serverTime ? serverTime.getTime() - fetchedAtClientMs : 0}
+          />
         </div>
       )}
 

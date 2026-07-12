@@ -181,15 +181,17 @@ export function LocationPicker({
       setStatus(dict.ui.error);
       return;
     }
+    // Validate by construction, not by list membership:
+    // Intl.supportedValuesOf("timeZone") returns CLDR-canonical IDs, which
+    // still use legacy names for some zones (e.g. "Asia/Calcutta") — so the
+    // modern IANA name "Asia/Kolkata" (what geocoders and tz-lookup return)
+    // would be wrongly rejected. DateTimeFormat accepts every valid IANA
+    // name/alias and throws RangeError for genuinely invalid input.
     try {
-      const supported =
-        typeof Intl.supportedValuesOf === "function" ? Intl.supportedValuesOf("timeZone") : null;
-      if (supported && !supported.includes(tz)) {
-        setStatus(dict.ui.error);
-        return;
-      }
+      new Intl.DateTimeFormat(undefined, { timeZone: tz });
     } catch {
-      // Intl.supportedValuesOf not available in this environment — skip the check.
+      setStatus(dict.ui.error);
+      return;
     }
     commit({ name: `${manualLat}, ${manualLon}`, latitude: lat, longitude: lon, iana_tz: tz });
   }

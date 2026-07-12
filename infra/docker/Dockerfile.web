@@ -1,12 +1,12 @@
 # syntax=docker/dockerfile:1
-# Build context: repository root (needs apps/web/* and packages/feature-registry,
+# Build context: repository root (needs apps/web/* and the shared packages/*,
 # which apps/web imports via a relative tsconfig path outside its own directory).
 ARG NODE_VERSION=22-slim
 
 FROM node:${NODE_VERSION} AS deps
 RUN corepack enable
 WORKDIR /repo
-COPY packages/feature-registry ./packages/feature-registry
+COPY packages ./packages
 COPY apps/web/package.json apps/web/pnpm-lock.yaml apps/web/pnpm-workspace.yaml ./apps/web/
 WORKDIR /repo/apps/web
 RUN pnpm install --frozen-lockfile
@@ -23,7 +23,7 @@ ENV CI=true
 ARG API_PROXY_TARGET=http://api:8000
 ENV API_PROXY_TARGET=${API_PROXY_TARGET}
 WORKDIR /repo
-COPY packages/feature-registry ./packages/feature-registry
+COPY packages ./packages
 COPY --from=deps /repo/apps/web/node_modules ./apps/web/node_modules
 COPY apps/web ./apps/web
 WORKDIR /repo/apps/web

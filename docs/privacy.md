@@ -47,3 +47,15 @@ device has provided.
 
 No advertising, no tracking pixels, no analytics that would let a third
 party build a profile from your usage of this tool.
+
+## Period alerts (web push)
+
+If you enable period alerts, the server stores — per subscribed browser —
+the push endpoint and its delivery keys, your bird (or nakshatra + paksha),
+a location **rounded to ~1 km before storage** (2 decimal places; the
+columns cannot hold more precision), your chosen alert lead time and effect
+level, and your language. Never your birth date, time, or exact coordinates.
+
+Disabling alerts (or the push service reporting the subscription gone)
+deletes the stored subscription immediately; the send-log rows that prevent
+duplicate alerts are pruned within two days.

@@ -21,6 +21,7 @@ import { DEFAULT_LOCATION, mostRecentLocation } from "@/components/pancha-pakshi
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import { listLocalProfiles, type SavedProfile } from "@/lib/profiles";
 import { BestWindows } from "@/components/pancha-pakshi/BestWindows";
+import { NotificationOptIn } from "@/components/pancha-pakshi/NotificationOptIn";
 import { DateNav } from "@/components/pancha-pakshi/DateNav";
 import { Legend } from "@/components/pancha-pakshi/Legend";
 import { StickyCurrentBar } from "@/components/pancha-pakshi/StickyCurrentBar";
@@ -378,6 +379,18 @@ export function PanchaPakshiClient() {
             watchRef={countdownCardRef}
           />
           <BestWindows schedule={schedule} skewMs={skewMs} onSelect={scrollToMajor} />
+          <NotificationOptIn
+            bird={
+              lastRequest?.method === "nakshatra_paksha" ? null : schedule.birth_bird
+            }
+            nakshatraIndex={
+              lastRequest?.method === "nakshatra_paksha" ? lastRequest.nakshatra_index : null
+            }
+            paksha={lastRequest?.method === "nakshatra_paksha" ? lastRequest.paksha : null}
+            latitude={schedule.location.latitude}
+            longitude={schedule.location.longitude}
+            ianaTz={schedule.location.iana_tz}
+          />
           <Legend />
           <div className="grid grid-cols-2 gap-3 rounded-xl border border-black/10 p-4 text-sm dark:border-white/10 sm:grid-cols-4">
             <Fact label={dict.ui.location} value={schedule.location.name} />

@@ -167,7 +167,19 @@
     "weekView": "Week",
     "weekUnavailable": "The week overview is not available right now — please try again later.",
     "weekLoading": "Loading week overview…",
-    "goodWindows": "favourable periods"
+    "goodWindows": "favourable periods",
+    "notifyTitle": "Period alerts",
+    "notifyBody": "Get a notification shortly before your favourable periods begin. This stores only your bird, an approximate (~1 km) location and these settings on our server — never your birth details.",
+    "notifyLeadLabel": "Alert lead time",
+    "notifyLeadMinutes": "{n} minutes before",
+    "notifyEffectLabel": "Notify me for",
+    "notifyEffectVeryGood": "Very favourable periods only",
+    "notifyEffectGood": "Favourable and very favourable periods",
+    "notifyEnable": "Enable alerts",
+    "notifyDisable": "Disable alerts",
+    "notifyActive": "Alerts are on for this device",
+    "notifyDenied": "Notifications are blocked in your browser settings for this site",
+    "notifyWorking": "Setting up…"
   },
   "disclaimer": {
     "text": "Pancha Pakshi is a traditional astrological system. The information shown here is provided for cultural and informational purposes and is not scientifically validated. It must not replace medical, legal, financial, safety or other professional advice."
@@ -184,7 +196,8 @@
       "localStorageTitle": "What's stored in your browser",
       "localStorageBody": "Only non-sensitive preferences are saved locally on your device: your chosen language, light/dark theme, last-selected bird, a short list of recent locations, and the last successfully calculated schedule (so it can be shown while offline). None of this is birth date, birth time, or precise coordinates tied to a real event.",
       "clearAction": "You can remove everything saved locally at any time.",
-      "accountsBody": "If you sign in (currently invite-only), your saved profiles and preferences sync to the server so they follow you across devices. Only a label plus the derived bird — or nakshatra and paksha — is stored server-side. Raw birth date, time, and coordinates are never stored on the server, signed in or not."
+      "accountsBody": "If you sign in (currently invite-only), your saved profiles and preferences sync to the server so they follow you across devices. Only a label plus the derived bird — or nakshatra and paksha — is stored server-side. Raw birth date, time, and coordinates are never stored on the server, signed in or not.",
+      "pushBody": "If you enable period alerts, our server stores this device's push address, your bird (or nakshatra and paksha), a location rounded to roughly 1 km, and your alert settings — never your birth date, time or exact coordinates. Disabling alerts deletes all of it immediately."
     },
     "licensing": {
       "title": "Licence",
@@ -231,5 +244,9 @@
       "title": "Methodology",
       "description": "How the sunrise-based Pancha Pakshi day, birth-bird mapping and periods are calculated."
     }
+  },
+  "push": {
+    "title": "Favourable period soon",
+    "body": "{bird} · {activity} — {effect} at {time}"
   }
 }

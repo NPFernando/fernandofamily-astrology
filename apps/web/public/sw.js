@@ -64,3 +64,34 @@ self.addEventListener("fetch", (event) => {
       }),
   );
 });
+
+// Period alerts: the payload (title/body/url, already localized) is composed
+// server-side by the dispatch route — this worker only displays it.
+self.addEventListener("push", (event) => {
+  let payload = { title: "Fernando Family Astrology", body: "", url: "/" };
+  try {
+    payload = { ...payload, ...event.data.json() };
+  } catch {
+    // Keep the fallback payload if the data isn't JSON.
+  }
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: "/icons/apple-touch-icon.png",
+      data: { url: payload.url },
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = event.notification.data && event.notification.data.url ? event.notification.data.url : "/";
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if (client.url.includes("/pancha-pakshi") && "focus" in client) return client.focus();
+      }
+      return self.clients.openWindow(url);
+    }),
+  );
+});

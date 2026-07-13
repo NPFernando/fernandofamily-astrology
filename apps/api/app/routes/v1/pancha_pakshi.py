@@ -16,6 +16,7 @@ from app.modules.pancha_pakshi.requests import (
     BirthDateTimeInput,
     NakshatraPakshaInput,
     ScheduleRequest,
+    SummaryRequest,
     WindowsRequest,
 )
 
@@ -125,6 +126,7 @@ def windows(body: WindowsRequest) -> dict:
 
     wanted_effects = _WINDOW_EFFECTS[body.min_effect]
     wanted_kinds = {k.value for k in body.kinds} if body.kinds else None
+    wanted_activities = {a.value for a in body.activities} if body.activities else None
 
     results = []
     first_schedule = None
@@ -143,6 +145,10 @@ def windows(body: WindowsRequest) -> dict:
                     continue
                 if wanted_kinds is not None and sp.kind.value not in wanted_kinds:
                     continue
+                if wanted_activities is not None and sp.sub_activity.value not in wanted_activities:
+                    continue
+                if body.min_duration_seconds is not None and sp.duration_seconds < body.min_duration_seconds:
+                    continue
                 results.append({**sp.model_dump(), "effective_date": effective_date})
 
     assert first_schedule is not None  # days >= 1 per the request model
@@ -154,6 +160,58 @@ def windows(body: WindowsRequest) -> dict:
         "days": body.days,
         "min_effect": body.min_effect,
         "windows": results,
+    }
+
+
+# Like /windows, one summary call computes up to 31 full schedules (the
+# request model caps `days`), but returns only per-day aggregates — the
+# heat-map's month of data would otherwise be ~1500 window rows.
+@router.post("/summary", dependencies=[Depends(enforce_rate_limit)])
+def summary(body: SummaryRequest) -> dict:
+    from datetime import timedelta
+
+    wanted_effects = _WINDOW_EFFECTS[body.min_effect]
+
+    per_day = []
+    first_schedule = None
+    for offset in range(body.days):
+        day_body = body.model_copy(update={"target_date": body.target_date + timedelta(days=offset)})
+        schedule = _resolve_schedule(day_body)
+        if first_schedule is None:
+            first_schedule = schedule
+        window_count = 0
+        good_seconds = 0
+        very_good_seconds = 0
+        for major in schedule.major_periods:
+            for sp in major.sub_periods:
+                if sp.effect.value == "good":
+                    good_seconds += sp.duration_seconds
+                elif sp.effect.value == "very_good":
+                    very_good_seconds += sp.duration_seconds
+                if sp.effect.value in wanted_effects:
+                    window_count += 1
+        best_effect = "very_good" if very_good_seconds else ("good" if good_seconds else None)
+        per_day.append(
+            {
+                # Same convention as /windows' effective_date: the schedule's
+                # own sunrise date, honoring the before-sunrise rollback.
+                "date": schedule.sunrise.date().isoformat(),
+                "window_count": window_count,
+                "good_seconds": good_seconds,
+                "very_good_seconds": very_good_seconds,
+                "best_effect": best_effect,
+            }
+        )
+
+    assert first_schedule is not None  # days >= 1 per the request model
+    return {
+        "engine": first_schedule.engine,
+        "location": first_schedule.location,
+        "birth_bird": first_schedule.birth_bird,
+        "from_date": body.target_date.isoformat(),
+        "days": body.days,
+        "min_effect": body.min_effect,
+        "per_day": per_day,
     }
 
 

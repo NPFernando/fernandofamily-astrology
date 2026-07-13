@@ -4,7 +4,7 @@ from typing import Annotated, Literal, Union
 
 from pydantic import BaseModel, Field
 
-from app.modules.pancha_pakshi.enums import BirdId, PakshaId, PeriodKind
+from app.modules.pancha_pakshi.enums import ActivityId, BirdId, PakshaId, PeriodKind
 
 
 class _TargetAndLocation(BaseModel):
@@ -58,6 +58,12 @@ class _WindowsParams(BaseModel):
     days: int = Field(default=7, ge=1, le=14)
     min_effect: Literal["good", "very_good"] = "good"
     kinds: list[PeriodKind] | None = None
+    # Filters windows by their SUB-activity (the activity of the sub-period
+    # itself, not the enclosing major period's main activity).
+    activities: list[ActivityId] | None = None
+    # Windows shorter than this are dropped. Bounded by a full day — no
+    # sub-period can exceed the sunrise-to-sunrise span.
+    min_duration_seconds: int | None = Field(default=None, ge=1, le=86_400)
 
 
 class BirthDateTimeWindowsInput(BirthDateTimeInput, _WindowsParams):
@@ -74,6 +80,32 @@ class BirdSelectionWindowsInput(BirdSelectionInput, _WindowsParams):
 
 WindowsRequest = Annotated[
     Union[BirthDateTimeWindowsInput, NakshatraPakshaWindowsInput, BirdSelectionWindowsInput],
+    Field(discriminator="method"),
+]
+
+
+# Per-day aggregate summary (month heat-map): same three input methods with
+# target_date as the START date. The cap is higher than windows' (a heat-map
+# spans a month) but the response is aggregates only, never per-window rows.
+class _SummaryParams(BaseModel):
+    days: int = Field(default=31, ge=1, le=31)
+    min_effect: Literal["good", "very_good"] = "good"
+
+
+class BirthDateTimeSummaryInput(BirthDateTimeInput, _SummaryParams):
+    pass
+
+
+class NakshatraPakshaSummaryInput(NakshatraPakshaInput, _SummaryParams):
+    pass
+
+
+class BirdSelectionSummaryInput(BirdSelectionInput, _SummaryParams):
+    pass
+
+
+SummaryRequest = Annotated[
+    Union[BirthDateTimeSummaryInput, NakshatraPakshaSummaryInput, BirdSelectionSummaryInput],
     Field(discriminator="method"),
 ]
 

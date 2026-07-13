@@ -88,3 +88,47 @@ def test_windows_first_day_matches_schedule():
     ]
     windows = client.post("/api/v1/pancha-pakshi/windows", json=_windows_body(days=1)).json()
     assert [w["id"] for w in windows["windows"]] == expected_ids
+
+
+def test_windows_activities_filter():
+    data = client.post(
+        "/api/v1/pancha-pakshi/windows", json=_windows_body(activities=["ruling"])
+    ).json()
+    assert len(data["windows"]) > 0
+    assert all(w["sub_activity"] == "ruling" for w in data["windows"])
+    two = client.post(
+        "/api/v1/pancha-pakshi/windows", json=_windows_body(activities=["ruling", "eating"])
+    ).json()
+    assert {w["sub_activity"] for w in two["windows"]} <= {"ruling", "eating"}
+    # The wider filter can only add windows, never remove.
+    assert len(two["windows"]) >= len(data["windows"])
+
+
+def test_windows_activities_combined_with_kinds_and_effect():
+    data = client.post(
+        "/api/v1/pancha-pakshi/windows",
+        json=_windows_body(min_effect="very_good", kinds=["day"], activities=["ruling", "eating", "walking"]),
+    ).json()
+    for w in data["windows"]:
+        assert w["effect"] == "very_good"
+        assert w["kind"] == "day"
+        assert w["sub_activity"] in ("ruling", "eating", "walking")
+
+
+def test_windows_min_duration_filter():
+    base = client.post("/api/v1/pancha-pakshi/windows", json=_windows_body()).json()
+    durations = sorted(w["duration_seconds"] for w in base["windows"])
+    assert durations[0] < durations[-1], "need a duration spread for this test"
+    threshold = durations[len(durations) // 2]  # median: excludes some, keeps some
+    filtered = client.post(
+        "/api/v1/pancha-pakshi/windows", json=_windows_body(min_duration_seconds=threshold)
+    ).json()
+    assert 0 < len(filtered["windows"]) < len(base["windows"])
+    assert all(w["duration_seconds"] >= threshold for w in filtered["windows"])
+
+
+def test_windows_invalid_activity_rejected():
+    res = client.post(
+        "/api/v1/pancha-pakshi/windows", json=_windows_body(activities=["flying"])
+    )
+    assert res.status_code == 422

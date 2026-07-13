@@ -36,3 +36,4 @@ apps/web/.next/
 apps/web/tsconfig.tsbuildinfo
 apps/web/test-results/
 apps/web/playwright-report/
+.push-dispatch.log

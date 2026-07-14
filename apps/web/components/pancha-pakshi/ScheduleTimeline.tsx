@@ -87,13 +87,6 @@ export function ScheduleTimeline({
             </>
           )}
         </div>
-        <button
-          type="button"
-          onClick={() => window.print()}
-          className="rounded-lg border border-black/10 px-3 py-1.5 text-sm dark:border-white/20"
-        >
-          {dict.ui.print}
-        </button>
       </div>
 
       {view === "week" && weekRequest && onPickDay ? (

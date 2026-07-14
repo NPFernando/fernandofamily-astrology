@@ -32,6 +32,10 @@
 - Calendar export: favourable windows download as RFC 5545 `.ics` files,
   generated fully client-side (single window or all currently shown)
 
+- Export: polished print layout (full or major-periods-only) and
+  server-rendered per-schedule PNG share cards (same detail option), plus the
+  earlier `.ics` calendar export
+
 ## Backlog (priority order)
 
 **None of these are implemented.** They must not appear in production
@@ -48,7 +52,6 @@ they are actually built, registered in the feature registry
    plumbing is locale-count agnostic).
 4. Ambient full-screen live view (wall-tablet mode: big countdown, current
    period, auto-refresh).
-5. Per-schedule share cards (server-rendered PNG of your day for
    WhatsApp/social).
 6. Compatibility mini-tool (two birds' friend/same/enemy relation — the
    relation table already exists).

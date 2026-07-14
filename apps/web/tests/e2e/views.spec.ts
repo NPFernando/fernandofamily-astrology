@@ -8,13 +8,15 @@ test("table view shows all 10 tables / 50 rows without expanding; timeline unaff
 }) => {
   await openCalculator(page, "en");
   await page.getByRole("button", { name: dict.ui.tableView, exact: true }).click();
-  await expect(page.locator("table")).toHaveCount(10);
-  await expect(page.locator("table tbody tr")).toHaveCount(50);
+  // :not() scoping: the hidden PrintSheet mounts 2 more tables in the DOM.
+  const visibleTables = page.locator("table:not(#print-sheet table)");
+  await expect(visibleTables).toHaveCount(10);
+  await expect(page.locator("table:not(#print-sheet table) tbody tr")).toHaveCount(50);
   // Click a period header while in table view, then switch back — timeline
   // must not have inherited an expansion from that click.
   await page.locator('[id^="major-period-"] > button').first().click();
   await page.getByRole("button", { name: dict.ui.timelineView, exact: true }).click();
-  await expect(page.locator("table")).toHaveCount(0);
+  await expect(page.locator("table:not(#print-sheet table)")).toHaveCount(0);
   await expect(page.locator('[id^="major-period-"] ul')).toHaveCount(0);
 });
 

@@ -54,6 +54,13 @@ Full detail on the calculation methodology:
 [`docs/calculations/schedule.md`](docs/calculations/schedule.md) ·
 [`docs/calculations/timezones.md`](docs/calculations/timezones.md)
 
+### Export & print
+
+The calculator exports a polished print layout (browser print → "Save as
+PDF" works well) and a server-rendered PNG share card (`POST
+/api/share-card`), both honoring a "major periods only" option that omits
+the 50 sub-periods. Favourable windows also export as `.ics` calendar files.
+
 ## Local development
 
 ### Backend

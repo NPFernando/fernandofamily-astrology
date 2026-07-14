@@ -193,7 +193,9 @@
     "noFilteredWindows": "No windows match the current filters.",
     "addToCalendar": "Add to calendar",
     "downloadIcs": "Download .ics",
-    "icsDescription": "Favourable Pancha Pakshi window — Fernando Family Astrology"
+    "icsDescription": "Favourable Pancha Pakshi window — Fernando Family Astrology",
+    "includeSubPeriods": "Include sub-periods",
+    "shareImage": "Share image"
   },
   "disclaimer": {
     "text": "Pancha Pakshi is a traditional astrological system. The information shown here is provided for cultural and informational purposes and is not scientifically validated. It must not replace medical, legal, financial, safety or other professional advice."

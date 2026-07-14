@@ -28,11 +28,22 @@ COPY --from=deps /repo/apps/web/node_modules ./apps/web/node_modules
 COPY apps/web ./apps/web
 WORKDIR /repo/apps/web
 RUN pnpm build
+# sharp's native libvips (.so) is dlopen'd at runtime, invisible to Next's
+# standalone file tracing — it traced only the older libvips Next itself
+# links. Copy every platform package into the standalone pnpm store so the
+# share-card route's sharp@0.35.x finds its own libvips version.
+RUN cp -r node_modules/.pnpm/@img+* .next/standalone/apps/web/node_modules/.pnpm/
 
 FROM node:${NODE_VERSION} AS runtime
 ENV NODE_ENV=production \
     PORT=3000 \
     HOSTNAME=0.0.0.0
+# The share-card route rasterizes SVG text server-side (sharp/librsvg): the
+# runtime image needs real fonts with Latin + Sinhala coverage or Sinhala
+# renders as tofu boxes.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends fonts-noto-core fontconfig \
+    && rm -rf /var/lib/apt/lists/*
 RUN groupadd --system app && useradd --system --gid app --home /app app
 # next.config.ts sets outputFileTracingRoot to the monorepo root, so the
 # standalone output nests the server under apps/web. Copy the tree from its

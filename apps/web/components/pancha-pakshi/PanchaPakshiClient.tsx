@@ -23,6 +23,8 @@ import { listLocalProfiles, type SavedProfile } from "@/lib/profiles";
 import { BestWindows } from "@/components/pancha-pakshi/BestWindows";
 import { NotificationOptIn } from "@/components/pancha-pakshi/NotificationOptIn";
 import { DateNav } from "@/components/pancha-pakshi/DateNav";
+import { ExportControls } from "@/components/pancha-pakshi/ExportControls";
+import { PrintSheet, type ExportDetail } from "@/components/pancha-pakshi/PrintSheet";
 import { Legend } from "@/components/pancha-pakshi/Legend";
 import { StickyCurrentBar } from "@/components/pancha-pakshi/StickyCurrentBar";
 import type { BirdId } from "@/lib/api-client";
@@ -97,6 +99,7 @@ export function PanchaPakshiClient() {
   const [error, setError] = useState<string | null>(null);
   const [isOnline, setIsOnline] = useState(true);
   const [usedDefaults, setUsedDefaults] = useState(false);
+  const [exportDetail, setExportDetail] = useState<ExportDetail>("full");
   const countdownCardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -402,12 +405,19 @@ export function PanchaPakshiClient() {
             <Fact label={dict.ui.nextSunrise} value={new Date(schedule.next_sunrise).toLocaleTimeString()} />
             <Fact label={dict.ui.paduPakshi} value={translateEnum(dict, "birds", schedule.padu_pakshi)} />
           </div>
+          <ExportControls
+            schedule={schedule}
+            lastRequest={lastRequest}
+            detail={exportDetail}
+            onDetailChange={setExportDetail}
+          />
           <ScheduleTimeline
             schedule={schedule}
             skewMs={skewMs}
             weekRequest={lastRequest ?? undefined}
             onPickDay={changeDate}
           />
+          <PrintSheet schedule={schedule} detail={exportDetail} />
         </div>
       )}
 

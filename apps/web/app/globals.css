@@ -91,3 +91,31 @@ body {
     transition: left 700ms ease;
   }
 }
+
+/* Print: only the dedicated sheet (#print-sheet in PrintSheet.tsx) is
+   visible — the interactive app (nav, forms, countdown, timeline views)
+   never prints. The visibility approach keeps layout computation intact
+   while suppressing everything except the sheet subtree. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #print-sheet,
+  #print-sheet * {
+    visibility: visible;
+  }
+  #print-sheet {
+    display: block !important;
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    color: #000;
+    background: #fff;
+  }
+  .print-avoid-break {
+    break-inside: avoid;
+  }
+  @page {
+    margin: 14mm;
+  }
+}

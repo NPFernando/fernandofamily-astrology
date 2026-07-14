@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
   // bundler wrap it produces a broken hashed external ("pg-<hash>") that the
   // standalone runtime can't resolve. Marking it external keeps it a plain
   // node_modules require, which standalone output traces and copies.
-  serverExternalPackages: ["pg", "web-push"],
+  serverExternalPackages: ["pg", "web-push", "sharp"],
   // This app imports packages/feature-registry from outside apps/web (the
   // monorepo root) — tell Next.js's bundler that's the real project root so
   // it resolves those files instead of treating apps/web as an island.

@@ -97,11 +97,16 @@ body {
    never prints. The visibility approach keeps layout computation intact
    while suppressing everything except the sheet subtree. */
 @media print {
-  body * {
+  /* Pages WITH a dedicated print sheet (the Pancha Pakshi calculator) print
+     only that sheet. Pages without one (body lacks .has-print-sheet) print
+     their normal content, relying on print: utilities to hide controls —
+     the blanket visibility:hidden must not apply there or those pages would
+     print blank. */
+  body.has-print-sheet * {
     visibility: hidden;
   }
-  #print-sheet,
-  #print-sheet * {
+  body.has-print-sheet #print-sheet,
+  body.has-print-sheet #print-sheet * {
     visibility: visible;
   }
   #print-sheet {

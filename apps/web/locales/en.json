@@ -7,6 +7,10 @@
     "panchaPakshi": {
       "title": "Pancha Pakshi Live",
       "description": "A live, sunrise-based Pancha Pakshi timetable for any location and birth bird."
+    },
+    "panchanga": {
+      "title": "Daily Panchanga",
+      "description": "Tithi, nakshatra, yoga, karana and the day's inauspicious kalams, calculated for any location and date."
     }
   },
   "nav": {
@@ -17,7 +21,8 @@
     "privacy": "Privacy",
     "disclaimer": "Disclaimer",
     "licensing": "Licence",
-    "sourceCode": "Source code"
+    "sourceCode": "Source code",
+    "panchanga": "Panchanga"
   },
   "enums": {
     "birds": {
@@ -58,6 +63,94 @@
       "thursday": "Thursday",
       "friday": "Friday",
       "saturday": "Saturday"
+    },
+    "tithis": {
+      "shukla-pratipada": "Shukla Pratipada",
+      "shukla-dvitiya": "Shukla Dvitiya",
+      "shukla-tritiya": "Shukla Tritiya",
+      "shukla-chaturthi": "Shukla Chaturthi",
+      "shukla-panchami": "Shukla Panchami",
+      "shukla-shashthi": "Shukla Shashthi",
+      "shukla-saptami": "Shukla Saptami",
+      "shukla-ashtami": "Shukla Ashtami",
+      "shukla-navami": "Shukla Navami",
+      "shukla-dashami": "Shukla Dashami",
+      "shukla-ekadashi": "Shukla Ekadashi",
+      "shukla-dvadashi": "Shukla Dvadashi",
+      "shukla-trayodashi": "Shukla Trayodashi",
+      "shukla-chaturdashi": "Shukla Chaturdashi",
+      "purnima": "Purnima (Full Moon)",
+      "krishna-pratipada": "Krishna Pratipada",
+      "krishna-dvitiya": "Krishna Dvitiya",
+      "krishna-tritiya": "Krishna Tritiya",
+      "krishna-chaturthi": "Krishna Chaturthi",
+      "krishna-panchami": "Krishna Panchami",
+      "krishna-shashthi": "Krishna Shashthi",
+      "krishna-saptami": "Krishna Saptami",
+      "krishna-ashtami": "Krishna Ashtami",
+      "krishna-navami": "Krishna Navami",
+      "krishna-dashami": "Krishna Dashami",
+      "krishna-ekadashi": "Krishna Ekadashi",
+      "krishna-dvadashi": "Krishna Dvadashi",
+      "krishna-trayodashi": "Krishna Trayodashi",
+      "krishna-chaturdashi": "Krishna Chaturdashi",
+      "amavasya": "Amavasya (New Moon)"
+    },
+    "yogas": {
+      "vishkambha": "Vishkambha",
+      "priti": "Priti",
+      "ayushman": "Ayushman",
+      "saubhagya": "Saubhagya",
+      "shobhana": "Shobhana",
+      "atiganda": "Atiganda",
+      "sukarman": "Sukarman",
+      "dhriti": "Dhriti",
+      "shula": "Shula",
+      "ganda": "Ganda",
+      "vriddhi": "Vriddhi",
+      "dhruva": "Dhruva",
+      "vyaghata": "Vyaghata",
+      "harshana": "Harshana",
+      "vajra": "Vajra",
+      "siddhi": "Siddhi",
+      "vyatipata": "Vyatipata",
+      "variyana": "Variyana",
+      "parigha": "Parigha",
+      "shiva": "Shiva",
+      "siddha": "Siddha",
+      "sadhya": "Sadhya",
+      "shubha": "Shubha",
+      "shukla": "Shukla",
+      "brahma": "Brahma",
+      "indra": "Indra",
+      "vaidhriti": "Vaidhriti"
+    },
+    "karanas": {
+      "kimstughna": "Kimstughna",
+      "bava": "Bava",
+      "balava": "Balava",
+      "kaulava": "Kaulava",
+      "taitila": "Taitila",
+      "gara": "Gara",
+      "vanija": "Vanija",
+      "vishti": "Vishti (Bhadra)",
+      "shakuni": "Shakuni",
+      "chatushpada": "Chatushpada",
+      "naga": "Naga"
+    },
+    "lunarMonths": {
+      "chaitra": "Chaitra",
+      "vaishakha": "Vaishakha",
+      "jyeshtha": "Jyeshtha",
+      "ashadha": "Ashadha",
+      "shravana": "Shravana",
+      "bhadrapada": "Bhadrapada",
+      "ashvina": "Ashvina",
+      "kartika": "Kartika",
+      "margashirsha": "Margashirsha",
+      "pausha": "Pausha",
+      "magha": "Magha",
+      "phalguna": "Phalguna"
     }
   },
   "ui": {
@@ -259,10 +352,36 @@
     "methodology": {
       "title": "Methodology",
       "description": "How the sunrise-based Pancha Pakshi day, birth-bird mapping and periods are calculated."
+    },
+    "panchanga": {
+      "title": "Daily Panchanga",
+      "description": "Daily Panchanga — tithi, nakshatra, yoga, karana, lunar month and rahu kala, calculated from real sunrise times for your location."
     }
   },
   "push": {
     "title": "Favourable period soon",
     "body": "{bird} · {activity} — {effect} at {time}"
+  },
+  "panchanga": {
+    "title": "Daily Panchanga",
+    "tithi": "Tithi",
+    "nakshatra": "Nakshatra",
+    "yoga": "Yoga",
+    "karana": "Karana",
+    "lunarMonth": "Lunar month",
+    "leapMonth": "Adhika (leap)",
+    "pada": "Pada",
+    "until": "until",
+    "nextDay": "next day",
+    "kalamsTitle": "Inauspicious periods (kalams)",
+    "kalamsNote": "Traditionally avoided for starting new ventures. Shown for cultural and informational purposes.",
+    "rahuKala": "Rahu Kala",
+    "yamaganda": "Yamaganda",
+    "gulika": "Gulika Kala",
+    "sunMoonTitle": "Sun & Moon",
+    "moonrise": "Moonrise",
+    "moonset": "Moonset",
+    "notVisible": "not visible today",
+    "showingDefaults": "Showing today for the default location — change it below."
   }
 }

@@ -36,6 +36,11 @@
   server-rendered per-schedule PNG share cards (same detail option), plus the
   earlier `.ics` calendar export
 
+- Daily Panchanga module — tithi, nakshatra, yoga, karana, lunar month,
+  weekday and the day's inauspicious kalams (rahu / yamaganda / gulika) with
+  sun and moon times, for any location and date, bilingual, zero-click on
+  load (`/panchanga`, `POST /api/v1/panchanga/daily`)
+
 ## Backlog (priority order)
 
 **None of these are implemented.** They must not appear in production
@@ -43,9 +48,6 @@ navigation, the sitemap, or anywhere that implies they are available, until
 they are actually built, registered in the feature registry
 (`packages/feature-registry`), and explicitly enabled.
 
-1. **Daily Panchanga module** — tithi, nakshatra, yoga, karana, rahu-kala
-   daily page. The vendored engine already computes most of this; natural
-   second module and a strong SEO surface.
 2. Telegram bot — "what's my current period?", daily morning summary.
 3. Tamil as a third locale (upstream PyJHora ships Tamil resources — see
    [`FUTURE_DATA_USES.md`](../apps/api/vendor/FUTURE_DATA_USES.md); the i18n

@@ -27,6 +27,17 @@ export const features: FeatureEntry[] = [
     descriptionKey: "features.panchaPakshi.description",
     icon: "peacock",
   },
+  {
+    id: "panchanga",
+    enabled: true,
+    public: true,
+    order: 20,
+    route: "/panchanga",
+    apiNamespace: "/api/v1/panchanga",
+    titleKey: "features.panchanga.title",
+    descriptionKey: "features.panchanga.description",
+    icon: "sun",
+  },
 ];
 
 export function enabledFeatures(): FeatureEntry[] {

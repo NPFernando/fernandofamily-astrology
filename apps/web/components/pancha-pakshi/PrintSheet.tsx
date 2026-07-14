@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { translateEnum } from "@/lib/i18n";
 import type { MajorPeriod, ScheduleResponse } from "@/lib/api-client";
@@ -36,6 +37,15 @@ export function PrintSheet({
 }) {
   const { dict, locale } = useLocale();
   const BirdIcon = BIRD_ICONS[schedule.birth_bird];
+
+  // Marks the document so the global @media print rules know a dedicated
+  // print sheet exists on this page (pages without one print their own
+  // content instead of a blank page — see globals.css).
+  useEffect(() => {
+    document.body.classList.add("has-print-sheet");
+    return () => document.body.classList.remove("has-print-sheet");
+  }, []);
+
   const dayPeriods = schedule.major_periods.filter((p) => p.kind === "day");
   const nightPeriods = schedule.major_periods.filter((p) => p.kind === "night");
 

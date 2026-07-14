@@ -7,6 +7,10 @@
     "panchaPakshi": {
       "title": "පංච පක්ෂි සජීවී කාල සටහන",
       "description": "ඕනෑම ස්ථානයක් සහ උපන් පක්ෂියෙකු සඳහා හිරු උදාව මත පදනම් වූ සජීවී පංච පක්ෂි කාල සටහනක්."
+    },
+    "panchanga": {
+      "title": "දෛනික පංචාංගය",
+      "description": "ඕනෑම ස්ථානයක් සහ දිනයක් සඳහා ගණනය කළ තිථි, නැකත, යෝග, කරණ සහ දිනයේ අසුබ කාල."
     }
   },
   "nav": {
@@ -17,7 +21,8 @@
     "privacy": "පෞද්ගලිකත්වය",
     "disclaimer": "වගකීම් ප්‍රතික්ෂේපය",
     "licensing": "බලපත්‍රය",
-    "sourceCode": "මූලාශ්‍ර කේතය"
+    "sourceCode": "මූලාශ්‍ර කේතය",
+    "panchanga": "පංචාංගය"
   },
   "enums": {
     "birds": {
@@ -58,6 +63,94 @@
       "thursday": "බ්‍රහස්පතින්දා",
       "friday": "සිකුරාදා",
       "saturday": "සෙනසුරාදා"
+    },
+    "tithis": {
+      "shukla-pratipada": "ශුක්ල ප්‍රතිපදා",
+      "shukla-dvitiya": "ශුක්ල ද්විතියා",
+      "shukla-tritiya": "ශුක්ල තෘතියා",
+      "shukla-chaturthi": "ශුක්ල චතුර්ථි",
+      "shukla-panchami": "ශුක්ල පංචමි",
+      "shukla-shashthi": "ශුක්ල ෂෂ්ඨි",
+      "shukla-saptami": "ශුක්ල සප්තමි",
+      "shukla-ashtami": "ශුක්ල අෂ්ටමි",
+      "shukla-navami": "ශුක්ල නවමි",
+      "shukla-dashami": "ශුක්ල දශමි",
+      "shukla-ekadashi": "ශුක්ල ඒකාදශි",
+      "shukla-dvadashi": "ශුක්ල ද්වාදශි",
+      "shukla-trayodashi": "ශුක්ල ත්‍රයෝදශි",
+      "shukla-chaturdashi": "ශුක්ල චතුර්දශි",
+      "purnima": "පුර්ණිමා (පසළොස්වක)",
+      "krishna-pratipada": "කෘෂ්ණ ප්‍රතිපදා",
+      "krishna-dvitiya": "කෘෂ්ණ ද්විතියා",
+      "krishna-tritiya": "කෘෂ්ණ තෘතියා",
+      "krishna-chaturthi": "කෘෂ්ණ චතුර්ථි",
+      "krishna-panchami": "කෘෂ්ණ පංචමි",
+      "krishna-shashthi": "කෘෂ්ණ ෂෂ්ඨි",
+      "krishna-saptami": "කෘෂ්ණ සප්තමි",
+      "krishna-ashtami": "කෘෂ්ණ අෂ්ටමි",
+      "krishna-navami": "කෘෂ්ණ නවමි",
+      "krishna-dashami": "කෘෂ්ණ දශමි",
+      "krishna-ekadashi": "කෘෂ්ණ ඒකාදශි",
+      "krishna-dvadashi": "කෘෂ්ණ ද්වාදශි",
+      "krishna-trayodashi": "කෘෂ්ණ ත්‍රයෝදශි",
+      "krishna-chaturdashi": "කෘෂ්ණ චතුර්දශි",
+      "amavasya": "අමාවක"
+    },
+    "yogas": {
+      "vishkambha": "විෂ්කම්භ",
+      "priti": "ප්‍රීති",
+      "ayushman": "ආයුෂ්මාන්",
+      "saubhagya": "සෞභාග්‍ය",
+      "shobhana": "ශෝභන",
+      "atiganda": "අතිගණ්ඩ",
+      "sukarman": "සුකර්මන්",
+      "dhriti": "ධෘති",
+      "shula": "ශූල",
+      "ganda": "ගණ්ඩ",
+      "vriddhi": "වෘද්ධි",
+      "dhruva": "ධ්‍රුව",
+      "vyaghata": "ව්‍යාඝාත",
+      "harshana": "හර්ෂණ",
+      "vajra": "වජ්‍ර",
+      "siddhi": "සිද්ධි",
+      "vyatipata": "ව්‍යතීපාත",
+      "variyana": "වරීයන්",
+      "parigha": "පරිඝ",
+      "shiva": "ශිව",
+      "siddha": "සිද්ධ",
+      "sadhya": "සාධ්‍ය",
+      "shubha": "ශුභ",
+      "shukla": "ශුක්ල",
+      "brahma": "බ්‍රහ්ම",
+      "indra": "ඉන්ද්‍ර",
+      "vaidhriti": "වෛධෘති"
+    },
+    "karanas": {
+      "kimstughna": "කිංස්තුඝ්න",
+      "bava": "බව",
+      "balava": "බාලව",
+      "kaulava": "කෞලව",
+      "taitila": "තෛතිල",
+      "gara": "ගර",
+      "vanija": "වණිජ",
+      "vishti": "විෂ්ටි (භද්‍රා)",
+      "shakuni": "ශකුනි",
+      "chatushpada": "චතුෂ්පාද",
+      "naga": "නාග"
+    },
+    "lunarMonths": {
+      "chaitra": "චෛත්‍ර",
+      "vaishakha": "වෛශාඛ",
+      "jyeshtha": "ජ්‍යේෂ්ඨ",
+      "ashadha": "ආෂාඪ",
+      "shravana": "ශ්‍රාවණ",
+      "bhadrapada": "භාද්‍රපද",
+      "ashvina": "අශ්වින",
+      "kartika": "කාර්තික",
+      "margashirsha": "මාර්ගශීර්ෂ",
+      "pausha": "පෞෂ",
+      "magha": "මාඝ",
+      "phalguna": "ඵාල්ගුන"
     }
   },
   "ui": {
@@ -259,10 +352,36 @@
     "methodology": {
       "title": "ක්‍රමවේදය",
       "description": "හිරු උදාව පදනම් වූ පංච පක්ෂි දිනය, උපන් පක්ෂි සිතියම සහ කාල පරාස ගණනය කරන ආකාරය."
+    },
+    "panchanga": {
+      "title": "දෛනික පංචාංගය",
+      "description": "දෛනික පංචාංගය — ඔබේ ස්ථානය සඳහා සැබෑ හිරු උදාවෙන් ගණනය කළ තිථි, නැකත, යෝග, කරණ, චාන්ද්‍ර මාසය සහ රාහු කාලය."
     }
   },
   "push": {
     "title": "සුබ කාල පරාසයක් ළඟදී",
     "body": "{bird} · {activity} — {effect}, {time} ට"
+  },
+  "panchanga": {
+    "title": "දෛනික පංචාංගය",
+    "tithi": "තිථිය",
+    "nakshatra": "නැකත",
+    "yoga": "යෝගය",
+    "karana": "කරණය",
+    "lunarMonth": "චාන්ද්‍ර මාසය",
+    "leapMonth": "අධික මාසය",
+    "pada": "පාදය",
+    "until": "දක්වා",
+    "nextDay": "පසුදින",
+    "kalamsTitle": "අසුබ කාල (කාලම්)",
+    "kalamsNote": "නව කටයුතු ආරම්භයට සම්ප්‍රදායිකව වළක්වන කාල වේ. සංස්කෘතික හා දැනුවත් කිරීමේ අරමුණින් පමණක් දක්වා ඇත.",
+    "rahuKala": "රාහු කාලය",
+    "yamaganda": "යමගණ්ඩ කාලය",
+    "gulika": "ගුලික කාලය",
+    "sunMoonTitle": "හිරු සහ සඳ",
+    "moonrise": "සඳ උදාව",
+    "moonset": "සඳ බැසීම",
+    "notVisible": "අද නොපෙනේ",
+    "showingDefaults": "පෙරනිමි ස්ථානය සඳහා අද දිනය පෙන්වයි — පහතින් වෙනස් කරන්න."
   }
 }

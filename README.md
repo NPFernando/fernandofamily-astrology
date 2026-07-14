@@ -25,6 +25,10 @@ infra/          Docker, Caddy (reference), deployment scripts
 docs/           Architecture, calculations, deployment, licensing, privacy, roadmap
 ```
 
+**Second tool — Daily Panchanga** (`/panchanga`): tithi, nakshatra, yoga,
+karana, lunar month and the day's inauspicious kalams for any location and
+date, served by `POST /api/v1/panchanga/daily`.
+
 More detail:
 [`docs/architecture/platform.md`](docs/architecture/platform.md) ·
 [`docs/architecture/pancha-pakshi.md`](docs/architecture/pancha-pakshi.md)

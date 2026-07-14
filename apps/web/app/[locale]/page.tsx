@@ -5,6 +5,8 @@ import { localizedPageMetadata, resolveLocale } from "@/lib/page-metadata";
 import { enabledFeatures } from "@/lib/feature-registry";
 import { PUBLIC_BASE_URL, PUBLIC_REPOSITORY_URL } from "@/lib/site-config";
 import { BIRD_ICONS } from "@/components/icons/birds";
+import { PeacockIcon } from "@/components/icons/birds";
+import { SunIcon } from "@/components/icons/sun";
 
 export async function generateMetadata({
   params,
@@ -15,6 +17,13 @@ export async function generateMetadata({
 }
 
 const BIRD_ORDER = ["vulture", "owl", "crow", "cock", "peacock"] as const;
+
+// The registry's `icon` field resolved to a renderable component; new tools
+// register their glyph here alongside their registry entry.
+const FEATURE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  peacock: PeacockIcon,
+  sun: SunIcon,
+};
 
 export default async function LandingPage({ params }: { params: Promise<{ locale: string }> }) {
   const locale = await resolveLocale(params);
@@ -29,6 +38,16 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
         name: dict.platform.name,
         url: PUBLIC_BASE_URL,
         inLanguage: ["en", "si"],
+      },
+      {
+        "@type": "WebApplication",
+        name: dict.metadata.panchanga.title,
+        url: `${PUBLIC_BASE_URL}/${locale}/panchanga`,
+        applicationCategory: "LifestyleApplication",
+        operatingSystem: "Web",
+        offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+        description: dict.metadata.panchanga.description,
+        license: `${PUBLIC_REPOSITORY_URL}/blob/main/LICENSE`,
       },
       {
         "@type": "WebApplication",
@@ -80,7 +99,13 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
             href={`/${locale}${f.route}`}
             className="group rounded-xl border border-black/10 p-6 shadow-sm transition hover:border-accent/50 hover:shadow-md motion-safe:hover:-translate-y-0.5 dark:border-white/10"
           >
-            <h2 className="text-xl font-semibold text-accent">{resolveKey(dict, f.titleKey)}</h2>
+            <h2 className="flex items-center gap-2 text-xl font-semibold text-accent">
+              {(() => {
+                const Icon = FEATURE_ICONS[f.icon];
+                return Icon ? <Icon className="shrink-0 text-2xl" /> : null;
+              })()}
+              {resolveKey(dict, f.titleKey)}
+            </h2>
             <p className="mt-2 text-sm opacity-80">{resolveKey(dict, f.descriptionKey)}</p>
           </Link>
         ))}

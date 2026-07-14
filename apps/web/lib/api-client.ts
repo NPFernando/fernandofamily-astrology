@@ -178,6 +178,48 @@ export type SummaryResponse = {
   per_day: SummaryDay[];
 };
 
+// ---------------------------------------------------------------------------
+// Daily Panchanga (/api/v1/panchanga) — shapes mirror
+// apps/api/app/modules/panchanga/models.py.
+
+export type PanchangaRequest = {
+  date: string; // YYYY-MM-DD
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  iana_tz: string;
+};
+
+export type TithiSpan = { key: string; index: number; starts_at: string; ends_at: string };
+export type NakshatraSpan = {
+  key: string;
+  index: number;
+  pada: number;
+  starts_at: string | null;
+  ends_at: string;
+};
+export type YogaSpan = { key: string; index: number; starts_at: string; ends_at: string };
+export type KaranaSpan = { key: string; index_60: number; starts_at: string; ends_at: string };
+export type KalamRange = { starts_at: string; ends_at: string };
+
+export type DailyPanchanga = {
+  engine: EngineMetadata;
+  location: Location;
+  date: string;
+  weekday: WeekdayId;
+  paksha: PakshaId;
+  sunrise: string;
+  sunset: string;
+  moonrise: string | null;
+  moonset: string | null;
+  lunar_month: { key: string; index: number; is_leap: boolean };
+  tithi: TithiSpan[];
+  nakshatra: NakshatraSpan[];
+  yoga: YogaSpan[];
+  karana: KaranaSpan[];
+  kalams: { rahu: KalamRange; yamaganda: KalamRange; gulika: KalamRange };
+};
+
 export class ApiError extends Error {
   status: number;
   body: unknown;
@@ -241,6 +283,19 @@ export function fetchWindows(body: WindowsRequest): Promise<WindowsResponse> {
 
 export function fetchSummary(body: SummaryRequest): Promise<SummaryResponse> {
   return postJson<SummaryResponse>("/summary", body);
+}
+
+export function fetchPanchanga(body: PanchangaRequest): Promise<DailyPanchanga> {
+  const res = fetch(`/api/v1/panchanga/daily`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).then(async (r) => {
+    const data = await r.json().catch(() => null);
+    if (!r.ok) throw new ApiError(r.status, data);
+    return data as DailyPanchanga;
+  });
+  return res;
 }
 
 export async function fetchMetadata(): Promise<EngineMetadata> {

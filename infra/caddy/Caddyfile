@@ -8,6 +8,10 @@
 astrology.fernandofamily.com {
     encode zstd gzip
 
+    handle /metrics {
+        respond 404
+    }
+
     handle /api/* {
         reverse_proxy api:8000
     }

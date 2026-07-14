@@ -1,10 +1,11 @@
-import ipaddress
 import os
 import threading
 import time
 from collections import deque
 
 from fastapi import HTTPException, Request
+
+from app.core.client_ip import resolved_client_ip
 
 # 40 requests/minute/IP for the compute-heavy pancha-pakshi POST routes: each
 # request runs real swisseph astronomy calculations (sunrise/sunset/tithi/
@@ -26,27 +27,7 @@ _last_sweep = 0.0
 
 
 def _client_key(request: Request) -> str:
-    # In production this app sits behind nginx -> docker, so the socket peer
-    # (request.client.host) is always the proxy/bridge address — every real
-    # visitor would share one bucket. nginx sets X-Forwarded-For with the
-    # real client first; trust that header ONLY when the direct peer is a
-    # private/loopback address (i.e. our own proxy), never when exposed
-    # directly to the internet.
-    peer = request.client.host if request.client else "unknown"
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        try:
-            peer_ip = ipaddress.ip_address(peer)
-        except ValueError:
-            peer_ip = None
-        if peer_ip is not None and (peer_ip.is_private or peer_ip.is_loopback):
-            first_hop = forwarded.split(",")[0].strip()
-            try:
-                ipaddress.ip_address(first_hop)
-                return first_hop
-            except ValueError:
-                pass
-    return peer
+    return resolved_client_ip(request)
 
 
 def _sweep_idle_buckets(now: float) -> None:

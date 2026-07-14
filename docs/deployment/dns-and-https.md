@@ -49,6 +49,10 @@ sole internet-facing edge. Give this site its own `limit_req_zone`/
 defines, to avoid silently sharing rate-limit state across unrelated
 products on the same host.
 
+Do not proxy `/metrics` publicly. The API exposes Prometheus-style metrics
+for host-local monitoring only; scrape `http://127.0.0.1:8100/metrics` from
+the host or a trusted private network listed in `METRICS_ALLOWED_CIDRS`.
+
 ## Certificate issuance (webroot method, nginx example)
 
 1. Stand up a plain HTTP server block for the domain first, with

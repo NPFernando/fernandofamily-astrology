@@ -23,6 +23,14 @@ class Settings:
     pyjhora_version: str = os.environ.get("PYJHORA_VERSION", "4.8.7")
     pyjhora_commit: str = os.environ.get("PYJHORA_COMMIT", "ca22995709bd60e371e7820a1a5efc80ce4cf821")
     log_level: str = os.environ.get("LOG_LEVEL", "INFO")
+    metrics_allowed_cidrs: list[str] = [
+        c.strip()
+        for c in os.environ.get(
+            "METRICS_ALLOWED_CIDRS",
+            "127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16",
+        ).split(",")
+        if c.strip()
+    ]
     cors_allowed_origins: list[str] = [
         o.strip() for o in os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:3000").split(",") if o.strip()
     ]

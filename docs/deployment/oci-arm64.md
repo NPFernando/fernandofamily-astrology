@@ -28,6 +28,7 @@ docker compose -f docker-compose.yml -f docker-compose.production.yml build
 docker compose -f docker-compose.yml -f docker-compose.production.yml up -d
 curl http://127.0.0.1:8100/api/v1/health/ready
 curl -I http://127.0.0.1:3100/
+curl http://127.0.0.1:8100/metrics
 ```
 
 `docker-compose.production.yml` binds both services to `127.0.0.1` only —

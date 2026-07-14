@@ -67,6 +67,16 @@ the 50 sub-periods. Favourable windows also export as `.ics` calendar files.
 
 ## Local development
 
+One-shot setup and dev server:
+
+```bash
+make setup
+make dev             # API :8000 + web :3000
+```
+
+The dev script starts FastAPI and Next.js together, sets `API_PROXY_TARGET`
+for the web process, and stops both processes when you exit.
+
 ### Backend
 
 ```bash

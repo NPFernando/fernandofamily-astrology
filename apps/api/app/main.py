@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.core.logging import access_log_middleware, configure_logging
+from app.core.metrics import metrics_middleware, router as metrics_router
 from app.modules.pancha_pakshi.errors import InvalidInputError, PanchaPakshiInternalError, SunriseUnavailableError
 from app.routes.v1 import health, metadata, pancha_pakshi, panchanga
 
@@ -26,7 +27,9 @@ app.add_middleware(
 )
 
 app.middleware("http")(access_log_middleware)
+app.middleware("http")(metrics_middleware)
 
+app.include_router(metrics_router)
 app.include_router(health.router)
 app.include_router(metadata.router)
 app.include_router(pancha_pakshi.router)

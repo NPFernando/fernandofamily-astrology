@@ -69,17 +69,19 @@ export function BestWindows({
                 <button
                   type="button"
                   onClick={() => onSelect(sp.major_index)}
-                  className="flex w-full items-center gap-2 rounded-lg border border-black/10 bg-background px-3 py-2 text-left text-sm hover:border-emerald-600/50 dark:border-white/10"
+                  className="flex w-full flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-black/10 bg-background px-3 py-2.5 text-left text-sm hover:border-emerald-600/50 dark:border-white/10"
                 >
-                  <span className="font-semibold tabular-nums">
+                  <span className="min-w-0 flex-1 font-semibold tabular-nums">
                     {formatTime(sp.starts_at, locale)}–{formatTime(sp.ends_at, locale)}
                   </span>
-                  <BirdIcon className="shrink-0 text-base opacity-80" />
-                  <ActivityIcon
-                    className="shrink-0 text-base"
-                    style={{ color: ACTIVITY_COLORS[sp.sub_activity] }}
-                  />
-                  <span className="ml-auto text-xs opacity-70">
+                  <span className="flex shrink-0 items-center gap-1.5">
+                    <BirdIcon className="text-lg opacity-90" />
+                    <ActivityIcon
+                      className="text-lg"
+                      style={{ color: ACTIVITY_COLORS[sp.sub_activity] }}
+                    />
+                  </span>
+                  <span className="text-xs opacity-70 sm:ml-auto">
                     {translateEnum(dict, "effects", sp.effect)}
                   </span>
                 </button>

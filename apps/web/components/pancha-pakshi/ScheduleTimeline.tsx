@@ -215,11 +215,11 @@ function MajorPeriodCard({
         aria-expanded={isExpanded}
         className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
       >
-        <div className="flex flex-col">
-          <span className="flex items-center gap-1.5 text-sm font-semibold">
-            <BirdIcon className="shrink-0 text-base opacity-80" />
+        <div className="flex min-w-0 flex-col gap-1">
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold">
+            <BirdIcon className="shrink-0 text-lg opacity-90" />
             {translateEnum(dict, "birds", period.main_bird)} —{" "}
-            <ActivityIcon className="shrink-0 text-base" style={{ color }} />
+            <ActivityIcon className="shrink-0 text-lg" style={{ color }} />
             {translateEnum(dict, "activities", period.main_activity)}
           </span>
           <span className="text-xs opacity-70">
@@ -292,21 +292,21 @@ function SubPeriodTimeline({ subPeriods, locale }: { subPeriods: SubPeriod[]; lo
         return (
           <li
             key={sp.id}
-            className={`flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-xs ${
+            className={`flex flex-col gap-1.5 rounded-lg px-3 py-2 text-xs sm:flex-row sm:items-center sm:justify-between sm:gap-2 ${
               sp.is_current ? "bg-accent/10 font-semibold" : "bg-black/[.02] dark:bg-white/[.04]"
             }`}
             style={{ borderLeft: `3px solid ${ACTIVITY_COLORS[sp.sub_activity]}` }}
           >
-            <span>
+            <span className="shrink-0 tabular-nums">
               {formatTime(sp.starts_at, locale)} – {formatTime(sp.ends_at, locale)}
             </span>
-            <span className="flex items-center gap-1">
-              <SubBirdIcon className="shrink-0 opacity-80" />
+            <span className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1">
+              <SubBirdIcon className="shrink-0 text-base opacity-90" />
               {translateEnum(dict, "birds", sp.sub_bird)} ·{" "}
-              <SubActivityIcon className="shrink-0" style={{ color: ACTIVITY_COLORS[sp.sub_activity] }} />
+              <SubActivityIcon className="shrink-0 text-base" style={{ color: ACTIVITY_COLORS[sp.sub_activity] }} />
               {translateEnum(dict, "activities", sp.sub_activity)}
             </span>
-            <span className="opacity-70">{translateEnum(dict, "effects", sp.effect)}</span>
+            <span className="shrink-0 opacity-70">{translateEnum(dict, "effects", sp.effect)}</span>
           </li>
         );
       })}

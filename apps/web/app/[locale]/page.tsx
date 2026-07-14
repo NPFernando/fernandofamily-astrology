@@ -57,11 +57,18 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
         <p className="relative mt-3 text-lg text-white/90">{dict.platform.tagline}</p>
         <div
           aria-hidden
-          className="relative mt-6 flex items-center justify-center gap-4 text-2xl text-white/80"
+          className="relative mt-7 flex flex-wrap items-center justify-center gap-3 sm:gap-4"
         >
           {BIRD_ORDER.map((bird) => {
             const Icon = BIRD_ICONS[bird];
-            return <Icon key={bird} />;
+            return (
+              <span
+                key={bird}
+                className="flex h-12 w-12 items-center justify-center rounded-full bg-white/15 ring-1 ring-white/20 backdrop-blur-sm sm:h-14 sm:w-14"
+              >
+                <Icon className="text-2xl sm:text-3xl" />
+              </span>
+            );
           })}
         </div>
       </section>

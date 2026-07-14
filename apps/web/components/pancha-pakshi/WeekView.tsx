@@ -130,13 +130,13 @@ export function WeekView({
             data-testid={`week-filter-${a}`}
             aria-pressed={active}
             onClick={() => toggleActivity(a)}
-            className={`flex items-center gap-1 rounded-full border px-2.5 py-1 ${
+            className={`flex min-h-9 items-center gap-1.5 rounded-full border px-2.5 py-1 ${
               active
                 ? "border-accent bg-accent/10 font-medium text-accent"
                 : "border-black/10 opacity-50 dark:border-white/20"
             }`}
           >
-            <ActivityIcon className="text-sm" style={{ color: ACTIVITY_COLORS[a] }} />
+            <ActivityIcon className="text-base" style={{ color: ACTIVITY_COLORS[a] }} />
             {translateEnum(dict, "activities", a)}
           </button>
         );
@@ -240,18 +240,18 @@ export function WeekView({
                           data-testid="week-window-chip"
                           onClick={() => onPickDay(date)}
                           title={windowSummary(w)}
-                          className="flex min-w-0 flex-1 items-center gap-1 rounded-md border border-black/5 px-1.5 py-1 text-left text-xs hover:border-accent/50 dark:border-white/10"
+                          className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1.5 gap-y-1 rounded-md border border-black/5 px-2 py-1.5 text-left text-xs hover:border-accent/50 dark:border-white/10"
                           style={{ borderLeftWidth: 3, borderLeftColor: ACTIVITY_COLORS[w.sub_activity] }}
                         >
-                          <span className="tabular-nums">
+                          <span className="shrink-0 tabular-nums">
                             {formatTime(w.starts_at, locale)}
                           </span>
-                          <BirdIcon className="shrink-0 text-sm opacity-80" />
+                          <BirdIcon className="shrink-0 text-base opacity-90" />
                           <ActivityIcon
-                            className="shrink-0 text-sm"
+                            className="shrink-0 text-base"
                             style={{ color: ACTIVITY_COLORS[w.sub_activity] }}
                           />
-                          <span className="ml-auto truncate opacity-70">
+                          <span className="min-w-0 truncate opacity-70 sm:ml-auto">
                             {translateEnum(dict, "effects", w.effect)}
                           </span>
                         </button>

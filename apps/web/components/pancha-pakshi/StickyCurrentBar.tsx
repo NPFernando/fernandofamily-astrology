@@ -69,13 +69,13 @@ export function StickyCurrentBar({
       role="status"
       className="motion-safe:animate-panel-in fixed inset-x-0 top-0 z-40 border-b border-accent/30 bg-background/95 px-4 py-2 shadow-sm backdrop-blur print:hidden"
     >
-      <div className="mx-auto flex max-w-4xl items-center gap-2 text-sm">
+      <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-x-2 gap-y-1 text-sm">
         <span className="text-xs uppercase opacity-60">{dict.ui.liveNow}</span>
         <span className="font-bold tabular-nums text-accent">{formatDuration(remaining)}</span>
-        <BirdIcon className="shrink-0 text-base opacity-80" />
+        <BirdIcon className="shrink-0 text-lg opacity-90" />
         {translateEnum(dict, "birds", current.sub_bird)}
         <ActivityIcon
-          className="shrink-0 text-base"
+          className="shrink-0 text-lg"
           style={{ color: ACTIVITY_COLORS[current.sub_activity] }}
         />
         {translateEnum(dict, "activities", current.sub_activity)}

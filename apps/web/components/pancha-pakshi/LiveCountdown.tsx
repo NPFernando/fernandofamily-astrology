@@ -128,18 +128,18 @@ export function LiveCountdown({
       {/* The user's own (main) bird stays constant all day; the sub-bird
           rotates through all five birds every major period. Showing only the
           sub-bird read as "wrong bird" — label both lines explicitly. */}
-      <p className="flex items-center gap-1.5 text-sm font-medium">
+      <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium">
         <span className="text-xs uppercase opacity-60">{dict.ui.mainBird}:</span>
-        <MainBirdIcon className="shrink-0 text-base opacity-80" />
+        <MainBirdIcon className="shrink-0 text-lg opacity-90" />
         {translateEnum(dict, "birds", current.main_bird)} ·{" "}
-        <MainActivityIcon className="shrink-0 text-base" style={{ color: ACTIVITY_COLORS[current.main_activity] }} />
+        <MainActivityIcon className="shrink-0 text-lg" style={{ color: ACTIVITY_COLORS[current.main_activity] }} />
         {translateEnum(dict, "activities", current.main_activity)}
       </p>
-      <p className="flex items-center gap-1.5 text-sm">
+      <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
         <span className="text-xs uppercase opacity-60">{dict.ui.subBird}:</span>
-        <SubBirdIcon className="shrink-0 text-base opacity-80" />
+        <SubBirdIcon className="shrink-0 text-lg opacity-90" />
         {translateEnum(dict, "birds", current.sub_bird)} ·{" "}
-        <SubActivityIcon className="shrink-0 text-base" style={{ color: ACTIVITY_COLORS[current.sub_activity] }} />
+        <SubActivityIcon className="shrink-0 text-lg" style={{ color: ACTIVITY_COLORS[current.sub_activity] }} />
         {translateEnum(dict, "activities", current.sub_activity)}
       </p>
       <p className="text-xs opacity-70">

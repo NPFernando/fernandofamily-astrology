@@ -16,10 +16,11 @@ export function GeneratedIcon({
   srcSet: string;
 }) {
   const mergedStyle: CSSProperties = {
-    width: "1.15em",
-    height: "1.15em",
+    width: "1.5em",
+    height: "1.5em",
+    minWidth: "1.5em",
     objectFit: "contain",
-    verticalAlign: "-0.2em",
+    verticalAlign: "-0.35em",
     ...style,
   };
 

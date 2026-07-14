@@ -27,7 +27,7 @@ export function Legend() {
                     className="inline-block h-3 w-3 rounded-sm"
                     style={{ backgroundColor: ACTIVITY_COLORS[a] }}
                   />
-                  <Icon className="shrink-0 text-base" style={{ color: ACTIVITY_COLORS[a] }} />
+                  <Icon className="shrink-0 text-lg" style={{ color: ACTIVITY_COLORS[a] }} />
                   {translateEnum(dict, "activities", a)}
                 </li>
               );

@@ -37,6 +37,7 @@ export async function generateMetadata({
       languages: { en: "/en", si: "/si" },
     },
     icons: {
+      icon: "/icons/app/icon-192.png",
       apple: "/icons/apple-touch-icon.png",
     },
     openGraph: {

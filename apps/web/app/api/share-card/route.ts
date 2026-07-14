@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import sharp from "sharp";
 import en from "@/locales/en.json";
 import si from "@/locales/si.json";
@@ -74,15 +76,9 @@ function fmtDate(iso: string, locale: Locale, tz: string): string {
   });
 }
 
-// Consistent with the OG image's abstract silhouette — original artwork.
-function birdMark(x: number, y: number, scale = 1): string {
-  return `<g transform="translate(${x} ${y}) scale(${scale})" fill="rgba(255,255,255,0.9)">
-    <ellipse cx="0" cy="0" rx="26" ry="14"/>
-    <circle cx="22" cy="-10" r="8"/>
-    <path d="M28 -11 l12 3 -12 3 z"/>
-    <path d="M-18 -4 q-16 -14 -34 -10 q10 12 26 14 z" opacity="0.8"/>
-  </g>`;
-}
+const BRAND_MARK_DATA_URI = `data:image/png;base64,${readFileSync(
+  join(process.cwd(), "public/icons/app/icon-512.png"),
+).toString("base64")}`;
 
 const FONT = "Noto Sans, Noto Sans Sinhala, DejaVu Sans, sans-serif";
 const FONT_SI = "Noto Sans Sinhala, Noto Sans, sans-serif";
@@ -175,7 +171,7 @@ function buildSvg(schedule: Schedule, detail: Detail, locale: Locale): string {
     </linearGradient>
   </defs>
   <rect width="${W}" height="${H}" fill="url(#dawn)"/>
-  ${birdMark(W - 130, 92, 1.15)}
+  <image href="${BRAND_MARK_DATA_URI}" x="${W - 210}" y="38" width="144" height="144" preserveAspectRatio="xMidYMid meet"/>
   <text x="${barX}" y="80" font-family="${FONT}" font-size="30" font-weight="700" fill="rgba(255,255,255,0.92)">Fernando Family Astrology · <tspan font-family="${FONT_SI}">ජ්‍යෝතිෂ</tspan></text>
   <text x="${barX}" y="150" font-family="${FONT_SI}" font-size="44" font-weight="700" fill="#ffffff">${esc(birdLine)} — ${esc(dateLine)}</text>
   <text x="${barX}" y="195" font-family="${FONT_SI}" font-size="26" fill="rgba(255,255,255,0.85)">${esc(locationLine)}</text>

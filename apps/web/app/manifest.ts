@@ -1,9 +1,7 @@
 import type { MetadataRoute } from "next";
 
-// PWA manifest. Icon is currently a single original SVG (public/icons/icon.svg)
-// covering all sizes; PNG rasters at 192/512 should be added for the fullest
-// browser "add to home screen" support, but SVG "any" is broadly installable
-// today and unblocks the rest of the PWA work.
+// PWA manifest backed by generated PNG app icons. The maskable asset keeps
+// extra inset padding so launchers can crop it without cutting into the mark.
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Fernando Family Astrology",
@@ -15,15 +13,21 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#b45309",
     icons: [
       {
-        src: "/icons/icon.svg",
-        sizes: "any",
-        type: "image/svg+xml",
+        src: "/icons/app/icon-192.png",
+        sizes: "192x192",
+        type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icons/icon.svg",
-        sizes: "any",
-        type: "image/svg+xml",
+        src: "/icons/app/icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/app/icon-maskable-512.png",
+        sizes: "512x512",
+        type: "image/png",
         purpose: "maskable",
       },
     ],

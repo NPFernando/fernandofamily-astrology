@@ -123,6 +123,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pancha-pakshi/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Summary */
+        post: operations["summary_api_v1_pancha_pakshi_summary_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pancha-pakshi/windows": {
         parameters: {
             query?: never;
@@ -185,8 +202,52 @@ export interface components {
              */
             target_time: string;
         };
+        /** BirdSelectionSummaryInput */
+        BirdSelectionSummaryInput: {
+            /** As Of Date */
+            as_of_date?: string | null;
+            /** As Of Time */
+            as_of_time?: string | null;
+            bird: components["schemas"]["BirdId"];
+            /**
+             * Days
+             * @default 31
+             */
+            days: number;
+            /** Iana Tz */
+            iana_tz: string;
+            /** Latitude */
+            latitude: number;
+            /** Location Name */
+            location_name: string;
+            /** Longitude */
+            longitude: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            method: "bird";
+            /**
+             * Min Effect
+             * @default good
+             * @enum {string}
+             */
+            min_effect: "good" | "very_good";
+            /**
+             * Target Date
+             * Format: date
+             */
+            target_date: string;
+            /**
+             * Target Time
+             * Format: time
+             */
+            target_time: string;
+        };
         /** BirdSelectionWindowsInput */
         BirdSelectionWindowsInput: {
+            /** Activities */
+            activities?: components["schemas"]["ActivityId"][] | null;
             /** As Of Date */
             as_of_date?: string | null;
             /** As Of Time */
@@ -212,6 +273,8 @@ export interface components {
              * @enum {string}
              */
             method: "bird";
+            /** Min Duration Seconds */
+            min_duration_seconds?: number | null;
             /**
              * Min Effect
              * @default good
@@ -275,8 +338,61 @@ export interface components {
              */
             target_time: string;
         };
+        /** BirthDateTimeSummaryInput */
+        BirthDateTimeSummaryInput: {
+            /** As Of Date */
+            as_of_date?: string | null;
+            /** As Of Time */
+            as_of_time?: string | null;
+            /**
+             * Birth Date
+             * Format: date
+             */
+            birth_date: string;
+            /**
+             * Birth Time
+             * Format: time
+             */
+            birth_time: string;
+            /**
+             * Days
+             * @default 31
+             */
+            days: number;
+            /** Iana Tz */
+            iana_tz: string;
+            /** Latitude */
+            latitude: number;
+            /** Location Name */
+            location_name: string;
+            /** Longitude */
+            longitude: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            method: "birth_datetime";
+            /**
+             * Min Effect
+             * @default good
+             * @enum {string}
+             */
+            min_effect: "good" | "very_good";
+            /**
+             * Target Date
+             * Format: date
+             */
+            target_date: string;
+            /**
+             * Target Time
+             * Format: time
+             */
+            target_time: string;
+        };
         /** BirthDateTimeWindowsInput */
         BirthDateTimeWindowsInput: {
+            /** Activities */
+            activities?: components["schemas"]["ActivityId"][] | null;
             /** As Of Date */
             as_of_date?: string | null;
             /** As Of Time */
@@ -311,6 +427,8 @@ export interface components {
              * @enum {string}
              */
             method: "birth_datetime";
+            /** Min Duration Seconds */
+            min_duration_seconds?: number | null;
             /**
              * Min Effect
              * @default good
@@ -424,8 +542,54 @@ export interface components {
              */
             target_time: string;
         };
+        /** NakshatraPakshaSummaryInput */
+        NakshatraPakshaSummaryInput: {
+            /** As Of Date */
+            as_of_date?: string | null;
+            /** As Of Time */
+            as_of_time?: string | null;
+            /**
+             * Days
+             * @default 31
+             */
+            days: number;
+            /** Iana Tz */
+            iana_tz: string;
+            /** Latitude */
+            latitude: number;
+            /** Location Name */
+            location_name: string;
+            /** Longitude */
+            longitude: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            method: "nakshatra_paksha";
+            /**
+             * Min Effect
+             * @default good
+             * @enum {string}
+             */
+            min_effect: "good" | "very_good";
+            /** Nakshatra Index */
+            nakshatra_index: number;
+            paksha: components["schemas"]["PakshaId"];
+            /**
+             * Target Date
+             * Format: date
+             */
+            target_date: string;
+            /**
+             * Target Time
+             * Format: time
+             */
+            target_time: string;
+        };
         /** NakshatraPakshaWindowsInput */
         NakshatraPakshaWindowsInput: {
+            /** Activities */
+            activities?: components["schemas"]["ActivityId"][] | null;
             /** As Of Date */
             as_of_date?: string | null;
             /** As Of Time */
@@ -450,6 +614,8 @@ export interface components {
              * @enum {string}
              */
             method: "nakshatra_paksha";
+            /** Min Duration Seconds */
+            min_duration_seconds?: number | null;
             /**
              * Min Effect
              * @default good
@@ -763,6 +929,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ScheduleResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    summary_api_v1_pancha_pakshi_summary_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BirthDateTimeSummaryInput"] | components["schemas"]["NakshatraPakshaSummaryInput"] | components["schemas"]["BirdSelectionSummaryInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */

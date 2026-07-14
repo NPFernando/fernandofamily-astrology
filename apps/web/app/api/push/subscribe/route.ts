@@ -2,13 +2,14 @@ import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import {
   isMissingTableError,
-  requirePushSystem,
+  requirePushEnabled,
+  requirePushStorage,
   validateSubscribeBody,
   type SubscribeBody,
 } from "@/lib/push-api";
 
 export async function POST(request: Request) {
-  const gate = requirePushSystem();
+  const gate = requirePushEnabled();
   if (!gate.ok) return gate.response;
 
   let body: SubscribeBody;
@@ -22,6 +23,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "invalid_subscription", message: parsed.message }, { status: 422 });
   }
   const v = parsed.value;
+
+  const storage = requirePushStorage();
+  if (!storage.ok) return storage.response;
 
   try {
     await query(

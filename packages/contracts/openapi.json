@@ -97,8 +97,112 @@
         "title": "BirdSelectionInput",
         "type": "object"
       },
+      "BirdSelectionSummaryInput": {
+        "properties": {
+          "as_of_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Date"
+          },
+          "as_of_time": {
+            "anyOf": [
+              {
+                "format": "time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Time"
+          },
+          "bird": {
+            "$ref": "#/components/schemas/BirdId"
+          },
+          "days": {
+            "default": 31,
+            "maximum": 31.0,
+            "minimum": 1.0,
+            "title": "Days",
+            "type": "integer"
+          },
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "method": {
+            "const": "bird",
+            "title": "Method",
+            "type": "string"
+          },
+          "min_effect": {
+            "default": "good",
+            "enum": [
+              "good",
+              "very_good"
+            ],
+            "title": "Min Effect",
+            "type": "string"
+          },
+          "target_date": {
+            "format": "date",
+            "title": "Target Date",
+            "type": "string"
+          },
+          "target_time": {
+            "format": "time",
+            "title": "Target Time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_date",
+          "target_time",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz",
+          "method",
+          "bird"
+        ],
+        "title": "BirdSelectionSummaryInput",
+        "type": "object"
+      },
       "BirdSelectionWindowsInput": {
         "properties": {
+          "activities": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ActivityId"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activities"
+          },
           "as_of_date": {
             "anyOf": [
               {
@@ -167,6 +271,19 @@
             "const": "bird",
             "title": "Method",
             "type": "string"
+          },
+          "min_duration_seconds": {
+            "anyOf": [
+              {
+                "maximum": 86400.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Duration Seconds"
           },
           "min_effect": {
             "default": "good",
@@ -303,8 +420,120 @@
         "title": "BirthDateTimeInput",
         "type": "object"
       },
+      "BirthDateTimeSummaryInput": {
+        "properties": {
+          "as_of_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Date"
+          },
+          "as_of_time": {
+            "anyOf": [
+              {
+                "format": "time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Time"
+          },
+          "birth_date": {
+            "format": "date",
+            "title": "Birth Date",
+            "type": "string"
+          },
+          "birth_time": {
+            "format": "time",
+            "title": "Birth Time",
+            "type": "string"
+          },
+          "days": {
+            "default": 31,
+            "maximum": 31.0,
+            "minimum": 1.0,
+            "title": "Days",
+            "type": "integer"
+          },
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "method": {
+            "const": "birth_datetime",
+            "title": "Method",
+            "type": "string"
+          },
+          "min_effect": {
+            "default": "good",
+            "enum": [
+              "good",
+              "very_good"
+            ],
+            "title": "Min Effect",
+            "type": "string"
+          },
+          "target_date": {
+            "format": "date",
+            "title": "Target Date",
+            "type": "string"
+          },
+          "target_time": {
+            "format": "time",
+            "title": "Target Time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_date",
+          "target_time",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz",
+          "method",
+          "birth_date",
+          "birth_time"
+        ],
+        "title": "BirthDateTimeSummaryInput",
+        "type": "object"
+      },
       "BirthDateTimeWindowsInput": {
         "properties": {
+          "activities": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ActivityId"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activities"
+          },
           "as_of_date": {
             "anyOf": [
               {
@@ -380,6 +609,19 @@
             "const": "birth_datetime",
             "title": "Method",
             "type": "string"
+          },
+          "min_duration_seconds": {
+            "anyOf": [
+              {
+                "maximum": 86400.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Duration Seconds"
           },
           "min_effect": {
             "default": "good",
@@ -642,8 +884,117 @@
         "title": "NakshatraPakshaInput",
         "type": "object"
       },
+      "NakshatraPakshaSummaryInput": {
+        "properties": {
+          "as_of_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Date"
+          },
+          "as_of_time": {
+            "anyOf": [
+              {
+                "format": "time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Time"
+          },
+          "days": {
+            "default": 31,
+            "maximum": 31.0,
+            "minimum": 1.0,
+            "title": "Days",
+            "type": "integer"
+          },
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "method": {
+            "const": "nakshatra_paksha",
+            "title": "Method",
+            "type": "string"
+          },
+          "min_effect": {
+            "default": "good",
+            "enum": [
+              "good",
+              "very_good"
+            ],
+            "title": "Min Effect",
+            "type": "string"
+          },
+          "nakshatra_index": {
+            "title": "Nakshatra Index",
+            "type": "integer"
+          },
+          "paksha": {
+            "$ref": "#/components/schemas/PakshaId"
+          },
+          "target_date": {
+            "format": "date",
+            "title": "Target Date",
+            "type": "string"
+          },
+          "target_time": {
+            "format": "time",
+            "title": "Target Time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_date",
+          "target_time",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz",
+          "method",
+          "nakshatra_index",
+          "paksha"
+        ],
+        "title": "NakshatraPakshaSummaryInput",
+        "type": "object"
+      },
       "NakshatraPakshaWindowsInput": {
         "properties": {
+          "activities": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ActivityId"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activities"
+          },
           "as_of_date": {
             "anyOf": [
               {
@@ -709,6 +1060,19 @@
             "const": "nakshatra_paksha",
             "title": "Method",
             "type": "string"
+          },
+          "min_duration_seconds": {
+            "anyOf": [
+              {
+                "maximum": 86400.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Duration Seconds"
           },
           "min_effect": {
             "default": "good",
@@ -1288,6 +1652,68 @@
           }
         },
         "summary": "Schedule",
+        "tags": [
+          "pancha-pakshi"
+        ]
+      }
+    },
+    "/api/v1/pancha-pakshi/summary": {
+      "post": {
+        "operationId": "summary_api_v1_pancha_pakshi_summary_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "discriminator": {
+                  "mapping": {
+                    "bird": "#/components/schemas/BirdSelectionSummaryInput",
+                    "birth_datetime": "#/components/schemas/BirthDateTimeSummaryInput",
+                    "nakshatra_paksha": "#/components/schemas/NakshatraPakshaSummaryInput"
+                  },
+                  "propertyName": "method"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/BirthDateTimeSummaryInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/NakshatraPakshaSummaryInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/BirdSelectionSummaryInput"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Summary Api V1 Pancha Pakshi Summary Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Summary",
         "tags": [
           "pancha-pakshi"
         ]

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import webpush from "web-push";
 import { query } from "@/lib/db";
 import { pushEnabled } from "@/lib/push-flag";
-import { isMissingTableError } from "@/lib/push-api";
+import { isMissingTableError, requirePushStorage } from "@/lib/push-api";
 import en from "@/locales/en.json";
 import si from "@/locales/si.json";
 
@@ -108,6 +108,9 @@ export async function POST(request: Request) {
   if (!configuredKey || providedKey !== configuredKey) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
+  const storage = requirePushStorage();
+  if (!storage.ok) return storage.response;
+
   const dry = new URL(request.url).searchParams.get("dry") === "1";
 
   webpush.setVapidDetails(

@@ -57,11 +57,12 @@ export async function fillManualLocation(
   },
 ) {
   const dict = DICTS[locale];
-  await page.getByRole("button", { name: dict.ui.manualEntry, exact: true }).click();
-  await page.getByPlaceholder(dict.ui.latitude).fill(coords.lat);
-  await page.getByPlaceholder(dict.ui.longitude).fill(coords.lon);
-  await page.getByPlaceholder(dict.ui.timezone).fill(coords.tz);
-  await page.getByRole("button", { name: dict.ui.confirm, exact: true }).first().click();
+  const panel = page.getByRole("tabpanel");
+  await panel.getByRole("button", { name: dict.ui.manualEntry, exact: true }).click();
+  await panel.getByPlaceholder(dict.ui.latitude).fill(coords.lat);
+  await panel.getByPlaceholder(dict.ui.longitude).fill(coords.lon);
+  await panel.getByPlaceholder(dict.ui.timezone).fill(coords.tz);
+  await panel.getByRole("button", { name: dict.ui.confirm, exact: true }).first().click();
 }
 
 export async function expectMainBird(page: Page, locale: LocaleKey, birdKey: string) {

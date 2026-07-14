@@ -42,8 +42,9 @@ for (const locale of LOCALES) {
       const watcher = watchForBirthDataInUrls(page);
       await openCalculator(page, locale);
       await page.getByRole("tab", { name: dict.ui.methodKnownNakshatra }).click();
-      await page.locator("select").first().selectOption({ index: 1 }); // Ashwini (id 1)
-      await page.getByText(dict.enums.paksha.waxing, { exact: false }).first().click();
+      const panel = page.getByRole("tabpanel");
+      await panel.locator("select").selectOption({ index: 1 }); // Ashwini (id 1)
+      await panel.getByRole("button", { name: dict.enums.paksha.waxing, exact: true }).click();
       await fillManualLocation(page, locale);
       await page.getByRole("button", { name: dict.ui.calculate, exact: true }).click();
       await expectMainBird(page, locale, "vulture");

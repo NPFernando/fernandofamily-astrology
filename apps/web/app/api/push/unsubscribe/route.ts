@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { isMissingTableError, requirePushSystem } from "@/lib/push-api";
+import { isMissingTableError, requirePushEnabled, requirePushStorage } from "@/lib/push-api";
 
 export async function POST(request: Request) {
-  const gate = requirePushSystem();
+  const gate = requirePushEnabled();
   if (!gate.ok) return gate.response;
 
   let body: { endpoint?: unknown };
@@ -15,6 +15,9 @@ export async function POST(request: Request) {
   if (typeof body.endpoint !== "string" || !body.endpoint) {
     return NextResponse.json({ error: "invalid_endpoint" }, { status: 422 });
   }
+
+  const storage = requirePushStorage();
+  if (!storage.ok) return storage.response;
 
   try {
     await query(`DELETE FROM push_subscriptions WHERE endpoint = $1`, [body.endpoint]);

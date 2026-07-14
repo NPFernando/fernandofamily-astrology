@@ -8,14 +8,18 @@ const PAKSHAS = ["waxing", "waning"] as const;
 const EFFECTS = ["good", "very_good"] as const;
 const LOCALES = ["en", "si"] as const;
 
-// Shared gate for /api/push/*: 404 when push isn't switched on (route looks
-// nonexistent), 503 when it is on but server storage isn't reachable —
-// subscriptions have to live somewhere, so without the DB the honest answer
-// is "temporarily unavailable", never a silent success.
-export function requirePushSystem(): { ok: true } | { ok: false; response: NextResponse } {
+export type PushGate = { ok: true } | { ok: false; response: NextResponse };
+
+// Shared gates for /api/push/*: 404 when push isn't switched on (route looks
+// nonexistent), 503 when it is on but server storage isn't reachable.
+export function requirePushEnabled(): PushGate {
   if (!pushEnabled) {
     return { ok: false, response: NextResponse.json({ error: "not_found" }, { status: 404 }) };
   }
+  return { ok: true };
+}
+
+export function requirePushStorage(): PushGate {
   if (!dbConfigured()) {
     return {
       ok: false,
@@ -23,6 +27,12 @@ export function requirePushSystem(): { ok: true } | { ok: false; response: NextR
     };
   }
   return { ok: true };
+}
+
+export function requirePushSystem(): PushGate {
+  const enabled = requirePushEnabled();
+  if (!enabled.ok) return enabled;
+  return requirePushStorage();
 }
 
 export type SubscribeBody = {

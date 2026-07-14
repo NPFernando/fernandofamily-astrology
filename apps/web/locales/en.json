@@ -179,7 +179,21 @@
     "notifyDisable": "Disable alerts",
     "notifyActive": "Alerts are on for this device",
     "notifyDenied": "Notifications are blocked in your browser settings for this site",
-    "notifyWorking": "Setting up…"
+    "notifyWorking": "Setting up…",
+    "monthView": "Month",
+    "monthLoading": "Loading month overview…",
+    "monthUnavailable": "The month overview is not available right now — please try again later.",
+    "monthWindows": "favourable windows",
+    "monthLegend": "Tint deepens with more favourable time",
+    "minDuration": "Min. length",
+    "durationAny": "Any length",
+    "duration15m": "15+ min",
+    "duration30m": "30+ min",
+    "duration1h": "1+ hour",
+    "noFilteredWindows": "No windows match the current filters.",
+    "addToCalendar": "Add to calendar",
+    "downloadIcs": "Download .ics",
+    "icsDescription": "Favourable Pancha Pakshi window — Fernando Family Astrology"
   },
   "disclaimer": {
     "text": "Pancha Pakshi is a traditional astrological system. The information shown here is provided for cultural and informational purposes and is not scientifically validated. It must not replace medical, legal, financial, safety or other professional advice."

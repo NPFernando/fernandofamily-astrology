@@ -23,6 +23,15 @@
   retains the full 5,400-year dataset (see
   [`../apps/api/vendor/FUTURE_DATA_USES.md`](../apps/api/vendor/FUTURE_DATA_USES.md))
 
+- Auspicious-windows deepening: activity + minimum-duration filters on the
+  windows API and week view; month heat-map of favourable-time density
+  (`POST /api/v1/pancha-pakshi/summary`)
+- Opt-in web-push alerts before favourable periods (subscriptions live in the
+  astrology database — bird/nakshatra identity, ~1km-rounded location,
+  preferences only; dispatched by a host cron via a loopback-only endpoint)
+- Calendar export: favourable windows download as RFC 5545 `.ics` files,
+  generated fully client-side (single window or all currently shown)
+
 ## Backlog (priority order)
 
 **None of these are implemented.** They must not appear in production
@@ -30,27 +39,21 @@ navigation, the sitemap, or anywhere that implies they are available, until
 they are actually built, registered in the feature registry
 (`packages/feature-registry`), and explicitly enabled.
 
-1. **Auspicious-windows deepening + notifications** — richer window search
-   (filter by activity, minimum duration), opt-in web-push alerts before
-   favourable/unfavourable periods (PWA push; subscription store in the
-   existing astrology database), month heat-map of good/bad density.
-2. **Daily Panchanga module** — tithi, nakshatra, yoga, karana, rahu-kala
+1. **Daily Panchanga module** — tithi, nakshatra, yoga, karana, rahu-kala
    daily page. The vendored engine already computes most of this; natural
    second module and a strong SEO surface.
-3. **Calendar integration** — export chosen favourable windows as a
-   downloadable `.ics` / "Add to Google Calendar" links; no account needed.
-4. Telegram bot — "what's my current period?", daily morning summary.
-5. Tamil as a third locale (upstream PyJHora ships Tamil resources — see
+2. Telegram bot — "what's my current period?", daily morning summary.
+3. Tamil as a third locale (upstream PyJHora ships Tamil resources — see
    [`FUTURE_DATA_USES.md`](../apps/api/vendor/FUTURE_DATA_USES.md); the i18n
    plumbing is locale-count agnostic).
-6. Ambient full-screen live view (wall-tablet mode: big countdown, current
+4. Ambient full-screen live view (wall-tablet mode: big countdown, current
    period, auto-refresh).
-7. Per-schedule share cards (server-rendered PNG of your day for
+5. Per-schedule share cards (server-rendered PNG of your day for
    WhatsApp/social).
-8. Compatibility mini-tool (two birds' friend/same/enemy relation — the
+6. Compatibility mini-tool (two birds' friend/same/enemy relation — the
    relation table already exists).
-9. Public API keys + developer docs, per-key rate limits.
-10. Activity guidance texts — what each bird-activity combination
+7. Public API keys + developer docs, per-key rate limits.
+8. Activity guidance texts — what each bird-activity combination
     traditionally suits (needs sourced bilingual content).
 
 **Larger future modules** (same registry pattern; unscheduled): Muhurta

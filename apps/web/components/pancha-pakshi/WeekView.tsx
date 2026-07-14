@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { translateEnum } from "@/lib/i18n";
 import {
   fetchWindows,
+  type ActivityId,
   type ScheduleRequest,
   type WindowEntry,
   type WindowsResponse,
@@ -12,6 +13,10 @@ import {
 import { BIRD_ICONS } from "@/components/icons/birds";
 import { ACTIVITY_ICONS } from "@/components/icons/activities";
 import { ACTIVITY_COLORS } from "./activityColors";
+import { buildIcs, downloadIcs, type IcsEvent } from "@/lib/ics";
+
+const ALL_ACTIVITIES: ActivityId[] = ["ruling", "eating", "walking", "sleeping", "dying"];
+const DURATION_CHOICES = [0, 900, 1800, 3600] as const;
 
 function formatTime(iso: string, locale: string) {
   return new Date(iso).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US", {
@@ -33,14 +38,31 @@ export function WeekView({
   const { dict, locale } = useLocale();
   const [data, setData] = useState<WindowsResponse | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "unavailable">("loading");
+  // Ephemeral narrowing controls — deliberately not persisted anywhere.
+  const [activeActivities, setActiveActivities] = useState<Set<ActivityId>>(
+    () => new Set(ALL_ACTIVITIES),
+  );
+  const [minDuration, setMinDuration] = useState<number>(0);
+
+  const narrowed = activeActivities.size < ALL_ACTIVITIES.length || minDuration > 0;
 
   useEffect(() => {
     let cancelled = false;
-    // Resets to loading when the request identity changes; the fetch below is
-    // the async work this effect exists to perform.
+    // Resets to loading when the request identity or filters change; the
+    // fetch below is the async work this effect exists to perform.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setState("loading");
-    fetchWindows({ ...request, days: 7, min_effect: "good" })
+    fetchWindows({
+      ...request,
+      days: 7,
+      min_effect: "good",
+      // Only send the narrowing params when actually narrowed, keeping the
+      // default request identical to the pre-filter behavior.
+      ...(activeActivities.size < ALL_ACTIVITIES.length
+        ? { activities: [...activeActivities] }
+        : {}),
+      ...(minDuration > 0 ? { min_duration_seconds: minDuration } : {}),
+    })
       .then((res) => {
         if (cancelled) return;
         setData(res);
@@ -52,10 +74,106 @@ export function WeekView({
     return () => {
       cancelled = true;
     };
-  }, [request]);
+  }, [request, activeActivities, minDuration]);
+
+  const durationLabels: Record<number, string> = useMemo(
+    () => ({
+      0: dict.ui.durationAny,
+      900: dict.ui.duration15m,
+      1800: dict.ui.duration30m,
+      3600: dict.ui.duration1h,
+    }),
+    [dict],
+  );
+
+  function toggleActivity(a: ActivityId) {
+    setActiveActivities((prev) => {
+      const next = new Set(prev);
+      if (next.has(a)) {
+        next.delete(a);
+        if (next.size === 0) return new Set(ALL_ACTIVITIES); // never empty — reset
+      } else {
+        next.add(a);
+      }
+      return next;
+    });
+  }
+
+  function windowSummary(w: WindowEntry): string {
+    return `${translateEnum(dict, "birds", w.sub_bird)} — ${translateEnum(dict, "activities", w.sub_activity)} · ${translateEnum(dict, "effects", w.effect)}`;
+  }
+
+  function toIcsEvent(w: WindowEntry): IcsEvent {
+    return {
+      uid: `${w.effective_date}-${w.id}`,
+      start: new Date(w.starts_at),
+      end: new Date(w.ends_at),
+      summary: windowSummary(w),
+      description: dict.ui.icsDescription,
+    };
+  }
+
+  function downloadAll() {
+    if (!data || data.windows.length === 0) return;
+    downloadIcs("pancha-pakshi-windows.ics", buildIcs(data.windows.map(toIcsEvent)));
+  }
+
+  const filterControls = (
+    <div className="flex flex-wrap items-center gap-2 text-xs" data-testid="week-filters">
+      {ALL_ACTIVITIES.map((a) => {
+        const ActivityIcon = ACTIVITY_ICONS[a];
+        const active = activeActivities.has(a);
+        return (
+          <button
+            key={a}
+            type="button"
+            data-testid={`week-filter-${a}`}
+            aria-pressed={active}
+            onClick={() => toggleActivity(a)}
+            className={`flex items-center gap-1 rounded-full border px-2.5 py-1 ${
+              active
+                ? "border-accent bg-accent/10 font-medium text-accent"
+                : "border-black/10 opacity-50 dark:border-white/20"
+            }`}
+          >
+            <ActivityIcon className="text-sm" style={{ color: ACTIVITY_COLORS[a] }} />
+            {translateEnum(dict, "activities", a)}
+          </button>
+        );
+      })}
+      <label className="ml-auto flex items-center gap-1.5">
+        <span className="opacity-70">{dict.ui.minDuration}</span>
+        <select
+          value={minDuration}
+          onChange={(e) => setMinDuration(Number(e.target.value))}
+          className="rounded-lg border border-black/10 bg-transparent px-2 py-1 dark:border-white/20"
+        >
+          {DURATION_CHOICES.map((s) => (
+            <option key={s} value={s}>
+              {durationLabels[s]}
+            </option>
+          ))}
+        </select>
+      </label>
+      <button
+        type="button"
+        data-testid="week-download-ics"
+        onClick={downloadAll}
+        disabled={!data || data.windows.length === 0}
+        className="rounded-lg border border-black/10 px-2.5 py-1 hover:border-accent/60 disabled:opacity-40 dark:border-white/20"
+      >
+        {dict.ui.downloadIcs}
+      </button>
+    </div>
+  );
 
   if (state === "loading") {
-    return <p className="py-4 text-sm opacity-70">{dict.ui.weekLoading}</p>;
+    return (
+      <div className="flex flex-col gap-3">
+        {filterControls}
+        <p className="py-4 text-sm opacity-70">{dict.ui.weekLoading}</p>
+      </div>
+    );
   }
   if (state === "unavailable" || !data) {
     return (
@@ -83,63 +201,84 @@ export function WeekView({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-7 lg:gap-2">
-      {days.map((date) => {
-        const entries = byDate.get(date) ?? [];
-        const heading = new Date(`${date}T12:00:00`).toLocaleDateString(
-          locale === "si" ? "si-LK" : "en-US",
-          { weekday: "short", month: "short", day: "numeric" },
-        );
-        return (
-          <div
-            key={date}
-            data-testid="week-day"
-            className="rounded-xl border border-black/10 p-2.5 dark:border-white/10"
-          >
-            <button
-              type="button"
-              onClick={() => onPickDay(date)}
-              className="mb-1.5 w-full text-left text-sm font-semibold hover:text-accent"
+    <div className="flex flex-col gap-3">
+      {filterControls}
+      {narrowed && data.windows.length === 0 && (
+        <p className="text-sm opacity-70">{dict.ui.noFilteredWindows}</p>
+      )}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-7 lg:gap-2">
+        {days.map((date) => {
+          const entries = byDate.get(date) ?? [];
+          const heading = new Date(`${date}T12:00:00`).toLocaleDateString(
+            locale === "si" ? "si-LK" : "en-US",
+            { weekday: "short", month: "short", day: "numeric" },
+          );
+          return (
+            <div
+              key={date}
+              data-testid="week-day"
+              className="rounded-xl border border-black/10 p-2.5 dark:border-white/10"
             >
-              {heading}
-            </button>
-            {entries.length === 0 ? (
-              <p className="text-xs opacity-50">—</p>
-            ) : (
-              <ul className="flex flex-col gap-1">
-                {entries.map((w) => {
-                  const BirdIcon = BIRD_ICONS[w.sub_bird];
-                  const ActivityIcon = ACTIVITY_ICONS[w.sub_activity];
-                  return (
-                    <li key={`${w.effective_date}-${w.id}`}>
-                      <button
-                        type="button"
-                        data-testid="week-window-chip"
-                        onClick={() => onPickDay(date)}
-                        title={`${translateEnum(dict, "birds", w.sub_bird)} · ${translateEnum(dict, "activities", w.sub_activity)} · ${translateEnum(dict, "effects", w.effect)}`}
-                        className="flex w-full items-center gap-1 rounded-md border border-black/5 px-1.5 py-1 text-left text-xs hover:border-accent/50 dark:border-white/10"
-                        style={{ borderLeftWidth: 3, borderLeftColor: ACTIVITY_COLORS[w.sub_activity] }}
-                      >
-                        <span className="tabular-nums">
-                          {formatTime(w.starts_at, locale)}
-                        </span>
-                        <BirdIcon className="shrink-0 text-sm opacity-80" />
-                        <ActivityIcon
-                          className="shrink-0 text-sm"
-                          style={{ color: ACTIVITY_COLORS[w.sub_activity] }}
-                        />
-                        <span className="ml-auto opacity-70">
-                          {translateEnum(dict, "effects", w.effect)}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
-        );
-      })}
+              <button
+                type="button"
+                onClick={() => onPickDay(date)}
+                className="mb-1.5 w-full text-left text-sm font-semibold hover:text-accent"
+              >
+                {heading}
+              </button>
+              {entries.length === 0 ? (
+                <p className="text-xs opacity-50">—</p>
+              ) : (
+                <ul className="flex flex-col gap-1">
+                  {entries.map((w) => {
+                    const BirdIcon = BIRD_ICONS[w.sub_bird];
+                    const ActivityIcon = ACTIVITY_ICONS[w.sub_activity];
+                    return (
+                      <li key={`${w.effective_date}-${w.id}`} className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          data-testid="week-window-chip"
+                          onClick={() => onPickDay(date)}
+                          title={windowSummary(w)}
+                          className="flex min-w-0 flex-1 items-center gap-1 rounded-md border border-black/5 px-1.5 py-1 text-left text-xs hover:border-accent/50 dark:border-white/10"
+                          style={{ borderLeftWidth: 3, borderLeftColor: ACTIVITY_COLORS[w.sub_activity] }}
+                        >
+                          <span className="tabular-nums">
+                            {formatTime(w.starts_at, locale)}
+                          </span>
+                          <BirdIcon className="shrink-0 text-sm opacity-80" />
+                          <ActivityIcon
+                            className="shrink-0 text-sm"
+                            style={{ color: ACTIVITY_COLORS[w.sub_activity] }}
+                          />
+                          <span className="ml-auto truncate opacity-70">
+                            {translateEnum(dict, "effects", w.effect)}
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          data-testid="week-window-ics"
+                          aria-label={dict.ui.addToCalendar}
+                          title={dict.ui.addToCalendar}
+                          onClick={() =>
+                            downloadIcs(
+                              `pancha-pakshi-${w.effective_date}-${w.id}.ics`,
+                              buildIcs([toIcsEvent(w)]),
+                            )
+                          }
+                          className="shrink-0 rounded-md border border-black/5 px-1 py-1 text-xs opacity-60 hover:border-accent/50 hover:opacity-100 dark:border-white/10"
+                        >
+                          📅
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

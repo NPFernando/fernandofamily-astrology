@@ -62,3 +62,70 @@ test("@mobile zero-click + timeline at 360px without horizontal scroll", async (
   expect(hasHScroll).toBe(false);
   watcher.assertClean();
 });
+
+for (const locale of ["en", "si"] as const) {
+  test(`month view (${locale}): 7-column grid with a month of day cells`, async ({ page }) => {
+    await openCalculator(page, locale);
+    await page.getByRole("button", { name: DICTS[locale].ui.monthView, exact: true }).click();
+    const grid = page.locator('[data-testid="month-grid"]');
+    await expect(grid).toBeVisible({ timeout: 60_000 });
+    const cells = page.locator('[data-testid="month-day"]');
+    // 31 requested days; the response always carries exactly that many.
+    await expect(cells).toHaveCount(31, { timeout: 60_000 });
+    // 7 weekday headers above the grid.
+    await expect(grid.locator("div").first().locator("span")).toHaveCount(7);
+  });
+}
+
+test("week filters: narrowing by activity removes other activities' chips", async ({ page }) => {
+  await openCalculator(page, "en");
+  await page.getByRole("button", { name: dict.ui.weekView, exact: true }).click();
+  const chips = page.locator('[data-testid="week-window-chip"]');
+  await expect(chips.first()).toBeVisible({ timeout: 30_000 });
+  const unfilteredTitles = await chips.evaluateAll((els) =>
+    els.map((e) => e.getAttribute("title") ?? ""),
+  );
+  // Narrow to ruling-only: deselect the other four.
+  for (const a of ["eating", "walking", "sleeping", "dying"]) {
+    await page.locator(`[data-testid="week-filter-${a}"]`).click();
+  }
+  // Wait for the refetch to settle, then compare sets: every remaining chip
+  // is a Ruling window, and the remaining set is a subset of the original.
+  await expect
+    .poll(
+      async () => {
+        const titles = await chips.evaluateAll((els) =>
+          els.map((e) => e.getAttribute("title") ?? ""),
+        );
+        return titles.length > 0 && titles.every((t) => t.includes(dict.enums.activities.ruling));
+      },
+      { timeout: 30_000 },
+    )
+    .toBe(true);
+  const filteredTitles = await chips.evaluateAll((els) =>
+    els.map((e) => e.getAttribute("title") ?? ""),
+  );
+  expect(filteredTitles.length).toBeLessThanOrEqual(unfilteredTitles.length);
+  for (const t of filteredTitles) expect(unfilteredTitles).toContain(t);
+});
+
+test(".ics download produces a valid calendar file", async ({ page }) => {
+  await openCalculator(page, "en");
+  await page.getByRole("button", { name: dict.ui.weekView, exact: true }).click();
+  await expect(page.locator('[data-testid="week-window-chip"]').first()).toBeVisible({
+    timeout: 30_000,
+  });
+  const downloadPromise = page.waitForEvent("download");
+  await page.locator('[data-testid="week-download-ics"]').click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe("pancha-pakshi-windows.ics");
+  const stream = await download.createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) chunks.push(chunk as Buffer);
+  const text = Buffer.concat(chunks).toString("utf8");
+  expect(text.startsWith("BEGIN:VCALENDAR")).toBe(true);
+  expect(text).toContain("BEGIN:VEVENT");
+  // At least one localized bird name in a SUMMARY line.
+  expect(text).toMatch(/SUMMARY:.+/);
+  expect(text).toContain("DTSTART:");
+});

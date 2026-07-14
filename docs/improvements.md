@@ -5,7 +5,13 @@ performance, ops), prioritized. Effort: S (&lt; half a day), M (a day or two),
 L (multi-day). Items reference real code as it exists today — re-verify
 against the current tree before acting on an old copy of this document.
 
-## Status (updated after the round-3 implementation pass)
+## Status (updated after the round-4 implementation pass)
+
+**Round 4 additions:** windows activity/min-duration filters, per-day summary
+endpoint (`POST /summary`) + month heat-map view, opt-in web-push alerts
+(subscriptions in the astrology DB, ~1km-rounded coordinates, host-cron
+dispatch via a loopback-only endpoint), and client-side RFC 5545 `.ics`
+export from the week view.
 
 **Shipped since this audit was written:** all four P0s (proxy-aware rate
 limiting + idle-bucket eviction, cached engine metadata, per-page metadata

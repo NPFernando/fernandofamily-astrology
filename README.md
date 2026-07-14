@@ -4,9 +4,12 @@ Open-source bilingual (English / Sinhala) astrology platform powering
 [astrology.fernandofamily.com](https://astrology.fernandofamily.com), starting
 with an accurate, live **Pancha Pakshi** timetable
 ([`/pancha-pakshi`](https://astrology.fernandofamily.com/pancha-pakshi)) —
-zero-click today view, date navigation, timeline/table/week views, favourable-
-window search (`POST /api/v1/pancha-pakshi/windows`), and saved profiles that
-stay on your device (with optional invite-only account sync).
+zero-click today view, date navigation, timeline/table/week/month views,
+favourable-window search with activity/duration filters
+(`POST /api/v1/pancha-pakshi/windows`), per-day density summaries
+(`POST /api/v1/pancha-pakshi/summary`), opt-in web-push alerts before
+favourable periods, client-side `.ics` calendar export, and saved profiles
+that stay on your device (with optional invite-only account sync).
 
 This repository is public because it depends on AGPL-3.0-licensed code
 (PyJHora, Swiss Ephemeris) and the deployed site must make the corresponding

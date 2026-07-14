@@ -135,6 +135,10 @@ export type CurrentResponse = {
 export type WindowsRequest = ScheduleRequest & {
   days: number;
   min_effect: "good" | "very_good";
+  // Optional narrowing: keep only windows whose SUB-activity is in this set,
+  // and/or at least this long. Omit both for the unfiltered week view.
+  activities?: ActivityId[];
+  min_duration_seconds?: number;
 };
 
 export type WindowEntry = SubPeriod & { effective_date: string };
@@ -147,6 +151,31 @@ export type WindowsResponse = {
   days: number;
   min_effect: "good" | "very_good";
   windows: WindowEntry[];
+};
+
+// Per-day aggregates for the month heat-map: same request shape with
+// target_date as the range start; the response never carries window rows.
+export type SummaryRequest = ScheduleRequest & {
+  days: number;
+  min_effect: "good" | "very_good";
+};
+
+export type SummaryDay = {
+  date: string;
+  window_count: number;
+  good_seconds: number;
+  very_good_seconds: number;
+  best_effect: "good" | "very_good" | null;
+};
+
+export type SummaryResponse = {
+  engine: EngineMetadata;
+  location: Location;
+  birth_bird: BirdId;
+  from_date: string;
+  days: number;
+  min_effect: "good" | "very_good";
+  per_day: SummaryDay[];
 };
 
 export class ApiError extends Error {
@@ -208,6 +237,10 @@ export function fetchCurrent(body: ScheduleRequest): Promise<CurrentResponse> {
 
 export function fetchWindows(body: WindowsRequest): Promise<WindowsResponse> {
   return postJson<WindowsResponse>("/windows", body);
+}
+
+export function fetchSummary(body: SummaryRequest): Promise<SummaryResponse> {
+  return postJson<SummaryResponse>("/summary", body);
 }
 
 export async function fetchMetadata(): Promise<EngineMetadata> {

@@ -1,4 +1,5 @@
 import ipaddress
+import os
 import threading
 import time
 from collections import deque
@@ -59,6 +60,12 @@ def _sweep_idle_buckets(now: float) -> None:
 
 
 def enforce_rate_limit(request: Request) -> None:
+    # Test-suite bypass: E2E runs fire many schedule computations from one
+    # IP (127.0.0.1) in under a minute and would exhaust the shared bucket,
+    # failing tests with 429s that have nothing to do with what they assert.
+    # Never set in production compose/env files.
+    if os.environ.get("RATE_LIMIT_DISABLED") == "1":
+        return
     key = _client_key(request)
     now = time.monotonic()
     with _lock:

@@ -38,7 +38,7 @@ export const PUSH_E2E = {
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: false, // shared next start instance; specs are fast enough serially
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 2 : 1,
   reporter: process.env.CI ? "github" : "list",
   timeout: 60_000,
   use: {
@@ -55,7 +55,7 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: `bash -c "cd ../api && .venv/bin/uvicorn app.main:app --port ${API_PORT}"`,
+      command: `bash -c "cd ../api && RATE_LIMIT_DISABLED=1 .venv/bin/uvicorn app.main:app --port ${API_PORT}"`,
       url: `http://127.0.0.1:${API_PORT}/api/v1/health/live`,
       reuseExistingServer: !process.env.CI,
       timeout: 30_000,

@@ -9,6 +9,7 @@ import { ACTIVITY_ICONS } from "@/components/icons/activities";
 import { BIRD_ICONS } from "@/components/icons/birds";
 import { DayTimelineBar } from "./DayTimelineBar";
 import { WeekView } from "./WeekView";
+import { MonthView } from "./MonthView";
 import type { ScheduleRequest } from "@/lib/api-client";
 
 function formatTime(iso: string, locale: string) {
@@ -32,7 +33,7 @@ export function ScheduleTimeline({
   onPickDay?: (date: string) => void;
 }) {
   const { dict, locale } = useLocale();
-  const [view, setView] = useState<"timeline" | "table" | "week">("timeline");
+  const [view, setView] = useState<"timeline" | "table" | "week" | "month">("timeline");
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
 
   function toggle(index: number) {
@@ -67,8 +68,8 @@ export function ScheduleTimeline({
     <div className="flex flex-col gap-4 print:gap-2">
       <DayTimelineBar schedule={schedule} onSelectMajor={selectFromBar} skewMs={skewMs} />
 
-      <div className="flex items-center justify-between print:hidden">
-        <div className="flex gap-2 text-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2 print:hidden">
+        <div className="flex flex-wrap gap-2 text-sm">
           <ViewButton active={view === "timeline"} onClick={() => setView("timeline")}>
             {dict.ui.timelineView}
           </ViewButton>
@@ -76,9 +77,14 @@ export function ScheduleTimeline({
             {dict.ui.tableView}
           </ViewButton>
           {weekRequest && onPickDay && (
-            <ViewButton active={view === "week"} onClick={() => setView("week")}>
-              {dict.ui.weekView}
-            </ViewButton>
+            <>
+              <ViewButton active={view === "week"} onClick={() => setView("week")}>
+                {dict.ui.weekView}
+              </ViewButton>
+              <ViewButton active={view === "month"} onClick={() => setView("month")}>
+                {dict.ui.monthView}
+              </ViewButton>
+            </>
           )}
         </div>
         <button
@@ -92,6 +98,8 @@ export function ScheduleTimeline({
 
       {view === "week" && weekRequest && onPickDay ? (
         <WeekView request={weekRequest} onPickDay={onPickDay} />
+      ) : view === "month" && weekRequest && onPickDay ? (
+        <MonthView request={weekRequest} onPickDay={onPickDay} />
       ) : (
         <>
           <PeriodGroup
@@ -151,7 +159,7 @@ function PeriodGroup({
 }: {
   title: string;
   periods: MajorPeriod[];
-  view: "timeline" | "table" | "week";
+  view: "timeline" | "table" | "week" | "month";
   expanded: Set<number>;
   onToggle: (i: number) => void;
   locale: string;
@@ -189,7 +197,7 @@ function MajorPeriodCard({
   locale,
 }: {
   period: MajorPeriod;
-  view: "timeline" | "table" | "week";
+  view: "timeline" | "table" | "week" | "month";
   isExpanded: boolean;
   onToggle: () => void;
   locale: string;

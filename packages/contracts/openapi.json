@@ -667,10 +667,6 @@
           "engine": {
             "$ref": "#/components/schemas/EngineMetadata"
           },
-          "is_poya_day": {
-            "title": "Is Poya Day",
-            "type": "boolean"
-          },
           "kalams": {
             "$ref": "#/components/schemas/Kalams"
           },
@@ -718,24 +714,8 @@
             "title": "Nakshatra",
             "type": "array"
           },
-          "next_poya": {
-            "$ref": "#/components/schemas/NextPoya"
-          },
           "paksha": {
             "$ref": "#/components/schemas/PakshaId"
-          },
-          "poya": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/PoyaInfo"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "sinhala_month": {
-            "$ref": "#/components/schemas/SinhalaMonth"
           },
           "sunrise": {
             "format": "date-time",
@@ -776,10 +756,6 @@
           "moonrise",
           "moonset",
           "lunar_month",
-          "sinhala_month",
-          "is_poya_day",
-          "poya",
-          "next_poya",
           "tithi",
           "nakshatra",
           "yoga",
@@ -1418,25 +1394,6 @@
         "title": "NakshatraSpan",
         "type": "object"
       },
-      "NextPoya": {
-        "properties": {
-          "date": {
-            "format": "date",
-            "title": "Date",
-            "type": "string"
-          },
-          "month_key": {
-            "title": "Month Key",
-            "type": "string"
-          }
-        },
-        "required": [
-          "date",
-          "month_key"
-        ],
-        "title": "NextPoya",
-        "type": "object"
-      },
       "PakshaId": {
         "enum": [
           "waxing",
@@ -1452,19 +1409,6 @@
         ],
         "title": "PeriodKind",
         "type": "string"
-      },
-      "PoyaInfo": {
-        "properties": {
-          "month_key": {
-            "title": "Month Key",
-            "type": "string"
-          }
-        },
-        "required": [
-          "month_key"
-        ],
-        "title": "PoyaInfo",
-        "type": "object"
       },
       "RelationId": {
         "enum": [
@@ -1577,24 +1521,6 @@
           }
         },
         "title": "ScheduleSummary",
-        "type": "object"
-      },
-      "SinhalaMonth": {
-        "properties": {
-          "is_adhi": {
-            "title": "Is Adhi",
-            "type": "boolean"
-          },
-          "key": {
-            "title": "Key",
-            "type": "string"
-          }
-        },
-        "required": [
-          "key",
-          "is_adhi"
-        ],
-        "title": "SinhalaMonth",
         "type": "object"
       },
       "SubPeriod": {

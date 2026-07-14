@@ -471,8 +471,6 @@ export interface components {
              */
             date: string;
             engine: components["schemas"]["EngineMetadata"];
-            /** Is Poya Day */
-            is_poya_day: boolean;
             kalams: components["schemas"]["Kalams"];
             /** Karana */
             karana: components["schemas"]["KaranaSpan"][];
@@ -484,10 +482,7 @@ export interface components {
             moonset: string | null;
             /** Nakshatra */
             nakshatra: components["schemas"]["NakshatraSpan"][];
-            next_poya: components["schemas"]["NextPoya"];
             paksha: components["schemas"]["PakshaId"];
-            poya: components["schemas"]["PoyaInfo"] | null;
-            sinhala_month: components["schemas"]["SinhalaMonth"];
             /**
              * Sunrise
              * Format: date-time
@@ -771,16 +766,6 @@ export interface components {
             /** Starts At */
             starts_at: string | null;
         };
-        /** NextPoya */
-        NextPoya: {
-            /**
-             * Date
-             * Format: date
-             */
-            date: string;
-            /** Month Key */
-            month_key: string;
-        };
         /**
          * PakshaId
          * @enum {string}
@@ -791,11 +776,6 @@ export interface components {
          * @enum {string}
          */
         PeriodKind: "day" | "night";
-        /** PoyaInfo */
-        PoyaInfo: {
-            /** Month Key */
-            month_key: string;
-        };
         /**
          * RelationId
          * @enum {string}
@@ -843,13 +823,6 @@ export interface components {
              * @default 50
              */
             sub_period_count: number;
-        };
-        /** SinhalaMonth */
-        SinhalaMonth: {
-            /** Is Adhi */
-            is_adhi: boolean;
-            /** Key */
-            key: string;
         };
         /** SubPeriod */
         SubPeriod: {

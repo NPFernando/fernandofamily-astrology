@@ -157,6 +157,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/panchanga/daily": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Daily */
+        post: operations["daily_api_v1_panchanga_daily_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -446,6 +463,63 @@ export interface components {
              */
             target_time: string;
         };
+        /** DailyPanchanga */
+        DailyPanchanga: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            engine: components["schemas"]["EngineMetadata"];
+            /** Is Poya Day */
+            is_poya_day: boolean;
+            kalams: components["schemas"]["Kalams"];
+            /** Karana */
+            karana: components["schemas"]["KaranaSpan"][];
+            location: components["schemas"]["Location"];
+            lunar_month: components["schemas"]["LunarMonth"];
+            /** Moonrise */
+            moonrise: string | null;
+            /** Moonset */
+            moonset: string | null;
+            /** Nakshatra */
+            nakshatra: components["schemas"]["NakshatraSpan"][];
+            next_poya: components["schemas"]["NextPoya"];
+            paksha: components["schemas"]["PakshaId"];
+            poya: components["schemas"]["PoyaInfo"] | null;
+            sinhala_month: components["schemas"]["SinhalaMonth"];
+            /**
+             * Sunrise
+             * Format: date-time
+             */
+            sunrise: string;
+            /**
+             * Sunset
+             * Format: date-time
+             */
+            sunset: string;
+            /** Tithi */
+            tithi: components["schemas"]["TithiSpan"][];
+            weekday: components["schemas"]["WeekdayId"];
+            /** Yoga */
+            yoga: components["schemas"]["YogaSpan"][];
+        };
+        /** DailyPanchangaRequest */
+        DailyPanchangaRequest: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Iana Tz */
+            iana_tz: string;
+            /** Latitude */
+            latitude: number;
+            /** Location Name */
+            location_name: string;
+            /** Longitude */
+            longitude: number;
+        };
         /**
          * EffectId
          * @enum {string}
@@ -474,6 +548,42 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** KalamRange */
+        KalamRange: {
+            /**
+             * Ends At
+             * Format: date-time
+             */
+            ends_at: string;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+        };
+        /** Kalams */
+        Kalams: {
+            gulika: components["schemas"]["KalamRange"];
+            rahu: components["schemas"]["KalamRange"];
+            yamaganda: components["schemas"]["KalamRange"];
+        };
+        /** KaranaSpan */
+        KaranaSpan: {
+            /**
+             * Ends At
+             * Format: date-time
+             */
+            ends_at: string;
+            /** Index 60 */
+            index_60: number;
+            /** Key */
+            key: string;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+        };
         /** Location */
         Location: {
             /** Iana Tz */
@@ -486,6 +596,15 @@ export interface components {
             name: string;
             /** Utc Offset Minutes */
             utc_offset_minutes: number;
+        };
+        /** LunarMonth */
+        LunarMonth: {
+            /** Index */
+            index: number;
+            /** Is Leap */
+            is_leap: boolean;
+            /** Key */
+            key: string;
         };
         /** MajorPeriod */
         MajorPeriod: {
@@ -636,6 +755,32 @@ export interface components {
              */
             target_time: string;
         };
+        /** NakshatraSpan */
+        NakshatraSpan: {
+            /**
+             * Ends At
+             * Format: date-time
+             */
+            ends_at: string;
+            /** Index */
+            index: number;
+            /** Key */
+            key: string;
+            /** Pada */
+            pada: number;
+            /** Starts At */
+            starts_at: string | null;
+        };
+        /** NextPoya */
+        NextPoya: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Month Key */
+            month_key: string;
+        };
         /**
          * PakshaId
          * @enum {string}
@@ -646,6 +791,11 @@ export interface components {
          * @enum {string}
          */
         PeriodKind: "day" | "night";
+        /** PoyaInfo */
+        PoyaInfo: {
+            /** Month Key */
+            month_key: string;
+        };
         /**
          * RelationId
          * @enum {string}
@@ -694,6 +844,13 @@ export interface components {
              */
             sub_period_count: number;
         };
+        /** SinhalaMonth */
+        SinhalaMonth: {
+            /** Is Adhi */
+            is_adhi: boolean;
+            /** Key */
+            key: string;
+        };
         /** SubPeriod */
         SubPeriod: {
             /** Duration Seconds */
@@ -728,6 +885,23 @@ export interface components {
             /** Sub Index */
             sub_index: number;
         };
+        /** TithiSpan */
+        TithiSpan: {
+            /**
+             * Ends At
+             * Format: date-time
+             */
+            ends_at: string;
+            /** Index */
+            index: number;
+            /** Key */
+            key: string;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -746,6 +920,23 @@ export interface components {
          * @enum {string}
          */
         WeekdayId: "sunday" | "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday";
+        /** YogaSpan */
+        YogaSpan: {
+            /**
+             * Ends At
+             * Format: date-time
+             */
+            ends_at: string;
+            /** Index */
+            index: number;
+            /** Key */
+            key: string;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -999,6 +1190,39 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    daily_api_v1_panchanga_daily_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DailyPanchangaRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailyPanchanga"];
                 };
             };
             /** @description Validation Error */

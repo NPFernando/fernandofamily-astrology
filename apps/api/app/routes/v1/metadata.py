@@ -7,7 +7,10 @@ router = APIRouter(prefix="/api/v1", tags=["platform"])
 # Hardcoded until packages/feature-registry (Phase 4) exists as the single
 # source of truth for enabled/public features; this must be swapped to read
 # from that registry once it lands, not maintained as a second copy.
-_FEATURES = [{"id": "pancha-pakshi", "enabled": True, "public": True}]
+_FEATURES = [
+    {"id": "pancha-pakshi", "enabled": True, "public": True},
+    {"id": "panchanga", "enabled": True, "public": True},
+]
 
 
 @router.get("/metadata")

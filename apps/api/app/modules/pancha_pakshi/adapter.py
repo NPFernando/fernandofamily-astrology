@@ -3,16 +3,9 @@ no enums, no business logic, and never touches utils.set_language/resource_strin
 or any image path, since those are upstream UI/localization concerns this
 platform's adapter must not depend on.
 """
-import os
-import sys
-from pathlib import Path
+from app.core.vendor_path import ensure_vendor_on_path
 
-# FF_VENDOR_DIR overrides where the vendored engine lives — used by tests to
-# point at an ephemeris-trimmed copy of the tree, mirroring what the Docker
-# image ships (see infra/docker/Dockerfile.api and vendor/README.md).
-_VENDOR_PATH = os.environ.get("FF_VENDOR_DIR") or str(Path(__file__).resolve().parents[3] / "vendor")
-if _VENDOR_PATH not in sys.path:
-    sys.path.insert(0, _VENDOR_PATH)
+ensure_vendor_on_path()
 
 from jhora import utils  # noqa: E402
 from jhora.panchanga import drik, pancha_paksha  # noqa: E402

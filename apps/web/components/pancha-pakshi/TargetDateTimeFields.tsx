@@ -4,8 +4,8 @@ import { useLocale } from "@/lib/locale-context";
 
 export type TargetDateTime = { date: string; time: string };
 
-export function nowAsTargetDateTime(timeZone?: string): TargetDateTime {
-  const now = new Date();
+export function nowAsTargetDateTime(timeZone?: string, at: Date = new Date()): TargetDateTime {
+  const now = at;
   const pad = (n: number) => String(n).padStart(2, "0");
   if (timeZone) {
     try {

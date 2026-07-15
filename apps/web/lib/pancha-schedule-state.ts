@@ -137,12 +137,16 @@ export async function fetchLiveSchedule(request: ScheduleRequest) {
   let fetchedAtClientMs = Date.now();
   const referenceNow = serverTime ? serverTime.getTime() : fetchedAtClientMs;
   if (data.current_period === null && new Date(data.next_sunrise).getTime() <= referenceNow) {
-    const now = new Date(referenceNow);
-    const pad = (n: number) => String(n).padStart(2, "0");
+    // Roll forward in the REQUEST'S location timezone, not the browser's —
+    // a wall-tablet (or a schedule for a different city) whose system clock
+    // is in a different zone would otherwise compute "today" from the wrong
+    // calendar day around midnight, showing a stale/wrong period until the
+    // next natural refetch corrected it.
+    const target = nowAsTargetDateTime(request.iana_tz, new Date(referenceNow));
     const rolled: ScheduleRequest = {
       ...request,
-      target_date: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
-      target_time: `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`,
+      target_date: target.date,
+      target_time: target.time,
     };
     ({ data, serverTime } = await fetchScheduleWithServerTime(rolled));
     fetchedAtClientMs = Date.now();

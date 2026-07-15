@@ -6,6 +6,7 @@ import { getDictionary, nakshatraName, translateEnum } from "@/lib/i18n";
 import { ApiError, fetchPanchanga, type DailyPanchanga } from "@/lib/api-client";
 import { LocationPicker, DEFAULT_LOCATION, mostRecentLocation, type LocationValue } from "@/components/pancha-pakshi/LocationPicker";
 import { DateNav } from "@/components/pancha-pakshi/DateNav";
+import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import { SunIcon } from "@/components/icons/sun";
 import { FullMoonIcon } from "@/components/icons/moon";
 import { loadAccountPreferences } from "@/lib/account-preferences";
@@ -71,9 +72,15 @@ export function PanchangaClient() {
       const account = await loadAccountPreferences();
       if (cancelled) return;
       const loc = account.preferences?.default_location ?? mostRecentLocation() ?? DEFAULT_LOCATION;
+      // "Today" must be resolved in the LOCATION's timezone, not the
+      // browser's — otherwise a device whose system clock is in a different
+      // zone than the (possibly default Colombo) location can load the
+      // wrong calendar day's Panchanga near midnight, labeled as "today".
+      const forDate = nowAsTargetDateTime(loc.iana_tz).date;
       setLocation(loc);
+      setDate(forDate);
       setUsedDefaults(true);
-      void run(todayIso(), loc);
+      void run(forDate, loc);
     })();
     return () => {
       cancelled = true;

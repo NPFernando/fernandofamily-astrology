@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { requireAccountSession } from "@/lib/account-api";
+import { normalizeAccountLocation } from "@/lib/account-location";
 
 const BIRDS = ["vulture", "owl", "crow", "cock", "peacock"];
 const LOCALES = ["en", "si"];
@@ -11,22 +12,10 @@ function hasOwn(body: Record<string, unknown>, key: string): boolean {
 }
 
 function normalizeLocation(value: unknown): string | null {
-  if (value === null) return null;
-  if (typeof value !== "object" || value === null) return "invalid";
-  const loc = value as Record<string, unknown>;
-  const name = typeof loc.name === "string" ? loc.name.trim() : "";
-  const latitude = Number(loc.latitude);
-  const longitude = Number(loc.longitude);
-  const ianaTz = typeof loc.iana_tz === "string" ? loc.iana_tz.trim() : "";
-  if (!name || name.length > 120) return "invalid";
-  if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) return "invalid";
-  if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) return "invalid";
-  try {
-    new Intl.DateTimeFormat(undefined, { timeZone: ianaTz });
-  } catch {
-    return "invalid";
-  }
-  const raw = JSON.stringify({ name, latitude, longitude, iana_tz: ianaTz });
+  const normalized = normalizeAccountLocation(value);
+  if (normalized === null) return null;
+  if (normalized === "invalid") return "invalid";
+  const raw = JSON.stringify(normalized);
   return raw.length > 500 ? "invalid" : raw;
 }
 

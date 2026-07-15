@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node scripts/check-i18n-hygiene.mjs && node scripts/check-no-birth-fields-in-urls.mjs && node scripts/check-ics-generator.mjs",
+    "test": "node scripts/check-i18n-hygiene.mjs && node scripts/check-no-birth-fields-in-urls.mjs && node scripts/check-ics-generator.mjs && node scripts/check-account-location-rounding.mjs",
     "e2e": "API_PROXY_TARGET=http://127.0.0.1:8199 next build && playwright test",
     "e2e:only": "playwright test"
   },

@@ -13,9 +13,14 @@ export function BirdSelector({ onSubmit }: { onSubmit: (input: BirdSelectionInpu
   const { dict } = useLocale();
   const [bird, setBird] = useState<BirdId | null>(null);
   const [target, setTarget] = useState<TargetDateTime>(nowAsTargetDateTime());
+  const [targetTouched, setTargetTouched] = useState(false);
   const [location, setLocation] = useState<LocationValue | null>(null);
 
   const canSubmit = bird !== null && location !== null;
+  function chooseLocation(next: LocationValue) {
+    setLocation(next);
+    if (!targetTouched) setTarget(nowAsTargetDateTime(next.iana_tz));
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -43,11 +48,17 @@ export function BirdSelector({ onSubmit }: { onSubmit: (input: BirdSelectionInpu
         </div>
       </div>
 
-      <TargetDateTimeFields value={target} onChange={setTarget} />
+      <TargetDateTimeFields
+        value={target}
+        onChange={(next) => {
+          setTarget(next);
+          setTargetTouched(true);
+        }}
+      />
 
       <div>
         <p className="mb-2 text-sm opacity-70">{dict.ui.location}</p>
-        <LocationPicker value={location} onChange={setLocation} />
+        <LocationPicker value={location} onChange={chooseLocation} />
       </div>
 
       <button

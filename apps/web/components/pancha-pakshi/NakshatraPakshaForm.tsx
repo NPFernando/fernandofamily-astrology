@@ -16,9 +16,14 @@ export function NakshatraPakshaForm({
   const [nakshatraId, setNakshatraId] = useState<number | null>(null);
   const [paksha, setPaksha] = useState<PakshaId | null>(null);
   const [target, setTarget] = useState<TargetDateTime>(nowAsTargetDateTime());
+  const [targetTouched, setTargetTouched] = useState(false);
   const [location, setLocation] = useState<LocationValue | null>(null);
 
   const canSubmit = nakshatraId !== null && paksha !== null && location !== null;
+  function chooseLocation(next: LocationValue) {
+    setLocation(next);
+    if (!targetTouched) setTarget(nowAsTargetDateTime(next.iana_tz));
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -60,11 +65,17 @@ export function NakshatraPakshaForm({
         </div>
       </div>
 
-      <TargetDateTimeFields value={target} onChange={setTarget} />
+      <TargetDateTimeFields
+        value={target}
+        onChange={(next) => {
+          setTarget(next);
+          setTargetTouched(true);
+        }}
+      />
 
       <div>
         <p className="mb-2 text-sm opacity-70">{dict.ui.location}</p>
-        <LocationPicker value={location} onChange={setLocation} />
+        <LocationPicker value={location} onChange={chooseLocation} />
       </div>
 
       <button

@@ -12,11 +12,16 @@ export function BirthInputForm({ onSubmit }: { onSubmit: (input: BirdSelectionIn
   const [birthTime, setBirthTime] = useState("");
   const [location, setLocation] = useState<LocationValue | null>(null);
   const [target, setTarget] = useState<TargetDateTime>(nowAsTargetDateTime());
+  const [targetTouched, setTargetTouched] = useState(false);
   const [confirmed, setConfirmed] = useState<BirthBirdResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const canConfirm = birthDate && birthTime && location !== null;
+  function chooseLocation(next: LocationValue) {
+    setLocation(next);
+    if (!targetTouched) setTarget(nowAsTargetDateTime(next.iana_tz));
+  }
 
   async function confirmBird() {
     if (!canConfirm) return;
@@ -94,13 +99,19 @@ export function BirthInputForm({ onSubmit }: { onSubmit: (input: BirdSelectionIn
 
       <div>
         <p className="mb-2 text-sm opacity-70">{dict.ui.location}</p>
-        <LocationPicker value={location} onChange={setLocation} />
+        <LocationPicker value={location} onChange={chooseLocation} />
       </div>
 
       <details className="text-sm opacity-80">
         <summary className="cursor-pointer">{dict.ui.targetDate}</summary>
         <div className="mt-2">
-          <TargetDateTimeFields value={target} onChange={setTarget} />
+          <TargetDateTimeFields
+            value={target}
+            onChange={(next) => {
+              setTarget(next);
+              setTargetTouched(true);
+            }}
+          />
         </div>
       </details>
 

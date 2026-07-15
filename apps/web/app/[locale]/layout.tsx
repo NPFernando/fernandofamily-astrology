@@ -42,6 +42,11 @@ export async function generateMetadata({
       icon: "/icons/app/icon-192.png",
       apple: "/icons/apple-touch-icon.png",
     },
+    appleWebApp: {
+      capable: true,
+      title: dict.platform.name,
+      statusBarStyle: "default",
+    },
     openGraph: {
       siteName: dict.platform.name,
       type: "website",

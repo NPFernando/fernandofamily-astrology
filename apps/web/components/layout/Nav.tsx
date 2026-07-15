@@ -8,6 +8,7 @@ import { resolveKey } from "@/lib/i18n";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { LanguageSwitch } from "@/components/layout/LanguageSwitch";
 import { AccountMenu } from "@/components/layout/AccountMenu";
+import { InstallAppButton } from "@/components/layout/InstallAppButton";
 
 export function Nav() {
   const { locale, dict } = useLocale();
@@ -66,6 +67,7 @@ export function Nav() {
         <div className="flex flex-wrap items-center gap-2 md:justify-end">
           <LanguageSwitch />
           <ThemeToggle />
+          <InstallAppButton />
           <AccountMenu />
         </div>
       </nav>

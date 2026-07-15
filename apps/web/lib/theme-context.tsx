@@ -5,11 +5,19 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 type Theme = "light" | "dark";
 
 const ThemeContext = createContext<{ theme: Theme; toggleTheme: () => void } | null>(null);
+const THEME_STORAGE_KEY = "ff_theme";
+const THEME_COOKIE = "ff_theme";
+const THEME_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 function detectInitialTheme(): Theme {
   if (typeof window === "undefined") return "light";
-  const saved = window.localStorage.getItem("ff_theme") as Theme | null;
+  const saved = window.localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
   return saved ?? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+}
+
+function persistTheme(theme: Theme) {
+  window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  document.cookie = `${THEME_COOKIE}=${theme}; path=/; max-age=${THEME_COOKIE_MAX_AGE}; SameSite=Lax`;
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -19,12 +27,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // theme changes, including the initial client-detected value above.
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
+    persistTheme(theme);
   }, [theme]);
 
   const toggleTheme = useCallback(() => {
     setTheme((prev) => {
       const next: Theme = prev === "dark" ? "light" : "dark";
-      window.localStorage.setItem("ff_theme", next);
+      persistTheme(next);
       return next;
     });
   }, []);

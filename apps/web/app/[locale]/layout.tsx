@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_Sinhala } from "next/font/google";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import "../globals.css";
 import { SUPPORTED_LOCALES, isLocale, getDictionary, type Locale } from "@/lib/i18n";
@@ -12,6 +13,7 @@ import { PUBLIC_BASE_URL } from "@/lib/site-config";
 
 const bodyFont = Inter({ variable: "--font-body", subsets: ["latin"] });
 const sinhalaFont = Noto_Sans_Sinhala({ variable: "--font-sinhala", subsets: ["sinhala"] });
+const themeInitScript = `(function(){try{var k='ff_theme';var m=document.cookie.match(/(?:^|; )ff_theme=(dark|light)(?:;|$)/);var c=m&&m[1];var s=localStorage.getItem(k);var t=s||c||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.classList.toggle('dark',t==='dark');document.cookie=k+'='+t+'; path=/; max-age=31536000; SameSite=Lax';}catch(e){}})();`;
 
 export function generateStaticParams() {
   return SUPPORTED_LOCALES.map((locale) => ({ locale }));
@@ -63,10 +65,17 @@ export default async function LocaleLayout({
   const { locale: rawLocale } = await params;
   if (!isLocale(rawLocale)) notFound();
   const locale: Locale = rawLocale;
+  const theme = (await cookies()).get("ff_theme")?.value;
+  const themeClass = theme === "dark" ? " dark" : "";
 
   return (
-    <html lang={locale} className={`${bodyFont.variable} ${sinhalaFont.variable} h-full antialiased`}>
+    <html
+      lang={locale}
+      className={`${bodyFont.variable} ${sinhalaFont.variable} h-full antialiased${themeClass}`}
+      suppressHydrationWarning
+    >
       <body className="flex min-h-full flex-col">
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <ThemeProvider>
           <LocaleProvider locale={locale}>
             <ServiceWorkerRegister />

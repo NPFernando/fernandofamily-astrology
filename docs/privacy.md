@@ -37,11 +37,15 @@ preferences" action on the Privacy page removes all of it.
 
 If you use "Use my location," your device's coordinates are read by your
 browser after you explicitly grant permission, and are resolved to a
-timezone entirely on your device (no third-party lookup of your exact
-location). If you search for a place by name instead, that search is sent
-to a third-party geocoding service (Open-Meteo) to resolve it to
-coordinates — only the place name you typed is sent, not any location your
-device has provided.
+timezone entirely on your device. To show you a readable place name instead
+of a generic "Current location" label, those coordinates are also sent to
+OpenStreetMap's Nominatim reverse-geocoding service — this only happens
+after your explicit click, and only to look up a name for the coordinates
+your browser already has; if that lookup fails or times out, the generic
+label is shown instead and nothing else is affected. If you search for a
+place by name instead, that search is sent to a third-party geocoding
+service (Open-Meteo) to resolve it to coordinates — only the place name you
+typed is sent, not any location your device has provided.
 
 ## Third parties
 

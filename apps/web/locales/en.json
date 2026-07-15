@@ -339,7 +339,8 @@
       "localStorageBody": "Only non-sensitive preferences are saved locally on your device: your chosen language, light/dark theme, last-selected bird, a short list of recent locations, and the last successfully calculated schedule (so it can be shown while offline). None of this is birth date, birth time, or precise coordinates tied to a real event.",
       "clearAction": "You can remove everything saved locally at any time.",
       "accountsBody": "If you sign in (currently invite-only), your saved profiles and preferences sync to the server so they follow you across devices. Only a label plus the derived bird — or nakshatra and paksha — is stored server-side. Raw birth date, time, and coordinates are never stored on the server, signed in or not.",
-      "pushBody": "If you enable period alerts, our server stores this device's push address, your bird (or nakshatra and paksha), a location rounded to roughly 1 km, and your alert settings — never your birth date, time or exact coordinates. Disabling alerts deletes all of it immediately."
+      "pushBody": "If you enable period alerts, our server stores this device's push address, your bird (or nakshatra and paksha), a location rounded to roughly 1 km, and your alert settings — never your birth date, time or exact coordinates. Disabling alerts deletes all of it immediately.",
+      "locationBody": "If you use \"Use my location,\" your coordinates are read by your browser after you explicitly grant permission and resolved to a timezone on your device. To show a readable place name instead of a generic label, those coordinates are also sent to OpenStreetMap's Nominatim service to look up a name — this only happens after your click, and only for that lookup; if it fails, a generic label is shown instead. Searching for a place by name sends only the text you typed to a different geocoding service (Open-Meteo), never your device's location."
     },
     "licensing": {
       "title": "Licence",

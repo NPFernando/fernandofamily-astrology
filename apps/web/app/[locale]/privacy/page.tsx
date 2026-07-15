@@ -19,6 +19,7 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
       <p className="mt-4 leading-relaxed">{dict.pages.privacy.noAccounts}</p>
       <p className="mt-4 leading-relaxed">{dict.pages.privacy.accountsBody}</p>
       <p className="mt-4 leading-relaxed">{dict.pages.privacy.birthDataHandling}</p>
+      <p className="mt-4 leading-relaxed">{dict.pages.privacy.locationBody}</p>
       <p className="mt-4 leading-relaxed">{dict.pages.privacy.pushBody}</p>
       <h2 className="mt-6 text-lg font-semibold">{dict.pages.privacy.localStorageTitle}</h2>
       <p className="mt-2 leading-relaxed">{dict.pages.privacy.localStorageBody}</p>

@@ -118,6 +118,40 @@ export function LocationPicker({
     setStatus(null);
   }
 
+  // Resolves device coordinates to a human-readable place name via
+  // OpenStreetMap's Nominatim reverse-geocoding API (free, no key). Only
+  // called after the user explicitly clicks "Use my location" — never on
+  // mount — and only sends the coordinates the browser already asked
+  // permission for; falls back to the generic "Current location" label on
+  // any failure/timeout so this is purely a display-quality enhancement,
+  // never a blocker.
+  async function reverseGeocode(lat: number, lon: number): Promise<string | null> {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 8_000);
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=10&addressdetails=1`,
+        { headers: { Accept: "application/json" }, signal: controller.signal },
+      );
+      if (!res.ok) return null;
+      const data = await res.json();
+      const addr = data.address ?? {};
+      const place: string | undefined =
+        addr.city ?? addr.town ?? addr.village ?? addr.county ?? addr.suburb ?? addr.state_district;
+      const region: string | undefined = addr.state ?? addr.country;
+      if (place && region && place !== region) return `${place}, ${region}`;
+      if (place) return place;
+      if (typeof data.display_name === "string") {
+        return data.display_name.split(",").slice(0, 2).join(",").trim();
+      }
+      return null;
+    } catch {
+      return null; // aborted/offline/parse failure — caller falls back
+    } finally {
+      window.clearTimeout(timeout);
+    }
+  }
+
   // Only triggered by an explicit click — never auto-requested on mount.
   function useDeviceLocation() {
     if (!("geolocation" in navigator)) {
@@ -126,7 +160,7 @@ export function LocationPicker({
     }
     setStatus(dict.ui.detectingLocation);
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      async (pos) => {
         const { latitude, longitude } = pos.coords;
         let tz: string;
         try {
@@ -134,7 +168,8 @@ export function LocationPicker({
         } catch {
           tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
         }
-        commit({ name: dict.ui.currentLocation, latitude, longitude, iana_tz: tz });
+        const resolvedName = await reverseGeocode(latitude, longitude);
+        commit({ name: resolvedName ?? dict.ui.currentLocation, latitude, longitude, iana_tz: tz });
       },
       (err) => {
         setStatus(

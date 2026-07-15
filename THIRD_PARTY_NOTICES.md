@@ -65,6 +65,20 @@ created for this project — not copied or derived from any commercial or
 third-party iconography. The share image renders the platform name using Noto
 Sans / Noto Sans Sinhala (SIL OFL 1.1, listed above).
 
+## Runtime location services (client-side, called directly from the browser)
+
+- **Open-Meteo Geocoding API** (https://open-meteo.com/) — used by the
+  "search for a place" flow (`apps/web/components/pancha-pakshi/LocationPicker.tsx`)
+  to resolve a typed place name to coordinates. Free, no API key. Only the
+  text the user typed is sent — never any location the device has provided.
+- **OpenStreetMap Nominatim** (https://nominatim.org/, © OpenStreetMap
+  contributors, ODbL) — used by the "Use my location" flow to reverse-geocode
+  device coordinates into a readable place name, only after the user
+  explicitly grants location permission and clicks the button. Free, no API
+  key; used within Nominatim's usage policy for light, on-demand, user-
+  initiated lookups (no bulk/automated use). See `docs/privacy.md` for the
+  full data-flow description.
+
 ## Sri Lanka holidays dataset (test fixtures)
 
 - **Repository**: https://github.com/Dilshan-H/srilanka-holidays

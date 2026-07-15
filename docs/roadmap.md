@@ -70,10 +70,11 @@ they are actually built, registered in the feature registry
 (`packages/feature-registry`), and explicitly enabled.
 
 1. Telegram bot — "what's my current period?", daily morning summary.
-2. Tamil as a third locale (upstream PyJHora ships Tamil resources — see
-   [`FUTURE_DATA_USES.md`](../apps/api/vendor/FUTURE_DATA_USES.md); the i18n
-   plumbing is locale-count agnostic).
-3. Public API keys + developer docs, per-key rate limits.
+
+**Explicitly out of scope** (not deferrals — decided against):
+- A third (Tamil) locale. The platform stays bilingual, Sinhala + English only.
+- Public API keys / third-party developer access. This platform's API is for
+  its own frontend only; it is not being opened up for external integrations.
 
 **Larger future modules** (same registry pattern; unscheduled): Muhurta
 finder, birth chart / Kundali basics (asteroid + fixed-star data for these is

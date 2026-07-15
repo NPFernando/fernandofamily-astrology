@@ -149,46 +149,31 @@ per-page OG variants), web-push notifications, and everything in
    worker push handler; no server storage of anything personal beyond a push
    subscription endpoint.
 
-## User accounts & data persistence (design, not yet built)
+## User accounts & data persistence
 
 Guiding principle (unchanged from the privacy posture): **everything works
-without an account, all personal data device-local by default.** That's
-already true today — locale/theme/bird/recent-locations/last-schedule live
-in localStorage/sessionStorage only.
+without an account, all personal data device-local by default.** That's true
+today — locale/theme/bird/recent-locations/last-schedule live in
+localStorage/sessionStorage only, and `ClearPreferencesButton` wipes it.
 
-Phased design:
+Status:
 
-- **Phase A (now / no server changes)**: add an explicit "Your data" section
-  on the Privacy page enumerating device-local keys (exists) plus an
-  export/import button (download/restore a JSON of preferences) — gives
-  cross-device portability with zero auth. (S)
-- **Phase B (optional Google sign-in, allowlisted)**: Auth.js v5 (`next-auth@5`)
-  with the Google provider, JWT session strategy (no database needed for
-  sign-in itself). Feature-flagged hard-off unless `GOOGLE_CLIENT_ID`/
-  `GOOGLE_CLIENT_SECRET`/`AUTH_SECRET` are set; `signIn` callback rejects
-  any email not in `AUTH_ALLOWED_EMAILS` (initially exactly
-  `fernandonaveen2000@gmail.com`). UI: a small avatar/sign-in button in the
-  Nav, rendered only when the flag is on. Nothing about calculation flows
-  may ever require it. (M)
-  - **Why Auth.js v5 over alternatives**: first-class App Router support
-    (route handlers + middleware), JWT-only mode means no DB dependency for
-    phase B, Google provider is a 10-line config, and it's the de-facto
-    standard so future providers are drop-in. Clerk/Auth0 are hosted
-    third-party dependencies (conflicts with the self-contained posture and
-    adds cost); Lucia is deprecated; hand-rolled OAuth is avoidable risk.
-- **Phase C (server-side sync, later)**: a small `user_prefs` store keyed by
-  the Google account subject, holding exactly what localStorage holds today
-  (never raw birth data — sync the *derived* bird, not birth details, unless
-  the user explicitly opts in to storing birth inputs). Storage options:
-  - *SQLite file volume*: zero new infra, one more thing to back up,
-    fine at this scale; slightly awkward with the read-only container
-    filesystem (needs a writable volume).
-  - *Host's existing Postgres 18 instance*: already backed up nightly and
-    restore-verified, one new database + role; couples the app to host
-    infra, which is acceptable for this deployment but should stay behind a
-    `DATABASE_URL` env var so self-hosters can use anything.
-  Decision can wait until phase C is actually scheduled; the API surface
-  (`GET/PUT /api/v1/user/preferences`, authenticated) is the stable part.
+- **Phase A (device-local export/import)** — **not built.** A "Your data"
+  section listing device-local keys plus a download/restore-JSON button for
+  cross-device portability without any account. Still a small, cheap
+  candidate if wanted (S).
+- **Phase B (optional Google sign-in, allowlisted)** — **shipped.** Auth.js
+  v5, JWT session strategy, feature-flagged hard-off unless
+  `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`/`AUTH_SECRET` are set;
+  `signIn` callback rejects any email not in `AUTH_ALLOWED_EMAILS`. Nothing
+  about calculation flows requires it.
+- **Phase C (server-side sync)** — **shipped.** `preferences` table in the
+  `astrology` Postgres database (`apps/web/db/migrations/001_init.sql`),
+  `GET/PUT /api/v1/account/preferences` (authenticated, session-gated),
+  syncing locale/theme/default bird/default location. Never raw birth
+  date/time or event-specific coordinates — only what the device-local
+  version already stored, now optionally mirrored server-side for signed-in
+  users.
 
 ## Explicitly not recommended
 

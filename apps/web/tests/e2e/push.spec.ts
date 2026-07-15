@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { PUSH_E2E } from "../../playwright.config";
+import { openToolsContext } from "./helpers";
 
 // Flag-off behavior runs against the default (no-VAPID) server via baseURL;
 // everything push-enabled targets PUSH_E2E.baseURL — a second `next start`
@@ -35,7 +36,8 @@ test.describe("push enabled (VAPID server)", () => {
     await page.goto("/en/pancha-pakshi");
     await expect(page.getByText("Time remaining")).toBeVisible({ timeout: 15_000 });
 
-    const card = page.getByText("Period alerts");
+    const tools = await openToolsContext(page);
+    const card = tools.getByText("Period alerts");
     await expect(card).toBeVisible();
     await card.click(); // expand the <details>
     await expect(page.getByRole("button", { name: "Enable alerts" })).toBeVisible();

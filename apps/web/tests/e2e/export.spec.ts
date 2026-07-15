@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { DICTS, openCalculator, watchForBirthDataInUrls } from "./helpers";
+import { DICTS, openCalculator, openToolsContext, watchForBirthDataInUrls } from "./helpers";
 
 const CARD_BODY = {
   method: "bird",
@@ -29,7 +29,8 @@ test("print emulation: only the sheet is visible; full mode shows 50 sub rows", 
 test("print emulation major-only mode: 10 rows, no sub-period columns", async ({ page }) => {
   await openCalculator(page, "en");
   // Untick "Include sub-periods" -> major-only exports.
-  await page.getByLabel(DICTS.en.ui.includeSubPeriods).uncheck();
+  const tools = await openToolsContext(page);
+  await tools.getByLabel(DICTS.en.ui.includeSubPeriods).uncheck();
   await page.emulateMedia({ media: "print" });
 
   const sheet = page.locator("#print-sheet");
@@ -77,10 +78,11 @@ test("share-card route rejects bad detail and bad schedule body", async ({ reque
 
 test("share image button downloads the PNG; no location data in URLs", async ({ page }) => {
   await openCalculator(page, "en");
+  const tools = await openToolsContext(page);
   const watcher = watchForBirthDataInUrls(page);
   const [download] = await Promise.all([
     page.waitForEvent("download"),
-    page.getByTestId("share-image").click(),
+    tools.getByTestId("share-image").click(),
   ]);
   expect(download.suggestedFilename()).toMatch(/^pancha-pakshi-\d{4}-\d{2}-\d{2}-[a-z]+\.png$/);
   watcher.assertClean();

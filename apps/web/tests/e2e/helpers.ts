@@ -59,6 +59,14 @@ export async function openCalculator(page: Page, locale: LocaleKey) {
   await waitForSchedule(page, locale);
 }
 
+export async function openToolsContext(page: Page) {
+  const panel = page.getByTestId("tools-context-panel");
+  await expect(panel).toBeVisible();
+  const isOpen = await panel.evaluate((node) => (node as HTMLDetailsElement).open);
+  if (!isOpen) await panel.locator("summary").first().click();
+  return panel;
+}
+
 // Fills the manual-coordinates location path (works in any form embedding
 // LocationPicker) with Colombo unless overridden.
 export async function fillManualLocation(

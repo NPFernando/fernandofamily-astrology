@@ -422,7 +422,10 @@ export function PanchaPakshiClient() {
                 onPickDay={changeDate}
               />
 
-              <details className="rounded-xl border border-black/10 bg-white/30 p-4 dark:border-white/10 dark:bg-white/[.03]">
+              <details
+                className="rounded-xl border border-black/10 bg-white/30 p-4 dark:border-white/10 dark:bg-white/[.03]"
+                data-testid="tools-context-panel"
+              >
                 <summary className="cursor-pointer text-sm font-semibold text-accent">{dict.ui.toolsAndContext}</summary>
                 <div className="mt-4 flex flex-col gap-4">
                   <ExportControls

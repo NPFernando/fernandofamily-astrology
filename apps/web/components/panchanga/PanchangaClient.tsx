@@ -81,15 +81,27 @@ export function PanchangaClient() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-center justify-between gap-3 print:block">
+      <header className="print:block">
         <h1 className="flex items-center gap-2 text-2xl font-bold">
           <SunIcon className="text-3xl text-accent print:hidden" />
           {dict.panchanga.title}
         </h1>
-        <div className="print:hidden">
-          <DateNav date={date} onChange={onDateChange} />
-        </div>
       </header>
+
+      <section
+        aria-label={dict.ui.dailyDetails}
+        data-testid="panchanga-controls"
+        className="rounded-xl border border-black/10 bg-white/40 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.04] print:hidden"
+      >
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-accent">{dict.ui.dailyDetails}</h2>
+        <div className="mt-3 flex flex-col gap-4">
+          <DateNav date={date} onChange={onDateChange} />
+          <div>
+            <p className="mb-2 text-sm opacity-70">{dict.ui.location}</p>
+            <LocationPicker value={location} onChange={onLocationChange} />
+          </div>
+        </div>
+      </section>
 
       {usedDefaults && data && (
         <p className="rounded-lg border border-sky-500/40 bg-sky-500/10 px-3 py-2 text-xs print:hidden">
@@ -250,10 +262,6 @@ export function PanchangaClient() {
         </div>
       )}
 
-      <div className="print:hidden">
-        <p className="mb-2 text-sm opacity-70">{dict.ui.location}</p>
-        <LocationPicker value={location} onChange={onLocationChange} />
-      </div>
     </div>
   );
 }

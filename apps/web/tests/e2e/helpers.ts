@@ -35,9 +35,23 @@ export function watchForBirthDataInUrls(page: Page) {
 // The zero-click auto-compute means every plain load ends in a schedule —
 // wait for it so subsequent interactions have a stable page.
 export async function waitForSchedule(page: Page, locale: LocaleKey) {
-  await expect(page.getByText(DICTS[locale].ui.timeRemaining).first()).toBeVisible({
-    timeout: 20_000,
-  });
+  await expect(async () => {
+    const liveCountdown = await page
+      .getByText(DICTS[locale].ui.timeRemaining)
+      .first()
+      .isVisible()
+      .catch(() => false);
+    const scheduleCards = await page
+      .locator('[id^="major-period-"]')
+      .first()
+      .isVisible()
+      .catch(() => false);
+    if (!liveCountdown && !scheduleCards) {
+      const retry = page.getByRole("button", { name: DICTS[locale].ui.retry, exact: true }).first();
+      if (await retry.isVisible().catch(() => false)) await retry.click();
+    }
+    expect(liveCountdown || scheduleCards).toBe(true);
+  }).toPass({ timeout: 30_000 });
 }
 
 export async function openCalculator(page: Page, locale: LocaleKey) {

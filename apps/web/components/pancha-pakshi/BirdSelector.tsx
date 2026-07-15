@@ -26,7 +26,7 @@ export function BirdSelector({ onSubmit }: { onSubmit: (input: BirdSelectionInpu
     <div className="flex flex-col gap-4">
       <div>
         <p className="mb-2 text-sm opacity-70">{dict.ui.selectBird}</p>
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+        <div className="grid auto-rows-fr grid-cols-2 gap-2 sm:flex sm:flex-wrap">
           {BIRDS.map((b) => {
             const Icon = BIRD_ICONS[b];
             return (
@@ -34,14 +34,14 @@ export function BirdSelector({ onSubmit }: { onSubmit: (input: BirdSelectionInpu
                 key={b}
                 type="button"
                 onClick={() => setBird(b)}
-                className={`flex min-h-11 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm sm:w-auto sm:justify-start sm:rounded-full sm:px-4 ${
+                className={`flex min-h-12 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm leading-tight sm:w-auto sm:justify-start sm:rounded-full sm:px-4 ${
                   bird === b
                     ? "border-accent bg-accent/10 font-semibold text-accent"
                     : "border-black/10 opacity-80 hover:opacity-100 dark:border-white/20"
                 }`}
               >
-                <Icon className="text-xl" />
-                {dict.enums.birds[b]}
+                <Icon className="shrink-0 text-xl" />
+                <span>{dict.enums.birds[b]}</span>
               </button>
             );
           })}

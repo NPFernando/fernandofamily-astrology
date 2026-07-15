@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useLocale } from "@/lib/locale-context";
 import { enabledFeatures } from "@/lib/feature-registry";
 import { resolveKey } from "@/lib/i18n";
@@ -10,29 +11,57 @@ import { AccountMenu } from "@/components/layout/AccountMenu";
 
 export function Nav() {
   const { locale, dict } = useLocale();
+  const pathname = usePathname();
   const features = enabledFeatures();
+  const featureLabel = (id: string, fallback: string) => {
+    if (id === "pancha-pakshi") return dict.nav.panchaPakshi;
+    if (id === "panchanga") return dict.nav.panchanga;
+    return fallback;
+  };
+  const links = [
+    ...features.map((f) => ({
+      href: `/${locale}${f.route}`,
+      label: featureLabel(f.id, resolveKey(dict, f.titleKey)),
+    })),
+    { href: `/${locale}/about`, label: dict.nav.about },
+    { href: `/${locale}/methodology`, label: dict.nav.methodology },
+  ];
+
+  function isActive(href: string) {
+    return pathname === href || pathname.startsWith(`${href}/`);
+  }
 
   return (
     <header className="border-b border-black/10 dark:border-white/10">
-      <nav className="mx-auto grid max-w-5xl gap-3 px-4 py-3 md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center">
+      <nav className="mx-auto grid max-w-6xl gap-3 px-4 py-3 md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center">
         <Link
           href={`/${locale}`}
+          aria-current={pathname === `/${locale}` ? "page" : undefined}
           className="text-lg font-semibold leading-snug text-amber-700 dark:text-amber-400"
         >
           {dict.platform.name}
         </Link>
-        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 text-sm md:justify-center">
-          {features.map((f) => (
-            <Link key={f.id} href={`/${locale}${f.route}`} className="hover:underline">
-              {resolveKey(dict, f.titleKey)}
-            </Link>
-          ))}
-          <Link href={`/${locale}/about`} className="hover:underline">
-            {dict.nav.about}
-          </Link>
-          <Link href={`/${locale}/methodology`} className="hover:underline">
-            {dict.nav.methodology}
-          </Link>
+        <div
+          className="-mx-1 flex min-w-0 snap-x items-center gap-2 overflow-x-auto px-1 pb-1 text-sm md:mx-0 md:justify-center md:pb-0"
+          aria-label={dict.ui.pageNavigation}
+        >
+          {links.map((link) => {
+            const active = isActive(link.href);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                aria-current={active ? "page" : undefined}
+                className={`snap-start whitespace-nowrap rounded-full border px-3 py-1.5 leading-none transition ${
+                  active
+                    ? "border-accent bg-accent/10 font-semibold text-accent"
+                    : "border-transparent opacity-80 hover:border-black/10 hover:opacity-100 dark:hover:border-white/15"
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
         </div>
         <div className="flex flex-wrap items-center gap-2 md:justify-end">
           <LanguageSwitch />

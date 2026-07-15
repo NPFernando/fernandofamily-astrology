@@ -321,11 +321,26 @@ export function PanchaPakshiClient() {
     { id: "bird", label: dict.ui.methodDirectBird },
   ];
 
+  const renderScheduleSettings = () => (
+    <ScheduleSettings
+      method={method}
+      setMethod={setMethod}
+      tabs={tabs}
+      error={error}
+      loading={loading}
+      lastRequest={lastRequest}
+      refetch={refetch}
+      runUserSchedule={runUserSchedule}
+      scheduleFromProfile={scheduleFromProfile}
+      saveCandidate={saveCandidate}
+    />
+  );
+
   return (
     <div className="flex flex-col gap-6">
-      <header>
+      <header className="max-w-3xl">
         <h1 className="text-2xl font-bold">{resolveKey(dict, feature.titleKey)}</h1>
-        <p className="mt-1 opacity-80">{resolveKey(dict, feature.descriptionKey)}</p>
+        <p className="mt-1 text-sm opacity-80 sm:text-base">{resolveKey(dict, feature.descriptionKey)}</p>
       </header>
 
       {!isOnline && (
@@ -334,103 +349,169 @@ export function PanchaPakshiClient() {
         </p>
       )}
 
-      {schedule && (
-        <div className="order-first flex flex-col gap-4 lg:order-none">
-          {isStale && cachedAtIso && (
-            <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs">
-              {dict.ui.offlineCachedNotice} — {dict.ui.generatedAt}:{" "}
-              {new Date(cachedAtIso).toLocaleString(locale === "si" ? "si-LK" : "en-US")} · {schedule.location.name}
-            </p>
-          )}
-          {usedDefaults && !isStale && (
-            <p className="rounded-lg border border-sky-500/40 bg-sky-500/10 px-3 py-2 text-xs">
-              {dict.ui.showingFor}: {translateEnum(dict, "birds", schedule.birth_bird)} ·{" "}
-              {schedule.location.name} — {dict.ui.defaultsNotice}
-            </p>
-          )}
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <DateNav date={displayedDate} onChange={changeDate} />
-            {!windowContainsNow && (
-              <button
-                type="button"
-                onClick={() => changeDate(nowAsTargetDateTime(schedule.location.iana_tz).date)}
-                className="rounded-lg border border-accent/40 px-3 py-1.5 text-sm text-accent hover:bg-accent/10"
-              >
-                {dict.ui.backToToday}
-              </button>
-            )}
-          </div>
-          {windowContainsNow ? (
-            <div ref={countdownCardRef}>
-              <LiveCountdown
-                current={schedule.current_period}
-                next={schedule.next_period}
-                serverTime={serverTime}
-                fetchedAtClientMs={fetchedAtClientMs}
-                onExpire={refetch}
-                isStale={isStale}
-              />
-            </div>
-          ) : (
-            <p className="rounded-lg border border-black/10 px-3 py-2 text-sm opacity-80 dark:border-white/10">
-              {dict.ui.viewingAnotherDay}
-            </p>
-          )}
-          <StickyCurrentBar
-            current={windowContainsNow ? schedule.current_period : null}
-            skewMs={skewMs}
-            watchRef={countdownCardRef}
-          />
-          <BestWindows schedule={schedule} skewMs={skewMs} onSelect={scrollToMajor} />
-          <NotificationOptIn
-            bird={
-              lastRequest?.method === "nakshatra_paksha" ? null : schedule.birth_bird
-            }
-            nakshatraIndex={
-              lastRequest?.method === "nakshatra_paksha" ? lastRequest.nakshatra_index : null
-            }
-            paksha={lastRequest?.method === "nakshatra_paksha" ? lastRequest.paksha : null}
-            latitude={schedule.location.latitude}
-            longitude={schedule.location.longitude}
-            ianaTz={schedule.location.iana_tz}
-          />
-          <Legend />
-          <div className="grid grid-cols-2 gap-3 rounded-xl border border-black/10 p-4 text-sm dark:border-white/10 sm:grid-cols-4">
-            <Fact label={dict.ui.location} value={schedule.location.name} />
-            <Fact label={dict.ui.weekday} value={translateEnum(dict, "weekdays", schedule.weekday)} />
-            <Fact label={dict.ui.paksha} value={translateEnum(dict, "paksha", schedule.paksha)} />
-            <Fact label={dict.ui.birthBird} value={translateEnum(dict, "birds", schedule.birth_bird)} />
-            <Fact label={dict.ui.sunrise} value={new Date(schedule.sunrise).toLocaleTimeString()} />
-            <Fact label={dict.ui.sunset} value={new Date(schedule.sunset).toLocaleTimeString()} />
-            <Fact label={dict.ui.nextSunrise} value={new Date(schedule.next_sunrise).toLocaleTimeString()} />
-            <Fact label={dict.ui.paduPakshi} value={translateEnum(dict, "birds", schedule.padu_pakshi)} />
-          </div>
-          <ExportControls
-            schedule={schedule}
-            lastRequest={lastRequest}
-            detail={exportDetail}
-            onDetailChange={setExportDetail}
-          />
-          <ScheduleTimeline
-            schedule={schedule}
-            skewMs={skewMs}
-            weekRequest={lastRequest ?? undefined}
-            onPickDay={changeDate}
-          />
-          <PrintSheet schedule={schedule} detail={exportDetail} />
-        </div>
-      )}
+      <div className={schedule ? "grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start" : "flex flex-col gap-6"}>
+        <section className="flex min-w-0 flex-col gap-5">
+          {schedule ? (
+            <>
+              {isStale && cachedAtIso && (
+                <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs">
+                  {dict.ui.offlineCachedNotice} — {dict.ui.generatedAt}:{" "}
+                  {new Date(cachedAtIso).toLocaleString(locale === "si" ? "si-LK" : "en-US")} ·{" "}
+                  {schedule.location.name}
+                </p>
+              )}
+              {usedDefaults && !isStale && (
+                <p className="rounded-lg border border-sky-500/40 bg-sky-500/10 px-3 py-2 text-xs">
+                  {dict.ui.showingFor}: {translateEnum(dict, "birds", schedule.birth_bird)} ·{" "}
+                  {schedule.location.name} — {dict.ui.defaultsNotice}
+                </p>
+              )}
 
+              <section className="rounded-xl border border-black/10 bg-white/35 p-3 shadow-sm dark:border-white/10 dark:bg-white/[.03] sm:p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <DateNav date={displayedDate} onChange={changeDate} />
+                  {!windowContainsNow && (
+                    <button
+                      type="button"
+                      onClick={() => changeDate(nowAsTargetDateTime(schedule.location.iana_tz).date)}
+                      className="rounded-lg border border-accent/40 px-3 py-1.5 text-sm text-accent hover:bg-accent/10"
+                    >
+                      {dict.ui.backToToday}
+                    </button>
+                  )}
+                </div>
+                <div className="mt-3">
+                  {windowContainsNow ? (
+                    <div ref={countdownCardRef}>
+                      <LiveCountdown
+                        current={schedule.current_period}
+                        next={schedule.next_period}
+                        serverTime={serverTime}
+                        fetchedAtClientMs={fetchedAtClientMs}
+                        onExpire={refetch}
+                        isStale={isStale}
+                      />
+                    </div>
+                  ) : (
+                    <p className="rounded-lg border border-black/10 px-3 py-2 text-sm opacity-80 dark:border-white/10">
+                      {dict.ui.viewingAnotherDay}
+                    </p>
+                  )}
+                </div>
+              </section>
+
+              <StickyCurrentBar
+                current={windowContainsNow ? schedule.current_period : null}
+                skewMs={skewMs}
+                watchRef={countdownCardRef}
+              />
+
+              <details
+                className="rounded-xl border border-black/10 bg-white/30 p-3 dark:border-white/10 dark:bg-white/[.03] lg:hidden"
+                data-testid="change-details-panel"
+              >
+                <summary className="cursor-pointer text-sm font-semibold text-accent">{dict.ui.changeDetails}</summary>
+                <div className="mt-3">{renderScheduleSettings()}</div>
+              </details>
+
+              <BestWindows schedule={schedule} skewMs={skewMs} onSelect={scrollToMajor} />
+              <ScheduleTimeline
+                schedule={schedule}
+                skewMs={skewMs}
+                weekRequest={lastRequest ?? undefined}
+                onPickDay={changeDate}
+              />
+
+              <details className="rounded-xl border border-black/10 bg-white/30 p-4 dark:border-white/10 dark:bg-white/[.03]">
+                <summary className="cursor-pointer text-sm font-semibold text-accent">{dict.ui.toolsAndContext}</summary>
+                <div className="mt-4 flex flex-col gap-4">
+                  <ExportControls
+                    schedule={schedule}
+                    lastRequest={lastRequest}
+                    detail={exportDetail}
+                    onDetailChange={setExportDetail}
+                  />
+                  <NotificationOptIn
+                    bird={lastRequest?.method === "nakshatra_paksha" ? null : schedule.birth_bird}
+                    nakshatraIndex={
+                      lastRequest?.method === "nakshatra_paksha" ? lastRequest.nakshatra_index : null
+                    }
+                    paksha={lastRequest?.method === "nakshatra_paksha" ? lastRequest.paksha : null}
+                    latitude={schedule.location.latitude}
+                    longitude={schedule.location.longitude}
+                    ianaTz={schedule.location.iana_tz}
+                  />
+                  <Legend />
+                  <div className="grid grid-cols-2 gap-3 rounded-lg border border-black/10 p-4 text-sm dark:border-white/10 sm:grid-cols-4">
+                    <Fact label={dict.ui.location} value={schedule.location.name} />
+                    <Fact label={dict.ui.weekday} value={translateEnum(dict, "weekdays", schedule.weekday)} />
+                    <Fact label={dict.ui.paksha} value={translateEnum(dict, "paksha", schedule.paksha)} />
+                    <Fact label={dict.ui.birthBird} value={translateEnum(dict, "birds", schedule.birth_bird)} />
+                    <Fact label={dict.ui.sunrise} value={new Date(schedule.sunrise).toLocaleTimeString()} />
+                    <Fact label={dict.ui.sunset} value={new Date(schedule.sunset).toLocaleTimeString()} />
+                    <Fact label={dict.ui.nextSunrise} value={new Date(schedule.next_sunrise).toLocaleTimeString()} />
+                    <Fact label={dict.ui.paduPakshi} value={translateEnum(dict, "birds", schedule.padu_pakshi)} />
+                  </div>
+                </div>
+              </details>
+              <PrintSheet schedule={schedule} detail={exportDetail} />
+            </>
+          ) : null}
+        </section>
+
+        <aside
+          className={schedule ? "hidden lg:sticky lg:top-4 lg:block" : ""}
+          data-testid="schedule-settings-panel"
+        >
+          {renderScheduleSettings()}
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function ScheduleSettings({
+  method,
+  setMethod,
+  tabs,
+  error,
+  loading,
+  lastRequest,
+  refetch,
+  runUserSchedule,
+  scheduleFromProfile,
+  saveCandidate,
+}: {
+  method: Method;
+  setMethod: (method: Method) => void;
+  tabs: { id: Method; label: string }[];
+  error: string | null;
+  loading: boolean;
+  lastRequest: ScheduleRequest | null;
+  refetch: () => void;
+  runUserSchedule: (request: ScheduleRequest) => void;
+  scheduleFromProfile: (profile: SavedProfile) => void;
+  saveCandidate: Omit<SavedProfile, "id" | "created_at" | "label"> | null;
+}) {
+  const { dict } = useLocale();
+
+  return (
+    <section className="flex flex-col gap-4 rounded-xl border border-black/10 bg-white/45 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.04]">
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-accent">{dict.ui.scheduleSettings}</h2>
       <SavedProfiles onPick={scheduleFromProfile} saveCandidate={saveCandidate} />
 
-      <div role="tablist" aria-label={dict.ui.birthDetails} className="flex gap-2 border-b border-black/10 dark:border-white/10">
+      <div
+        role="tablist"
+        aria-label={dict.ui.birthDetails}
+        className="-mx-1 flex gap-2 overflow-x-auto border-b border-black/10 px-1 dark:border-white/10"
+      >
         {tabs.map((tab) => (
           <button
             key={tab.id}
             role="tab"
             aria-selected={method === tab.id}
             onClick={() => setMethod(tab.id)}
-            className={`px-4 py-2 text-sm ${
+            className={`whitespace-nowrap px-3 py-2 text-sm ${
               method === tab.id
                 ? "border-b-2 border-accent font-semibold text-accent"
                 : "opacity-70 hover:opacity-100"
@@ -444,7 +525,7 @@ export function PanchaPakshiClient() {
       {error && (
         <div
           role="alert"
-          className="flex flex-col items-start gap-2 rounded-xl border border-red-600/30 bg-red-600/5 p-4"
+          className="flex flex-col items-start gap-2 rounded-lg border border-red-600/30 bg-red-600/5 p-4"
         >
           <p className="text-sm font-semibold text-red-700 dark:text-red-400">{dict.ui.errorTitle}</p>
           <p className="text-sm opacity-80">{error}</p>
@@ -464,13 +545,13 @@ export function PanchaPakshiClient() {
       <section
         key={method}
         role="tabpanel"
-        className="animate-panel-in rounded-xl border border-black/10 p-6 dark:border-white/10"
+        className="animate-panel-in rounded-lg border border-black/10 p-4 dark:border-white/10"
       >
         {method === "birth_datetime" && <BirthInputForm onSubmit={runUserSchedule} />}
         {method === "nakshatra_paksha" && <NakshatraPakshaForm onSubmit={runUserSchedule} />}
         {method === "bird" && <BirdSelector onSubmit={runUserSchedule} />}
       </section>
-    </div>
+    </section>
   );
 }
 

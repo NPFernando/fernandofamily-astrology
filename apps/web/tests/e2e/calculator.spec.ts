@@ -87,8 +87,8 @@ test("language persistence: schedule and chips survive switch to si; reload keep
 
   await page.getByRole("button", { name: "සිංහල" }).click();
   await page.waitForURL(/\/si\/pancha-pakshi/);
-  await expect(page.getByText(DICTS.si.ui.timeRemaining).first()).toBeVisible({ timeout: 20_000 });
-  await expect(page.getByText("E2E Person")).toBeVisible();
+  await waitForSchedule(page, "si");
+  await expect(page.getByRole("button", { name: /E2E Person/ }).first()).toBeVisible();
 
   await page.reload();
   await expect(page).toHaveURL(/\/si\//);
@@ -106,4 +106,30 @@ test("saved profiles: save → chip → schedule from chip → delete", async ({
   // Delete the chip (remove affordance next to it).
   await page.getByRole("button", { name: dict.ui.deleteProfile }).first().click();
   await expect(page.getByText("Amma")).toBeHidden();
+});
+
+test("@mobile pancha pakshi shows change details near the top without horizontal scroll", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-360", "mobile-only layout assertion");
+  await page.setViewportSize({ width: 360, height: 740 });
+  await page.goto("/en/pancha-pakshi");
+  await waitForSchedule(page, "en");
+  await expect(page.locator('[data-testid="change-details-panel"]')).toBeVisible();
+  const hasHScroll = await page.evaluate(
+    () => document.body.scrollWidth > window.innerWidth + 5,
+  );
+  expect(hasHScroll).toBe(false);
+});
+
+test("desktop pancha pakshi keeps schedule settings beside the result", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/en/pancha-pakshi");
+  await waitForSchedule(page, "en");
+  const panel = page.locator('[data-testid="schedule-settings-panel"]');
+  await expect(panel).toBeVisible();
+  await expect(panel.getByRole("tab", { name: DICTS.en.ui.methodDirectBird })).toBeVisible();
+  const panelBox = await panel.boundingBox();
+  const resultBox = await page.getByText(DICTS.en.ui.bestWindowsToday).boundingBox();
+  expect(panelBox && resultBox && panelBox.x > resultBox.x).toBeTruthy();
 });

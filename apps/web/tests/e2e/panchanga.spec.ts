@@ -42,6 +42,28 @@ test("panchanga: date navigation changes the displayed date", async ({ page }) =
   }).toPass({ timeout: 20_000 });
 });
 
+test("panchanga: date and location controls appear before results", async ({ page }) => {
+  await openPanchanga(page, "en");
+  const controls = page.locator('[data-testid="panchanga-controls"]');
+  const result = page.locator('[data-testid="panchanga-result"]');
+  await expect(controls).toBeVisible();
+  await expect(controls.getByRole("button", { name: DICTS.en.ui.nextDay })).toBeVisible();
+  await expect(controls.getByText(DICTS.en.ui.sriLankaLocations)).toBeVisible();
+  const controlsBox = await controls.boundingBox();
+  const resultBox = await result.boundingBox();
+  expect(controlsBox && resultBox && controlsBox.y < resultBox.y).toBeTruthy();
+});
+
+test("@mobile panchanga keeps controls above results without horizontal scroll", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await openPanchanga(page, "en");
+  await expect(page.locator('[data-testid="panchanga-controls"]')).toBeVisible();
+  const hasHScroll = await page.evaluate(
+    () => document.body.scrollWidth > window.innerWidth + 5,
+  );
+  expect(hasHScroll).toBe(false);
+});
+
 test("panchanga: nav link and landing feature card are present", async ({ page }) => {
   const dict = DICTS.en;
   await page.goto("/en");

@@ -251,6 +251,11 @@
     "dayTimelineBar": "Sunrise-to-sunrise timeline",
     "now": "Now",
     "availableTools": "Available tools",
+    "scheduleSettings": "Schedule settings",
+    "changeDetails": "Change details",
+    "dailyDetails": "Daily details",
+    "toolsAndContext": "Tools and context",
+    "pageNavigation": "Page navigation",
     "defaultsNotice": "using defaults — pick your own bird or details below",
     "showingFor": "Showing",
     "previousDay": "Previous day",
@@ -392,7 +397,7 @@
     "moonrise": "Moonrise",
     "moonset": "Moonset",
     "notVisible": "not visible today",
-    "showingDefaults": "Showing today for the default location — change it below."
+    "showingDefaults": "Showing today for the default location — change date or location above."
   },
   "compatibility": {
     "title": "Bird Compatibility",

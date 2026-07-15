@@ -103,26 +103,26 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
         </div>
       </section>
 
-      <section aria-label={dict.ui.availableTools} className="grid gap-4 sm:grid-cols-2">
+      <section aria-label={dict.ui.availableTools} className="grid auto-rows-fr gap-4 sm:grid-cols-2">
         {features.map((f) => (
           <Link
             key={f.id}
             href={`/${locale}${f.route}`}
-            className="group rounded-xl border border-black/10 p-6 shadow-sm transition hover:border-accent/50 hover:shadow-md motion-safe:hover:-translate-y-0.5 dark:border-white/10"
+            className="group flex h-full flex-col rounded-lg border border-black/10 bg-white/30 p-5 shadow-sm transition hover:border-accent/50 hover:shadow-md motion-safe:hover:-translate-y-0.5 dark:border-white/10 dark:bg-white/[.03]"
           >
-            <h2 className="flex items-center gap-2 text-xl font-semibold text-accent">
+            <h2 className="flex items-center gap-3 text-lg font-semibold leading-snug text-accent sm:text-xl">
               {(() => {
                 const Icon = FEATURE_ICONS[f.icon];
                 return Icon ? <Icon className="shrink-0 text-2xl" /> : null;
               })()}
               {resolveKey(dict, f.titleKey)}
             </h2>
-            <p className="mt-2 text-sm opacity-80">{resolveKey(dict, f.descriptionKey)}</p>
+            <p className="mt-3 text-sm leading-relaxed opacity-80">{resolveKey(dict, f.descriptionKey)}</p>
           </Link>
         ))}
       </section>
 
-      <section className="rounded-xl border border-black/10 p-4 text-sm opacity-80 dark:border-white/10">
+      <section className="rounded-lg border border-black/10 bg-white/25 p-4 text-sm opacity-80 dark:border-white/10 dark:bg-white/[.03]">
         <p>{dict.disclaimer.text}</p>
         <Link href={`/${locale}/disclaimer`} className="mt-1 inline-block underline">
           {dict.nav.disclaimer}

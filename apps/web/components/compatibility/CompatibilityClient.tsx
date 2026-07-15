@@ -102,7 +102,7 @@ export function CompatibilityClient() {
         <section
           data-testid="compatibility-result"
           aria-busy={loading}
-          className="rounded-xl border border-black/10 p-4 shadow-sm dark:border-white/10"
+          className="rounded-lg border border-black/10 bg-white/35 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.03]"
         >
           <h2 className="text-sm font-semibold uppercase">{dict.compatibility.result}</h2>
           <p className="mt-2 text-sm opacity-75">{pairLabel}</p>
@@ -170,7 +170,7 @@ export function CompatibilityClient() {
         </section>
       </section>
 
-      <p className="rounded-xl border border-black/10 p-4 text-sm opacity-80 dark:border-white/10">
+      <p className="rounded-lg border border-black/10 bg-white/25 p-4 text-sm opacity-80 dark:border-white/10 dark:bg-white/[.03]">
         {dict.compatibility.note}
       </p>
     </div>
@@ -189,9 +189,9 @@ function BirdSelector({
   const { dict } = useLocale();
 
   return (
-    <fieldset className="rounded-xl border border-black/10 p-4 dark:border-white/10">
+    <fieldset className="rounded-lg border border-black/10 bg-white/30 p-4 dark:border-white/10 dark:bg-white/[.03]">
       <legend className="px-1 text-sm font-semibold">{label}</legend>
-      <div className="mt-3 grid grid-cols-2 gap-2 min-[420px]:grid-cols-3 md:grid-cols-2 xl:grid-cols-3">
+      <div className="mt-3 grid auto-rows-fr grid-cols-2 gap-2 min-[420px]:grid-cols-3 md:grid-cols-2 xl:grid-cols-3">
         {BIRDS.map((bird) => {
           const Icon = BIRD_ICONS[bird];
           const birdLabel = translateEnum(dict, "birds", bird);
@@ -203,14 +203,14 @@ function BirdSelector({
               aria-pressed={selected}
               aria-label={`${label}: ${birdLabel}`}
               onClick={() => onChange(bird)}
-              className={`flex min-h-24 flex-col items-center justify-center gap-2 rounded-lg border p-2 text-center text-sm transition ${
+              className={`flex min-h-24 flex-col items-center justify-center gap-2 rounded-lg border p-2 text-center text-sm leading-tight transition ${
                 selected
                   ? "border-accent bg-accent/10 text-accent shadow-sm"
                   : "border-black/10 hover:border-accent/50 dark:border-white/10"
               }`}
             >
-              <Icon className="text-4xl" />
-              <span className="max-w-full leading-tight">{birdLabel}</span>
+              <Icon className="text-3xl sm:text-4xl" />
+              <span className="max-w-full">{birdLabel}</span>
             </button>
           );
         })}

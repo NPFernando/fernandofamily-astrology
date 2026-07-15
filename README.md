@@ -19,7 +19,7 @@ source available to its users — see [Licensing](#licensing).
 
 ```
 apps/web/       Next.js frontend — App Router, TypeScript strict, bilingual (en/si), PWA
-apps/api/       FastAPI backend — stateless Pancha Pakshi calculation API
+apps/api/       FastAPI backend — stateless astrology calculation APIs
 packages/       Shared feature registry, contracts, design system
 infra/          Docker, Caddy (reference), deployment scripts
 docs/           Architecture, calculations, deployment, licensing, privacy, roadmap
@@ -29,18 +29,21 @@ docs/           Architecture, calculations, deployment, licensing, privacy, road
 karana, lunar month and the day's inauspicious kalams for any location and
 date, served by `POST /api/v1/panchanga/daily`.
 
+**Third tool — Bird Compatibility** (`/compatibility`): direct two-bird
+friend/same/enemy comparison using the pinned Pancha Pakshi source tables,
+served by `POST /api/v1/compatibility/birds`.
+
 More detail:
 [`docs/architecture/platform.md`](docs/architecture/platform.md) ·
 [`docs/architecture/pancha-pakshi.md`](docs/architecture/pancha-pakshi.md)
 
 ## Feature registry / current module
 
-The only tool live in production today is Pancha Pakshi. The platform is
-built around a feature registry (`packages/feature-registry`) so future
-tools can be added without touching the platform shell or this module —
-see [`docs/roadmap.md`](docs/roadmap.md) for what's planned but explicitly
-**not yet implemented** (nothing on that list appears in production
-navigation or the sitemap).
+Live tools are registered in `packages/feature-registry`; the platform shell,
+navigation and sitemap read from that single list. See
+[`docs/roadmap.md`](docs/roadmap.md) for what's planned but explicitly **not
+yet implemented** (nothing on that list appears in production navigation or
+the sitemap).
 
 ## Calculation engine
 

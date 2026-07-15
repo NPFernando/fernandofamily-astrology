@@ -5,7 +5,7 @@ import { localizedPageMetadata, resolveLocale } from "@/lib/page-metadata";
 import { enabledFeatures } from "@/lib/feature-registry";
 import { PUBLIC_BASE_URL, PUBLIC_REPOSITORY_URL } from "@/lib/site-config";
 import { BIRD_ICONS } from "@/components/icons/birds";
-import { PeacockIcon } from "@/components/icons/birds";
+import { CockIcon, PeacockIcon } from "@/components/icons/birds";
 import { SunIcon } from "@/components/icons/sun";
 
 export async function generateMetadata({
@@ -23,6 +23,7 @@ const BIRD_ORDER = ["vulture", "owl", "crow", "cock", "peacock"] as const;
 const FEATURE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   peacock: PeacockIcon,
   sun: SunIcon,
+  cock: CockIcon,
 };
 
 export default async function LandingPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -57,6 +58,16 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
         operatingSystem: "Web",
         offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
         description: dict.metadata.panchaPakshi.description,
+        license: `${PUBLIC_REPOSITORY_URL}/blob/main/LICENSE`,
+      },
+      {
+        "@type": "WebApplication",
+        name: dict.metadata.compatibility.title,
+        url: `${PUBLIC_BASE_URL}/${locale}/compatibility`,
+        applicationCategory: "LifestyleApplication",
+        operatingSystem: "Web",
+        offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+        description: dict.metadata.compatibility.description,
         license: `${PUBLIC_REPOSITORY_URL}/blob/main/LICENSE`,
       },
     ],

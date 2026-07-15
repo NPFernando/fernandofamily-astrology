@@ -10,6 +10,7 @@ router = APIRouter(prefix="/api/v1", tags=["platform"])
 _FEATURES = [
     {"id": "pancha-pakshi", "enabled": True, "public": True},
     {"id": "panchanga", "enabled": True, "public": True},
+    {"id": "compatibility", "enabled": True, "public": True},
 ]
 
 

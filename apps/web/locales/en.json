@@ -11,6 +11,10 @@
     "panchanga": {
       "title": "Daily Panchanga",
       "description": "Tithi, nakshatra, yoga, karana and the day's inauspicious kalams, calculated for any location and date."
+    },
+    "compatibility": {
+      "title": "Bird Compatibility",
+      "description": "Compare two Pancha Pakshi birds and see whether the source tables treat the pair as friend, same or enemy."
     }
   },
   "nav": {
@@ -356,6 +360,10 @@
     "panchanga": {
       "title": "Daily Panchanga",
       "description": "Daily Panchanga — tithi, nakshatra, yoga, karana, lunar month and rahu kala, calculated from real sunrise times for your location."
+    },
+    "compatibility": {
+      "title": "Bird Compatibility",
+      "description": "Compare two Pancha Pakshi birds with the pinned source-table relationship data."
     }
   },
   "push": {
@@ -383,5 +391,16 @@
     "moonset": "Moonset",
     "notVisible": "not visible today",
     "showingDefaults": "Showing today for the default location — change it below."
+  },
+  "compatibility": {
+    "title": "Bird Compatibility",
+    "description": "Choose two Pancha Pakshi birds to compare their relationship in the pinned source tables.",
+    "firstBird": "First bird",
+    "secondBird": "Second bird",
+    "result": "Compatibility result",
+    "sampleSize": "Source rows checked",
+    "sourceRows": "Rows",
+    "contextDependent": "This pair appears with more than one relationship in the source tables. The headline uses the most common relationship.",
+    "note": "This tool compares direct bird pairs only. It does not use birth data, location, date, or account state."
   }
 }

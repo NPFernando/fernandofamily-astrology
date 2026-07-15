@@ -40,6 +40,9 @@
   weekday and the day's inauspicious kalams (rahu / yamaganda / gulika) with
   sun and moon times, for any location and date, bilingual, zero-click on
   load (`/panchanga`, `POST /api/v1/panchanga/daily`)
+- Bird Compatibility mini-tool — direct two-bird friend/same/enemy
+  comparison using the pinned Pancha Pakshi source tables, bilingual and
+  zero-click on load (`/compatibility`, `POST /api/v1/compatibility/birds`)
 
 ## Backlog (priority order)
 
@@ -48,18 +51,15 @@ navigation, the sitemap, or anywhere that implies they are available, until
 they are actually built, registered in the feature registry
 (`packages/feature-registry`), and explicitly enabled.
 
-2. Telegram bot — "what's my current period?", daily morning summary.
-3. Tamil as a third locale (upstream PyJHora ships Tamil resources — see
+1. Telegram bot — "what's my current period?", daily morning summary.
+2. Tamil as a third locale (upstream PyJHora ships Tamil resources — see
    [`FUTURE_DATA_USES.md`](../apps/api/vendor/FUTURE_DATA_USES.md); the i18n
    plumbing is locale-count agnostic).
-4. Ambient full-screen live view (wall-tablet mode: big countdown, current
+3. Ambient full-screen live view (wall-tablet mode: big countdown, current
    period, auto-refresh).
-   WhatsApp/social).
-6. Compatibility mini-tool (two birds' friend/same/enemy relation — the
-   relation table already exists).
-7. Public API keys + developer docs, per-key rate limits.
-8. Activity guidance texts — what each bird-activity combination
-    traditionally suits (needs sourced bilingual content).
+4. Public API keys + developer docs, per-key rate limits.
+5. Activity guidance texts — what each bird-activity combination
+   traditionally suits (needs sourced bilingual content).
 
 **Larger future modules** (same registry pattern; unscheduled): Muhurta
 finder, birth chart / Kundali basics (asteroid + fixed-star data for these is

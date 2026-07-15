@@ -7,6 +7,7 @@
 // enforced by tests/no-birth-fields-in-url.test.ts.
 
 const API_BASE = "/api/v1/pancha-pakshi";
+const COMPATIBILITY_API_BASE = "/api/v1/compatibility";
 
 export type BirdId = "vulture" | "owl" | "crow" | "cock" | "peacock";
 export type ActivityId = "ruling" | "eating" | "walking" | "sleeping" | "dying";
@@ -128,6 +129,25 @@ export type ScheduleResponse = {
 export type CurrentResponse = {
   current_period: SubPeriod | null;
   next_period: SubPeriod | null;
+};
+
+export type CompatibilityRequest = {
+  bird_a: BirdId;
+  bird_b: BirdId;
+};
+
+export type RelationVariant = {
+  relation: RelationId;
+  count: number;
+};
+
+export type CompatibilityResponse = {
+  bird_a: BirdId;
+  bird_b: BirdId;
+  relation: RelationId;
+  context_dependent: boolean;
+  sample_size: number;
+  variants: RelationVariant[];
 };
 
 // Multi-day auspicious-window search (week view). The request reuses the
@@ -294,6 +314,21 @@ export function fetchPanchanga(body: PanchangaRequest): Promise<DailyPanchanga> 
     const data = await r.json().catch(() => null);
     if (!r.ok) throw new ApiError(r.status, data);
     return data as DailyPanchanga;
+  });
+  return res;
+}
+
+export function fetchCompatibility(
+  body: CompatibilityRequest,
+): Promise<CompatibilityResponse> {
+  const res = fetch(`${COMPATIBILITY_API_BASE}/birds`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).then(async (r) => {
+    const data = await r.json().catch(() => null);
+    if (!r.ok) throw new ApiError(r.status, data);
+    return data as CompatibilityResponse;
   });
   return res;
 }

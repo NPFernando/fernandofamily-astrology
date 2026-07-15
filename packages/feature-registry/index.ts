@@ -38,6 +38,17 @@ export const features: FeatureEntry[] = [
     descriptionKey: "features.panchanga.description",
     icon: "sun",
   },
+  {
+    id: "compatibility",
+    enabled: true,
+    public: true,
+    order: 30,
+    route: "/compatibility",
+    apiNamespace: "/api/v1/compatibility",
+    titleKey: "features.compatibility.title",
+    descriptionKey: "features.compatibility.description",
+    icon: "cock",
+  },
 ];
 
 export function enabledFeatures(): FeatureEntry[] {

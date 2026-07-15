@@ -96,6 +96,15 @@ html[lang="si"] body {
   }
 }
 
+body.pancha-live-active [data-app-shell] {
+  display: none;
+}
+
+body.pancha-live-active main {
+  max-width: none;
+  padding: 0;
+}
+
 /* Print: only the dedicated sheet (#print-sheet in PrintSheet.tsx) is
    visible — the interactive app (nav, forms, countdown, timeline views)
    never prints. The visibility approach keeps layout computation intact

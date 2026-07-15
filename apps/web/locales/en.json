@@ -219,6 +219,11 @@
     "switchToDarkMode": "Switch to dark mode",
     "confirmBirthBird": "Your birth bird",
     "proceedToSchedule": "View live schedule",
+    "liveView": "Live view",
+    "ambientLiveView": "Ambient live view",
+    "exitLiveView": "Exit live view",
+    "liveViewStatus": "Current schedule",
+    "liveViewNoCurrent": "No live period is available yet.",
     "selectNakshatra": "Select your Nakshatra",
     "paksha": "Paksha",
     "weekday": "Weekday",
@@ -400,6 +405,10 @@
     "panchaPakshi": {
       "title": "Pancha Pakshi Live Timetable",
       "description": "Find your birth bird and follow a live sunrise-to-sunrise Pancha Pakshi timetable with all ten major periods and fifty sub-periods, calculated for your location."
+    },
+    "panchaPakshiLive": {
+      "title": "Pancha Pakshi Ambient Live View",
+      "description": "A full-screen live Pancha Pakshi countdown for the current period, using only the derived bird and selected location."
     },
     "about": {
       "title": "About",

@@ -1,15 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { resolveKey, translateEnum } from "@/lib/i18n";
 import { features } from "@/lib/feature-registry";
-import {
-  ApiError,
-  fetchScheduleWithServerTime,
-  type ScheduleRequest,
-  type ScheduleResponse,
-} from "@/lib/api-client";
+import { ApiError, type ScheduleRequest, type ScheduleResponse } from "@/lib/api-client";
 import { BirthInputForm } from "@/components/pancha-pakshi/BirthInputForm";
 import { NakshatraPakshaForm } from "@/components/pancha-pakshi/NakshatraPakshaForm";
 import { BirdSelector } from "@/components/pancha-pakshi/BirdSelector";
@@ -19,7 +15,7 @@ import { ScheduleSkeleton } from "@/components/pancha-pakshi/ScheduleSkeleton";
 import { SavedProfiles } from "@/components/pancha-pakshi/SavedProfiles";
 import { DEFAULT_LOCATION, mostRecentLocation } from "@/components/pancha-pakshi/LocationPicker";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
-import { listLocalProfiles, type SavedProfile } from "@/lib/profiles";
+import type { SavedProfile } from "@/lib/profiles";
 import { BestWindows } from "@/components/pancha-pakshi/BestWindows";
 import { NotificationOptIn } from "@/components/pancha-pakshi/NotificationOptIn";
 import { DateNav } from "@/components/pancha-pakshi/DateNav";
@@ -27,63 +23,17 @@ import { ExportControls } from "@/components/pancha-pakshi/ExportControls";
 import { PrintSheet, type ExportDetail } from "@/components/pancha-pakshi/PrintSheet";
 import { Legend } from "@/components/pancha-pakshi/Legend";
 import { StickyCurrentBar } from "@/components/pancha-pakshi/StickyCurrentBar";
-import { loadAccountPreferences } from "@/lib/account-preferences";
-import type { BirdId } from "@/lib/api-client";
+import {
+  fetchLiveSchedule,
+  loadCachedSchedule,
+  loadSessionSchedule,
+  resolveDefaultScheduleRequest,
+  saveCachedSchedule,
+  saveLiveSeed,
+  saveSessionSchedule,
+} from "@/lib/pancha-schedule-state";
 
 type Method = "birth_datetime" | "nakshatra_paksha" | "bird";
-
-const SCHEDULE_CACHE_KEY = "ff_last_schedule_cache";
-
-type CachedSchedule = { schedule: ScheduleResponse; cachedAtIso: string };
-
-function loadCachedSchedule(): CachedSchedule | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(SCHEDULE_CACHE_KEY);
-    return raw ? (JSON.parse(raw) as CachedSchedule) : null;
-  } catch {
-    return null;
-  }
-}
-
-function saveCachedSchedule(schedule: ScheduleResponse) {
-  window.localStorage.setItem(
-    SCHEDULE_CACHE_KEY,
-    JSON.stringify({ schedule, cachedAtIso: new Date().toISOString() } satisfies CachedSchedule),
-  );
-}
-
-// Separate from the localStorage PWA offline cache above: this survives a
-// client-side route change within the same browser tab (e.g. switching
-// language, which navigates from /en/pancha-pakshi to /si/pancha-pakshi and
-// remounts this page under the new [locale] segment, wiping normal React
-// state) but not a new tab/session — so a restore from here is genuinely
-// still-live data, never mislabeled as offline/stale. Holds only the
-// computed schedule response, never the birth-data request that produced it.
-const SESSION_SCHEDULE_KEY = "ff_session_schedule";
-
-type SessionSchedule = { schedule: ScheduleResponse; serverTimeIso: string | null; fetchedAtClientMs: number };
-
-function loadSessionSchedule(): SessionSchedule | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.sessionStorage.getItem(SESSION_SCHEDULE_KEY);
-    return raw ? (JSON.parse(raw) as SessionSchedule) : null;
-  } catch {
-    return null;
-  }
-}
-
-function saveSessionSchedule(schedule: ScheduleResponse, serverTime: Date | null, fetchedAtClientMs: number) {
-  window.sessionStorage.setItem(
-    SESSION_SCHEDULE_KEY,
-    JSON.stringify({
-      schedule,
-      serverTimeIso: serverTime ? serverTime.toISOString() : null,
-      fetchedAtClientMs,
-    } satisfies SessionSchedule),
-  );
-}
 
 export function PanchaPakshiClient() {
   const { dict, locale } = useLocale();
@@ -126,27 +76,8 @@ export function PanchaPakshiClient() {
     setLoading(true);
     setError(null);
     try {
-      let { data, serverTime: st } = await fetchScheduleWithServerTime(request);
-      let fetchedAtMs = Date.now();
-      // A tab left open past next_sunrise would otherwise freeze: the
-      // refetch replays the original target date, the server correctly says
-      // "nothing in that window is current anymore" (current_period null),
-      // and the countdown shows loading forever. When that happens, roll the
-      // request forward to now — a single follow-up fetch, not recursion, so
-      // a still-null response can't loop.
-      const referenceNow = st ? st.getTime() : fetchedAtMs;
-      if (data.current_period === null && new Date(data.next_sunrise).getTime() <= referenceNow) {
-        const now = new Date(referenceNow);
-        const pad = (n: number) => String(n).padStart(2, "0");
-        const rolled: ScheduleRequest = {
-          ...request,
-          target_date: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
-          target_time: `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`,
-        };
-        setLastRequest(rolled);
-        ({ data, serverTime: st } = await fetchScheduleWithServerTime(rolled));
-        fetchedAtMs = Date.now();
-      }
+      const { data, serverTime: st, fetchedAtClientMs: fetchedAtMs, request: finalRequest } = await fetchLiveSchedule(request);
+      setLastRequest(finalRequest);
       setSchedule(data);
       setServerTime(st);
       setFetchedAtClientMs(fetchedAtMs);
@@ -201,36 +132,10 @@ export function PanchaPakshiClient() {
     if (navigator.onLine === false) return;
     let cancelled = false;
     (async () => {
-      const account = await loadAccountPreferences();
+      const request = await resolveDefaultScheduleRequest();
       if (cancelled) return;
-      const localProfiles = listLocalProfiles();
-      const newest = localProfiles[localProfiles.length - 1];
-      const storedBird = window.localStorage.getItem("ff_selected_bird") as BirdId | null;
-      const location = account.preferences?.default_location ?? mostRecentLocation() ?? DEFAULT_LOCATION;
-      const target = nowAsTargetDateTime(location.iana_tz);
-      const base = {
-        target_date: target.date,
-        target_time: target.time,
-        location_name: location.name,
-        latitude: location.latitude,
-        longitude: location.longitude,
-        iana_tz: location.iana_tz,
-      };
       setUsedDefaults(true);
-      if (account.preferences?.default_bird) {
-        void runSchedule({ ...base, method: "bird", bird: account.preferences.default_bird });
-      } else if (newest?.bird) {
-        void runSchedule({ ...base, method: "bird", bird: newest.bird });
-      } else if (newest?.nakshatra_index && newest?.paksha) {
-        void runSchedule({
-          ...base,
-          method: "nakshatra_paksha",
-          nakshatra_index: newest.nakshatra_index,
-          paksha: newest.paksha,
-        });
-      } else {
-        void runSchedule({ ...base, method: "bird", bird: storedBird ?? "peacock" });
-      }
+      void runSchedule(request);
     })();
     return () => {
       cancelled = true;
@@ -382,15 +287,24 @@ export function PanchaPakshiClient() {
               <section className="rounded-xl border border-black/10 bg-white/35 p-3 shadow-sm dark:border-white/10 dark:bg-white/[.03] sm:p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <DateNav date={displayedDate} onChange={changeDate} />
-                  {!windowContainsNow && (
-                    <button
-                      type="button"
-                      onClick={() => changeDate(nowAsTargetDateTime(schedule.location.iana_tz).date)}
-                      className="rounded-lg border border-accent/40 px-3 py-1.5 text-sm text-accent hover:bg-accent/10"
+                  <div className="flex flex-wrap items-center gap-2">
+                    {!windowContainsNow && (
+                      <button
+                        type="button"
+                        onClick={() => changeDate(nowAsTargetDateTime(schedule.location.iana_tz).date)}
+                        className="rounded-lg border border-accent/40 px-3 py-1.5 text-sm text-accent hover:bg-accent/10"
+                      >
+                        {dict.ui.backToToday}
+                      </button>
+                    )}
+                    <Link
+                      href={`/${locale}/pancha-pakshi/live`}
+                      onClick={() => saveLiveSeed(schedule, serverTime, fetchedAtClientMs)}
+                      className="rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-white shadow-sm transition hover:opacity-90"
                     >
-                      {dict.ui.backToToday}
-                    </button>
-                  )}
+                      {dict.ui.liveView}
+                    </Link>
+                  </div>
                 </div>
                 <div className="mt-3">
                   {windowContainsNow ? (

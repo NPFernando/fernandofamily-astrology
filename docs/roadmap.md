@@ -10,6 +10,11 @@
 - Zero-click first result (auto-computes with defaults/last-used on landing),
   date navigation, "Best times today" card, activity/effect legend, sticky
   current-period bar
+- Sourced activity guidance for current periods, best windows, and legend
+  context, with bilingual culturally-scoped copy and disclaimer
+- Ambient full-screen Pancha Pakshi live view (`/pancha-pakshi/live`) for
+  wall-tablet display: large countdown, current/next period, guidance,
+  auto-refresh, and session-only derived-bird handoff from the calculator
 - Auspicious-windows API (`POST /api/v1/pancha-pakshi/windows`) — favourable
   windows over a 1–14 day span, powering the week view
 - Saved profiles: device-local for everyone; synced server-side when signed
@@ -68,11 +73,7 @@ they are actually built, registered in the feature registry
 2. Tamil as a third locale (upstream PyJHora ships Tamil resources — see
    [`FUTURE_DATA_USES.md`](../apps/api/vendor/FUTURE_DATA_USES.md); the i18n
    plumbing is locale-count agnostic).
-3. Ambient full-screen live view (wall-tablet mode: big countdown, current
-   period, auto-refresh).
-4. Public API keys + developer docs, per-key rate limits.
-5. Activity guidance texts — what each bird-activity combination
-   traditionally suits (needs sourced bilingual content).
+3. Public API keys + developer docs, per-key rate limits.
 
 **Larger future modules** (same registry pattern; unscheduled): Muhurta
 finder, birth chart / Kundali basics (asteroid + fixed-star data for these is

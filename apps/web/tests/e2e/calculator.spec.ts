@@ -154,3 +154,89 @@ test("desktop pancha pakshi keeps schedule settings beside the result", async ({
   const resultBox = await page.getByText(DICTS.en.ui.bestWindowsToday).boundingBox();
   expect(panelBox && resultBox && panelBox.x > resultBox.x).toBeTruthy();
 });
+
+test("signed-in account defaults drive zero-click and can be changed/reset", async ({ page }) => {
+  const dict = DICTS.en;
+  const updates: unknown[] = [];
+  let preferences = {
+    locale: "en",
+    theme: "dark",
+    default_bird: "cock",
+    default_location: {
+      name: "Kandy, Sri Lanka",
+      latitude: 7.2906,
+      longitude: 80.6337,
+      iana_tz: "Asia/Colombo",
+    },
+    updated_at: new Date().toISOString(),
+  };
+
+  await page.route("**/api/auth/session", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ user: { email: "e2e@example.com", name: "E2E User" } }),
+    });
+  });
+  await page.route("**/api/account/preferences", async (route) => {
+    if (route.request().method() === "PUT") {
+      const body = route.request().postDataJSON() as Partial<typeof preferences>;
+      updates.push(body);
+      preferences = { ...preferences, ...body };
+    }
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ preferences }),
+    });
+  });
+
+  await page.goto("/en/pancha-pakshi");
+  await waitForSchedule(page, "en");
+  await expectMainBird(page, "en", "cock");
+  await expect(page.getByText("Kandy, Sri Lanka").first()).toBeVisible();
+
+  await page.getByRole("button", { name: /E2E User/ }).click();
+  const panel = page.getByTestId("account-defaults-panel");
+  await expect(panel).toBeVisible();
+  await panel
+    .getByRole("button", { name: `${dict.ui.defaultBird}: ${dict.enums.birds.owl}` })
+    .click();
+  await expect.poll(() => updates).toContainEqual(
+    expect.objectContaining({ default_bird: "owl" }),
+  );
+
+  await panel.getByRole("button", { name: dict.ui.resetAccountDefaults }).click();
+  await expect.poll(() => updates).toContainEqual(
+    expect.objectContaining({
+      locale: null,
+      theme: null,
+      default_bird: null,
+      default_location: null,
+    }),
+  );
+});
+
+test("signed-in language and theme controls save account preferences", async ({ page }) => {
+  const updates: unknown[] = [];
+
+  await page.route("**/api/auth/session", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ user: { email: "e2e@example.com", name: "E2E User" } }),
+    });
+  });
+  await page.route("**/api/account/preferences", async (route) => {
+    if (route.request().method() === "PUT") updates.push(route.request().postDataJSON());
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ preferences: null }),
+    });
+  });
+
+  await page.goto("/en/pancha-pakshi");
+  await page.getByRole("button", { name: DICTS.en.ui.switchToDarkMode }).click();
+  await expect.poll(() => updates).toContainEqual(expect.objectContaining({ theme: "dark" }));
+
+  await page.getByRole("button", { name: "සිංහල" }).click();
+  await page.waitForURL(/\/si\/pancha-pakshi/);
+  await expect.poll(() => updates).toContainEqual(expect.objectContaining({ locale: "si" }));
+});

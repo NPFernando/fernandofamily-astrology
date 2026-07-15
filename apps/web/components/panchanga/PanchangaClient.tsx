@@ -8,6 +8,7 @@ import { LocationPicker, DEFAULT_LOCATION, mostRecentLocation, type LocationValu
 import { DateNav } from "@/components/pancha-pakshi/DateNav";
 import { SunIcon } from "@/components/icons/sun";
 import { FullMoonIcon } from "@/components/icons/moon";
+import { loadAccountPreferences } from "@/lib/account-preferences";
 
 // Sinhala Poya-cycle month names (bak, vesak, ... madin) live under
 // enums.sinhalaMonths; the API's "adhi-" prefix (leap month) is not itself a
@@ -62,15 +63,21 @@ export function PanchangaClient() {
   }, [dict.ui.error]);
 
   useEffect(() => {
-    // Zero-click first result: today at the most recent (or default Colombo)
-    // location, same convention as the Pancha Pakshi calculator.
-    const loc = mostRecentLocation() ?? DEFAULT_LOCATION;
-    /* eslint-disable react-hooks/set-state-in-effect -- one-time mount
-       hydration from localStorage, same pattern as PanchaPakshiClient. */
-    setLocation(loc);
-    setUsedDefaults(true);
-    /* eslint-enable react-hooks/set-state-in-effect */
-    void run(todayIso(), loc);
+    // Zero-click first result: today at the account default, most recent, or
+    // default Colombo location, same convention as the Pancha Pakshi
+    // calculator.
+    let cancelled = false;
+    (async () => {
+      const account = await loadAccountPreferences();
+      if (cancelled) return;
+      const loc = account.preferences?.default_location ?? mostRecentLocation() ?? DEFAULT_LOCATION;
+      setLocation(loc);
+      setUsedDefaults(true);
+      void run(todayIso(), loc);
+    })();
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 
 type Theme = "light" | "dark";
 
-const ThemeContext = createContext<{ theme: Theme; toggleTheme: () => void } | null>(null);
+const ThemeContext = createContext<{ theme: Theme; setTheme: (theme: Theme) => void; toggleTheme: () => Theme } | null>(null);
 const THEME_STORAGE_KEY = "ff_theme";
 const THEME_COOKIE = "ff_theme";
 const THEME_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
@@ -21,7 +21,7 @@ function persistTheme(theme: Theme) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(detectInitialTheme);
+  const [theme, setThemeState] = useState<Theme>(detectInitialTheme);
 
   // DOM-only side effect (no setState here) — keeps <html> in sync whenever
   // theme changes, including the initial client-detected value above.
@@ -30,15 +30,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     persistTheme(theme);
   }, [theme]);
 
-  const toggleTheme = useCallback(() => {
-    setTheme((prev) => {
-      const next: Theme = prev === "dark" ? "light" : "dark";
-      persistTheme(next);
-      return next;
-    });
+  const setTheme = useCallback((next: Theme) => {
+    setThemeState(next);
+    persistTheme(next);
   }, []);
 
-  const value = useMemo(() => ({ theme, toggleTheme }), [theme, toggleTheme]);
+  const toggleTheme = useCallback(() => {
+    const next: Theme = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    return next;
+  }, [setTheme, theme]);
+
+  const value = useMemo(() => ({ theme, setTheme, toggleTheme }), [setTheme, theme, toggleTheme]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

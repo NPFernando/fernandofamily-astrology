@@ -27,6 +27,7 @@ import { ExportControls } from "@/components/pancha-pakshi/ExportControls";
 import { PrintSheet, type ExportDetail } from "@/components/pancha-pakshi/PrintSheet";
 import { Legend } from "@/components/pancha-pakshi/Legend";
 import { StickyCurrentBar } from "@/components/pancha-pakshi/StickyCurrentBar";
+import { loadAccountPreferences } from "@/lib/account-preferences";
 import type { BirdId } from "@/lib/api-client";
 
 type Method = "birth_datetime" | "nakshatra_paksha" | "bird";
@@ -192,37 +193,48 @@ export function PanchaPakshiClient() {
       return;
     }
     // Zero-click first result: nothing restored, so compute immediately from
-    // the best available default — the newest saved profile, else the last
-    // explicitly selected bird, else the platform default (peacock) — at the
-    // most recent location (else Colombo). The forms stay fully usable while
-    // this loads; the notice under the result offers the change affordance.
+    // the best available default — account default bird, newest saved
+    // profile, last explicitly selected bird, else the platform default
+    // (peacock) — at the account default location, most recent local
+    // location, else Colombo. The forms stay fully usable while this loads;
+    // the notice under the result offers the change affordance.
     if (navigator.onLine === false) return;
-    const localProfiles = listLocalProfiles();
-    const newest = localProfiles[localProfiles.length - 1];
-    const storedBird = window.localStorage.getItem("ff_selected_bird") as BirdId | null;
-    const location = mostRecentLocation() ?? DEFAULT_LOCATION;
-    const target = nowAsTargetDateTime(location.iana_tz);
-    const base = {
-      target_date: target.date,
-      target_time: target.time,
-      location_name: location.name,
-      latitude: location.latitude,
-      longitude: location.longitude,
-      iana_tz: location.iana_tz,
+    let cancelled = false;
+    (async () => {
+      const account = await loadAccountPreferences();
+      if (cancelled) return;
+      const localProfiles = listLocalProfiles();
+      const newest = localProfiles[localProfiles.length - 1];
+      const storedBird = window.localStorage.getItem("ff_selected_bird") as BirdId | null;
+      const location = account.preferences?.default_location ?? mostRecentLocation() ?? DEFAULT_LOCATION;
+      const target = nowAsTargetDateTime(location.iana_tz);
+      const base = {
+        target_date: target.date,
+        target_time: target.time,
+        location_name: location.name,
+        latitude: location.latitude,
+        longitude: location.longitude,
+        iana_tz: location.iana_tz,
+      };
+      setUsedDefaults(true);
+      if (account.preferences?.default_bird) {
+        void runSchedule({ ...base, method: "bird", bird: account.preferences.default_bird });
+      } else if (newest?.bird) {
+        void runSchedule({ ...base, method: "bird", bird: newest.bird });
+      } else if (newest?.nakshatra_index && newest?.paksha) {
+        void runSchedule({
+          ...base,
+          method: "nakshatra_paksha",
+          nakshatra_index: newest.nakshatra_index,
+          paksha: newest.paksha,
+        });
+      } else {
+        void runSchedule({ ...base, method: "bird", bird: storedBird ?? "peacock" });
+      }
+    })();
+    return () => {
+      cancelled = true;
     };
-    setUsedDefaults(true);
-    if (newest?.bird) {
-      void runSchedule({ ...base, method: "bird", bird: newest.bird });
-    } else if (newest?.nakshatra_index && newest?.paksha) {
-      void runSchedule({
-        ...base,
-        method: "nakshatra_paksha",
-        nakshatra_index: newest.nakshatra_index,
-        paksha: newest.paksha,
-      });
-    } else {
-      void runSchedule({ ...base, method: "bird", bird: storedBird ?? "peacock" });
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

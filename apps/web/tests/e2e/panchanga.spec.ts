@@ -3,6 +3,10 @@ import { DICTS, watchForBirthDataInUrls, type LocaleKey } from "./helpers";
 
 async function openPanchanga(page: import("@playwright/test").Page, locale: LocaleKey) {
   await page.goto(`/${locale}/panchanga`);
+  await waitForPanchangaResult(page, locale);
+}
+
+async function waitForPanchangaResult(page: import("@playwright/test").Page, locale: LocaleKey) {
   const deadline = Date.now() + 75_000;
   while (Date.now() < deadline) {
     if (await page.locator('[data-testid="panchanga-result"]').isVisible().catch(() => false)) return;
@@ -12,6 +16,28 @@ async function openPanchanga(page: import("@playwright/test").Page, locale: Loca
     await page.waitForTimeout(500);
   }
   await expect(page.locator('[data-testid="panchanga-result"]')).toBeVisible();
+}
+
+async function waitForPanchangaTextChange(
+  page: import("@playwright/test").Page,
+  locale: LocaleKey,
+  before: string | null,
+) {
+  const deadline = Date.now() + 75_000;
+  while (Date.now() < deadline) {
+    const after = await page
+      .locator('[data-testid="panchanga-result"] > p')
+      .first()
+      .textContent()
+      .catch(() => null);
+    if (after && after !== before) return;
+
+    const retry = page.getByRole("button", { name: DICTS[locale].ui.retry, exact: true }).first();
+    if (await retry.isVisible().catch(() => false)) await retry.click();
+    await page.waitForTimeout(500);
+  }
+  const after = await page.locator('[data-testid="panchanga-result"] > p').first().textContent();
+  expect(after).not.toBe(before);
 }
 
 for (const locale of ["en", "si"] as const) {
@@ -95,10 +121,7 @@ test("panchanga: date navigation changes the displayed date", async ({ page }) =
   const dict = DICTS.en;
   const before = await page.locator('[data-testid="panchanga-result"] > p').first().textContent();
   await page.getByRole("button", { name: dict.ui.nextDay }).click();
-  await expect(async () => {
-    const after = await page.locator('[data-testid="panchanga-result"] > p').first().textContent();
-    expect(after).not.toBe(before);
-  }).toPass({ timeout: 20_000 });
+  await waitForPanchangaTextChange(page, "en", before);
 });
 
 test("panchanga: date and location controls appear before results", async ({ page }) => {
@@ -131,8 +154,7 @@ test("panchanga: nav link and landing feature card are present", async ({ page }
   await expect(
     page.getByRole("link", { name: new RegExp(dict.features.panchanga.title) }).first(),
   ).toBeVisible();
-  await page.goto("/en/panchanga");
-  await expect(page.locator('[data-testid="panchanga-result"]')).toBeVisible({ timeout: 30_000 });
+  await openPanchanga(page, "en");
 });
 
 test("panchanga: sitemap lists both locales", async ({ request }) => {

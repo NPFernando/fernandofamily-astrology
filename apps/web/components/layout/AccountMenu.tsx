@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { signIn, signOut } from "next-auth/react";
 import { useLocale } from "@/lib/locale-context";
 import { useSessionProbe } from "@/lib/use-session-probe";
+import { AccountDefaultsPanel } from "@/components/layout/AccountDefaultsPanel";
 
 // Self-detecting via the shared session probe (one network request per page
 // load, shared with SavedProfiles — see lib/use-session-probe.ts). When auth
@@ -61,7 +62,7 @@ export function AccountMenu() {
         <span className="max-w-[10rem] truncate">{session.name ?? session.email}</span>
       </button>
       {open && (
-        <div className="absolute right-0 z-20 mt-1 w-56 rounded-lg border border-black/10 bg-white p-2 text-sm shadow-lg dark:border-white/20 dark:bg-neutral-900">
+        <div className="absolute right-0 z-20 mt-1 w-[min(22rem,calc(100vw-2rem))] rounded-lg border border-black/10 bg-white p-2 text-sm shadow-lg dark:border-white/20 dark:bg-neutral-900">
           <p className="truncate px-2 py-1 text-xs opacity-70">{session.email}</p>
           <button
             type="button"
@@ -70,6 +71,7 @@ export function AccountMenu() {
           >
             {dict.ui.signOut}
           </button>
+          <AccountDefaultsPanel />
         </div>
       )}
     </div>

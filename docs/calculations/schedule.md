@@ -55,6 +55,21 @@ its integer-coded columns onto stable internal enums (see
 `apps/api/app/modules/pancha_pakshi/enums.py` and `repository.py`) but never
 invents or independently derives any of these values.
 
+## Activity guidance is explanatory copy, not a calculation field
+
+The UI also shows short "traditional guidance" text for the five activities
+and effect levels. That text is bilingual explanatory copy, summarized from
+public descriptions of Pancha Pakshi's five states and common favourable /
+unfavourable timing language; it does not alter the computed schedule,
+effect, or rating. Useful references for the traditional activity framing:
+
+- OnlineJyotish, Pancha Pakshi forecast:
+  <https://www.onlinejyotish.com/free-astrology/pancha-pakshi-forecast.php>
+- Drik Panchang, Pancha Pakshi bird calculator:
+  <https://www.drikpanchang.com/pancha-pakshi/bird/pancha-pakshi-bird-calculator.html>
+- Pancha Pakshi Shastra overview:
+  <https://en.wikipedia.org/wiki/Pancha_Pakshi_Shastra>
+
 ## Current and next period
 
 Given a schedule and a point in time, the current sub-period is the one

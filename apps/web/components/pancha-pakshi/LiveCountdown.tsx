@@ -7,6 +7,7 @@ import type { SubPeriod } from "@/lib/api-client";
 import { BIRD_ICONS } from "@/components/icons/birds";
 import { ACTIVITY_ICONS } from "@/components/icons/activities";
 import { ACTIVITY_COLORS } from "./activityColors";
+import { subPeriodGuidance } from "@/lib/pancha-guidance";
 
 function formatDuration(ms: number) {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
@@ -105,6 +106,7 @@ export function LiveCountdown({
   const MainActivityIcon = ACTIVITY_ICONS[current.main_activity];
   const SubBirdIcon = BIRD_ICONS[current.sub_bird];
   const SubActivityIcon = ACTIVITY_ICONS[current.sub_activity];
+  const guidance = subPeriodGuidance(dict, current);
 
   return (
     // Keyed by period id: a period change remounts the card, which retriggers
@@ -145,6 +147,15 @@ export function LiveCountdown({
       <p className="text-xs opacity-70">
         {dict.ui.endsAt}: {new Date(current.ends_at).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US")}
       </p>
+      <div
+        data-testid="live-guidance"
+        className="mt-2 rounded-lg border border-black/10 bg-background/70 px-3 py-2 text-xs dark:border-white/10 dark:bg-white/[.04]"
+      >
+        <p className="font-semibold uppercase opacity-70">{guidance.title}</p>
+        <p className="mt-1 opacity-85">{guidance.activity}</p>
+        <p className="mt-1 opacity-70">{guidance.effect}</p>
+        <p className="mt-1 text-[0.68rem] leading-relaxed opacity-60">{guidance.disclaimer}</p>
+      </div>
       {next && (
         <p className="mt-2 text-xs opacity-70">
           {dict.ui.nextPeriod}: {translateEnum(dict, "birds", next.sub_bird)} ·{" "}

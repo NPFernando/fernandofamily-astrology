@@ -3,6 +3,7 @@ import {
   DICTS,
   type LocaleKey,
   openCalculator,
+  openToolsContext,
   fillManualLocation,
   expectMainBird,
   watchForBirthDataInUrls,
@@ -20,6 +21,8 @@ for (const locale of LOCALES) {
       await page.goto(`/${locale}/pancha-pakshi`);
       await waitForSchedule(page, locale);
       await expect(page.getByText(dict.ui.defaultsNotice)).toBeVisible();
+      await expect(page.getByTestId("live-guidance")).toContainText(dict.guidance.title);
+      await expect(page.getByTestId("live-guidance")).toContainText(dict.guidance.disclaimer);
       watcher.assertClean();
     });
 
@@ -88,6 +91,7 @@ test("language persistence: schedule and chips survive switch to si; reload keep
   await page.getByRole("button", { name: "සිංහල" }).click();
   await page.waitForURL(/\/si\/pancha-pakshi/);
   await waitForSchedule(page, "si");
+  await expect(page.getByTestId("live-guidance")).toContainText(DICTS.si.guidance.title);
   await expect(page.getByRole("button", { name: /E2E Person/ }).first()).toBeVisible();
 
   await page.reload();
@@ -153,6 +157,17 @@ test("desktop pancha pakshi keeps schedule settings beside the result", async ({
   const panelBox = await panel.boundingBox();
   const resultBox = await page.getByText(DICTS.en.ui.bestWindowsToday).boundingBox();
   expect(panelBox && resultBox && panelBox.x > resultBox.x).toBeTruthy();
+});
+
+test("pancha pakshi guidance appears in best windows and legend", async ({ page }) => {
+  await openCalculator(page, "en");
+  await expect(page.getByTestId("best-window-guidance").first()).toBeVisible();
+
+  const panel = await openToolsContext(page);
+  await panel.getByText(DICTS.en.ui.legend, { exact: true }).click();
+  await expect(panel.getByTestId("guidance-legend")).toContainText(DICTS.en.guidance.activities.ruling);
+  await expect(panel.getByTestId("guidance-legend")).toContainText(DICTS.en.guidance.effects.very_good);
+  await expect(panel.getByText(DICTS.en.guidance.disclaimer)).toBeVisible();
 });
 
 test("signed-in account defaults drive zero-click and can be changed/reset", async ({ page }) => {

@@ -7,6 +7,7 @@ import type { ScheduleResponse, SubPeriod } from "@/lib/api-client";
 import { BIRD_ICONS } from "@/components/icons/birds";
 import { ACTIVITY_ICONS } from "@/components/icons/activities";
 import { ACTIVITY_COLORS } from "./activityColors";
+import { activityGuidance } from "@/lib/pancha-guidance";
 
 function formatTime(iso: string, locale: string) {
   return new Date(iso).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US", {
@@ -83,6 +84,12 @@ export function BestWindows({
                   </span>
                   <span className="text-xs opacity-70 sm:ml-auto">
                     {translateEnum(dict, "effects", sp.effect)}
+                  </span>
+                  <span
+                    data-testid="best-window-guidance"
+                    className="basis-full text-xs leading-relaxed opacity-70"
+                  >
+                    {activityGuidance(dict, sp.sub_activity)}
                   </span>
                 </button>
               </li>

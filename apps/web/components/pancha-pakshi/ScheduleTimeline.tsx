@@ -11,6 +11,7 @@ import { DayTimelineBar } from "./DayTimelineBar";
 import { WeekView } from "./WeekView";
 import { MonthView } from "./MonthView";
 import type { ScheduleRequest } from "@/lib/api-client";
+import { activityGuidance } from "@/lib/pancha-guidance";
 
 function formatTime(iso: string, locale: string) {
   return new Date(iso).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US", {
@@ -292,7 +293,7 @@ function SubPeriodTimeline({ subPeriods, locale }: { subPeriods: SubPeriod[]; lo
         return (
           <li
             key={sp.id}
-            className={`flex flex-col gap-1.5 rounded-lg px-3 py-2 text-xs sm:flex-row sm:items-center sm:justify-between sm:gap-2 ${
+            className={`flex flex-col gap-1.5 rounded-lg px-3 py-2 text-xs sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-2 ${
               sp.is_current ? "bg-accent/10 font-semibold" : "bg-black/[.02] dark:bg-white/[.04]"
             }`}
             style={{ borderLeft: `3px solid ${ACTIVITY_COLORS[sp.sub_activity]}` }}
@@ -307,6 +308,9 @@ function SubPeriodTimeline({ subPeriods, locale }: { subPeriods: SubPeriod[]; lo
               {translateEnum(dict, "activities", sp.sub_activity)}
             </span>
             <span className="shrink-0 opacity-70">{translateEnum(dict, "effects", sp.effect)}</span>
+            <span className="basis-full text-xs leading-relaxed opacity-65 sm:ml-[7.5rem]">
+              {activityGuidance(dict, sp.sub_activity)}
+            </span>
           </li>
         );
       })}

@@ -2,11 +2,23 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
-import { nakshatraName, translateEnum } from "@/lib/i18n";
+import { getDictionary, nakshatraName, translateEnum } from "@/lib/i18n";
 import { ApiError, fetchPanchanga, type DailyPanchanga } from "@/lib/api-client";
 import { LocationPicker, DEFAULT_LOCATION, mostRecentLocation, type LocationValue } from "@/components/pancha-pakshi/LocationPicker";
 import { DateNav } from "@/components/pancha-pakshi/DateNav";
 import { SunIcon } from "@/components/icons/sun";
+import { FullMoonIcon } from "@/components/icons/moon";
+
+// Sinhala Poya-cycle month names (bak, vesak, ... madin) live under
+// enums.sinhalaMonths; the API's "adhi-" prefix (leap month) is not itself a
+// translated enum value — split it off and prepend the localized "Adhi" word
+// so translateEnum's lookup table only needs the 12 base names.
+function sinhalaMonthName(dict: ReturnType<typeof getDictionary>, key: string): string {
+  const isAdhi = key.startsWith("adhi-");
+  const baseKey = isAdhi ? key.slice(5) : key;
+  const baseName = translateEnum(dict, "sinhalaMonths", baseKey);
+  return isAdhi ? `${dict.panchanga.adhiPrefix} ${baseName}` : baseName;
+}
 
 function todayIso(): string {
   const now = new Date();
@@ -143,6 +155,26 @@ export function PanchangaClient() {
             · {data.location.name} · {translateEnum(dict, "paksha", data.paksha)}
           </p>
 
+          {data.is_poya_day && data.poya && (
+            <div
+              data-testid="panchanga-poya-badge"
+              className="flex items-center gap-2 rounded-xl border border-amber-500/50 bg-amber-500/15 px-4 py-2.5 text-sm font-semibold"
+            >
+              <FullMoonIcon className="shrink-0 text-lg text-amber-600 dark:text-amber-400" />
+              {dict.panchanga.poyaTodayLabel} · {sinhalaMonthName(dict, data.poya.month_key)}{" "}
+              {dict.panchanga.poyaFullMoonSuffix}
+            </div>
+          )}
+
+          <p className="text-xs opacity-70" data-testid="panchanga-next-poya">
+            {dict.panchanga.nextPoyaLabel}:{" "}
+            {sinhalaMonthName(dict, data.next_poya.month_key)}{" "}
+            {new Date(`${data.next_poya.date}T12:00:00`).toLocaleDateString(
+              locale === "si" ? "si-LK" : "en-US",
+              { month: "long", day: "numeric" },
+            )}
+          </p>
+
           <section
             aria-label={dict.panchanga.title}
             className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 print:grid-cols-2"
@@ -204,10 +236,21 @@ export function PanchangaClient() {
             </ElementCard>
 
             <ElementCard title={dict.panchanga.lunarMonth} testId="panchanga-month">
-              <p className="text-lg font-semibold">
+              {/* Sinhala Poya-cycle month leads (the reading a Sri Lankan
+                  visitor expects — "Esala", not "Jyeshtha"); the Sanskrit
+                  amanta name that the pinned engine actually computes from
+                  stays visible as a secondary line, not hidden. "Adhi" is
+                  already baked into the primary name by sinhalaMonthName, so
+                  the leap badge lives on the secondary line instead, where
+                  the amanta name alone wouldn't otherwise show it. */}
+              <p className="text-lg font-semibold" data-testid="panchanga-sinhala-month">
+                {sinhalaMonthName(dict, data.sinhala_month.key)}
+                {locale === "en" && ` (${dict.panchanga.sinhalaMonth})`}
+              </p>
+              <p className="text-xs opacity-60">
                 {translateEnum(dict, "lunarMonths", data.lunar_month.key)}
                 {data.lunar_month.is_leap && (
-                  <span className="ml-2 rounded-full bg-amber-500/15 px-2 py-0.5 text-xs">
+                  <span className="ml-1.5 rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[10px]">
                     {dict.panchanga.leapMonth}
                   </span>
                 )}

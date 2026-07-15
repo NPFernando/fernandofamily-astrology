@@ -22,6 +22,10 @@ export default async function MethodologyPage({ params }: { params: Promise<{ lo
       <p className="mt-4 leading-relaxed">{m.periods}</p>
       <p className="mt-4 leading-relaxed">{m.timezones}</p>
       <p className="mt-4 leading-relaxed">{m.limitations}</p>
+      <h2 className="mt-8 text-xl font-bold">{m.panchangaHeading}</h2>
+      <p className="mt-4 leading-relaxed">{m.panchangaAyanamsa}</p>
+      <p className="mt-4 leading-relaxed">{m.panchangaPoyaRule}</p>
+      <p className="mt-4 leading-relaxed">{m.panchangaDivergence}</p>
       <a
         href={`${PUBLIC_REPOSITORY_URL}/blob/main/docs/calculations`}
         target="_blank"

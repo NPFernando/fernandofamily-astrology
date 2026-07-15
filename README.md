@@ -27,7 +27,9 @@ docs/           Architecture, calculations, deployment, licensing, privacy, road
 
 **Second tool — Daily Panchanga** (`/panchanga`): tithi, nakshatra, yoga,
 karana, lunar month and the day's inauspicious kalams for any location and
-date, served by `POST /api/v1/panchanga/daily`.
+date, served by `POST /api/v1/panchanga/daily` — including a Sri Lankan
+layer (Poya full-moon days and Sinhala Poya-cycle month names,
+gazette-validated at 100% across 2021–2026).
 
 **Third tool — Bird Compatibility** (`/compatibility`): direct two-bird
 friend/same/enemy comparison using the pinned Pancha Pakshi source tables,

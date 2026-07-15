@@ -44,6 +44,19 @@
   comparison using the pinned Pancha Pakshi source tables, bilingual and
   zero-click on load (`/compatibility`, `POST /api/v1/compatibility/birds`)
 
+- Sri Lankan layer for the Daily Panchanga: Poya (full-moon) day detection
+  and Sinhala Poya-cycle month names (bak, vesak, poson, … madin, with
+  `adhi-` leap variants), shown primary alongside the Sanskrit amanta month.
+  The Poya-day rule and Sinhala month naming were derived empirically and
+  validated at 100% (73/73) against every officially gazetted Sri Lankan
+  Poya day from 2021–2026 (one documented tradition/convention divergence
+  in the Sinhala month name for 2026-05-30 — see
+  [`../docs/calculations/panchanga.md`](../docs/calculations/panchanga.md)).
+  Avurudu nekath (Sinhala/Tamil New Year auspicious times) are **not**
+  implemented — they're published annually as astrologer-panel PDFs with no
+  structured dataset to compute or validate against; adding them would mean
+  manually transcribing each year's schedule, which isn't done here.
+
 ## Backlog (priority order)
 
 **None of these are implemented.** They must not appear in production

@@ -233,6 +233,10 @@ export type DailyPanchanga = {
   moonrise: string | null;
   moonset: string | null;
   lunar_month: { key: string; index: number; is_leap: boolean };
+  sinhala_month: { key: string; is_adhi: boolean };
+  is_poya_day: boolean;
+  poya: { month_key: string } | null;
+  next_poya: { date: string; month_key: string };
   tithi: TithiSpan[];
   nakshatra: NakshatraSpan[];
   yoga: YogaSpan[];

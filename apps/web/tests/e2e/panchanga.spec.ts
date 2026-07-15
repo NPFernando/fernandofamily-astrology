@@ -31,6 +31,57 @@ for (const locale of ["en", "si"] as const) {
   });
 }
 
+// 2026-07-29 is a real gazetted Poya day (Esala Full Moon Poya Day,
+// non-adhi) confirmed against apps/api/tests/fixtures/sl_poya_2021_2026.json
+// and the engine's own /api/v1/panchanga/daily response — used here instead
+// of a made-up date so this test fails if the gazette-agreement rule ever
+// regresses. Deliberately NOT 2026-05-30: that is the one documented
+// tradition/convention divergence (gazette "Vesak", engine "adhi-poson"),
+// so it would make this test flaky for the wrong reason.
+const REAL_POYA_DATE = "2026-07-29";
+
+async function gotoDate(page: import("@playwright/test").Page, date: string) {
+  await page.locator('input[type="date"]').fill(date);
+  await page.waitForTimeout(300);
+}
+
+for (const locale of ["en", "si"] as const) {
+  test(`panchanga (${locale}): Poya badge shows on a real gazetted Poya day`, async ({ page }) => {
+    await openPanchanga(page, locale);
+    const dict = DICTS[locale];
+    await gotoDate(page, REAL_POYA_DATE);
+    const badge = page.locator('[data-testid="panchanga-poya-badge"]');
+    await expect(badge).toBeVisible({ timeout: 20_000 });
+    await expect(badge).toContainText(dict.panchanga.poyaTodayLabel);
+    // Esala is a base (non-adhi) month — the badge must show the plain
+    // Sinhala month name, not an "Adhi" prefix that doesn't apply this year.
+    await expect(badge).toContainText(dict.enums.sinhalaMonths.esala);
+  });
+}
+
+test("panchanga: no Poya badge on an ordinary day, and the next-Poya line is present and correct", async ({
+  page,
+}) => {
+  await openPanchanga(page, "en");
+  const dict = DICTS.en;
+  await gotoDate(page, "2026-07-15"); // the day after this real Poya is 07-29
+  await expect(page.locator('[data-testid="panchanga-poya-badge"]')).toHaveCount(0);
+  const nextPoya = page.locator('[data-testid="panchanga-next-poya"]');
+  await expect(nextPoya).toBeVisible();
+  await expect(nextPoya).toContainText(dict.panchanga.nextPoyaLabel);
+  await expect(nextPoya).toContainText(dict.enums.sinhalaMonths.esala);
+});
+
+test("panchanga (si): Sinhala Poya month is the primary name shown, not the Sanskrit amanta name alone", async ({
+  page,
+}) => {
+  await openPanchanga(page, "si");
+  await gotoDate(page, "2026-07-15"); // amanta "ashadha" / Sinhala "esala"
+  const dict = DICTS.si;
+  const monthCard = page.locator('[data-testid="panchanga-sinhala-month"]');
+  await expect(monthCard).toContainText(dict.enums.sinhalaMonths.esala);
+});
+
 test("panchanga: date navigation changes the displayed date", async ({ page }) => {
   await openPanchanga(page, "en");
   const dict = DICTS.en;

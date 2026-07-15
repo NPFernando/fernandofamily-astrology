@@ -18,6 +18,9 @@ import type {
   MajorPeriod,
   ScheduleResponse,
   EngineMetadata,
+  CompatibilityRequest,
+  RelationVariant,
+  CompatibilityResponse,
 } from "@/lib/api-client";
 
 type Generated = components["schemas"];
@@ -46,4 +49,11 @@ export type _CheckSchedule = Expect<
 >;
 export type _CheckEngine = Expect<
   Generated["EngineMetadata"] extends EngineMetadata ? true : false
+>;
+export type _CheckCompatibilityRequest = Expect<
+  Equals<CompatibilityRequest, Generated["CompatibilityRequest"]>
+>;
+export type _CheckRelationVariant = Expect<Equals<RelationVariant, Generated["RelationVariant"]>>;
+export type _CheckCompatibilityResponse = Expect<
+  Equals<CompatibilityResponse, Generated["CompatibilityResponse"]>
 >;

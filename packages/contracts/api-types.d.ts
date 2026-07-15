@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/api/v1/compatibility/birds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Birds */
+        post: operations["birds_api_v1_compatibility_birds_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health/live": {
         parameters: {
             query?: never;
@@ -463,6 +480,23 @@ export interface components {
              */
             target_time: string;
         };
+        /** CompatibilityRequest */
+        CompatibilityRequest: {
+            bird_a: components["schemas"]["BirdId"];
+            bird_b: components["schemas"]["BirdId"];
+        };
+        /** CompatibilityResponse */
+        CompatibilityResponse: {
+            bird_a: components["schemas"]["BirdId"];
+            bird_b: components["schemas"]["BirdId"];
+            /** Context Dependent */
+            context_dependent: boolean;
+            relation: components["schemas"]["RelationId"];
+            /** Sample Size */
+            sample_size: number;
+            /** Variants */
+            variants: components["schemas"]["RelationVariant"][];
+        };
         /** DailyPanchanga */
         DailyPanchanga: {
             /**
@@ -781,6 +815,12 @@ export interface components {
          * @enum {string}
          */
         RelationId: "enemy" | "same" | "friend";
+        /** RelationVariant */
+        RelationVariant: {
+            /** Count */
+            count: number;
+            relation: components["schemas"]["RelationId"];
+        };
         /** ScheduleResponse */
         ScheduleResponse: {
             bharana_pakshi: components["schemas"]["BirdId"];
@@ -919,6 +959,39 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    birds_api_v1_compatibility_birds_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompatibilityRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompatibilityResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     live_api_v1_health_live_get: {
         parameters: {
             query?: never;

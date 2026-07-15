@@ -657,6 +657,60 @@
         "title": "BirthDateTimeWindowsInput",
         "type": "object"
       },
+      "CompatibilityRequest": {
+        "properties": {
+          "bird_a": {
+            "$ref": "#/components/schemas/BirdId"
+          },
+          "bird_b": {
+            "$ref": "#/components/schemas/BirdId"
+          }
+        },
+        "required": [
+          "bird_a",
+          "bird_b"
+        ],
+        "title": "CompatibilityRequest",
+        "type": "object"
+      },
+      "CompatibilityResponse": {
+        "properties": {
+          "bird_a": {
+            "$ref": "#/components/schemas/BirdId"
+          },
+          "bird_b": {
+            "$ref": "#/components/schemas/BirdId"
+          },
+          "context_dependent": {
+            "title": "Context Dependent",
+            "type": "boolean"
+          },
+          "relation": {
+            "$ref": "#/components/schemas/RelationId"
+          },
+          "sample_size": {
+            "title": "Sample Size",
+            "type": "integer"
+          },
+          "variants": {
+            "items": {
+              "$ref": "#/components/schemas/RelationVariant"
+            },
+            "title": "Variants",
+            "type": "array"
+          }
+        },
+        "required": [
+          "bird_a",
+          "bird_b",
+          "relation",
+          "context_dependent",
+          "sample_size",
+          "variants"
+        ],
+        "title": "CompatibilityResponse",
+        "type": "object"
+      },
       "DailyPanchanga": {
         "properties": {
           "date": {
@@ -1419,6 +1473,23 @@
         "title": "RelationId",
         "type": "string"
       },
+      "RelationVariant": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "relation": {
+            "$ref": "#/components/schemas/RelationId"
+          }
+        },
+        "required": [
+          "relation",
+          "count"
+        ],
+        "title": "RelationVariant",
+        "type": "object"
+      },
       "ScheduleResponse": {
         "properties": {
           "bharana_pakshi": {
@@ -1728,6 +1799,47 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/compatibility/birds": {
+      "post": {
+        "operationId": "birds_api_v1_compatibility_birds_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompatibilityRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompatibilityResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Birds",
+        "tags": [
+          "compatibility"
+        ]
+      }
+    },
     "/api/v1/health/live": {
       "get": {
         "operationId": "live_api_v1_health_live_get",

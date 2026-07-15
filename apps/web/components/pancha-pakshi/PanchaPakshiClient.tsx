@@ -201,7 +201,7 @@ export function PanchaPakshiClient() {
     const newest = localProfiles[localProfiles.length - 1];
     const storedBird = window.localStorage.getItem("ff_selected_bird") as BirdId | null;
     const location = mostRecentLocation() ?? DEFAULT_LOCATION;
-    const target = nowAsTargetDateTime();
+    const target = nowAsTargetDateTime(location.iana_tz);
     const base = {
       target_date: target.date,
       target_time: target.time,
@@ -269,7 +269,7 @@ export function PanchaPakshiClient() {
   const scheduleFromProfile = useCallback(
     (profile: SavedProfile) => {
       const location = mostRecentLocation() ?? DEFAULT_LOCATION;
-      const target = nowAsTargetDateTime();
+      const target = nowAsTargetDateTime(location.iana_tz);
       const base = {
         target_date: target.date,
         target_time: target.time,
@@ -353,7 +353,7 @@ export function PanchaPakshiClient() {
             {!windowContainsNow && (
               <button
                 type="button"
-                onClick={() => changeDate(nowAsTargetDateTime().date)}
+                onClick={() => changeDate(nowAsTargetDateTime(schedule.location.iana_tz).date)}
                 className="rounded-lg border border-accent/40 px-3 py-1.5 text-sm text-accent hover:bg-accent/10"
               >
                 {dict.ui.backToToday}

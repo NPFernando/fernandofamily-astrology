@@ -4,9 +4,29 @@ import { useLocale } from "@/lib/locale-context";
 
 export type TargetDateTime = { date: string; time: string };
 
-export function nowAsTargetDateTime(): TargetDateTime {
+export function nowAsTargetDateTime(timeZone?: string): TargetDateTime {
   const now = new Date();
   const pad = (n: number) => String(n).padStart(2, "0");
+  if (timeZone) {
+    try {
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hourCycle: "h23",
+      }).formatToParts(now);
+      const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+      return {
+        date: `${values.year}-${values.month}-${values.day}`,
+        time: `${values.hour}:${values.minute}:00`,
+      };
+    } catch {
+      // Fall back to the browser clock if the supplied timezone is invalid.
+    }
+  }
   return {
     date: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
     time: `${pad(now.getHours())}:${pad(now.getMinutes())}:00`,

@@ -14,11 +14,14 @@ export function Nav() {
 
   return (
     <header className="border-b border-black/10 dark:border-white/10">
-      <nav className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3">
-        <Link href={`/${locale}`} className="text-lg font-semibold text-amber-700 dark:text-amber-400">
+      <nav className="mx-auto grid max-w-5xl gap-3 px-4 py-3 md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center">
+        <Link
+          href={`/${locale}`}
+          className="text-lg font-semibold leading-snug text-amber-700 dark:text-amber-400"
+        >
           {dict.platform.name}
         </Link>
-        <div className="flex flex-wrap items-center gap-4 text-sm">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 text-sm md:justify-center">
           {features.map((f) => (
             <Link key={f.id} href={`/${locale}${f.route}`} className="hover:underline">
               {resolveKey(dict, f.titleKey)}
@@ -31,7 +34,7 @@ export function Nav() {
             {dict.nav.methodology}
           </Link>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 md:justify-end">
           <LanguageSwitch />
           <ThemeToggle />
           <AccountMenu />

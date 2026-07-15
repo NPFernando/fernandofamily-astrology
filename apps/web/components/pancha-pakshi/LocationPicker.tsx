@@ -48,6 +48,15 @@ export const DEFAULT_LOCATION: LocationValue = {
   iana_tz: "Asia/Colombo",
 };
 
+const SRI_LANKA_LOCATIONS = [
+  { en: "Colombo", si: "කොළඹ", latitude: 6.9271, longitude: 79.8612 },
+  { en: "Kandy", si: "මහනුවර", latitude: 7.2906, longitude: 80.6337 },
+  { en: "Anuradhapura", si: "අනුරාධපුර", latitude: 8.3114, longitude: 80.4037 },
+  { en: "Kelaniya", si: "කැලණිය", latitude: 6.9553, longitude: 79.922 },
+  { en: "Kataragama", si: "කතරගම", latitude: 6.4134, longitude: 81.3346 },
+  { en: "Galle", si: "ගාල්ල", latitude: 6.0535, longitude: 80.221 },
+] as const;
+
 export function mostRecentLocation(): LocationValue | null {
   return loadRecent()[0] ?? null;
 }
@@ -70,7 +79,7 @@ export function LocationPicker({
   value: LocationValue | null;
   onChange: (loc: LocationValue) => void;
 }) {
-  const { dict } = useLocale();
+  const { dict, locale } = useLocale();
   const [tab, setTab] = useState<Tab>("device");
   const [recent, setRecent] = useState<LocationValue[]>([]);
   const [status, setStatus] = useState<string | null>(null);
@@ -318,6 +327,32 @@ export function LocationPicker({
         </div>
       )}
 
+      <div className="flex flex-col gap-1">
+        <span className="text-xs uppercase opacity-60">{dict.ui.sriLankaLocations}</span>
+        <div className="flex flex-wrap gap-2" data-testid="sri-lanka-location-picks">
+          {SRI_LANKA_LOCATIONS.map((loc) => {
+            const label = locale === "si" ? loc.si : loc.en;
+            return (
+              <button
+                key={loc.en}
+                type="button"
+                onClick={() =>
+                  commit({
+                    name: `${label}, ${dict.ui.countrySriLanka}`,
+                    latitude: loc.latitude,
+                    longitude: loc.longitude,
+                    iana_tz: "Asia/Colombo",
+                  })
+                }
+                className="rounded-full border border-amber-600/30 bg-amber-500/10 px-3 py-1 text-xs hover:border-accent dark:border-amber-400/30"
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {status && tab !== "device" && <p className="text-sm text-red-600 dark:text-red-400">{status}</p>}
 
       {recent.length > 0 && (
@@ -351,7 +386,7 @@ export function LocationPicker({
       )}
 
       {value && (
-        <p className="text-sm opacity-80">
+        <p data-testid="active-location" className="text-sm opacity-80">
           {value.name} · {value.latitude.toFixed(2)}, {value.longitude.toFixed(2)} · {value.iana_tz}
         </p>
       )}

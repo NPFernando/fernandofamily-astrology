@@ -30,6 +30,10 @@ body {
   font-family: var(--font-body), var(--font-sinhala), sans-serif;
 }
 
+html[lang="si"] body {
+  line-height: 1.65;
+}
+
 /* Dawn-gradient hero (landing page). Pure CSS — no image download. The dark
    theme gets a dusk variant of the same palette. */
 .hero-dawn {

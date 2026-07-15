@@ -1,0 +1,350 @@
+# Jyotishya feature ideas
+
+A prioritized catalog of astrology-domain feature ideas for deepening Pancha
+Pakshi, Daily Panchanga, and Bird Compatibility, plus genuinely new modules —
+all grounded in what the pinned, vendored PyJHora V4.8.7 engine
+(`apps/api/vendor/jhora/`, commit `ca22995`) can actually compute today.
+Every idea below cites the real function or data file it stands on. Where the
+engine can't honestly support an idea, or no verifiable source exists, that's
+said plainly in Section E rather than glossed over — matching the standard
+the Poya gazette validation (`docs/calculations/panchanga.md`) already set.
+
+**A cross-cutting correctness note, found while researching this doc:**
+`docs/calculations/panchanga.md` currently describes the module's ayanamsa as
+"the vendored engine's own default (a Lahiri-family ayanamsa)". Reading the
+actual runtime config chain (`apps/api/vendor/jhora/data/user_settings.json`
+→ `"default_ayanamsa_mode": "TRUE_PUSHYA"`, loaded by
+`apps/api/vendor/jhora/config.py:initialize_runtime`, applied via
+`drik.set_ayanamsa_mode`), the engine is actually configured to
+**TRUE_PUSHYA**, not a Lahiri-family ayanamsa — these are materially
+different sidereal zero points. This doesn't affect what's already shipped
+(tithi/nakshatra/Poya still match the gazette because the gazette-fit was
+validated empirically against the engine's real output, not against a
+documented assumption). But every idea below that touches sidereal
+longitude, rashi, or divisional charts inherits this same ayanamsa, so this
+should be reconciled (fix the doc, or deliberately switch the config and
+re-validate) before shipping any new chart-based feature — it's flagged
+inline wherever relevant.
+
+---
+
+## A. Deepening Pancha Pakshi
+
+### A1. Tara Bala — daily star-strength overlay
+**One-line:** For a user's birth Nakshatra, classify today (and any date) as
+Good/Not Good/Very Good/Bad/Totally Bad, per the classical 9-fold tārābala
+cycle.
+
+**Engine feasibility:** Directly computable today. `thaaraabalam(jd, place)`
+(`vendor/jhora/panchanga/drik.py:3518`) takes today's Nakshatra (already
+computed by `nakshatra()`, used throughout Panchanga/Pancha Pakshi) and
+returns, for every possible birth star 1–27, which of the 9 tārā categories
+(Janma, Sampatha, Vipatha, Kshema, Pratyaka, Sadhana, Naidhana, Mitra,
+Paramitra) it falls into relative to today. The 9-category good/bad mapping
+is hardcoded in the function itself, not invented.
+
+**Wiring note:** Pancha Pakshi's Method A/B already compute or accept a
+birth Nakshatra transiently, but saved profiles currently persist only the
+derived bird + paksha (`apps/api/app/modules/pancha_pakshi/models.py`), not
+the birth Nakshatra itself — so this needs the birth Nakshatra retained on
+the profile, not just re-derivation from scratch.
+
+**Cultural grounding:** Tārābala is a standard, widely-published classical
+technique (not vendor-specific); the good/bad category list matches common
+published tables. No gazette-style independent dataset exists to validate
+against — same honesty caveat as most panchanga content that isn't a
+Sri Lanka government-published date.
+
+**Effort:** M (engine call is trivial; UI + profile plumbing for birth
+Nakshatra persistence is the real work).
+
+### A2. Chandrashtama alert
+**One-line:** Flag when the Moon transits the 8th sign from a user's natal
+Moon sign — the classical "avoid new ventures" window — with exact
+start/end.
+
+**Engine feasibility:** Directly computable. `chandrashtama(jd, place)`
+(`drik.py:3597`) returns the chandrashtama rashi and the exact JD the Moon
+next changes sign (via `next_planet_entry_date`). Needs the user's natal
+Moon rashi, obtainable via `raasi(jd, place)` (`drik.py:765`) at birth time —
+not currently surfaced anywhere in the app today.
+
+**Correctness caveat:** Inherits the ayanamsa question above — a rashi
+boundary a few minutes either side of a TRUE_PUSHYA/Lahiri divergence could
+occasionally flip which sign the Moon is "in" right at a transition.
+
+**Effort:** S–M.
+
+### A3. Disha Shool — travel-direction caution
+**One-line:** "Avoid traveling [direction] today" — a classical
+weekday-based directional taboo, shown alongside Pancha Pakshi's existing
+"best windows today" card.
+
+**Engine feasibility:** Trivial and self-contained. `disha_shool(jd, place)`
+(`drik.py:3750`) is a pure lookup: `const.disha_shool_map[vaara(jd,place)]`.
+No birth data needed at all — works for any date/place, same input shape as
+the existing Rahu/Yamaganda/Gulika kalams.
+
+**Cultural grounding:** A standard, table-driven Vedic travel convention;
+verifiable against any published disha shool weekday table as a sanity
+check, though (like the kalams) not independently gazette-validated.
+
+**Effort:** S.
+
+---
+
+## B. Deepening Daily Panchanga
+
+### B1. Eclipse & Grahan calendar — more feasible than the repo's own docs suggest
+**One-line:** "Next solar/lunar eclipse visible from [place]", with contact
+times and magnitude.
+
+**Engine feasibility:** Already fully computable with **zero re-vendoring**.
+`next_solar_eclipse`/`next_lunar_eclipse`/`is_solar_eclipse`
+(`drik.py:2707`–`2798`) call Swiss Ephemeris's own
+`swe.sol_eclipse_when_loc` / lunar equivalent directly, using the exact
+ephemeris files already shipped in the Docker image (`sepl_18.se1` /
+`semo_18.se1`, per `apps/api/vendor/README.md`). This directly contradicts
+`apps/api/vendor/FUTURE_DATA_USES.md`'s second table, which lists
+`panchanga/{vratha,eclipse,...}.py` as *not currently vendored* and needed
+for "eclipse predictions for the Panchanga module" — that upstream module
+may add Vedic-specific refinements (sutak-kaal windows, grahan-parva
+classification), but raw, location-aware eclipse timing and magnitude is
+already sitting in the vendored tree, unused. Worth correcting that doc.
+
+**Cultural grounding:** The astronomical contact times/magnitude are Swiss
+Ephemeris ground truth (as precise as the loaded ephemeris file — no
+approximation). A traditional "sutak kaal" advisory window (commonly ~12h
+before a solar eclipse's contact, ~9h before a lunar one) is a well-known,
+citable classical rule that layers cleanly on top of the real contact time,
+but should be labeled as a named traditional convention, not presented as
+computed astronomy.
+
+**Effort:** M (engine work is nearly free; UI for a rare, irregularly-timed
+event needs its own design, and "visible from Sri Lanka" filtering needs
+care — `sol_eclipse_when_loc` is already location-aware, but partial/very
+low-magnitude events need a sensible visibility cutoff).
+
+### B2. Choghadiya + Hora auspicious-time layer
+**One-line:** Add Gauri Choghadiya (North Indian 8-part day/night auspicious
+segments), Shubha Hora (South Indian 12-part planetary hours), Amrit Kaalam,
+Abhijit Muhurta, and Durmuhurtam alongside the existing Rahu/Yamaganda/Gulika
+kalams.
+
+**Engine feasibility:** Directly computable today, same pattern as the
+kalams already shipped. `gauri_choghadiya`, `shubha_hora`, `amrit_kaalam`,
+`abhijit_muhurta`, `durmuhurtam` (`drik.py:1376`–`1525`) are all pure
+functions of `sunrise()`/`sunset()`/`vaara()` — the exact same primitives
+`trikalam()` (already wired via `panchanga/adapter.py:65`) uses. No new data
+files, no re-vendoring.
+
+**Cultural grounding:** Table-driven, widely-published day-segment systems
+(`const.gauri_choghadiya_day_table`, `const.shubha_hora_day_table`, etc. are
+baked into the vendored `const.py`) — cross-checkable against any published
+Choghadiya/Hora table the same way the kalams already are.
+
+**Effort:** S–M (mechanically identical to the existing Kalams feature).
+
+### B3. Today's Graha positions + retrograde/stationary flags
+**One-line:** A "sky today" panel — sidereal longitude and rashi for all 9
+grahas, flagging any that are retrograde or stationary.
+
+**Engine feasibility:** Directly computable. `planetary_positions(jd, place)`
+(`drik.py:1529`) returns full planet positions; `planets_in_retrograde`
+(`drik.py:331`) and `planets_in_stationary` (`drik.py:358`) are pure
+`swe.calc_ut` speed-sign checks, no extra data needed.
+
+**Correctness note:** Same ayanamsa caveat as A2 — sign boundaries shift
+slightly between TRUE_PUSHYA and Lahiri.
+
+**Effort:** S–M.
+
+### B4. Moon Rashi of the day
+**One-line:** Surface "Moon is in [Rashi] until [time]" directly — the same
+treatment Nakshatra already gets.
+
+**Engine feasibility:** Trivial — `raasi(jd, place)` (`drik.py:765`) is
+already computed internally elsewhere in the engine but never exposed by
+`panchanga/adapter.py` today. Same call shape as the existing `nakshatra()`
+wiring.
+
+**Effort:** S.
+
+### B5. Ritu (season) and Samvatsara (60-year cycle name) badges
+**One-line:** Add the Vedic season name and the 60-year Jupiter-cycle year
+name (Prabhava…Akshaya) to the panchanga response.
+
+**Engine feasibility:** `ritu(maasa_index)` (`drik.py:1369`) is pure
+arithmetic on the lunar month index already computed
+(`(maasa_index-1)//2`). `samvatsara(panchanga_date, place)` (`drik.py:1349`)
+is also computable today.
+
+**Correctness caveat — take this seriously:** `samvatsara()`'s own
+docstring flags unresolved uncertainty: *"TODO: Chithirai always shows
+previous year… Is there an algorithm for lunar samvatsara?"* This is the
+vendored engine itself admitting an open question, not settled astronomy.
+Ritu is safe to ship as-is; Samvatsara should either be held back until that
+TODO is understood, or shipped with an explicit caveat rather than presented
+as authoritative — exactly the "don't gloss over it" standard the Poya
+divergence note already sets.
+
+**Effort:** S (Ritu), S but gated on a decision (Samvatsara).
+
+---
+
+## C. Deepening Bird Compatibility
+
+### C1. Vivaha Chakra Palan — wedding-date screener
+**One-line:** For a candidate wedding date/place, return a 1–9 categorical
+verdict on the day's own Sun–Moon nakshatra relationship (e.g. "Wonderful
+pair and blessed" vs. "Devastating results for the girl") — a
+muhurta-quality check for the date itself, distinct from and complementary
+to Bird Compatibility's two-person bird lookup.
+
+**Engine feasibility:** Directly computable. `vivaha_chakra_palan(jd, place)`
+(`drik.py:3399`) computes the date's Sun and Moon nakshatra-pada, places
+them on a 3×3 "marriage wheel" grid, and returns one of 9 fixed outcome
+categories (the outcome text is hardcoded in the function's own docstring —
+transcribed from the pinned commit, same handling `birth-bird.md` already
+applies to the bird-mapping table).
+
+**Cultural grounding:** The outcome categories are baked into the vendored
+source itself (traceable to the exact pinned commit), but — unlike the Poya
+day rule — no independent published dataset was found during this research
+to cross-validate the 9-category outcome table against. Ship it labeled as
+"per this engine's Vivaha Chakra method," not as an unqualified universal
+truth, and don't claim gazette-style validation for it.
+
+**Effort:** M (new small module or Compatibility sub-feature; the maths is
+one function call).
+
+*(Ashtakoot/Guna-Milan-style two-person nakshatra matching was also
+investigated for this category — see Section E: it's not recommended as
+things stand.)*
+
+---
+
+## D. Genuinely new modules (currently-unused vendored capability)
+
+### D1. Divisional charts (Varga) explorer, built on birth details already collected
+**One-line:** A Navamsa (D9) chart view, and more generally any of the D1–D60
+divisional charts, computed from the same birth date/time/place already
+captured by Pancha Pakshi's Method A.
+
+**Engine feasibility:** The full varga system is already vendored and
+working, just unused by the app. `dhasavarga(jd, place,
+divisional_chart_factor=N)` (`drik.py:1806`) and `dasavarga_from_long`
+(`drik.py:1740`) implement all of Hora(2), Drekkana(3), Chaturthamsa(4)...
+Navamsa(9), Dasamsa(10), ... up to Shastyamsa(60), per the function's own
+documented `divisional_chart_factor` table. This is the mathematical core of
+a birth-chart/Kundali module, sitting fully implemented and unused.
+
+**Correctness caveat:** Gated on resolving the ayanamsa discrepancy noted at
+the top of this doc first — a birth chart is the highest-stakes place to get
+the sidereal zero-point wrong, since users will screenshot and compare it
+against other software/pandits using Lahiri.
+
+**Effort:** L (engine math is free; needs real chart-rendering UI, planet/
+rashi iconography from `packages/design-system`, and a decision on which
+vargas to expose first — D9 Navamsa is the highest-value single addition).
+
+### D2. Fixed-star precision research (exploratory, not yet a defined product)
+**One-line:** Use the retained-but-unshipped fixed-star catalogs for
+star-based precision features (e.g., which fixed star a planet or the Moon
+is conjunct tonight).
+
+**Engine feasibility:** The data (`sefstars.txt`, `fixstars.cat`, ~250KB
+combined, retained per `FUTURE_DATA_USES.md`) is not in the shipped Docker
+image, but the underlying pyswisseph call is proven to work in this exact
+vendored tree already — `swe.fixstar_ut("Citra", ...)` is called today
+inside `vendor/jhora/utils.py:651` as part of the True Chitra ayanamsa
+calculation itself. So the technical path is verified; what's missing is a
+concrete, honest product surface (a "which star is the Moon near" widget is
+a novelty more than a jyotishya practice most Sri Lankan readers will
+recognize).
+
+**Recommendation:** Don't build this without first identifying a specific,
+named classical use for fixed stars (e.g. Chitra/Swati-based nakshatra
+boundary precision) rather than a generic "fixed star finder." Treat as
+research, not a scheduled feature.
+
+**Effort:** L, and effort estimate is soft until a product use is defined.
+
+---
+
+## E. Explicitly not recommended
+
+### E1. Vimshottari/other Dasha calculators
+The project's own roadmap lists "Dasha calculations" as an unscheduled
+future module, and `const.py` does carry extensive dasha *constants*
+(`vimsottari_adhipati_list`, `human_life_span_for_vimsottari_dhasa`,
+Ashtottari/Narayana/Kalachakra duration tables, `const.py:274`–`586`). But
+the actual dasha **computation module** (`horoscope/dhasa/*.py` upstream) is
+not vendored at all — and critically, unlike the vratha/eclipse modules,
+it isn't even listed in `FUTURE_DATA_USES.md`'s "known, excluded, re-vendor
+when needed" table. It wasn't part of the deliberate trim decision; pulling
+it in means fresh upstream research beyond the documented safe process. Do
+not attempt to reimplement dasha period math from the constants alone —
+that's exactly the "inventing tradition without vendored ground truth" this
+project's honesty bar exists to prevent. Re-vendor the real module and
+golden-test it first, or don't ship it.
+
+### E2. Ashtakoot / Guna-Milan two-person marriage-score matching
+Real two-person nakshatra-matching (Gana, Tara, Yoni, Rasi, Rajju koota
+scoring) is a natural extension of Bird Compatibility, and `const.py` even
+carries the scoring thresholds (`compatibility_minimum_score_north/south`,
+`mandatory_compatibility_south_list`, `const.py:701`–`705`). But a grep of
+the entire vendored tree turns up **no computation function anywhere** —
+only these threshold constants, no matching algorithm. Building a fake
+"compatibility score out of 36" using just the category names, without the
+real scoring rules, would be inventing methodology and presenting it as
+authoritative — the opposite of the Poya gazette-validation standard this
+platform holds itself to. Don't build this until the real matching module is
+vendored.
+
+### E3. Avurudu Nekath (Sinhala/Tamil New Year auspicious times)
+Already correctly ruled out in `docs/calculations/panchanga.md` and
+`docs/roadmap.md`: these are published annually as astrologer-panel PDFs
+with no structured, computable dataset, and no calculation can be validated
+against them. This research reaffirms that decision — nothing found in the
+vendored engine changes it.
+
+### E4. Generic "Horoscope of the Day" / predictive text
+No specific finding drives this — it's a category call. Any feature that
+generates personalized predictive or advice text not tied to a specific,
+named, citable classical rule (like Tara Bala's fixed 9-category table, or
+Vivaha Chakra Palan's fixed outcome table) would be fabricated content
+riding on top of real computation, which is precisely the pattern this
+platform's methodology pages exist to avoid. If a future idea in this space
+comes up, it needs the same treatment as everything above: cite the rule,
+cite the source, and say plainly when there isn't one.
+
+### E5. Shipping any new sidereal/rashi-dependent feature without resolving the ayanamsa discrepancy
+Not a feature idea but a gating item: fix or confirm the
+TRUE_PUSHYA-vs-Lahiri discrepancy documented at the top of this file before
+shipping A2, B3, B4, or D1. If TRUE_PUSHYA is in fact the intended
+production setting, update `docs/calculations/panchanga.md`'s wording
+instead — either way, don't let the two disagree while building on top of
+sidereal longitude for a user-facing chart feature.
+
+---
+
+## Summary table
+
+| # | Idea | Category | Engine-ready today? | Effort |
+|---|---|---|---|---|
+| A1 | Tara Bala daily overlay | Deepen Pancha Pakshi | Yes (`thaaraabalam`) | M |
+| A2 | Chandrashtama alert | Deepen Pancha Pakshi | Yes (`chandrashtama`, `raasi`) | S–M |
+| A3 | Disha Shool travel caution | Deepen Pancha Pakshi | Yes (`disha_shool`) | S |
+| B1 | Eclipse & Grahan calendar | Deepen Panchanga | Yes, already vendored | M |
+| B2 | Choghadiya + Hora layer | Deepen Panchanga | Yes | S–M |
+| B3 | Graha positions + retrograde | Deepen Panchanga | Yes | S–M |
+| B4 | Moon Rashi of the day | Deepen Panchanga | Yes (`raasi`) | S |
+| B5 | Ritu / Samvatsara badges | Deepen Panchanga | Ritu yes; Samvatsara caveated | S |
+| C1 | Vivaha Chakra Palan | Deepen Compatibility | Yes | M |
+| D1 | Divisional charts (Navamsa+) | New module | Yes, gated on ayanamsa fix | L |
+| D2 | Fixed-star precision | New module (exploratory) | Data path unvendored; call proven | L (soft) |
+| E1 | Dasha calculators | Not recommended yet | No — module not vendored | — |
+| E2 | Ashtakoot marriage score | Not recommended | No — constants only, no algorithm | — |
+| E3 | Avurudu Nekath | Not recommended | No — no computable dataset | — |
+| E4 | Generic horoscope text | Not recommended | N/A — no rule to cite | — |

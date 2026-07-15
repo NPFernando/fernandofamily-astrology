@@ -16,9 +16,22 @@ from app.modules.panchanga.models import (
     KaranaSpan,
     LunarMonth,
     NakshatraSpan,
+    NextPoya,
+    PoyaInfo,
+    SinhalaMonth,
     TithiSpan,
     YogaSpan,
 )
+
+# A purnima beginning less than this long before sunset assigns the Poya to
+# the NEXT civil day. The gazette panel's tithi/sunset arithmetic differs
+# from Lahiri+swisseph by single minutes; across all 73 gazetted Poya days
+# 2021-2026 the observed margins split cleanly — next-day cases reach +5.9
+# minutes before our computed sunset, same-day cases start at +23.3 — so any
+# buffer inside that gap reproduces the gazette exactly; 15 is the round
+# midpoint. Derivation: scripts/dev/poya_rule_discovery.py (rule f);
+# enforcement: tests/test_poya.py.
+_POYA_SUNSET_BUFFER = timedelta(minutes=15)
 
 
 def _hours_to_datetime(base_date: date_type, hours: float, offset_hours: float) -> datetime:
@@ -159,9 +172,14 @@ def compute_daily_panchanga(
     )
 
     raw_month = adapter.lunar_month(noon_jd, place)
+    # Upstream returns 0 for the 12th month (Phalguna) instead of 12 —
+    # negative Python indexing happened to make MONTH_KEYS[0-1] resolve to
+    # the right key by accident; normalize explicitly so `index` is correct
+    # too (repository.sinhala_month_key relies on this same normalization).
+    month_index = 12 if int(raw_month[0]) == 0 else int(raw_month[0])
     month = LunarMonth(
-        key=repository.MONTH_KEYS[int(raw_month[0]) - 1],
-        index=int(raw_month[0]),
+        key=repository.MONTH_KEYS[month_index - 1],
+        index=month_index,
         is_leap=bool(raw_month[1]),
     )
 
@@ -170,6 +188,8 @@ def compute_daily_panchanga(
         yamaganda=_kalam_range(noon_jd, place, "yamagandam", target_date, offset_hours),
         gulika=_kalam_range(noon_jd, place, "gulikai", target_date, offset_hours),
     )
+
+    is_poya, poya, next_poya, sinhala_month = compute_poya(target_date, place, offset_hours)
 
     return DailyPanchanga(
         engine=engine,
@@ -188,6 +208,10 @@ def compute_daily_panchanga(
         moonrise=moonrise,
         moonset=moonset,
         lunar_month=month,
+        sinhala_month=sinhala_month,
+        is_poya_day=is_poya,
+        poya=poya,
+        next_poya=next_poya,
         tithi=tithi_spans,
         nakshatra=nakshatra_spans,
         yoga=yoga_spans,
@@ -251,3 +275,89 @@ def _karana_spans(
     if not spans:
         raise PanchangaInternalError("no karana span overlaps the panchanga day")
     return spans
+
+
+def _tithi_spans_raw(day: date_type, place, offset_hours: float) -> list[tuple[int, datetime, datetime]]:
+    noon_jd = pp_adapter.julian_day_number(pp_adapter.date(day.year, day.month, day.day), (12, 0, 0))
+    raw = adapter.tithi(noon_jd, place)
+    spans = [(int(raw[0]), _hours_to_datetime(day, raw[1], offset_hours), _hours_to_datetime(day, raw[2], offset_hours))]
+    if len(raw) >= 6:
+        spans.append(
+            (int(raw[3]), _hours_to_datetime(day, raw[4], offset_hours), _hours_to_datetime(day, raw[5], offset_hours))
+        )
+    return spans
+
+
+def _sunset_datetime(day: date_type, place, offset_hours: float) -> datetime:
+    noon_jd = pp_adapter.julian_day_number(pp_adapter.date(day.year, day.month, day.day), (12, 0, 0))
+    return _hours_to_datetime(day, pp_adapter.sunset(noon_jd, place)[0], offset_hours)
+
+
+def _poya_day_for_purnima(purnima_start: datetime, place, offset_hours: float) -> date_type:
+    """Gazette-validated rule: the Poya is purnima's start day when purnima
+    begins at least _POYA_SUNSET_BUFFER before that day's sunset, otherwise
+    the next civil day (the full moon then belongs to the following night).
+    Validated at Colombo — the astronomical inputs make it location-correct
+    anywhere, but official gazette agreement is Colombo-referenced.
+    """
+    start_day = purnima_start.date()
+    if purnima_start <= _sunset_datetime(start_day, place, offset_hours) - _POYA_SUNSET_BUFFER:
+        return start_day
+    return start_day + timedelta(days=1)
+
+
+def _purnima_start_near(day: date_type, place, offset_hours: float) -> datetime | None:
+    """The start instant of a purnima visible from anchors day-1/day, if any
+    (a purnima's Poya can only be its start day or the day after, so these
+    two anchors cover every candidate for `day`).
+    """
+    for anchor in (day - timedelta(days=1), day):
+        for idx, start, _end in _tithi_spans_raw(anchor, place, offset_hours):
+            if idx == 15:
+                return start
+    return None
+
+
+def _sinhala_month_at(day: date_type, place) -> tuple[str, bool]:
+    noon_jd = pp_adapter.julian_day_number(pp_adapter.date(day.year, day.month, day.day), (12, 0, 0))
+    raw = adapter.lunar_month(noon_jd, place)
+    is_adhi = bool(raw[1])
+    return repository.sinhala_month_key(int(raw[0]), is_adhi), is_adhi
+
+
+def compute_poya(
+    target_date: date_type, place, offset_hours: float
+) -> tuple[bool, PoyaInfo | None, NextPoya, SinhalaMonth]:
+    is_poya = False
+    poya: PoyaInfo | None = None
+    start = _purnima_start_near(target_date, place, offset_hours)
+    if start is not None and _poya_day_for_purnima(start, place, offset_hours) == target_date:
+        is_poya = True
+        key, _ = _sinhala_month_at(target_date, place)
+        poya = PoyaInfo(month_key=key)
+
+    next_poya = _next_poya(target_date, place, offset_hours)
+
+    # The Sinhala month is named for the date's next Poya (inclusive): the
+    # month runs up to and through its own full-moon day.
+    month_key, is_adhi = _sinhala_month_at(next_poya.date, place)
+    return is_poya, poya, next_poya, SinhalaMonth(key=month_key, is_adhi=is_adhi)
+
+
+def _next_poya(target_date: date_type, place, offset_hours: float) -> NextPoya:
+    """First Poya day >= target_date (a Poya day reports itself). Purnimas
+    recur every ~29.5 days, so scanning day-anchors forward finds the next
+    one comfortably within the cap; each anchor is one tithi call.
+    """
+    seen: set[str] = set()
+    for offset in range(0, 40):
+        anchor = target_date + timedelta(days=offset)
+        for idx, start, _end in _tithi_spans_raw(anchor, place, offset_hours):
+            if idx != 15 or start.isoformat() in seen:
+                continue
+            seen.add(start.isoformat())
+            poya_day = _poya_day_for_purnima(start, place, offset_hours)
+            if poya_day >= target_date:
+                key, _ = _sinhala_month_at(poya_day, place)
+                return NextPoya(date=poya_day, month_key=key)
+    raise PanchangaInternalError("no Poya found within 40 days")

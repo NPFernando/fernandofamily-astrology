@@ -55,6 +55,24 @@ class LunarMonth(BaseModel):
     is_leap: bool
 
 
+class SinhalaMonth(BaseModel):
+    # The Sri Lankan Poya-cycle month for this date (e.g. "esala",
+    # "adhi-esala"), named for the date's NEXT Poya day — a Poya day belongs
+    # to its own month. Gazette-validated across 2021-2026 (test_poya.py).
+    key: str
+    is_adhi: bool
+
+
+class PoyaInfo(BaseModel):
+    # month_key names the Poya itself ("esala" -> Esala Full Moon Poya Day).
+    month_key: str
+
+
+class NextPoya(BaseModel):
+    date: date_type
+    month_key: str
+
+
 class DailyPanchanga(BaseModel):
     engine: EngineMetadata
     location: Location
@@ -68,6 +86,10 @@ class DailyPanchanga(BaseModel):
     moonrise: datetime | None
     moonset: datetime | None
     lunar_month: LunarMonth
+    sinhala_month: SinhalaMonth
+    is_poya_day: bool
+    poya: PoyaInfo | None  # set only when is_poya_day
+    next_poya: NextPoya  # today when today is a Poya day, else the following one
     tithi: list[TithiSpan]  # element at sunrise first; plus the next when it also falls this day
     nakshatra: list[NakshatraSpan]
     yoga: list[YogaSpan]

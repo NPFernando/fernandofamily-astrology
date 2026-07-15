@@ -60,3 +60,28 @@ MONTH_KEYS: list[str] = [
     "chaitra", "vaishakha", "jyeshtha", "ashadha", "shravana", "bhadrapada",
     "ashvina", "kartika", "margashirsha", "pausha", "magha", "phalguna",
 ]
+
+# Sinhala Poya month for each amanta month (same 1..12 index): the Sinhala
+# month is the one whose Poya (purnima) falls inside that amanta month —
+# Chaitra's purnima is Bak Poya, Vaishakha's is Vesak Poya, and so on.
+# Spellings follow the official gazette holiday names verbatim (hence
+# "nawam"/"madin", not the Sanskritized navam/medin) — validated against
+# every gazetted Poya 2021-2026 in tests/fixtures/sl_poya_2021_2026.json.
+SINHALA_MONTH_KEYS: list[str] = [
+    "bak", "vesak", "poson", "esala", "nikini", "binara",
+    "vap", "il", "unduvap", "duruthu", "nawam", "madin",
+]
+
+
+def sinhala_month_key(amanta_index: int, is_leap: bool) -> str:
+    """Adhika (leap) months take an adhi- prefix, matching the gazette's
+    "Adhi Esala Full Moon Poya Day" naming (2023 fixture)."""
+    # Upstream drik.lunar_month() returns 0 for the 12th month (Phalguna,
+    # i.e. Madin) rather than 12 — confirmed empirically for every Madin
+    # Poya 2021-2026. Normalize before validating.
+    if amanta_index == 0:
+        amanta_index = 12
+    if not (1 <= amanta_index <= 12):
+        raise ValueError(f"amanta month index must be 1..12, got {amanta_index}")
+    key = SINHALA_MONTH_KEYS[amanta_index - 1]
+    return f"adhi-{key}" if is_leap else key

@@ -65,7 +65,12 @@ def test_golden_indices_match_vendored_engine(loc, date_str):
     assert body["nakshatra"][0]["index"] == int(raw_nak[0])
     assert body["nakshatra"][0]["pada"] == int(raw_nak[1])
     assert body["yoga"][0]["index"] == int(raw_yoga[0])
-    assert body["lunar_month"]["index"] == int(raw_month[0])
+    # Upstream returns 0 (not 12) for Phalguna — confirmed empirically via
+    # the Poya gazette fixture (every Madin/Phalguna Poya 2021-2026) and
+    # normalized in calculator.py; the API's index is the normalized 1..12
+    # value, not the raw one.
+    expected_month_index = 12 if int(raw_month[0]) == 0 else int(raw_month[0])
+    assert body["lunar_month"]["index"] == expected_month_index
     assert body["weekday"] == [
         "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday",
     ][pp_adapter.weekday_index_0based(jd, place)]

@@ -28,6 +28,7 @@ test("language switch presents Sinhala first and keeps English available", async
 test("Sinhala Panchanga exposes Sri Lankan quick locations", async ({ page }) => {
   await page.goto("/si/panchanga");
   await expect(page.locator('[data-testid="panchanga-result"]')).toBeVisible({ timeout: 30_000 });
+  await page.getByRole("button", { name: DICTS.si.ui.changeLocation, exact: true }).click();
   await expect(page.getByText(DICTS.si.ui.sriLankaLocations)).toBeVisible();
   await page
     .locator('[data-testid="sri-lanka-location-picks"]')

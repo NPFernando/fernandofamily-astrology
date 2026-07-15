@@ -38,6 +38,7 @@ export function WeekView({
   const { dict, locale } = useLocale();
   const [data, setData] = useState<WindowsResponse | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "unavailable">("loading");
+  const [attempt, setAttempt] = useState(0);
   // Ephemeral narrowing controls — deliberately not persisted anywhere.
   const [activeActivities, setActiveActivities] = useState<Set<ActivityId>>(
     () => new Set(ALL_ACTIVITIES),
@@ -74,7 +75,7 @@ export function WeekView({
     return () => {
       cancelled = true;
     };
-  }, [request, activeActivities, minDuration]);
+  }, [request, activeActivities, minDuration, attempt]);
 
   const durationLabels: Record<number, string> = useMemo(
     () => ({
@@ -177,9 +178,20 @@ export function WeekView({
   }
   if (state === "unavailable" || !data) {
     return (
-      <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm">
-        {dict.ui.weekUnavailable}
-      </p>
+      <div className="flex flex-col gap-3">
+        {filterControls}
+        <div className="flex flex-col items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm">
+          <p>{dict.ui.weekUnavailable}</p>
+          <button
+            type="button"
+            data-testid="week-retry"
+            onClick={() => setAttempt((n) => n + 1)}
+            className="rounded-full border border-amber-600/40 px-3 py-1 text-xs font-medium hover:bg-amber-500/10 dark:border-amber-300/40"
+          >
+            {dict.ui.retry}
+          </button>
+        </div>
+      </div>
     );
   }
 

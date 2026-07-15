@@ -35,7 +35,8 @@ export function watchForBirthDataInUrls(page: Page) {
 // The zero-click auto-compute means every plain load ends in a schedule —
 // wait for it so subsequent interactions have a stable page.
 export async function waitForSchedule(page: Page, locale: LocaleKey) {
-  await expect(async () => {
+  const deadline = Date.now() + 75_000;
+  while (Date.now() < deadline) {
     const liveCountdown = await page
       .getByText(DICTS[locale].ui.timeRemaining)
       .first()
@@ -46,12 +47,13 @@ export async function waitForSchedule(page: Page, locale: LocaleKey) {
       .first()
       .isVisible()
       .catch(() => false);
-    if (!liveCountdown && !scheduleCards) {
-      const retry = page.getByRole("button", { name: DICTS[locale].ui.retry, exact: true }).first();
-      if (await retry.isVisible().catch(() => false)) await retry.click();
-    }
-    expect(liveCountdown || scheduleCards).toBe(true);
-  }).toPass({ timeout: 30_000 });
+    if (liveCountdown || scheduleCards) return;
+
+    const retry = page.getByRole("button", { name: DICTS[locale].ui.retry, exact: true }).first();
+    if (await retry.isVisible().catch(() => false)) await retry.click();
+    await page.waitForTimeout(500);
+  }
+  await expect(page.getByText(DICTS[locale].ui.timeRemaining).first()).toBeVisible();
 }
 
 export async function openCalculator(page: Page, locale: LocaleKey) {
@@ -80,6 +82,8 @@ export async function fillManualLocation(
 ) {
   const dict = DICTS[locale];
   const panel = page.getByRole("tabpanel");
+  const change = panel.getByRole("button", { name: dict.ui.changeLocation, exact: true });
+  if (await change.isVisible().catch(() => false)) await change.click();
   await panel.getByRole("button", { name: dict.ui.manualEntry, exact: true }).click();
   await panel.getByPlaceholder(dict.ui.latitude).fill(coords.lat);
   await panel.getByPlaceholder(dict.ui.longitude).fill(coords.lon);

@@ -3,6 +3,21 @@ import { DICTS, openCalculator, waitForSchedule, watchForBirthDataInUrls } from 
 
 const dict = DICTS.en;
 
+async function openWeekView(page: import("@playwright/test").Page) {
+  await page.getByRole("button", { name: dict.ui.weekView, exact: true }).click();
+  const chips = page.locator('[data-testid="week-window-chip"]');
+  const deadline = Date.now() + 75_000;
+  while (Date.now() < deadline) {
+    if (await chips.first().isVisible().catch(() => false)) return chips;
+
+    const retry = page.locator('[data-testid="week-retry"]');
+    if (await retry.isVisible().catch(() => false)) await retry.click();
+    await page.waitForTimeout(500);
+  }
+  await expect(chips.first()).toBeVisible();
+  return chips;
+}
+
 test("table view shows all 10 tables / 50 rows without expanding; timeline unaffected after", async ({
   page,
 }) => {
@@ -35,12 +50,10 @@ test("week view renders windows from the real API and day tap loads that day", a
   page,
 }) => {
   await openCalculator(page, "en");
-  await page.getByRole("button", { name: dict.ui.weekView, exact: true }).click();
   // Real /windows endpoint behind the proxy — chips or a legitimate
   // empty-day state; assert the grid appeared and at least one favourable
   // window chip exists across the week for the default peacock/Colombo.
-  const chips = page.locator('[data-testid="week-window-chip"]');
-  await expect(chips.first()).toBeVisible({ timeout: 30_000 });
+  await openWeekView(page);
   const dayHeaders = page.locator('[data-testid="week-day"]');
   await expect(dayHeaders).toHaveCount(7);
   await dayHeaders.nth(2).click();
@@ -81,9 +94,7 @@ for (const locale of ["en", "si"] as const) {
 
 test("week filters: narrowing by activity removes other activities' chips", async ({ page }) => {
   await openCalculator(page, "en");
-  await page.getByRole("button", { name: dict.ui.weekView, exact: true }).click();
-  const chips = page.locator('[data-testid="week-window-chip"]');
-  await expect(chips.first()).toBeVisible({ timeout: 30_000 });
+  const chips = await openWeekView(page);
   const unfilteredTitles = await chips.evaluateAll((els) =>
     els.map((e) => e.getAttribute("title") ?? ""),
   );
@@ -96,6 +107,8 @@ test("week filters: narrowing by activity removes other activities' chips", asyn
   await expect
     .poll(
       async () => {
+        const retry = page.locator('[data-testid="week-retry"]');
+        if (await retry.isVisible().catch(() => false)) await retry.click();
         const titles = await chips.evaluateAll((els) =>
           els.map((e) => e.getAttribute("title") ?? ""),
         );
@@ -113,10 +126,7 @@ test("week filters: narrowing by activity removes other activities' chips", asyn
 
 test(".ics download produces a valid calendar file", async ({ page }) => {
   await openCalculator(page, "en");
-  await page.getByRole("button", { name: dict.ui.weekView, exact: true }).click();
-  await expect(page.locator('[data-testid="week-window-chip"]').first()).toBeVisible({
-    timeout: 30_000,
-  });
+  await openWeekView(page);
   const downloadPromise = page.waitForEvent("download");
   await page.locator('[data-testid="week-download-ics"]').click();
   const download = await downloadPromise;

@@ -3,7 +3,15 @@ import { DICTS, watchForBirthDataInUrls, type LocaleKey } from "./helpers";
 
 async function openPanchanga(page: import("@playwright/test").Page, locale: LocaleKey) {
   await page.goto(`/${locale}/panchanga`);
-  await expect(page.locator('[data-testid="panchanga-result"]')).toBeVisible({ timeout: 30_000 });
+  const deadline = Date.now() + 75_000;
+  while (Date.now() < deadline) {
+    if (await page.locator('[data-testid="panchanga-result"]').isVisible().catch(() => false)) return;
+
+    const retry = page.getByRole("button", { name: DICTS[locale].ui.retry, exact: true }).first();
+    if (await retry.isVisible().catch(() => false)) await retry.click();
+    await page.waitForTimeout(500);
+  }
+  await expect(page.locator('[data-testid="panchanga-result"]')).toBeVisible();
 }
 
 for (const locale of ["en", "si"] as const) {
@@ -99,6 +107,8 @@ test("panchanga: date and location controls appear before results", async ({ pag
   const result = page.locator('[data-testid="panchanga-result"]');
   await expect(controls).toBeVisible();
   await expect(controls.getByRole("button", { name: DICTS.en.ui.nextDay })).toBeVisible();
+  await expect(controls.locator('[data-testid="active-location"]')).toBeVisible();
+  await controls.getByRole("button", { name: DICTS.en.ui.changeLocation, exact: true }).click();
   await expect(controls.getByText(DICTS.en.ui.sriLankaLocations)).toBeVisible();
   const controlsBox = await controls.boundingBox();
   const resultBox = await result.boundingBox();

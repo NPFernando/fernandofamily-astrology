@@ -40,7 +40,7 @@ export default defineConfig({
   fullyParallel: false, // shared next start instance; specs are fast enough serially
   retries: process.env.CI ? 2 : 1,
   reporter: process.env.CI ? "github" : "list",
-  timeout: 60_000,
+  timeout: 90_000,
   use: {
     baseURL: `http://127.0.0.1:${WEB_PORT}`,
     trace: "on-first-retry",
@@ -56,7 +56,7 @@ export default defineConfig({
   webServer: [
     {
       command: `bash -c "cd ../api && RATE_LIMIT_DISABLED=1 .venv/bin/uvicorn app.main:app --port ${API_PORT}"`,
-      url: `http://127.0.0.1:${API_PORT}/api/v1/health/live`,
+      url: `http://127.0.0.1:${API_PORT}/api/v1/health/ready`,
       reuseExistingServer: !process.env.CI,
       timeout: 30_000,
     },

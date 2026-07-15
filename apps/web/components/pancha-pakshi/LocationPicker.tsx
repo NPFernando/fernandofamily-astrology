@@ -81,6 +81,14 @@ export function LocationPicker({
 }) {
   const { dict, locale } = useLocale();
   const [tab, setTab] = useState<Tab>("device");
+  // Whenever a location is already known (seeded from the last-used one, or
+  // already picked), show a compact one-line summary instead of the full
+  // tabbed picker — the confirmation used to be a single small line at the
+  // very bottom of the whole picker, below every tab/form/chip, so it was
+  // easy to miss and the picker felt heavy even when nothing needed to
+  // change. Starts false so a genuinely first-time visitor (value === null)
+  // still sees the full picker immediately.
+  const [editing, setEditing] = useState(false);
   const [recent, setRecent] = useState<LocationValue[]>([]);
   const [status, setStatus] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -116,6 +124,7 @@ export function LocationPicker({
     onChange(loc);
     setRecent(saveRecent(loc));
     setStatus(null);
+    setEditing(false);
   }
 
   // Resolves device coordinates to a human-readable place name via
@@ -262,6 +271,26 @@ export function LocationPicker({
       return;
     }
     commit({ name: `${manualLat}, ${manualLon}`, latitude: lat, longitude: lon, iana_tz: tz });
+  }
+
+  if (value && !editing) {
+    return (
+      <div
+        data-testid="active-location"
+        className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-black/10 px-3 py-2 text-sm dark:border-white/20"
+      >
+        <span className="opacity-80">
+          {value.name} · {value.latitude.toFixed(2)}, {value.longitude.toFixed(2)} · {value.iana_tz}
+        </span>
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className="shrink-0 text-xs font-medium text-accent underline underline-offset-2"
+        >
+          {dict.ui.changeLocation}
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -420,11 +449,6 @@ export function LocationPicker({
         </div>
       )}
 
-      {value && (
-        <p data-testid="active-location" className="text-sm opacity-80">
-          {value.name} · {value.latitude.toFixed(2)}, {value.longitude.toFixed(2)} · {value.iana_tz}
-        </p>
-      )}
     </div>
   );
 }

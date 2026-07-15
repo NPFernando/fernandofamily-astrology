@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { fetchBirthBird, ApiError, type BirdSelectionInput, type BirthBirdResponse } from "@/lib/api-client";
-import { LocationPicker, type LocationValue } from "./LocationPicker";
+import { LocationPicker, mostRecentLocation, type LocationValue } from "./LocationPicker";
 import { TargetDateTimeFields, nowAsTargetDateTime, type TargetDateTime } from "./TargetDateTimeFields";
 
 export function BirthInputForm({ onSubmit }: { onSubmit: (input: BirdSelectionInput) => void }) {
@@ -16,6 +16,20 @@ export function BirthInputForm({ onSubmit }: { onSubmit: (input: BirdSelectionIn
   const [confirmed, setConfirmed] = useState<BirthBirdResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Carries the last-used location over between method tabs and between
+    // Pancha Pakshi and Panchanga, instead of always starting empty. Seeded
+    // post-mount (not a lazy initializer) since mostRecentLocation() reads
+    // localStorage — matching the hydration-safe pattern LocationPicker
+    // itself and PanchangaClient already use.
+    const recent = mostRecentLocation();
+    if (recent) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
+      setLocation(recent);
+      setTarget(nowAsTargetDateTime(recent.iana_tz));
+    }
+  }, []);
 
   const canConfirm = birthDate && birthTime && location !== null;
   function chooseLocation(next: LocationValue) {

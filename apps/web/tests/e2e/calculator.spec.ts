@@ -108,6 +108,27 @@ test("saved profiles: save → chip → schedule from chip → delete", async ({
   await expect(page.getByText("Amma")).toBeHidden();
 });
 
+test("location choice carries between Pancha Pakshi method tabs", async ({ page }) => {
+  const dict = DICTS.en;
+  await openCalculator(page, "en");
+
+  const birdPanel = page.getByRole("tabpanel");
+  await birdPanel
+    .locator('[data-testid="sri-lanka-location-picks"]')
+    .getByRole("button", { name: "Kandy", exact: true })
+    .click();
+  await expect(birdPanel.locator('[data-testid="active-location"]')).toContainText("Kandy");
+
+  await page.getByRole("tab", { name: dict.ui.methodKnownNakshatra }).click();
+  const nakshatraPanel = page.getByRole("tabpanel");
+  await expect(nakshatraPanel.locator('[data-testid="active-location"]')).toContainText("Kandy", {
+    timeout: 20_000,
+  });
+
+  await nakshatraPanel.getByRole("button", { name: dict.ui.changeLocation, exact: true }).click();
+  await expect(nakshatraPanel.getByText(dict.ui.sriLankaLocations)).toBeVisible();
+});
+
 test("@mobile pancha pakshi shows change details near the top without horizontal scroll", async ({
   page,
 }, testInfo) => {

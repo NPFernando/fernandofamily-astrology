@@ -1611,6 +1611,16 @@
             "title": "Sunset",
             "type": "string"
           },
+          "tara_bala": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TaraBala"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "weekday": {
             "$ref": "#/components/schemas/WeekdayId"
           }
@@ -1622,6 +1632,7 @@
           "sunset",
           "next_sunrise",
           "birth_bird",
+          "tara_bala",
           "paksha",
           "weekday",
           "padu_pakshi",
@@ -1749,6 +1760,23 @@
           "is_current"
         ],
         "title": "SubPeriod",
+        "type": "object"
+      },
+      "TaraBala": {
+        "properties": {
+          "effect": {
+            "$ref": "#/components/schemas/EffectId"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "effect"
+        ],
+        "title": "TaraBala",
         "type": "object"
       },
       "TithiSpan": {

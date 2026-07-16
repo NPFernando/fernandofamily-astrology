@@ -18,6 +18,30 @@ RELATION_ORDER = [RelationId.enemy, RelationId.same, RelationId.friend]
 # 0-based, mirrors upstream `pp_effect`. CSV column `effect` indexes into this.
 EFFECT_ORDER = [EffectId.very_bad, EffectId.bad, EffectId.average, EffectId.good, EffectId.very_good]
 
+# 0-based tārā category keys, in the order `thaaraabalam()` groups its 9
+# result lists (vendor/jhora/panchanga/drik.py:3518) — transcribed verbatim
+# from that function's own docstring, not invented.
+TARA_KEYS = [
+    "paramitra", "janma", "sampatha", "vipatha", "kshema",
+    "pratyaka", "sadhana", "naidhana", "mitra",
+]
+
+# Same order as TARA_KEYS. The classical labels (Good/Not Good/Very Good/Bad/
+# Totally Bad) map one-for-one onto the existing EffectId scale already used
+# for Pancha Pakshi sub-periods — "Not Good" is the closest existing bucket
+# to "average" (a mild, non-catastrophic caution, not a positive rating).
+TARA_EFFECT_ORDER = [
+    EffectId.good,       # 0 Paramitra
+    EffectId.average,    # 1 Janma      (Not Good)
+    EffectId.very_good,  # 2 Sampatha
+    EffectId.bad,        # 3 Vipatha
+    EffectId.good,       # 4 Kshema
+    EffectId.average,    # 5 Pratyaka   (Not Good)
+    EffectId.very_good,  # 6 Sadhana
+    EffectId.very_bad,   # 7 Naidhana   (Totally Bad)
+    EffectId.good,       # 8 Mitra
+]
+
 # 0-based, matches drik.vaara()'s return value directly (0=Sunday..6=Saturday).
 WEEKDAY_ORDER = [
     WeekdayId.sunday,

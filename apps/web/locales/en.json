@@ -169,6 +169,17 @@
       "duruthu": "Duruthu",
       "nawam": "Nawam",
       "madin": "Madin"
+    },
+    "taraCategories": {
+      "paramitra": "Paramitra",
+      "janma": "Janma",
+      "sampatha": "Sampatha",
+      "vipatha": "Vipatha",
+      "kshema": "Kshema",
+      "pratyaka": "Pratyaka",
+      "sadhana": "Sadhana",
+      "naidhana": "Naidhana",
+      "mitra": "Mitra"
     }
   },
   "ui": {
@@ -182,6 +193,7 @@
     "timeline": "Timeline",
     "birthDetails": "Birth details",
     "birthBird": "Birth bird",
+    "taraBala": "Tara Bala (today's star strength)",
     "birthNakshatra": "Birth Nakshatra",
     "location": "Location",
     "timezone": "Timezone",

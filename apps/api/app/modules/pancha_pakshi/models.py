@@ -62,6 +62,11 @@ class ScheduleSummary(BaseModel):
     sub_period_count: int = 50
 
 
+class TaraBala(BaseModel):
+    key: str
+    effect: EffectId
+
+
 class ScheduleResponse(BaseModel):
     engine: EngineMetadata
     location: Location
@@ -69,6 +74,10 @@ class ScheduleResponse(BaseModel):
     sunset: datetime
     next_sunrise: datetime
     birth_bird: BirdId
+    # Only present when a birth nakshatra is known (Methods A/B — birth
+    # details, or known nakshatra+paksha); null for Method C (direct bird
+    # selection), which has no birth nakshatra to classify against.
+    tara_bala: TaraBala | None
     paksha: PakshaId
     weekday: WeekdayId
     # Convenience mirrors of major_periods[0]'s values, kept for API-shape

@@ -869,6 +869,7 @@ export interface components {
              * Format: date-time
              */
             sunset: string;
+            tara_bala: components["schemas"]["TaraBala"] | null;
             weekday: components["schemas"]["WeekdayId"];
         };
         /** ScheduleSummary */
@@ -924,6 +925,12 @@ export interface components {
             sub_bird: components["schemas"]["BirdId"];
             /** Sub Index */
             sub_index: number;
+        };
+        /** TaraBala */
+        TaraBala: {
+            effect: components["schemas"]["EffectId"];
+            /** Key */
+            key: string;
         };
         /** TithiSpan */
         TithiSpan: {

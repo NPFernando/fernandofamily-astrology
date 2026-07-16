@@ -169,6 +169,17 @@
       "duruthu": "දුරුතු",
       "nawam": "නවම්",
       "madin": "මැදින්"
+    },
+    "taraCategories": {
+      "paramitra": "පරමමිත්‍ර",
+      "janma": "ජන්ම",
+      "sampatha": "සම්පත",
+      "vipatha": "විපත",
+      "kshema": "ක්ෂේම",
+      "pratyaka": "ප්‍රත්‍යක්",
+      "sadhana": "සාධන",
+      "naidhana": "නිධන",
+      "mitra": "මිත්‍ර"
     }
   },
   "ui": {
@@ -182,6 +193,7 @@
     "timeline": "කාල රේඛාව",
     "birthDetails": "උපන් විස්තර",
     "birthBird": "උපන් පක්ෂියා",
+    "taraBala": "තාරාබලය (අද දිනට ඔබේ තාරකාවේ ශක්තිය)",
     "birthNakshatra": "උපන් නැකත",
     "location": "ස්ථානය",
     "timezone": "වේලා කලාපය",

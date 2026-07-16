@@ -20,6 +20,7 @@ import { subPeriodGuidance } from "@/lib/pancha-guidance";
 import { BIRD_ICONS } from "@/components/icons/birds";
 import { ACTIVITY_ICONS } from "@/components/icons/activities";
 import { ACTIVITY_COLORS } from "@/components/pancha-pakshi/activityColors";
+import { EFFECT_COLORS } from "@fernandofamily/design-system";
 
 function formatDuration(ms: number) {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
@@ -264,6 +265,13 @@ export function PanchaPakshiLiveView() {
                     value={translateEnum(dict, "birds", schedule.birth_bird)}
                     testId="live-birth-bird"
                   />
+                  {schedule.tara_bala && (
+                    <Fact
+                      label={dict.ui.taraBala}
+                      value={`${translateEnum(dict, "taraCategories", schedule.tara_bala.key)} — ${translateEnum(dict, "effects", schedule.tara_bala.effect)}`}
+                      color={EFFECT_COLORS[schedule.tara_bala.effect]}
+                    />
+                  )}
                   <Fact label={dict.ui.weekday} value={translateEnum(dict, "weekdays", schedule.weekday)} />
                   <Fact label={dict.ui.paksha} value={translateEnum(dict, "paksha", schedule.paksha)} />
                   <Fact label={dict.ui.sunrise} value={timeFormat.format(new Date(schedule.sunrise))} />
@@ -453,11 +461,23 @@ function LiveDayProgressBar({ schedule, nowMs }: { schedule: ScheduleResponse; n
   );
 }
 
-function Fact({ label, value, testId }: { label: string; value: string; testId?: string }) {
+function Fact({
+  label,
+  value,
+  testId,
+  color,
+}: {
+  label: string;
+  value: string;
+  testId?: string;
+  color?: string;
+}) {
   return (
     <div data-testid={testId} className="min-w-0">
       <dt className="text-xs uppercase opacity-60">{label}</dt>
-      <dd className="mt-1 break-words font-medium">{value}</dd>
+      <dd className="mt-1 break-words font-medium" style={color ? { color } : undefined}>
+        {value}
+      </dd>
     </div>
   );
 }

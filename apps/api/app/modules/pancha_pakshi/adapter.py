@@ -62,6 +62,13 @@ def nakshatra_index_1based(jd: float, p) -> int:
     return drik.nakshatra(jd, p)[0]
 
 
+def tara_bala_groups(jd: float, p) -> list[list[int]]:
+    """9 lists of 1-based birth-star nakshatra indices (1..27), grouped by
+    which tārā category today's Moon nakshatra places them in — index 0..8,
+    see calculator.py's TARA_KEYS/TARA_EFFECT_ORDER for what each means."""
+    return drik.thaaraabalam(jd, p, return_only_good_stars=False)
+
+
 def birth_bird_1based(nakshatra_1based: int, paksha_1based: int) -> int:
     return pancha_paksha._get_birth_bird_from_nakshathra(nakshatra_1based, paksha_1based)
 

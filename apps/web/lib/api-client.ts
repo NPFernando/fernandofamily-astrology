@@ -109,6 +109,11 @@ export type MajorPeriod = {
   sub_periods: SubPeriod[];
 };
 
+export type TaraBala = {
+  key: string;
+  effect: EffectId;
+};
+
 export type ScheduleResponse = {
   engine: EngineMetadata;
   location: Location;
@@ -116,6 +121,9 @@ export type ScheduleResponse = {
   sunset: string;
   next_sunrise: string;
   birth_bird: BirdId;
+  // Only present when a birth nakshatra is known (birth-details or
+  // known-nakshatra methods); null for direct bird selection.
+  tara_bala: TaraBala | null;
   paksha: PakshaId;
   weekday: WeekdayId;
   padu_pakshi: BirdId;

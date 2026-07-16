@@ -20,6 +20,7 @@ import { BestWindows } from "@/components/pancha-pakshi/BestWindows";
 import { NotificationOptIn } from "@/components/pancha-pakshi/NotificationOptIn";
 import { DateNav } from "@/components/pancha-pakshi/DateNav";
 import { ExportControls } from "@/components/pancha-pakshi/ExportControls";
+import { EFFECT_COLORS } from "@fernandofamily/design-system";
 import { PrintSheet, type ExportDetail } from "@/components/pancha-pakshi/PrintSheet";
 import { Legend } from "@/components/pancha-pakshi/Legend";
 import { StickyCurrentBar } from "@/components/pancha-pakshi/StickyCurrentBar";
@@ -376,6 +377,13 @@ export function PanchaPakshiClient() {
                     <Fact label={dict.ui.weekday} value={translateEnum(dict, "weekdays", schedule.weekday)} />
                     <Fact label={dict.ui.paksha} value={translateEnum(dict, "paksha", schedule.paksha)} />
                     <Fact label={dict.ui.birthBird} value={translateEnum(dict, "birds", schedule.birth_bird)} />
+                    {schedule.tara_bala && (
+                      <Fact
+                        label={dict.ui.taraBala}
+                        value={`${translateEnum(dict, "taraCategories", schedule.tara_bala.key)} — ${translateEnum(dict, "effects", schedule.tara_bala.effect)}`}
+                        color={EFFECT_COLORS[schedule.tara_bala.effect]}
+                      />
+                    )}
                     <Fact label={dict.ui.sunrise} value={new Date(schedule.sunrise).toLocaleTimeString()} />
                     <Fact label={dict.ui.sunset} value={new Date(schedule.sunset).toLocaleTimeString()} />
                     <Fact label={dict.ui.nextSunrise} value={new Date(schedule.next_sunrise).toLocaleTimeString()} />
@@ -484,11 +492,13 @@ function ScheduleSettings({
   );
 }
 
-function Fact({ label, value }: { label: string; value: string }) {
+function Fact({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
     <div className="flex flex-col">
       <span className="text-xs uppercase opacity-60">{label}</span>
-      <span className="font-medium">{value}</span>
+      <span className="font-medium" style={color ? { color } : undefined}>
+        {value}
+      </span>
     </div>
   );
 }

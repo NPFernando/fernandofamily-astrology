@@ -5,7 +5,15 @@ from zoneinfo import ZoneInfo
 from app.modules.pancha_pakshi import adapter, repository
 from app.modules.pancha_pakshi.enums import BirdId, PakshaId, PeriodKind
 from app.modules.pancha_pakshi.errors import PanchaPakshiInternalError, SunriseUnavailableError
-from app.modules.pancha_pakshi.models import EngineMetadata, Location, MajorPeriod, ScheduleResponse, ScheduleSummary, SubPeriod
+from app.modules.pancha_pakshi.models import (
+    EngineMetadata,
+    Location,
+    MajorPeriod,
+    ScheduleResponse,
+    ScheduleSummary,
+    SubPeriod,
+    TaraBala,
+)
 
 # Tolerance for floating-point JD rounding when checking boundary invariants.
 _TOLERANCE_SECONDS = 2
@@ -87,12 +95,30 @@ def resolve_effective_jd(
 
 def compute_birth_bird(
     y: int, m: int, d: int, hh: int, mm: int, ss: int, name: str, latitude: float, longitude: float, tz: ZoneInfo
-) -> BirdId:
+) -> tuple[BirdId, int]:
+    """Returns (birth_bird, birth_nakshatra_1based) — the nakshatra is needed
+    by callers wiring in Tara Bala (see compute_tara_bala), not just the bird."""
     jd, _, _, place = resolve_effective_jd(y, m, d, hh, mm, ss, name, latitude, longitude, tz)
     nakshatra_1based = adapter.nakshatra_index_1based(jd, place)
     paksha_1based = adapter.paksha_index_1based(jd, place)
     bird_1based = adapter.birth_bird_1based(nakshatra_1based, paksha_1based)
-    return repository.BIRD_ORDER[bird_1based - 1]
+    return repository.BIRD_ORDER[bird_1based - 1], nakshatra_1based
+
+
+def compute_tara_bala(nakshatra_1based: int, jd: float, place) -> TaraBala:
+    """Classifies `nakshatra_1based` (a birth star) against `jd`'s Moon
+    nakshatra per the classical 9-fold tārā cycle. See
+    repository.TARA_KEYS/TARA_EFFECT_ORDER for the category mapping."""
+    groups = adapter.tara_bala_groups(jd, place)
+    for category_index, birth_stars in enumerate(groups):
+        if nakshatra_1based in birth_stars:
+            return TaraBala(
+                key=repository.TARA_KEYS[category_index],
+                effect=repository.TARA_EFFECT_ORDER[category_index],
+            )
+    raise PanchaPakshiInternalError(
+        f"nakshatra {nakshatra_1based} not found in any tara_bala_groups category"
+    )
 
 
 # NOTE: PyJHora's Place takes a single fixed UTC-offset-in-hours for its entire
@@ -119,10 +145,16 @@ def compute_schedule(
     location: Location,
     engine: EngineMetadata,
     now: datetime | None = None,
+    birth_nakshatra_index: int | None = None,
 ) -> ScheduleResponse:
     jd, sunrise_jd, offset_hours, place = resolve_effective_jd(
         target_y, target_m, target_d, target_hh, target_mm, target_ss, location_name, latitude, longitude, tz
     )
+    # Tara Bala reflects the same target_date the rest of this schedule is
+    # for, not a separate "right now" — only available when a birth
+    # nakshatra is known (Methods A/B; Method C, direct bird selection, has
+    # no birth nakshatra to classify).
+    tara_bala = compute_tara_bala(birth_nakshatra_index, jd, place) if birth_nakshatra_index is not None else None
 
     weekday_0based = adapter.weekday_index_0based(jd, place)
     paksha_1based = adapter.paksha_index_1based(jd, place)
@@ -203,6 +235,7 @@ def compute_schedule(
         sunset=_jd_to_aware_datetime(sunset_jd, offset_hours),
         next_sunrise=_jd_to_aware_datetime(next_sunrise_jd, offset_hours),
         birth_bird=birth_bird,
+        tara_bala=tara_bala,
         paksha=PakshaId.waxing if paksha_1based == 1 else PakshaId.waning,
         weekday=repository.WEEKDAY_ORDER[weekday_0based],
         padu_pakshi=major_periods[0].padu_pakshi,

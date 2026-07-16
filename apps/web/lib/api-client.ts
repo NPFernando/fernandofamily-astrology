@@ -8,6 +8,8 @@
 
 const API_BASE = "/api/v1/pancha-pakshi";
 const COMPATIBILITY_API_BASE = "/api/v1/compatibility";
+const BIRTH_NAKSHATRA_API_BASE = "/api/v1/birth-nakshatra";
+const MUHURTA_API_BASE = "/api/v1/muhurta";
 
 export type BirdId = "vulture" | "owl" | "crow" | "cock" | "peacock";
 export type ActivityId = "ruling" | "eating" | "walking" | "sleeping" | "dying";
@@ -59,6 +61,38 @@ export type BirthBirdResponse = {
   birth_bird: BirdId;
   padu_pakshi: BirdId;
   bharana_pakshi: BirdId;
+};
+
+export type RashiId =
+  | "mesha"
+  | "vrishabha"
+  | "mithuna"
+  | "karka"
+  | "simha"
+  | "kanya"
+  | "tula"
+  | "vrischika"
+  | "dhanu"
+  | "makara"
+  | "kumbha"
+  | "meena";
+
+export type BirthNakshatraRequest = {
+  birth_date: string;
+  birth_time: string;
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  iana_tz: string;
+};
+
+export type BirthNakshatraResponse = {
+  engine: EngineMetadata;
+  location: Location;
+  nakshatra: { index: number; key: string; pada: number };
+  paksha: PakshaId;
+  moon_rashi: { index: number; key: RashiId };
+  birth_bird: BirdId;
 };
 
 export type EngineMetadata = {
@@ -282,6 +316,132 @@ export type DailyPanchanga = {
   graha_positions: GrahaPosition[];
 };
 
+export type EclipseForecastRequest = {
+  from_date: string; // YYYY-MM-DD
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  iana_tz: string;
+};
+
+export type SolarEclipseEvent = {
+  type: string; // "partial" | "annular" | "total" | "hybrid"
+  is_visible: boolean;
+  max_at: string;
+  first_contact_at: string | null;
+  fourth_contact_at: string | null;
+  magnitude: number;
+  obscuration: number;
+  sutak_starts_at: string | null;
+  sutak_ends_at: string | null;
+};
+
+export type LunarEclipseEvent = {
+  type: string; // "penumbral" | "partial" | "total"
+  is_visible: boolean;
+  max_at: string;
+  begins_at: string | null;
+  ends_at: string | null;
+  partial_starts_at: string | null;
+  partial_ends_at: string | null;
+  totality_starts_at: string | null;
+  totality_ends_at: string | null;
+  umbral_magnitude: number;
+  penumbral_magnitude: number;
+  sutak_starts_at: string | null;
+  sutak_ends_at: string | null;
+};
+
+export type EclipseForecast = {
+  engine: EngineMetadata;
+  location: Location;
+  from_date: string;
+  next_solar: SolarEclipseEvent;
+  next_lunar: LunarEclipseEvent;
+};
+
+export type MuhurtaPurpose = "general" | "travel" | "study_work" | "purchase" | "home_ritual";
+export type MuhurtaGrade = "excellent" | "good" | "usable";
+export type MuhurtaSource = "pancha_pakshi" | "amrit_kaalam" | "abhijit_muhurta" | "choghadiya" | "hora";
+export type MuhurtaCaution = "disha_shool";
+
+type MuhurtaSearchBase = {
+  from_date: string;
+  days: number;
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  iana_tz: string;
+  purpose: MuhurtaPurpose;
+  min_effect: "good" | "very_good";
+  min_duration_seconds: number;
+};
+
+export type MuhurtaBirthDateTimeInput = MuhurtaSearchBase & {
+  method: "birth_datetime";
+  birth_date: string;
+  birth_time: string;
+};
+
+export type MuhurtaNakshatraPakshaInput = MuhurtaSearchBase & {
+  method: "nakshatra_paksha";
+  nakshatra_index: number;
+  paksha: PakshaId;
+};
+
+export type MuhurtaBirdSelectionInput = MuhurtaSearchBase & {
+  method: "bird";
+  bird: BirdId;
+};
+
+export type MuhurtaSearchRequest =
+  | MuhurtaBirthDateTimeInput
+  | MuhurtaNakshatraPakshaInput
+  | MuhurtaBirdSelectionInput;
+
+export type MuhurtaSourceOverlap = {
+  source: MuhurtaSource;
+  starts_at: string;
+  ends_at: string;
+};
+
+export type MuhurtaCautionInfo = {
+  key: MuhurtaCaution;
+  value: string;
+};
+
+export type MuhurtaWindow = {
+  effective_date: string;
+  starts_at: string;
+  ends_at: string;
+  duration_seconds: number;
+  grade: MuhurtaGrade;
+  score: number;
+  pancha_pakshi_effect: EffectId;
+  pancha_pakshi_activity: ActivityId;
+  reasons: MuhurtaSource[];
+  cautions: MuhurtaCautionInfo[];
+  source_overlaps: MuhurtaSourceOverlap[];
+};
+
+export type MuhurtaDaySummary = {
+  date: string;
+  window_count: number;
+  best_grade: MuhurtaGrade | null;
+  total_seconds: number;
+};
+
+export type MuhurtaSearchResponse = {
+  engine: EngineMetadata;
+  location: Location;
+  birth_bird: BirdId;
+  from_date: string;
+  days: number;
+  purpose: MuhurtaPurpose;
+  windows: MuhurtaWindow[];
+  per_day: MuhurtaDaySummary[];
+};
+
 export class ApiError extends Error {
   status: number;
   body: unknown;
@@ -317,6 +477,21 @@ async function postJsonWithMeta<TResponse>(
 
 export function fetchBirthBird(body: BirthBirdRequest): Promise<BirthBirdResponse> {
   return postJson<BirthBirdResponse>("/birth-bird", body);
+}
+
+export function fetchBirthNakshatra(
+  body: BirthNakshatraRequest,
+): Promise<BirthNakshatraResponse> {
+  const res = fetch(`${BIRTH_NAKSHATRA_API_BASE}/resolve`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).then(async (r) => {
+    const data = await r.json().catch(() => null);
+    if (!r.ok) throw new ApiError(r.status, data);
+    return data as BirthNakshatraResponse;
+  });
+  return res;
 }
 
 export function fetchSchedule(body: ScheduleRequest): Promise<ScheduleResponse> {
@@ -356,6 +531,32 @@ export function fetchPanchanga(body: PanchangaRequest): Promise<DailyPanchanga> 
     const data = await r.json().catch(() => null);
     if (!r.ok) throw new ApiError(r.status, data);
     return data as DailyPanchanga;
+  });
+  return res;
+}
+
+export function fetchEclipseForecast(body: EclipseForecastRequest): Promise<EclipseForecast> {
+  const res = fetch(`/api/v1/panchanga/eclipses`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).then(async (r) => {
+    const data = await r.json().catch(() => null);
+    if (!r.ok) throw new ApiError(r.status, data);
+    return data as EclipseForecast;
+  });
+  return res;
+}
+
+export function fetchMuhurta(body: MuhurtaSearchRequest): Promise<MuhurtaSearchResponse> {
+  const res = fetch(`${MUHURTA_API_BASE}/search`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).then(async (r) => {
+    const data = await r.json().catch(() => null);
+    if (!r.ok) throw new ApiError(r.status, data);
+    return data as MuhurtaSearchResponse;
   });
   return res;
 }

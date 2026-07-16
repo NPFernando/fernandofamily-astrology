@@ -15,8 +15,11 @@ export function Nav() {
   const pathname = usePathname();
   const features = enabledFeatures();
   const featureLabel = (id: string, fallback: string) => {
+    if (id === "birth-nakshatra") return dict.nav.birthNakshatra;
     if (id === "pancha-pakshi") return dict.nav.panchaPakshi;
     if (id === "panchanga") return dict.nav.panchanga;
+    if (id === "daily-guide") return dict.nav.dailyGuide;
+    if (id === "muhurta") return dict.nav.muhurta;
     return fallback;
   };
   const links = [
@@ -43,7 +46,7 @@ export function Nav() {
           {dict.platform.name}
         </Link>
         <div
-          className="-mx-1 flex min-w-0 snap-x items-center gap-2 overflow-x-auto px-1 pb-1 text-sm md:mx-0 md:justify-center md:pb-0"
+          className="relative z-10 -mx-1 flex min-w-0 snap-x items-center gap-2 overflow-x-auto px-1 pb-1 text-sm md:mx-0 md:justify-start md:pb-0"
           aria-label={dict.ui.pageNavigation}
         >
           {links.map((link) => {
@@ -51,9 +54,9 @@ export function Nav() {
             return (
               <Link
                 key={link.href}
-                href={link.href}
-                aria-current={active ? "page" : undefined}
-                className={`snap-start whitespace-nowrap rounded-full border px-3 py-1.5 leading-none transition ${
+              href={link.href}
+              aria-current={active ? "page" : undefined}
+                className={`relative z-10 flex-none snap-start whitespace-nowrap rounded-full border px-3 py-1.5 leading-none transition ${
                   active
                     ? "border-accent bg-accent/10 font-semibold text-accent"
                     : "border-transparent opacity-80 hover:border-black/10 hover:opacity-100 dark:hover:border-white/15"

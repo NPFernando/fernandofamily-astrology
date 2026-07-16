@@ -15,6 +15,7 @@ from app.core.vendor_path import configure_ayanamsa, ensure_vendor_on_path
 
 ensure_vendor_on_path()
 
+import swisseph as swe  # noqa: E402
 from jhora import const  # noqa: E402
 from jhora.panchanga import drik  # noqa: E402
 
@@ -132,6 +133,99 @@ def graha_longitudes(jd: float, p) -> list[tuple[int, float]]:
             longitude = drik.sidereal_longitude(jd_ut, planet_const)
         positions.append((planet_id, longitude))
     return positions
+
+
+def next_solar_eclipse_raw(jd_ut: float, p) -> tuple[int, tuple, tuple]:
+    """Passthrough of drik.next_solar_eclipse (itself a thin wrapper over
+    swe.sol_eclipse_when_loc — the search is already location-aware: it
+    finds the next eclipse with SOME contact visible from `p`, not merely
+    the next eclipse anywhere on Earth). Unlike every other jd this adapter
+    handles, `jd_ut` here must be a GENUINE Julian Day UT, not this app's
+    local-embedded convention (see graha_longitudes' docstring for that
+    distinction) — swisseph's eclipse search works in true UT throughout.
+
+    Returns (retflag, tret, attrs):
+      tret[0] = time of greatest eclipse; tret[1]/tret[4] = first/fourth
+      contact (all Julian Day UT — see calculator._jd_ut_to_datetime).
+      attrs[2] = obscuration (fraction of solar disc covered by the Moon);
+      attrs[8] = magnitude (NASA convention).
+      retflag bit-decodes via solar_eclipse_type()/eclipse_is_visible()/
+      solar_contact_visible() below — do not inspect tret[1]/tret[4] for
+      zero-ness to decide visibility, that heuristic is WRONG for solar:
+      empirically, swisseph still returns a nonzero geometric contact time
+      even when that contact isn't actually visible from `p` (e.g. it
+      happens after local sunset) — the ECL_1ST_VISIBLE/ECL_4TH_VISIBLE
+      bits are the only correct signal, confirmed by direct reproduction.
+    """
+    return drik.next_solar_eclipse(jd_ut, p)
+
+
+def next_lunar_eclipse_raw(jd_ut: float, p) -> tuple[int, tuple, tuple]:
+    """Passthrough of drik.next_lunar_eclipse (wraps swe.lun_eclipse_when_loc
+    directly). Same genuine-Julian-Day-UT input convention as
+    next_solar_eclipse_raw above.
+
+    NOTE: the vendored drik.next_lunar_eclipse docstring copies the solar
+    one almost verbatim and is WRONG about tret's indices for lunar — the
+    true pyswisseph semantics (confirmed directly against
+    swe.lun_eclipse_when_loc's own docstring and empirical reproduction)
+    are: tret[0] = time of max eclipse; tret[2]/tret[3] = partial phase
+    begin/end; tret[4]/tret[5] = totality begin/end; tret[6]/tret[7] =
+    overall (penumbral) event begin/end. All Julian Day UT.
+    attrs[0] = umbral magnitude, attrs[1] = penumbral magnitude.
+
+    Unlike solar, a zero-value IS the correct "not applicable/not visible
+    from here" sentinel for these slots — confirmed empirically both for
+    phases that don't occur at all for this eclipse's type (e.g. tret[4]/
+    tret[5] are 0.0 for a penumbral-only eclipse, which has no totality)
+    and for phases that occur but aren't visible from `p` (e.g. tret[2]
+    was 0.0 for a real partial eclipse where the partial phase began
+    below the horizon at `p`, while tret[3] — the end, which WAS visible
+    there — was correctly nonzero). This is the opposite of solar's
+    behavior above; pyswisseph's own docs don't document a lunar
+    per-contact visibility-bit mapping, so the zero-sentinel is the only
+    grounded signal available, and it was verified to behave correctly
+    across several real eclipses before relying on it.
+    """
+    return drik.next_lunar_eclipse(jd_ut, p)
+
+
+def solar_eclipse_type(retflag: int) -> str:
+    """'hybrid' | 'total' | 'annular' | 'partial'. Hybrid checked first:
+    swe.ECL_ANNULAR_TOTAL and swe.ECL_HYBRID are the same bit value (32)."""
+    if retflag & swe.ECL_ANNULAR_TOTAL:
+        return "hybrid"
+    if retflag & swe.ECL_TOTAL:
+        return "total"
+    if retflag & swe.ECL_ANNULAR:
+        return "annular"
+    return "partial"
+
+
+def lunar_eclipse_type(retflag: int) -> str:
+    """'total' | 'partial' | 'penumbral' — mutually exclusive in practice
+    (confirmed empirically: never more than one of these three bits set)."""
+    if retflag & swe.ECL_TOTAL:
+        return "total"
+    if retflag & swe.ECL_PARTIAL:
+        return "partial"
+    return "penumbral"
+
+
+def eclipse_is_visible(retflag: int) -> bool:
+    """Whether any part of the eclipse is visible from the queried place at
+    all. In practice this is essentially always True for next_*_eclipse_raw
+    results, since the underlying _when_loc search already selects for
+    location-visible eclipses — exposed anyway rather than assumed."""
+    return bool(retflag & swe.ECL_VISIBLE)
+
+
+def solar_contact_visible(retflag: int, contact: str) -> bool:
+    """contact in {'first', 'fourth'} — whether that specific contact is
+    observable from the queried place (see next_solar_eclipse_raw's
+    docstring for why this bit, not a zero-check on tret, is authoritative)."""
+    bit = {"first": swe.ECL_1ST_VISIBLE, "fourth": swe.ECL_4TH_VISIBLE}[contact]
+    return bool(retflag & bit)
 
 
 def retrograde_planet_ids(jd: float, p) -> list[int]:

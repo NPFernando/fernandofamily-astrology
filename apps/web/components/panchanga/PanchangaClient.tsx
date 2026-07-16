@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { getDictionary, nakshatraName, translateEnum } from "@/lib/i18n";
-import { ApiError, fetchPanchanga, type DailyPanchanga } from "@/lib/api-client";
+import { ApiError, fetchPanchanga, fetchEclipseForecast, type DailyPanchanga, type EclipseForecast } from "@/lib/api-client";
 import { LocationPicker, DEFAULT_LOCATION, mostRecentLocation, type LocationValue } from "@/components/pancha-pakshi/LocationPicker";
 import { DateNav } from "@/components/pancha-pakshi/DateNav";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
@@ -36,11 +36,25 @@ function formatTime(iso: string, locale: string) {
   });
 }
 
+// Eclipse contact times can fall months away from the requested date (unlike
+// every other panchanga element, which is always same-day) — always show the
+// date alongside the time.
+function formatDateTime(iso: string, locale: string) {
+  return new Date(iso).toLocaleString(locale === "si" ? "si-LK" : "en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export function PanchangaClient() {
   const { dict, locale } = useLocale();
   const [date, setDate] = useState<string>(() => todayIso());
   const [location, setLocation] = useState<LocationValue | null>(null);
   const [data, setData] = useState<DailyPanchanga | null>(null);
+  const [eclipses, setEclipses] = useState<EclipseForecast | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [usedDefaults, setUsedDefaults] = useState(false);
@@ -49,14 +63,24 @@ export function PanchangaClient() {
     setLoading(true);
     setError(null);
     try {
-      const result = await fetchPanchanga({
-        date: forDate,
-        location_name: loc.name,
-        latitude: loc.latitude,
-        longitude: loc.longitude,
-        iana_tz: loc.iana_tz,
-      });
+      const [result, eclipseResult] = await Promise.all([
+        fetchPanchanga({
+          date: forDate,
+          location_name: loc.name,
+          latitude: loc.latitude,
+          longitude: loc.longitude,
+          iana_tz: loc.iana_tz,
+        }),
+        fetchEclipseForecast({
+          from_date: forDate,
+          location_name: loc.name,
+          latitude: loc.latitude,
+          longitude: loc.longitude,
+          iana_tz: loc.iana_tz,
+        }),
+      ]);
       setData(result);
+      setEclipses(eclipseResult);
     } catch (e) {
       setError(e instanceof ApiError ? dict.ui.error : dict.ui.error);
     } finally {
@@ -413,6 +437,57 @@ export function PanchangaClient() {
             <p className="mt-2 text-xs opacity-70">{dict.panchanga.horaNote}</p>
           </details>
 
+          {eclipses && (
+            <details
+              className="rounded-xl border border-black/10 bg-white/30 p-3 dark:border-white/10 dark:bg-white/[.03]"
+              data-testid="panchanga-eclipses"
+            >
+              <summary className="cursor-pointer text-sm font-semibold uppercase text-accent">
+                {dict.panchanga.eclipseTitle}
+              </summary>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <EclipseCard
+                  dict={dict}
+                  locale={locale}
+                  title={dict.panchanga.nextSolarEclipse}
+                  type={eclipses.next_solar.type}
+                  isVisible={eclipses.next_solar.is_visible}
+                  maxAt={eclipses.next_solar.max_at}
+                  rows={[
+                    [dict.panchanga.eclipseFirstContact, eclipses.next_solar.first_contact_at],
+                    [dict.panchanga.eclipseFourthContact, eclipses.next_solar.fourth_contact_at],
+                  ]}
+                  magnitudeLabel={dict.panchanga.eclipseMagnitude}
+                  magnitudeValue={eclipses.next_solar.magnitude}
+                  extraLabel={dict.panchanga.eclipseObscuration}
+                  extraValue={eclipses.next_solar.obscuration}
+                  sutakStart={eclipses.next_solar.sutak_starts_at}
+                  sutakEnd={eclipses.next_solar.sutak_ends_at}
+                />
+                <EclipseCard
+                  dict={dict}
+                  locale={locale}
+                  title={dict.panchanga.nextLunarEclipse}
+                  type={eclipses.next_lunar.type}
+                  isVisible={eclipses.next_lunar.is_visible}
+                  maxAt={eclipses.next_lunar.max_at}
+                  rows={[
+                    [dict.panchanga.eclipseBegins, eclipses.next_lunar.begins_at],
+                    [dict.panchanga.eclipseTotalityStarts, eclipses.next_lunar.totality_starts_at],
+                    [dict.panchanga.eclipseTotalityEnds, eclipses.next_lunar.totality_ends_at],
+                    [dict.panchanga.eclipseEnds, eclipses.next_lunar.ends_at],
+                  ]}
+                  magnitudeLabel={dict.panchanga.eclipseMagnitude}
+                  magnitudeValue={eclipses.next_lunar.umbral_magnitude}
+                  sutakStart={eclipses.next_lunar.sutak_starts_at}
+                  sutakEnd={eclipses.next_lunar.sutak_ends_at}
+                />
+              </div>
+              <p className="mt-2 text-xs opacity-70">{dict.panchanga.eclipseNote}</p>
+              <p className="mt-1 text-xs opacity-70">{dict.panchanga.sutakKaalTitle}: {dict.panchanga.sutakKaalNote}</p>
+            </details>
+          )}
+
           <section
             aria-label={dict.panchanga.sunMoonTitle}
             className="grid grid-cols-2 gap-3 rounded-xl border border-black/10 p-4 text-sm dark:border-white/10 sm:grid-cols-4"
@@ -483,6 +558,70 @@ function SpanLine({
         {endsNextDay && <> ({nextDayLabel})</>}
       </span>
     </p>
+  );
+}
+
+function EclipseCard({
+  dict,
+  locale,
+  title,
+  type,
+  isVisible,
+  maxAt,
+  rows,
+  magnitudeLabel,
+  magnitudeValue,
+  extraLabel,
+  extraValue,
+  sutakStart,
+  sutakEnd,
+}: {
+  dict: ReturnType<typeof getDictionary>;
+  locale: string;
+  title: string;
+  type: string;
+  isVisible: boolean;
+  maxAt: string;
+  rows: [string, string | null][];
+  magnitudeLabel: string;
+  magnitudeValue: number;
+  extraLabel?: string;
+  extraValue?: number;
+  sutakStart: string | null;
+  sutakEnd: string | null;
+}) {
+  return (
+    <div className="rounded-lg bg-white/40 p-3 text-sm dark:bg-black/20">
+      <p className="font-semibold">{title}</p>
+      <p className="text-xs opacity-70">{translateEnum(dict, "eclipseTypes", type)}</p>
+      {!isVisible && (
+        <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">{dict.panchanga.eclipseNotVisible}</p>
+      )}
+      <p className="mt-1 tabular-nums text-xs opacity-90">
+        {dict.panchanga.eclipseMaxAt}: {formatDateTime(maxAt, locale)}
+      </p>
+      {rows.map(
+        ([label, value]) =>
+          value && (
+            <p key={label} className="tabular-nums text-xs opacity-80">
+              {label}: {formatDateTime(value, locale)}
+            </p>
+          ),
+      )}
+      <p className="tabular-nums text-xs opacity-80">
+        {magnitudeLabel}: {magnitudeValue.toFixed(3)}
+      </p>
+      {extraLabel && extraValue !== undefined && (
+        <p className="tabular-nums text-xs opacity-80">
+          {extraLabel}: {extraValue.toFixed(3)}
+        </p>
+      )}
+      {sutakStart && sutakEnd && (
+        <p className="mt-1 tabular-nums text-xs opacity-70">
+          {dict.panchanga.sutakKaalTitle}: {formatDateTime(sutakStart, locale)} – {formatDateTime(sutakEnd, locale)}
+        </p>
+      )}
+    </div>
   );
 }
 

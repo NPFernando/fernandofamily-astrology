@@ -48,6 +48,19 @@
 - Bird Compatibility mini-tool — direct two-bird friend/same/enemy
   comparison using the pinned Pancha Pakshi source tables, bilingual and
   zero-click on load (`/compatibility`, `POST /api/v1/compatibility/birds`)
+- Sinhala Daily Astrology Guide — a Sri Lanka-focused day view combining
+  Daily Panchanga, Poya status, avoid times (rahu / yamaganda / gulika),
+  sun/moon times, current Pancha Pakshi period and favourable windows
+  (`/daily-guide`). This composes the existing Panchanga and Pancha Pakshi
+  APIs rather than adding a separate calculation engine.
+- Birth Nakshatra helper — exact birth timestamp/location to Nakshatra,
+  Pada, Paksha, Moon sign and derived Pancha Pakshi birth bird, with quick
+  handoff into Pancha Pakshi or the Daily Guide using only derived data
+  (`/birth-nakshatra`, `POST /api/v1/birth-nakshatra/resolve`).
+- Muhurta-style favourable time finder — Sri Lanka-focused practical start
+  windows for general work, travel, study/work, purchases and home rituals,
+  combining Pancha Pakshi strength with Panchanga avoid/support periods
+  (`/muhurta`, `POST /api/v1/muhurta/search`).
 
 - Sri Lankan layer for the Daily Panchanga: Poya (full-moon) day detection
   and Sinhala Poya-cycle month names (bak, vesak, poson, … madin, with
@@ -69,19 +82,20 @@ navigation, the sitemap, or anywhere that implies they are available, until
 they are actually built, registered in the feature registry
 (`packages/feature-registry`), and explicitly enabled.
 
-1. Telegram bot — "what's my current period?", daily morning summary.
+1. Moon phase + Tithi calendar — month view focused on Poya, tithi changes
+   and Sinhala month context.
 
 **Explicitly out of scope** (not deferrals — decided against):
+- Telegram bot or other chat integrations.
 - A third (Tamil) locale. The platform stays bilingual, Sinhala + English only.
 - Public API keys / third-party developer access. This platform's API is for
   its own frontend only; it is not being opened up for external integrations.
 
-**Larger future modules** (same registry pattern; unscheduled): Muhurta
-finder, birth chart / Kundali basics (asteroid + fixed-star data for these is
-retained in the repo — see `FUTURE_DATA_USES.md`), Moon phase + Tithi
-calendar, festival calendar, Dasha calculations, standalone birth-Nakshatra
-tool, historical/ancestor chart tools (the BCE–medieval ephemeris the image
-trims away remains available for exactly this).
+**Larger future modules** (same registry pattern; unscheduled): birth chart /
+Kundali basics (asteroid + fixed-star data for these is retained in the repo
+— see `FUTURE_DATA_USES.md`), festival calendar, Dasha calculations, and
+historical/ancestor chart tools (the BCE–medieval ephemeris the image trims
+away remains available for exactly this).
 
 Adding any module should follow the Pancha Pakshi pattern: an isolated
 `apps/api/app/modules/<feature>/` backend module, its own feature-registry

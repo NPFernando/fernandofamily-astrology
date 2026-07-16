@@ -62,6 +62,12 @@ def nakshatra_index_1based(jd: float, p) -> int:
     return drik.nakshatra(jd, p)[0]
 
 
+def nakshatra_with_pada(jd: float, p) -> list:
+    """Raw drik.nakshatra() payload; callers use [0]=nakshatra 1..27 and
+    [1]=pada 1..4 for an exact moment."""
+    return drik.nakshatra(jd, p)
+
+
 def tara_bala_groups(jd: float, p) -> list[list[int]]:
     """9 lists of 1-based birth-star nakshatra indices (1..27), grouped by
     which tārā category today's Moon nakshatra places them in — index 0..8,

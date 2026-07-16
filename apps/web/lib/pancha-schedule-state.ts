@@ -3,6 +3,7 @@
 import {
   fetchScheduleWithServerTime,
   type BirdId,
+  type PakshaId,
   type ScheduleRequest,
   type ScheduleResponse,
 } from "@/lib/api-client";
@@ -14,10 +15,17 @@ import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFi
 const SCHEDULE_CACHE_KEY = "ff_last_schedule_cache";
 const SESSION_SCHEDULE_KEY = "ff_session_schedule";
 const LIVE_SEED_KEY = "ff_live_schedule_seed";
+const DERIVED_IDENTITY_SEED_KEY = "ff_derived_identity_seed";
 
 export type CachedSchedule = { schedule: ScheduleResponse; cachedAtIso: string };
 export type SessionSchedule = { schedule: ScheduleResponse; serverTimeIso: string | null; fetchedAtClientMs: number };
 export type LiveScheduleSeed = SessionSchedule & { request: ScheduleRequest };
+export type DerivedIdentitySeed = {
+  bird: BirdId;
+  nakshatra_index: number | null;
+  paksha: PakshaId | null;
+  savedAtIso: string;
+};
 
 export function loadCachedSchedule(): CachedSchedule | null {
   if (typeof window === "undefined") return null;
@@ -99,11 +107,34 @@ export function saveLiveSeed(schedule: ScheduleResponse, serverTime: Date | null
   );
 }
 
+export function hasDerivedIdentitySeed(): boolean {
+  if (typeof window === "undefined") return false;
+  return Boolean(window.sessionStorage.getItem(DERIVED_IDENTITY_SEED_KEY));
+}
+
+export function saveDerivedIdentitySeed(seed: Omit<DerivedIdentitySeed, "savedAtIso">) {
+  window.sessionStorage.setItem(
+    DERIVED_IDENTITY_SEED_KEY,
+    JSON.stringify({ ...seed, savedAtIso: new Date().toISOString() } satisfies DerivedIdentitySeed),
+  );
+}
+
+function loadDerivedIdentitySeed(): DerivedIdentitySeed | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(DERIVED_IDENTITY_SEED_KEY);
+    return raw ? (JSON.parse(raw) as DerivedIdentitySeed) : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function resolveDefaultScheduleRequest(): Promise<ScheduleRequest> {
   const account = await loadAccountPreferences();
   const localProfiles = listLocalProfiles();
   const newest = localProfiles[localProfiles.length - 1];
   const storedBird = window.localStorage.getItem("ff_selected_bird") as BirdId | null;
+  const derivedSeed = loadDerivedIdentitySeed();
   const location = account.preferences?.default_location ?? mostRecentLocation() ?? DEFAULT_LOCATION;
   const target = nowAsTargetDateTime(location.iana_tz);
   const base = {
@@ -115,6 +146,17 @@ export async function resolveDefaultScheduleRequest(): Promise<ScheduleRequest> 
     iana_tz: location.iana_tz,
   };
 
+  if (derivedSeed?.nakshatra_index && derivedSeed.paksha) {
+    return {
+      ...base,
+      method: "nakshatra_paksha",
+      nakshatra_index: derivedSeed.nakshatra_index,
+      paksha: derivedSeed.paksha,
+    };
+  }
+  if (derivedSeed?.bird) {
+    return { ...base, method: "bird", bird: derivedSeed.bird };
+  }
   if (account.preferences?.default_bird) {
     return { ...base, method: "bird", bird: account.preferences.default_bird };
   }

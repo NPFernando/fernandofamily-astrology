@@ -6,6 +6,7 @@ import { enabledFeatures } from "@/lib/feature-registry";
 import { PUBLIC_BASE_URL, PUBLIC_REPOSITORY_URL } from "@/lib/site-config";
 import { BIRD_ICONS } from "@/components/icons/birds";
 import { CockIcon, PeacockIcon } from "@/components/icons/birds";
+import { FullMoonIcon } from "@/components/icons/moon";
 import { SunIcon } from "@/components/icons/sun";
 
 export async function generateMetadata({
@@ -21,6 +22,7 @@ const BIRD_ORDER = ["vulture", "owl", "crow", "cock", "peacock"] as const;
 // The registry's `icon` field resolved to a renderable component; new tools
 // register their glyph here alongside their registry entry.
 const FEATURE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  moon: FullMoonIcon,
   peacock: PeacockIcon,
   sun: SunIcon,
   cock: CockIcon,
@@ -40,36 +42,16 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
         url: PUBLIC_BASE_URL,
         inLanguage: ["en", "si"],
       },
-      {
+      ...features.map((feature) => ({
         "@type": "WebApplication",
-        name: dict.metadata.panchanga.title,
-        url: `${PUBLIC_BASE_URL}/${locale}/panchanga`,
+        name: resolveKey(dict, feature.titleKey),
+        url: `${PUBLIC_BASE_URL}/${locale}${feature.route}`,
         applicationCategory: "LifestyleApplication",
         operatingSystem: "Web",
         offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-        description: dict.metadata.panchanga.description,
+        description: resolveKey(dict, feature.descriptionKey),
         license: `${PUBLIC_REPOSITORY_URL}/blob/main/LICENSE`,
-      },
-      {
-        "@type": "WebApplication",
-        name: dict.metadata.panchaPakshi.title,
-        url: `${PUBLIC_BASE_URL}/${locale}/pancha-pakshi`,
-        applicationCategory: "LifestyleApplication",
-        operatingSystem: "Web",
-        offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-        description: dict.metadata.panchaPakshi.description,
-        license: `${PUBLIC_REPOSITORY_URL}/blob/main/LICENSE`,
-      },
-      {
-        "@type": "WebApplication",
-        name: dict.metadata.compatibility.title,
-        url: `${PUBLIC_BASE_URL}/${locale}/compatibility`,
-        applicationCategory: "LifestyleApplication",
-        operatingSystem: "Web",
-        offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-        description: dict.metadata.compatibility.description,
-        license: `${PUBLIC_REPOSITORY_URL}/blob/main/LICENSE`,
-      },
+      })),
     ],
   };
 

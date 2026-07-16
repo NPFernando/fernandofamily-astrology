@@ -4,6 +4,10 @@
     "tagline": "Traditional astrology tools, calculated precisely."
   },
   "features": {
+    "birthNakshatra": {
+      "title": "Birth Nakshatra Helper",
+      "description": "Enter birth details to find Nakshatra, Pada, Paksha, Moon sign and Pancha Pakshi birth bird."
+    },
     "panchaPakshi": {
       "title": "Pancha Pakshi Live",
       "description": "A live, sunrise-based Pancha Pakshi timetable for any location and birth bird."
@@ -12,6 +16,14 @@
       "title": "Daily Panchanga",
       "description": "Tithi, nakshatra, yoga, karana and the day's inauspicious kalams, calculated for any location and date."
     },
+    "dailyGuide": {
+      "title": "Sinhala Daily Guide",
+      "description": "A practical daily view combining Panchanga, Poya, avoid times and Pancha Pakshi favourable windows for Sri Lanka."
+    },
+    "muhurta": {
+      "title": "Favourable Time Finder",
+      "description": "Find practical Muhurta-style start windows by combining Pancha Pakshi strength with Panchanga avoid and support periods."
+    },
     "compatibility": {
       "title": "Bird Compatibility",
       "description": "Compare two Pancha Pakshi birds and see whether the source tables treat the pair as friend, same or enemy."
@@ -19,6 +31,7 @@
   },
   "nav": {
     "home": "Home",
+    "birthNakshatra": "Birth Nakshatra",
     "panchaPakshi": "Pancha Pakshi",
     "about": "About",
     "methodology": "Methodology",
@@ -26,7 +39,9 @@
     "disclaimer": "Disclaimer",
     "licensing": "Licence",
     "sourceCode": "Source code",
-    "panchanga": "Panchanga"
+    "panchanga": "Panchanga",
+    "dailyGuide": "Daily Guide",
+    "muhurta": "Muhurta"
   },
   "enums": {
     "birds": {
@@ -58,6 +73,20 @@
     "paksha": {
       "waxing": "Waxing Moon / Shukla Paksha",
       "waning": "Waning Moon / Krishna Paksha"
+    },
+    "rashis": {
+      "mesha": "Mesha / Aries",
+      "vrishabha": "Vrishabha / Taurus",
+      "mithuna": "Mithuna / Gemini",
+      "karka": "Karka / Cancer",
+      "simha": "Simha / Leo",
+      "kanya": "Kanya / Virgo",
+      "tula": "Tula / Libra",
+      "vrischika": "Vrischika / Scorpio",
+      "dhanu": "Dhanu / Sagittarius",
+      "makara": "Makara / Capricorn",
+      "kumbha": "Kumbha / Aquarius",
+      "meena": "Meena / Pisces"
     },
     "weekdays": {
       "sunday": "Sunday",
@@ -206,6 +235,13 @@
       "saturn": "Saturn",
       "rahu": "Rahu",
       "ketu": "Ketu"
+    },
+    "eclipseTypes": {
+      "partial": "Partial",
+      "annular": "Annular",
+      "total": "Total",
+      "hybrid": "Hybrid",
+      "penumbral": "Penumbral"
     }
   },
   "ui": {
@@ -443,6 +479,10 @@
     "landing": {
       "description": "Open-source bilingual astrology platform with an accurate live Pancha Pakshi timetable calculated from real sunrise and sunset times."
     },
+    "birthNakshatra": {
+      "title": "Birth Nakshatra Helper",
+      "description": "Calculate birth Nakshatra, Pada, Paksha, Moon sign and Pancha Pakshi birth bird without storing raw birth details."
+    },
     "panchaPakshi": {
       "title": "Pancha Pakshi Live Timetable",
       "description": "Find your birth bird and follow a live sunrise-to-sunrise Pancha Pakshi timetable with all ten major periods and fifty sub-periods, calculated for your location."
@@ -474,6 +514,14 @@
     "panchanga": {
       "title": "Daily Panchanga",
       "description": "Daily Panchanga — tithi, nakshatra, yoga, karana, lunar month and rahu kala, calculated from real sunrise times for your location."
+    },
+    "dailyGuide": {
+      "title": "Sinhala Daily Astrology Guide",
+      "description": "A practical Sri Lankan day guide combining Panchanga, Poya, avoid times and Pancha Pakshi favourable windows."
+    },
+    "muhurta": {
+      "title": "Favourable Time Finder",
+      "description": "A Sri Lanka-focused Muhurta-style finder that filters favourable Pancha Pakshi windows against Panchanga avoid periods."
     },
     "compatibility": {
       "title": "Bird Compatibility",
@@ -513,6 +561,24 @@
     "grahaPositionsTitle": "Graha Positions",
     "grahaPositionsNote": "Today's sidereal position for each of the 9 grahas, with retrograde (vakri) planets flagged.",
     "retrograde": "Retrograde",
+    "eclipseTitle": "Eclipse & Grahan Forecast",
+    "eclipseNote": "The next solar and lunar eclipse with any part visible from this location, computed directly from the Swiss Ephemeris.",
+    "nextSolarEclipse": "Next Solar Eclipse",
+    "nextLunarEclipse": "Next Lunar Eclipse",
+    "eclipseMaxAt": "Greatest eclipse",
+    "eclipseFirstContact": "First contact",
+    "eclipseFourthContact": "Last contact",
+    "eclipseBegins": "Begins",
+    "eclipseEnds": "Ends",
+    "eclipsePartialStarts": "Partial phase begins",
+    "eclipsePartialEnds": "Partial phase ends",
+    "eclipseTotalityStarts": "Totality begins",
+    "eclipseTotalityEnds": "Totality ends",
+    "eclipseMagnitude": "Magnitude",
+    "eclipseObscuration": "Obscuration",
+    "eclipseNotVisible": "Not visible from this location",
+    "sutakKaalTitle": "Sutak Kaal",
+    "sutakKaalNote": "A traditional advisory window observed before an eclipse — a named classical convention, not an astronomical prediction.",
     "sunMoonTitle": "Sun & Moon",
     "moonrise": "Moonrise",
     "moonset": "Moonset",
@@ -523,6 +589,67 @@
     "poyaTodayLabel": "Today is Poya",
     "poyaFullMoonSuffix": "Full Moon",
     "nextPoyaLabel": "Next Poya"
+  },
+  "birthNakshatra": {
+    "title": "Birth Nakshatra Helper",
+    "description": "Calculate the birth identity used by the other astrology tools: Nakshatra, Pada, Paksha, Moon sign and Pancha Pakshi birth bird.",
+    "birthDetailsTitle": "Birth details",
+    "calculate": "Calculate birth identity",
+    "nakshatra": "Birth Nakshatra",
+    "moonRashi": "Moon sign",
+    "nextActionsTitle": "Use this result",
+    "openPanchaPakshi": "Use in Pancha Pakshi",
+    "openDailyGuide": "Open Daily Guide",
+    "privacyNote": "Only the derived Nakshatra, Paksha and birth bird are used for these actions or saved profiles. Birth date, time and exact birth location are not stored."
+  },
+  "dailyGuide": {
+    "title": "Sinhala Daily Astrology Guide",
+    "description": "See the day's Poya status, Panchanga essentials, avoid times and the best Pancha Pakshi windows in one Sri Lanka-focused view.",
+    "controlsTitle": "Guide settings",
+    "showingDefaults": "Showing today's guide with saved or default settings — adjust date, location or bird above.",
+    "notPoya": "Not a Poya day",
+    "currentTitle": "Current Pancha Pakshi period",
+    "currentUnavailable": "Live current-period guidance is shown only for today.",
+    "goodWindowsTitle": "Best favourable windows",
+    "avoidTitle": "Avoid starting during"
+  },
+  "muhurta": {
+    "title": "Favourable Time Finder",
+    "description": "Find practical start windows for everyday Sri Lankan use. This combines Pancha Pakshi strength with Panchanga avoid periods and supportive Muhurta layers.",
+    "controlsTitle": "Finder settings",
+    "purpose": "Purpose",
+    "purposes": {
+      "general": "General important work",
+      "travel": "Travel start",
+      "study_work": "Study or work",
+      "purchase": "Purchase or signing",
+      "home_ritual": "Home ritual"
+    },
+    "startDate": "Start date",
+    "searchDays": "Days to search",
+    "minimumStrength": "Minimum strength",
+    "summaryTitle": "Recommendations",
+    "foundWindows": "{count} usable windows found",
+    "windows": "windows",
+    "minutes": "min",
+    "hours": "hr",
+    "openDailyGuide": "Open Daily Guide",
+    "noWindows": "No matching windows were found. Try more days or lower the minimum strength.",
+    "grades": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "usable": "Usable"
+    },
+    "sources": {
+      "pancha_pakshi": "Pancha Pakshi",
+      "amrit_kaalam": "Amrit Kaalam",
+      "abhijit_muhurta": "Abhijit Muhurta",
+      "choghadiya": "Choghadiya",
+      "hora": "Hora"
+    },
+    "cautions": {
+      "disha_shool": "Travel-direction caution"
+    }
   },
   "compatibility": {
     "title": "Bird Compatibility",

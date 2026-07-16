@@ -1068,6 +1068,72 @@
         "title": "DailyPanchangaRequest",
         "type": "object"
       },
+      "EclipseForecast": {
+        "properties": {
+          "engine": {
+            "$ref": "#/components/schemas/EngineMetadata"
+          },
+          "from_date": {
+            "format": "date",
+            "title": "From Date",
+            "type": "string"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "next_lunar": {
+            "$ref": "#/components/schemas/LunarEclipseEvent"
+          },
+          "next_solar": {
+            "$ref": "#/components/schemas/SolarEclipseEvent"
+          }
+        },
+        "required": [
+          "engine",
+          "location",
+          "from_date",
+          "next_solar",
+          "next_lunar"
+        ],
+        "title": "EclipseForecast",
+        "type": "object"
+      },
+      "EclipseForecastRequest": {
+        "properties": {
+          "from_date": {
+            "format": "date",
+            "title": "From Date",
+            "type": "string"
+          },
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          }
+        },
+        "required": [
+          "from_date",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz"
+        ],
+        "title": "EclipseForecastRequest",
+        "type": "object"
+      },
       "EffectId": {
         "enum": [
           "very_bad",
@@ -1301,6 +1367,144 @@
         "title": "Location",
         "type": "object"
       },
+      "LunarEclipseEvent": {
+        "properties": {
+          "begins_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Begins At"
+          },
+          "ends_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ends At"
+          },
+          "is_visible": {
+            "title": "Is Visible",
+            "type": "boolean"
+          },
+          "max_at": {
+            "format": "date-time",
+            "title": "Max At",
+            "type": "string"
+          },
+          "partial_ends_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Partial Ends At"
+          },
+          "partial_starts_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Partial Starts At"
+          },
+          "penumbral_magnitude": {
+            "title": "Penumbral Magnitude",
+            "type": "number"
+          },
+          "sutak_ends_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sutak Ends At"
+          },
+          "sutak_starts_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sutak Starts At"
+          },
+          "totality_ends_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Totality Ends At"
+          },
+          "totality_starts_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Totality Starts At"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          },
+          "umbral_magnitude": {
+            "title": "Umbral Magnitude",
+            "type": "number"
+          }
+        },
+        "required": [
+          "type",
+          "is_visible",
+          "max_at",
+          "begins_at",
+          "ends_at",
+          "partial_starts_at",
+          "partial_ends_at",
+          "totality_starts_at",
+          "totality_ends_at",
+          "umbral_magnitude",
+          "penumbral_magnitude",
+          "sutak_starts_at",
+          "sutak_ends_at"
+        ],
+        "title": "LunarEclipseEvent",
+        "type": "object"
+      },
       "LunarMonth": {
         "properties": {
           "index": {
@@ -1392,6 +1596,498 @@
           "key"
         ],
         "title": "MoonRashi",
+        "type": "object"
+      },
+      "MuhurtaBirdSelectionInput": {
+        "properties": {
+          "bird": {
+            "$ref": "#/components/schemas/BirdId"
+          },
+          "days": {
+            "default": 7,
+            "maximum": 14.0,
+            "minimum": 1.0,
+            "title": "Days",
+            "type": "integer"
+          },
+          "from_date": {
+            "format": "date",
+            "title": "From Date",
+            "type": "string"
+          },
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "method": {
+            "const": "bird",
+            "title": "Method",
+            "type": "string"
+          },
+          "min_duration_seconds": {
+            "default": 900,
+            "maximum": 86400.0,
+            "minimum": 60.0,
+            "title": "Min Duration Seconds",
+            "type": "integer"
+          },
+          "min_effect": {
+            "default": "good",
+            "enum": [
+              "good",
+              "very_good"
+            ],
+            "title": "Min Effect",
+            "type": "string"
+          },
+          "purpose": {
+            "default": "general",
+            "enum": [
+              "general",
+              "travel",
+              "study_work",
+              "purchase",
+              "home_ritual"
+            ],
+            "title": "Purpose",
+            "type": "string"
+          }
+        },
+        "required": [
+          "from_date",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz",
+          "method",
+          "bird"
+        ],
+        "title": "MuhurtaBirdSelectionInput",
+        "type": "object"
+      },
+      "MuhurtaBirthDateTimeInput": {
+        "properties": {
+          "birth_date": {
+            "format": "date",
+            "title": "Birth Date",
+            "type": "string"
+          },
+          "birth_time": {
+            "format": "time",
+            "title": "Birth Time",
+            "type": "string"
+          },
+          "days": {
+            "default": 7,
+            "maximum": 14.0,
+            "minimum": 1.0,
+            "title": "Days",
+            "type": "integer"
+          },
+          "from_date": {
+            "format": "date",
+            "title": "From Date",
+            "type": "string"
+          },
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "method": {
+            "const": "birth_datetime",
+            "title": "Method",
+            "type": "string"
+          },
+          "min_duration_seconds": {
+            "default": 900,
+            "maximum": 86400.0,
+            "minimum": 60.0,
+            "title": "Min Duration Seconds",
+            "type": "integer"
+          },
+          "min_effect": {
+            "default": "good",
+            "enum": [
+              "good",
+              "very_good"
+            ],
+            "title": "Min Effect",
+            "type": "string"
+          },
+          "purpose": {
+            "default": "general",
+            "enum": [
+              "general",
+              "travel",
+              "study_work",
+              "purchase",
+              "home_ritual"
+            ],
+            "title": "Purpose",
+            "type": "string"
+          }
+        },
+        "required": [
+          "from_date",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz",
+          "method",
+          "birth_date",
+          "birth_time"
+        ],
+        "title": "MuhurtaBirthDateTimeInput",
+        "type": "object"
+      },
+      "MuhurtaCautionInfo": {
+        "properties": {
+          "key": {
+            "const": "disha_shool",
+            "title": "Key",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ],
+        "title": "MuhurtaCautionInfo",
+        "type": "object"
+      },
+      "MuhurtaDaySummary": {
+        "properties": {
+          "best_grade": {
+            "anyOf": [
+              {
+                "enum": [
+                  "excellent",
+                  "good",
+                  "usable"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Best Grade"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "total_seconds": {
+            "title": "Total Seconds",
+            "type": "integer"
+          },
+          "window_count": {
+            "title": "Window Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "date",
+          "window_count",
+          "best_grade",
+          "total_seconds"
+        ],
+        "title": "MuhurtaDaySummary",
+        "type": "object"
+      },
+      "MuhurtaNakshatraPakshaInput": {
+        "properties": {
+          "days": {
+            "default": 7,
+            "maximum": 14.0,
+            "minimum": 1.0,
+            "title": "Days",
+            "type": "integer"
+          },
+          "from_date": {
+            "format": "date",
+            "title": "From Date",
+            "type": "string"
+          },
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "method": {
+            "const": "nakshatra_paksha",
+            "title": "Method",
+            "type": "string"
+          },
+          "min_duration_seconds": {
+            "default": 900,
+            "maximum": 86400.0,
+            "minimum": 60.0,
+            "title": "Min Duration Seconds",
+            "type": "integer"
+          },
+          "min_effect": {
+            "default": "good",
+            "enum": [
+              "good",
+              "very_good"
+            ],
+            "title": "Min Effect",
+            "type": "string"
+          },
+          "nakshatra_index": {
+            "title": "Nakshatra Index",
+            "type": "integer"
+          },
+          "paksha": {
+            "$ref": "#/components/schemas/PakshaId"
+          },
+          "purpose": {
+            "default": "general",
+            "enum": [
+              "general",
+              "travel",
+              "study_work",
+              "purchase",
+              "home_ritual"
+            ],
+            "title": "Purpose",
+            "type": "string"
+          }
+        },
+        "required": [
+          "from_date",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz",
+          "method",
+          "nakshatra_index",
+          "paksha"
+        ],
+        "title": "MuhurtaNakshatraPakshaInput",
+        "type": "object"
+      },
+      "MuhurtaSearchResponse": {
+        "properties": {
+          "birth_bird": {
+            "$ref": "#/components/schemas/BirdId"
+          },
+          "days": {
+            "title": "Days",
+            "type": "integer"
+          },
+          "engine": {
+            "$ref": "#/components/schemas/EngineMetadata"
+          },
+          "from_date": {
+            "format": "date",
+            "title": "From Date",
+            "type": "string"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "per_day": {
+            "items": {
+              "$ref": "#/components/schemas/MuhurtaDaySummary"
+            },
+            "title": "Per Day",
+            "type": "array"
+          },
+          "purpose": {
+            "enum": [
+              "general",
+              "travel",
+              "study_work",
+              "purchase",
+              "home_ritual"
+            ],
+            "title": "Purpose",
+            "type": "string"
+          },
+          "windows": {
+            "items": {
+              "$ref": "#/components/schemas/MuhurtaWindow"
+            },
+            "title": "Windows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "engine",
+          "location",
+          "birth_bird",
+          "from_date",
+          "days",
+          "purpose",
+          "windows",
+          "per_day"
+        ],
+        "title": "MuhurtaSearchResponse",
+        "type": "object"
+      },
+      "MuhurtaSourceOverlap": {
+        "properties": {
+          "ends_at": {
+            "format": "date-time",
+            "title": "Ends At",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "pancha_pakshi",
+              "amrit_kaalam",
+              "abhijit_muhurta",
+              "choghadiya",
+              "hora"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "starts_at": {
+            "format": "date-time",
+            "title": "Starts At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "starts_at",
+          "ends_at"
+        ],
+        "title": "MuhurtaSourceOverlap",
+        "type": "object"
+      },
+      "MuhurtaWindow": {
+        "properties": {
+          "cautions": {
+            "items": {
+              "$ref": "#/components/schemas/MuhurtaCautionInfo"
+            },
+            "title": "Cautions",
+            "type": "array"
+          },
+          "duration_seconds": {
+            "title": "Duration Seconds",
+            "type": "integer"
+          },
+          "effective_date": {
+            "format": "date",
+            "title": "Effective Date",
+            "type": "string"
+          },
+          "ends_at": {
+            "format": "date-time",
+            "title": "Ends At",
+            "type": "string"
+          },
+          "grade": {
+            "enum": [
+              "excellent",
+              "good",
+              "usable"
+            ],
+            "title": "Grade",
+            "type": "string"
+          },
+          "pancha_pakshi_activity": {
+            "$ref": "#/components/schemas/ActivityId"
+          },
+          "pancha_pakshi_effect": {
+            "$ref": "#/components/schemas/EffectId"
+          },
+          "reasons": {
+            "items": {
+              "enum": [
+                "pancha_pakshi",
+                "amrit_kaalam",
+                "abhijit_muhurta",
+                "choghadiya",
+                "hora"
+              ],
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "source_overlaps": {
+            "items": {
+              "$ref": "#/components/schemas/MuhurtaSourceOverlap"
+            },
+            "title": "Source Overlaps",
+            "type": "array"
+          },
+          "starts_at": {
+            "format": "date-time",
+            "title": "Starts At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "effective_date",
+          "starts_at",
+          "ends_at",
+          "duration_seconds",
+          "grade",
+          "score",
+          "pancha_pakshi_effect",
+          "pancha_pakshi_activity",
+          "reasons",
+          "cautions",
+          "source_overlaps"
+        ],
+        "title": "MuhurtaWindow",
         "type": "object"
       },
       "NakshatraPakshaInput": {
@@ -1987,6 +2683,92 @@
         "title": "SinhalaMonth",
         "type": "object"
       },
+      "SolarEclipseEvent": {
+        "properties": {
+          "first_contact_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Contact At"
+          },
+          "fourth_contact_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fourth Contact At"
+          },
+          "is_visible": {
+            "title": "Is Visible",
+            "type": "boolean"
+          },
+          "magnitude": {
+            "title": "Magnitude",
+            "type": "number"
+          },
+          "max_at": {
+            "format": "date-time",
+            "title": "Max At",
+            "type": "string"
+          },
+          "obscuration": {
+            "title": "Obscuration",
+            "type": "number"
+          },
+          "sutak_ends_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sutak Ends At"
+          },
+          "sutak_starts_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sutak Starts At"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "is_visible",
+          "max_at",
+          "first_contact_at",
+          "fourth_contact_at",
+          "magnitude",
+          "obscuration",
+          "sutak_starts_at",
+          "sutak_ends_at"
+        ],
+        "title": "SolarEclipseEvent",
+        "type": "object"
+      },
       "SubPeriod": {
         "properties": {
           "duration_seconds": {
@@ -2360,6 +3142,66 @@
         ]
       }
     },
+    "/api/v1/muhurta/search": {
+      "post": {
+        "operationId": "search_api_v1_muhurta_search_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "discriminator": {
+                  "mapping": {
+                    "bird": "#/components/schemas/MuhurtaBirdSelectionInput",
+                    "birth_datetime": "#/components/schemas/MuhurtaBirthDateTimeInput",
+                    "nakshatra_paksha": "#/components/schemas/MuhurtaNakshatraPakshaInput"
+                  },
+                  "propertyName": "method"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/MuhurtaBirthDateTimeInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MuhurtaNakshatraPakshaInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MuhurtaBirdSelectionInput"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MuhurtaSearchResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Search",
+        "tags": [
+          "muhurta"
+        ]
+      }
+    },
     "/api/v1/pancha-pakshi/birth-bird": {
       "post": {
         "operationId": "birth_bird_api_v1_pancha_pakshi_birth_bird_post",
@@ -2719,6 +3561,47 @@
           }
         },
         "summary": "Daily",
+        "tags": [
+          "panchanga"
+        ]
+      }
+    },
+    "/api/v1/panchanga/eclipses": {
+      "post": {
+        "operationId": "eclipses_api_v1_panchanga_eclipses_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EclipseForecastRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EclipseForecast"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Eclipses",
         "tags": [
           "panchanga"
         ]

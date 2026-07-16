@@ -12,19 +12,28 @@ from app.modules.panchanga.errors import PanchangaInternalError
 from app.modules.panchanga.models import (
     ChoghadiyaSpan,
     DailyPanchanga,
+    EclipseForecast,
     GrahaPosition,
     HoraSpan,
     Kalams,
     KalamRange,
     KaranaSpan,
+    LunarEclipseEvent,
     LunarMonth,
     NakshatraSpan,
     NextPoya,
     PoyaInfo,
     SinhalaMonth,
+    SolarEclipseEvent,
     TithiSpan,
     YogaSpan,
 )
+
+# Classical sutak-kaal advisory windows — a named traditional convention
+# layered on top of real contact times, not itself computed astronomy (see
+# docs/jyotishya-ideas.md's B1 cultural-grounding note).
+_SOLAR_SUTAK_HOURS = 12
+_LUNAR_SUTAK_HOURS = 9
 
 # A purnima beginning less than this long before sunset assigns the Poya to
 # the NEXT civil day. The gazette panel's tithi/sunset arithmetic differs
@@ -49,6 +58,24 @@ def _hours_to_datetime(base_date: date_type, hours: float, offset_hours: float) 
 def _hms_string_to_datetime(base_date: date_type, hms: str, offset_hours: float) -> datetime:
     h, m, s = (int(part) for part in hms.split(":"))
     return _hours_to_datetime(base_date, h + m / 60 + s / 3600, offset_hours)
+
+
+def _jd_ut_to_datetime(jd_ut: float, offset_hours: float) -> datetime:
+    """Eclipse contact times from swisseph are genuine Julian Day UT — unlike
+    every other jd this module handles, which has local wall-clock time
+    baked in via pp_adapter.julian_day_number/Place (the same distinction
+    graha_longitudes' `jd_ut = jd - p.timezone / 24.0` makes in reverse).
+    Add the offset to move into this module's local-embedded jd convention,
+    then reuse the normal float-hours path."""
+    local_embedded_jd = jd_ut + offset_hours / 24.0
+    y, m, d, fh = pp_adapter.jd_to_gregorian(local_embedded_jd)
+    return _hours_to_datetime(date_type(y, m, d), fh, offset_hours)
+
+
+def _optional_jd_ut_to_datetime(jd_ut: float, offset_hours: float) -> datetime | None:
+    """0.0 is swisseph's sentinel for 'not applicable/not visible here' on
+    the lunar eclipse tret slots — see adapter.next_lunar_eclipse_raw."""
+    return _jd_ut_to_datetime(jd_ut, offset_hours) if jd_ut else None
 
 
 def _cumulative_hms_hours(hms_values: list[str]) -> list[float]:
@@ -344,6 +371,101 @@ def compute_graha_positions(jd: float, place) -> list[GrahaPosition]:
             )
         )
     return result
+
+
+def compute_eclipse_forecast(
+    from_date: date_type,
+    location_name: str,
+    latitude: float,
+    longitude: float,
+    tz: ZoneInfo,
+    engine: EngineMetadata,
+) -> EclipseForecast:
+    """Next solar/lunar eclipse with any contact visible from this location,
+    searching forward from local midnight of from_date (not noon — an
+    eclipse whose maximum falls earlier that same calendar day should still
+    be found, unlike the day-anchoring used elsewhere in this module)."""
+    adapter.ensure_ayanamsa()
+    offset_hours = resolve_utc_offset_hours(from_date, tz)
+    place = pp_adapter.place(location_name, latitude, longitude, offset_hours)
+    midnight_jd = pp_adapter.julian_day_number(
+        pp_adapter.date(from_date.year, from_date.month, from_date.day), (0, 0, 0)
+    )
+    # Eclipse search wants genuine UT (see _jd_ut_to_datetime); midnight_jd
+    # has local time embedded, so undo that embedding before searching.
+    search_start_ut = midnight_jd - offset_hours / 24.0
+
+    return EclipseForecast(
+        engine=engine,
+        location=Location(
+            name=location_name,
+            latitude=latitude,
+            longitude=longitude,
+            iana_tz=str(tz),
+            utc_offset_minutes=round(offset_hours * 60),
+        ),
+        from_date=from_date,
+        next_solar=_compute_next_solar_eclipse(search_start_ut, place, offset_hours),
+        next_lunar=_compute_next_lunar_eclipse(search_start_ut, place, offset_hours),
+    )
+
+
+def _compute_next_solar_eclipse(jd_ut: float, place, offset_hours: float) -> SolarEclipseEvent:
+    retflag, tret, attrs = adapter.next_solar_eclipse_raw(jd_ut, place)
+    is_visible = adapter.eclipse_is_visible(retflag)
+    max_at = _jd_ut_to_datetime(tret[0], offset_hours)
+    first_contact_at = (
+        _jd_ut_to_datetime(tret[1], offset_hours) if adapter.solar_contact_visible(retflag, "first") else None
+    )
+    fourth_contact_at = (
+        _jd_ut_to_datetime(tret[4], offset_hours) if adapter.solar_contact_visible(retflag, "fourth") else None
+    )
+    sutak_starts_at = sutak_ends_at = None
+    if is_visible:
+        sutak_starts_at = (first_contact_at or max_at) - timedelta(hours=_SOLAR_SUTAK_HOURS)
+        sutak_ends_at = fourth_contact_at or max_at
+    return SolarEclipseEvent(
+        type=adapter.solar_eclipse_type(retflag),
+        is_visible=is_visible,
+        max_at=max_at,
+        first_contact_at=first_contact_at,
+        fourth_contact_at=fourth_contact_at,
+        magnitude=attrs[8],
+        obscuration=attrs[2],
+        sutak_starts_at=sutak_starts_at,
+        sutak_ends_at=sutak_ends_at,
+    )
+
+
+def _compute_next_lunar_eclipse(jd_ut: float, place, offset_hours: float) -> LunarEclipseEvent:
+    retflag, tret, attrs = adapter.next_lunar_eclipse_raw(jd_ut, place)
+    is_visible = adapter.eclipse_is_visible(retflag)
+    max_at = _jd_ut_to_datetime(tret[0], offset_hours)
+    begins_at = _optional_jd_ut_to_datetime(tret[6], offset_hours)
+    ends_at = _optional_jd_ut_to_datetime(tret[7], offset_hours)
+    partial_starts_at = _optional_jd_ut_to_datetime(tret[2], offset_hours)
+    partial_ends_at = _optional_jd_ut_to_datetime(tret[3], offset_hours)
+    totality_starts_at = _optional_jd_ut_to_datetime(tret[4], offset_hours)
+    totality_ends_at = _optional_jd_ut_to_datetime(tret[5], offset_hours)
+    sutak_starts_at = sutak_ends_at = None
+    if is_visible:
+        sutak_starts_at = (begins_at or partial_starts_at or max_at) - timedelta(hours=_LUNAR_SUTAK_HOURS)
+        sutak_ends_at = ends_at or partial_ends_at or max_at
+    return LunarEclipseEvent(
+        type=adapter.lunar_eclipse_type(retflag),
+        is_visible=is_visible,
+        max_at=max_at,
+        begins_at=begins_at,
+        ends_at=ends_at,
+        partial_starts_at=partial_starts_at,
+        partial_ends_at=partial_ends_at,
+        totality_starts_at=totality_starts_at,
+        totality_ends_at=totality_ends_at,
+        umbral_magnitude=attrs[0],
+        penumbral_magnitude=attrs[1],
+        sutak_starts_at=sutak_starts_at,
+        sutak_ends_at=sutak_ends_at,
+    )
 
 
 def adapter_sunset_datetime(jd: float, place, base_date: date_type, offset_hours: float) -> datetime:

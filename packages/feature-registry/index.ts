@@ -17,6 +17,17 @@ export type FeatureEntry = {
 // not here yet.
 export const features: FeatureEntry[] = [
   {
+    id: "birth-nakshatra",
+    enabled: true,
+    public: true,
+    order: 5,
+    route: "/birth-nakshatra",
+    apiNamespace: "/api/v1/birth-nakshatra",
+    titleKey: "features.birthNakshatra.title",
+    descriptionKey: "features.birthNakshatra.description",
+    icon: "moon",
+  },
+  {
     id: "pancha-pakshi",
     enabled: true,
     public: true,
@@ -36,6 +47,28 @@ export const features: FeatureEntry[] = [
     apiNamespace: "/api/v1/panchanga",
     titleKey: "features.panchanga.title",
     descriptionKey: "features.panchanga.description",
+    icon: "sun",
+  },
+  {
+    id: "daily-guide",
+    enabled: true,
+    public: true,
+    order: 25,
+    route: "/daily-guide",
+    apiNamespace: "/api/v1",
+    titleKey: "features.dailyGuide.title",
+    descriptionKey: "features.dailyGuide.description",
+    icon: "sun",
+  },
+  {
+    id: "muhurta",
+    enabled: true,
+    public: true,
+    order: 27,
+    route: "/muhurta",
+    apiNamespace: "/api/v1/muhurta",
+    titleKey: "features.muhurta.title",
+    descriptionKey: "features.muhurta.description",
     icon: "sun",
   },
   {

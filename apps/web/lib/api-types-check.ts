@@ -14,10 +14,13 @@ import type {
   RelationId,
   EffectId,
   WeekdayId,
+  RashiId,
   SubPeriod,
   MajorPeriod,
   ScheduleResponse,
   EngineMetadata,
+  BirthNakshatraRequest,
+  BirthNakshatraResponse,
   CompatibilityRequest,
   RelationVariant,
   CompatibilityResponse,
@@ -37,6 +40,7 @@ export type _CheckKind = Expect<Equals<PeriodKind, Generated["PeriodKind"]>>;
 export type _CheckRelation = Expect<Equals<RelationId, Generated["RelationId"]>>;
 export type _CheckEffect = Expect<Equals<EffectId, Generated["EffectId"]>>;
 export type _CheckWeekday = Expect<Equals<WeekdayId, Generated["WeekdayId"]>>;
+export type _CheckRashi = Expect<Equals<RashiId, Generated["RashiId"]>>;
 
 // Response models: the generated type must be assignable to the hand-written
 // one (server can send it, client can read it). Exact equality is too strict
@@ -49,6 +53,12 @@ export type _CheckSchedule = Expect<
 >;
 export type _CheckEngine = Expect<
   Generated["EngineMetadata"] extends EngineMetadata ? true : false
+>;
+export type _CheckBirthNakshatraRequest = Expect<
+  Equals<BirthNakshatraRequest, Generated["BirthNakshatraRequest"]>
+>;
+export type _CheckBirthNakshatraResponse = Expect<
+  Generated["BirthNakshatraResponse"] extends BirthNakshatraResponse ? true : false
 >;
 export type _CheckCompatibilityRequest = Expect<
   Equals<CompatibilityRequest, Generated["CompatibilityRequest"]>

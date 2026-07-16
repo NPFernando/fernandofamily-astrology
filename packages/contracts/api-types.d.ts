@@ -89,6 +89,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/muhurta/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Search */
+        post: operations["search_api_v1_muhurta_search_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pancha-pakshi/birth-bird": {
         parameters: {
             query?: never;
@@ -202,6 +219,23 @@ export interface paths {
         put?: never;
         /** Daily */
         post: operations["daily_api_v1_panchanga_daily_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/panchanga/eclipses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Eclipses */
+        post: operations["eclipses_api_v1_panchanga_eclipses_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -651,6 +685,34 @@ export interface components {
             /** Longitude */
             longitude: number;
         };
+        /** EclipseForecast */
+        EclipseForecast: {
+            engine: components["schemas"]["EngineMetadata"];
+            /**
+             * From Date
+             * Format: date
+             */
+            from_date: string;
+            location: components["schemas"]["Location"];
+            next_lunar: components["schemas"]["LunarEclipseEvent"];
+            next_solar: components["schemas"]["SolarEclipseEvent"];
+        };
+        /** EclipseForecastRequest */
+        EclipseForecastRequest: {
+            /**
+             * From Date
+             * Format: date
+             */
+            from_date: string;
+            /** Iana Tz */
+            iana_tz: string;
+            /** Latitude */
+            latitude: number;
+            /** Location Name */
+            location_name: string;
+            /** Longitude */
+            longitude: number;
+        };
         /**
          * EffectId
          * @enum {string}
@@ -760,6 +822,38 @@ export interface components {
             /** Utc Offset Minutes */
             utc_offset_minutes: number;
         };
+        /** LunarEclipseEvent */
+        LunarEclipseEvent: {
+            /** Begins At */
+            begins_at: string | null;
+            /** Ends At */
+            ends_at: string | null;
+            /** Is Visible */
+            is_visible: boolean;
+            /**
+             * Max At
+             * Format: date-time
+             */
+            max_at: string;
+            /** Partial Ends At */
+            partial_ends_at: string | null;
+            /** Partial Starts At */
+            partial_starts_at: string | null;
+            /** Penumbral Magnitude */
+            penumbral_magnitude: number;
+            /** Sutak Ends At */
+            sutak_ends_at: string | null;
+            /** Sutak Starts At */
+            sutak_starts_at: string | null;
+            /** Totality Ends At */
+            totality_ends_at: string | null;
+            /** Totality Starts At */
+            totality_starts_at: string | null;
+            /** Type */
+            type: string;
+            /** Umbral Magnitude */
+            umbral_magnitude: number;
+        };
         /** LunarMonth */
         LunarMonth: {
             /** Index */
@@ -796,6 +890,248 @@ export interface components {
             /** Index */
             index: number;
             key: components["schemas"]["RashiId"];
+        };
+        /** MuhurtaBirdSelectionInput */
+        MuhurtaBirdSelectionInput: {
+            bird: components["schemas"]["BirdId"];
+            /**
+             * Days
+             * @default 7
+             */
+            days: number;
+            /**
+             * From Date
+             * Format: date
+             */
+            from_date: string;
+            /** Iana Tz */
+            iana_tz: string;
+            /** Latitude */
+            latitude: number;
+            /** Location Name */
+            location_name: string;
+            /** Longitude */
+            longitude: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            method: "bird";
+            /**
+             * Min Duration Seconds
+             * @default 900
+             */
+            min_duration_seconds: number;
+            /**
+             * Min Effect
+             * @default good
+             * @enum {string}
+             */
+            min_effect: "good" | "very_good";
+            /**
+             * Purpose
+             * @default general
+             * @enum {string}
+             */
+            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual";
+        };
+        /** MuhurtaBirthDateTimeInput */
+        MuhurtaBirthDateTimeInput: {
+            /**
+             * Birth Date
+             * Format: date
+             */
+            birth_date: string;
+            /**
+             * Birth Time
+             * Format: time
+             */
+            birth_time: string;
+            /**
+             * Days
+             * @default 7
+             */
+            days: number;
+            /**
+             * From Date
+             * Format: date
+             */
+            from_date: string;
+            /** Iana Tz */
+            iana_tz: string;
+            /** Latitude */
+            latitude: number;
+            /** Location Name */
+            location_name: string;
+            /** Longitude */
+            longitude: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            method: "birth_datetime";
+            /**
+             * Min Duration Seconds
+             * @default 900
+             */
+            min_duration_seconds: number;
+            /**
+             * Min Effect
+             * @default good
+             * @enum {string}
+             */
+            min_effect: "good" | "very_good";
+            /**
+             * Purpose
+             * @default general
+             * @enum {string}
+             */
+            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual";
+        };
+        /** MuhurtaCautionInfo */
+        MuhurtaCautionInfo: {
+            /**
+             * Key
+             * @constant
+             */
+            key: "disha_shool";
+            /** Value */
+            value: string;
+        };
+        /** MuhurtaDaySummary */
+        MuhurtaDaySummary: {
+            /** Best Grade */
+            best_grade: ("excellent" | "good" | "usable") | null;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Total Seconds */
+            total_seconds: number;
+            /** Window Count */
+            window_count: number;
+        };
+        /** MuhurtaNakshatraPakshaInput */
+        MuhurtaNakshatraPakshaInput: {
+            /**
+             * Days
+             * @default 7
+             */
+            days: number;
+            /**
+             * From Date
+             * Format: date
+             */
+            from_date: string;
+            /** Iana Tz */
+            iana_tz: string;
+            /** Latitude */
+            latitude: number;
+            /** Location Name */
+            location_name: string;
+            /** Longitude */
+            longitude: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            method: "nakshatra_paksha";
+            /**
+             * Min Duration Seconds
+             * @default 900
+             */
+            min_duration_seconds: number;
+            /**
+             * Min Effect
+             * @default good
+             * @enum {string}
+             */
+            min_effect: "good" | "very_good";
+            /** Nakshatra Index */
+            nakshatra_index: number;
+            paksha: components["schemas"]["PakshaId"];
+            /**
+             * Purpose
+             * @default general
+             * @enum {string}
+             */
+            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual";
+        };
+        /** MuhurtaSearchResponse */
+        MuhurtaSearchResponse: {
+            birth_bird: components["schemas"]["BirdId"];
+            /** Days */
+            days: number;
+            engine: components["schemas"]["EngineMetadata"];
+            /**
+             * From Date
+             * Format: date
+             */
+            from_date: string;
+            location: components["schemas"]["Location"];
+            /** Per Day */
+            per_day: components["schemas"]["MuhurtaDaySummary"][];
+            /**
+             * Purpose
+             * @enum {string}
+             */
+            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual";
+            /** Windows */
+            windows: components["schemas"]["MuhurtaWindow"][];
+        };
+        /** MuhurtaSourceOverlap */
+        MuhurtaSourceOverlap: {
+            /**
+             * Ends At
+             * Format: date-time
+             */
+            ends_at: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "pancha_pakshi" | "amrit_kaalam" | "abhijit_muhurta" | "choghadiya" | "hora";
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+        };
+        /** MuhurtaWindow */
+        MuhurtaWindow: {
+            /** Cautions */
+            cautions: components["schemas"]["MuhurtaCautionInfo"][];
+            /** Duration Seconds */
+            duration_seconds: number;
+            /**
+             * Effective Date
+             * Format: date
+             */
+            effective_date: string;
+            /**
+             * Ends At
+             * Format: date-time
+             */
+            ends_at: string;
+            /**
+             * Grade
+             * @enum {string}
+             */
+            grade: "excellent" | "good" | "usable";
+            pancha_pakshi_activity: components["schemas"]["ActivityId"];
+            pancha_pakshi_effect: components["schemas"]["EffectId"];
+            /** Reasons */
+            reasons: ("pancha_pakshi" | "amrit_kaalam" | "abhijit_muhurta" | "choghadiya" | "hora")[];
+            /** Score */
+            score: number;
+            /** Source Overlaps */
+            source_overlaps: components["schemas"]["MuhurtaSourceOverlap"][];
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
         };
         /** NakshatraPakshaInput */
         NakshatraPakshaInput: {
@@ -1035,6 +1371,30 @@ export interface components {
             /** Key */
             key: string;
         };
+        /** SolarEclipseEvent */
+        SolarEclipseEvent: {
+            /** First Contact At */
+            first_contact_at: string | null;
+            /** Fourth Contact At */
+            fourth_contact_at: string | null;
+            /** Is Visible */
+            is_visible: boolean;
+            /** Magnitude */
+            magnitude: number;
+            /**
+             * Max At
+             * Format: date-time
+             */
+            max_at: string;
+            /** Obscuration */
+            obscuration: number;
+            /** Sutak Ends At */
+            sutak_ends_at: string | null;
+            /** Sutak Starts At */
+            sutak_starts_at: string | null;
+            /** Type */
+            type: string;
+        };
         /** SubPeriod */
         SubPeriod: {
             /** Duration Seconds */
@@ -1268,6 +1628,39 @@ export interface operations {
             };
         };
     };
+    search_api_v1_muhurta_search_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MuhurtaBirthDateTimeInput"] | components["schemas"]["MuhurtaNakshatraPakshaInput"] | components["schemas"]["MuhurtaBirdSelectionInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MuhurtaSearchResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     birth_bird_api_v1_pancha_pakshi_birth_bird_post: {
         parameters: {
             query?: never;
@@ -1479,6 +1872,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DailyPanchanga"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    eclipses_api_v1_panchanga_eclipses_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EclipseForecastRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EclipseForecast"];
                 };
             };
             /** @description Validation Error */

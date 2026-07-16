@@ -9,3 +9,11 @@ class DailyPanchangaRequest(BaseModel):
     latitude: float
     longitude: float
     iana_tz: str
+
+
+class EclipseForecastRequest(BaseModel):
+    from_date: date_type
+    location_name: str = Field(min_length=1, max_length=200)
+    latitude: float
+    longitude: float
+    iana_tz: str

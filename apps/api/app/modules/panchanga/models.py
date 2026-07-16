@@ -96,6 +96,53 @@ class NextPoya(BaseModel):
     month_key: str
 
 
+class SolarEclipseEvent(BaseModel):
+    type: str  # "partial" | "annular" | "total" | "hybrid"
+    is_visible: bool  # any contact observable from the requested location
+    max_at: datetime  # time of greatest eclipse
+    # None when that specific contact isn't observable from this location
+    # (e.g. occurs after local sunset) — see adapter.solar_contact_visible.
+    first_contact_at: datetime | None
+    fourth_contact_at: datetime | None
+    magnitude: float  # NASA convention
+    obscuration: float  # fraction of solar disc covered by the Moon
+    # Traditional "sutak kaal" advisory window (~12h before first contact to
+    # last contact) — a named classical convention, not computed astronomy;
+    # None when the eclipse isn't visible from this location at all.
+    sutak_starts_at: datetime | None
+    sutak_ends_at: datetime | None
+
+
+class LunarEclipseEvent(BaseModel):
+    type: str  # "penumbral" | "partial" | "total"
+    is_visible: bool
+    max_at: datetime
+    # Overall event bounds (penumbral phase) — None when not visible from
+    # this location (see adapter.next_lunar_eclipse_raw's zero-sentinel note).
+    begins_at: datetime | None
+    ends_at: datetime | None
+    # None unless this eclipse has a partial phase (partial or total type).
+    partial_starts_at: datetime | None
+    partial_ends_at: datetime | None
+    # None unless this eclipse has a total phase (type == "total").
+    totality_starts_at: datetime | None
+    totality_ends_at: datetime | None
+    umbral_magnitude: float
+    penumbral_magnitude: float
+    # Traditional "sutak kaal" (~9h before the eclipse begins to its end) —
+    # a named classical convention, not computed astronomy.
+    sutak_starts_at: datetime | None
+    sutak_ends_at: datetime | None
+
+
+class EclipseForecast(BaseModel):
+    engine: EngineMetadata
+    location: Location
+    from_date: date_type  # the date the forward search started from
+    next_solar: SolarEclipseEvent
+    next_lunar: LunarEclipseEvent
+
+
 class DailyPanchanga(BaseModel):
     engine: EngineMetadata
     location: Location

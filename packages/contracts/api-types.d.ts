@@ -549,6 +549,23 @@ export interface components {
              */
             starts_at: string;
         };
+        /** ChoghadiyaSpan */
+        ChoghadiyaSpan: {
+            /**
+             * Ends At
+             * Format: date-time
+             */
+            ends_at: string;
+            /** Is Auspicious */
+            is_auspicious: boolean;
+            /** Key */
+            key: string;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+        };
         /** CompatibilityRequest */
         CompatibilityRequest: {
             bird_a: components["schemas"]["BirdId"];
@@ -568,12 +585,16 @@ export interface components {
         };
         /** DailyPanchanga */
         DailyPanchanga: {
+            /** Choghadiya */
+            choghadiya: components["schemas"]["ChoghadiyaSpan"][];
             /**
              * Date
              * Format: date
              */
             date: string;
             engine: components["schemas"]["EngineMetadata"];
+            /** Hora */
+            hora: components["schemas"]["HoraSpan"][];
             /** Is Poya Day */
             is_poya_day: boolean;
             kalams: components["schemas"]["Kalams"];
@@ -650,6 +671,23 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HoraSpan */
+        HoraSpan: {
+            /**
+             * Ends At
+             * Format: date-time
+             */
+            ends_at: string;
+            /** Is Auspicious */
+            is_auspicious: boolean;
+            /** Key */
+            key: string;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
         };
         /** KalamRange */
         KalamRange: {

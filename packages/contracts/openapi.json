@@ -772,6 +772,36 @@
         "title": "ChandrashtamaWindow",
         "type": "object"
       },
+      "ChoghadiyaSpan": {
+        "properties": {
+          "ends_at": {
+            "format": "date-time",
+            "title": "Ends At",
+            "type": "string"
+          },
+          "is_auspicious": {
+            "title": "Is Auspicious",
+            "type": "boolean"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "starts_at": {
+            "format": "date-time",
+            "title": "Starts At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "is_auspicious",
+          "starts_at",
+          "ends_at"
+        ],
+        "title": "ChoghadiyaSpan",
+        "type": "object"
+      },
       "CompatibilityRequest": {
         "properties": {
           "bird_a": {
@@ -828,6 +858,13 @@
       },
       "DailyPanchanga": {
         "properties": {
+          "choghadiya": {
+            "items": {
+              "$ref": "#/components/schemas/ChoghadiyaSpan"
+            },
+            "title": "Choghadiya",
+            "type": "array"
+          },
           "date": {
             "format": "date",
             "title": "Date",
@@ -835,6 +872,13 @@
           },
           "engine": {
             "$ref": "#/components/schemas/EngineMetadata"
+          },
+          "hora": {
+            "items": {
+              "$ref": "#/components/schemas/HoraSpan"
+            },
+            "title": "Hora",
+            "type": "array"
           },
           "is_poya_day": {
             "title": "Is Poya Day",
@@ -953,7 +997,9 @@
           "nakshatra",
           "yoga",
           "karana",
-          "kalams"
+          "kalams",
+          "choghadiya",
+          "hora"
         ],
         "title": "DailyPanchanga",
         "type": "object"
@@ -1054,6 +1100,36 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HoraSpan": {
+        "properties": {
+          "ends_at": {
+            "format": "date-time",
+            "title": "Ends At",
+            "type": "string"
+          },
+          "is_auspicious": {
+            "title": "Is Auspicious",
+            "type": "boolean"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "starts_at": {
+            "format": "date-time",
+            "title": "Starts At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "is_auspicious",
+          "starts_at",
+          "ends_at"
+        ],
+        "title": "HoraSpan",
         "type": "object"
       },
       "KalamRange": {

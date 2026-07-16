@@ -186,6 +186,24 @@
       "south": "South",
       "west": "West",
       "north": "North"
+    },
+    "choghadiya": {
+      "udveg": "Udveg",
+      "chara": "Chara",
+      "laabha": "Laabha",
+      "amrit": "Amrit",
+      "kaala": "Kaala",
+      "shubha": "Shubha",
+      "rog": "Rog"
+    },
+    "horaPlanets": {
+      "sun": "Sun",
+      "moon": "Moon",
+      "mars": "Mars",
+      "mercury": "Mercury",
+      "jupiter": "Jupiter",
+      "venus": "Venus",
+      "saturn": "Saturn"
     }
   },
   "ui": {
@@ -480,6 +498,10 @@
     "rahuKala": "Rahu Kala",
     "yamaganda": "Yamaganda",
     "gulika": "Gulika Kala",
+    "choghadiyaTitle": "Choghadiya",
+    "choghadiyaNote": "8 day and 8 night segments, each traditionally auspicious or inauspicious for starting new activities.",
+    "horaTitle": "Hora",
+    "horaNote": "Hour-by-hour planetary rulership across the day and night, a South Indian time-measure tradition.",
     "sunMoonTitle": "Sun & Moon",
     "moonrise": "Moonrise",
     "moonset": "Moonset",

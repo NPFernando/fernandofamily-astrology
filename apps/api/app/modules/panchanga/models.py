@@ -49,6 +49,20 @@ class Kalams(BaseModel):
     gulika: KalamRange
 
 
+class ChoghadiyaSpan(BaseModel):
+    key: str  # repository.CHOGHADIYA_KEYS
+    is_auspicious: bool
+    starts_at: datetime
+    ends_at: datetime
+
+
+class HoraSpan(BaseModel):
+    key: str  # repository.HORA_PLANET_KEYS — the planet ruling this hour
+    is_auspicious: bool
+    starts_at: datetime
+    ends_at: datetime
+
+
 class LunarMonth(BaseModel):
     key: str
     index: int  # 1..12, amanta, 1 = chaitra
@@ -95,3 +109,5 @@ class DailyPanchanga(BaseModel):
     yoga: list[YogaSpan]
     karana: list[KaranaSpan]  # all half-tithi spans overlapping sunrise..next-sunrise
     kalams: Kalams
+    choghadiya: list[ChoghadiyaSpan]  # 16: 8 day + 8 night, chronological
+    hora: list[HoraSpan]  # 24: 12 day + 12 night, chronological

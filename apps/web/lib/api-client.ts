@@ -243,6 +243,8 @@ export type NakshatraSpan = {
 export type YogaSpan = { key: string; index: number; starts_at: string; ends_at: string };
 export type KaranaSpan = { key: string; index_60: number; starts_at: string; ends_at: string };
 export type KalamRange = { starts_at: string; ends_at: string };
+export type ChoghadiyaSpan = { key: string; is_auspicious: boolean; starts_at: string; ends_at: string };
+export type HoraSpan = { key: string; is_auspicious: boolean; starts_at: string; ends_at: string };
 
 export type DailyPanchanga = {
   engine: EngineMetadata;
@@ -264,6 +266,8 @@ export type DailyPanchanga = {
   yoga: YogaSpan[];
   karana: KaranaSpan[];
   kalams: { rahu: KalamRange; yamaganda: KalamRange; gulika: KalamRange };
+  choghadiya: ChoghadiyaSpan[];
+  hora: HoraSpan[];
 };
 
 export class ApiError extends Error {

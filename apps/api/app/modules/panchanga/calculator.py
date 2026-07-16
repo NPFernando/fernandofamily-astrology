@@ -10,7 +10,9 @@ from app.modules.pancha_pakshi.repository import WEEKDAY_ORDER
 from app.modules.panchanga import adapter, repository
 from app.modules.panchanga.errors import PanchangaInternalError
 from app.modules.panchanga.models import (
+    ChoghadiyaSpan,
     DailyPanchanga,
+    HoraSpan,
     Kalams,
     KalamRange,
     KaranaSpan,
@@ -46,6 +48,59 @@ def _hours_to_datetime(base_date: date_type, hours: float, offset_hours: float) 
 def _hms_string_to_datetime(base_date: date_type, hms: str, offset_hours: float) -> datetime:
     h, m, s = (int(part) for part in hms.split(":"))
     return _hours_to_datetime(base_date, h + m / 60 + s / 3600, offset_hours)
+
+
+def _cumulative_hms_hours(hms_values: list[str]) -> list[float]:
+    """Converts a chronologically-ordered list of independent 'HH:MM:SS'
+    strings (each 0-24, no day information) into cumulative hours-since-
+    base-date-midnight, detecting midnight rollovers. Unlike the float-hours
+    convention this module's other elements use (where >=24 already signals
+    "next day"), gauri_choghadiya()/shubha_hora() reset their HMS strings to
+    be relative to whichever new calendar day a segment falls on once it
+    crosses midnight — so a value smaller than the previous one means a day
+    has passed; add 24 for every such rollover to make the sequence
+    monotonic, then feed straight into _hours_to_datetime as normal."""
+    cumulative: list[float] = []
+    day_offset = 0.0
+    previous: float | None = None
+    for hms in hms_values:
+        h, m, s = (int(part) for part in hms.split(":"))
+        hours = h + m / 60 + s / 3600 + day_offset
+        if previous is not None and hours < previous:
+            day_offset += 24
+            hours += 24
+        cumulative.append(hours)
+        previous = hours
+    return cumulative
+
+
+def _typed_hms_spans(
+    raw: list[tuple[int, str, str]],
+    keys: list[str],
+    auspicious: list[bool],
+    span_cls,
+    base_date: date_type,
+    offset_hours: float,
+):
+    """Shared parser for gauri_choghadiya()/shubha_hora()'s identical shape:
+    a chronological list of (type_index, start_hms, end_hms) tuples where
+    segment i's end equals segment i+1's start. Builds one combined
+    boundary-timestamp list (start of the first segment, then each
+    segment's end) so _cumulative_hms_hours only has to reason about
+    rollovers once, not separately per segment."""
+    boundaries = [raw[0][1]] + [end for _, _, end in raw]
+    cumulative_hours = _cumulative_hms_hours(boundaries)
+    spans = []
+    for i, (type_index, _, _) in enumerate(raw):
+        spans.append(
+            span_cls(
+                key=keys[type_index],
+                is_auspicious=auspicious[type_index],
+                starts_at=_hours_to_datetime(base_date, cumulative_hours[i], offset_hours),
+                ends_at=_hours_to_datetime(base_date, cumulative_hours[i + 1], offset_hours),
+            )
+        )
+    return spans
 
 
 def _plausible_rise_set(value: list, jd: float) -> bool:
@@ -190,6 +245,23 @@ def compute_daily_panchanga(
         gulika=_kalam_range(noon_jd, place, "gulikai", target_date, offset_hours),
     )
 
+    choghadiya = _typed_hms_spans(
+        adapter.gauri_choghadiya(noon_jd, place),
+        repository.CHOGHADIYA_KEYS,
+        repository.CHOGHADIYA_AUSPICIOUS,
+        ChoghadiyaSpan,
+        target_date,
+        offset_hours,
+    )
+    hora = _typed_hms_spans(
+        adapter.shubha_hora(noon_jd, place),
+        repository.HORA_PLANET_KEYS,
+        repository.HORA_AUSPICIOUS,
+        HoraSpan,
+        target_date,
+        offset_hours,
+    )
+
     is_poya, poya, next_poya, sinhala_month = compute_poya(target_date, place, offset_hours)
 
     return DailyPanchanga(
@@ -218,6 +290,8 @@ def compute_daily_panchanga(
         yoga=yoga_spans,
         karana=karana_spans,
         kalams=kalams,
+        choghadiya=choghadiya,
+        hora=hora,
     )
 
 

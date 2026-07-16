@@ -10,6 +10,7 @@ import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFi
 import { SunIcon } from "@/components/icons/sun";
 import { FullMoonIcon } from "@/components/icons/moon";
 import { loadAccountPreferences } from "@/lib/account-preferences";
+import { EFFECT_COLORS } from "@fernandofamily/design-system";
 
 // Sinhala Poya-cycle month names (bak, vesak, ... madin) live under
 // enums.sinhalaMonths; the API's "adhi-" prefix (leap month) is not itself a
@@ -300,6 +301,56 @@ export function PanchangaClient() {
             </div>
             <p className="mt-2 text-xs opacity-70">{dict.panchanga.kalamsNote}</p>
           </section>
+
+          <details
+            className="rounded-xl border border-black/10 bg-white/30 p-3 dark:border-white/10 dark:bg-white/[.03]"
+            data-testid="panchanga-choghadiya"
+          >
+            <summary className="cursor-pointer text-sm font-semibold uppercase text-accent">
+              {dict.panchanga.choghadiyaTitle}
+            </summary>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              {data.choghadiya.map((span, i) => (
+                <div key={i} className="rounded-lg bg-white/40 p-2 text-xs dark:bg-black/20">
+                  <p
+                    className="font-medium"
+                    style={{ color: span.is_auspicious ? EFFECT_COLORS.good : EFFECT_COLORS.bad }}
+                  >
+                    {translateEnum(dict, "choghadiya", span.key)}
+                  </p>
+                  <p className="tabular-nums opacity-80">
+                    {formatTime(span.starts_at, locale)} – {formatTime(span.ends_at, locale)}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-2 text-xs opacity-70">{dict.panchanga.choghadiyaNote}</p>
+          </details>
+
+          <details
+            className="rounded-xl border border-black/10 bg-white/30 p-3 dark:border-white/10 dark:bg-white/[.03]"
+            data-testid="panchanga-hora"
+          >
+            <summary className="cursor-pointer text-sm font-semibold uppercase text-accent">
+              {dict.panchanga.horaTitle}
+            </summary>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              {data.hora.map((span, i) => (
+                <div key={i} className="rounded-lg bg-white/40 p-2 text-xs dark:bg-black/20">
+                  <p
+                    className="font-medium"
+                    style={{ color: span.is_auspicious ? EFFECT_COLORS.good : EFFECT_COLORS.bad }}
+                  >
+                    {translateEnum(dict, "horaPlanets", span.key)}
+                  </p>
+                  <p className="tabular-nums opacity-80">
+                    {formatTime(span.starts_at, locale)} – {formatTime(span.ends_at, locale)}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-2 text-xs opacity-70">{dict.panchanga.horaNote}</p>
+          </details>
 
           <section
             aria-label={dict.panchanga.sunMoonTitle}

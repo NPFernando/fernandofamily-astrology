@@ -6,6 +6,7 @@ from app.modules.pancha_pakshi import adapter, repository
 from app.modules.pancha_pakshi.enums import BirdId, PakshaId, PeriodKind
 from app.modules.pancha_pakshi.errors import PanchaPakshiInternalError, SunriseUnavailableError
 from app.modules.pancha_pakshi.models import (
+    ChandrashtamaWindow,
     EngineMetadata,
     Location,
     MajorPeriod,
@@ -95,14 +96,18 @@ def resolve_effective_jd(
 
 def compute_birth_bird(
     y: int, m: int, d: int, hh: int, mm: int, ss: int, name: str, latitude: float, longitude: float, tz: ZoneInfo
-) -> tuple[BirdId, int]:
-    """Returns (birth_bird, birth_nakshatra_1based) — the nakshatra is needed
-    by callers wiring in Tara Bala (see compute_tara_bala), not just the bird."""
+) -> tuple[BirdId, int, int]:
+    """Returns (birth_bird, birth_nakshatra_1based, natal_moon_rashi_1based)
+    — needed by callers wiring in Tara Bala / Chandrashtama, not just the
+    bird. Rashi is only meaningful when derived from a full birth moment
+    like this one (see compute_chandrashtama's docstring for why Method B's
+    bare nakshatra_index can't substitute)."""
     jd, _, _, place = resolve_effective_jd(y, m, d, hh, mm, ss, name, latitude, longitude, tz)
     nakshatra_1based = adapter.nakshatra_index_1based(jd, place)
     paksha_1based = adapter.paksha_index_1based(jd, place)
     bird_1based = adapter.birth_bird_1based(nakshatra_1based, paksha_1based)
-    return repository.BIRD_ORDER[bird_1based - 1], nakshatra_1based
+    moon_rashi_1based = adapter.natal_moon_rashi_1based(jd, place)
+    return repository.BIRD_ORDER[bird_1based - 1], nakshatra_1based, moon_rashi_1based
 
 
 def compute_tara_bala(nakshatra_1based: int, jd: float, place) -> TaraBala:
@@ -118,6 +123,27 @@ def compute_tara_bala(nakshatra_1based: int, jd: float, place) -> TaraBala:
             )
     raise PanchaPakshiInternalError(
         f"nakshatra {nakshatra_1based} not found in any tara_bala_groups category"
+    )
+
+
+def compute_chandrashtama(
+    natal_moon_rashi_1based: int, jd: float, place, offset_hours: float
+) -> ChandrashtamaWindow | None:
+    """None unless `natal_moon_rashi_1based` is currently the ONE rashi 8th
+    from today's Moon (adapter.chandrashtama_today) — true only ~1/12 of the
+    time even for a known natal rashi. `natal_moon_rashi_1based` is only
+    meaningful when derived from a full birth moment (see
+    compute_birth_bird) — a bare nakshatra_index can straddle two rashis
+    depending on pada, so callers without an exact birth moment (Method B/C)
+    must pass this function nothing and leave the schedule's chandrashtama
+    field null."""
+    afflicted_rasi, end_jd = adapter.chandrashtama_today(jd, place)
+    if afflicted_rasi != natal_moon_rashi_1based:
+        return None
+    start_jd = adapter.previous_moon_rashi_entry_jd(jd, place)
+    return ChandrashtamaWindow(
+        starts_at=_jd_to_aware_datetime(start_jd, offset_hours),
+        ends_at=_jd_to_aware_datetime(end_jd, offset_hours),
     )
 
 
@@ -146,6 +172,7 @@ def compute_schedule(
     engine: EngineMetadata,
     now: datetime | None = None,
     birth_nakshatra_index: int | None = None,
+    natal_moon_rashi: int | None = None,
 ) -> ScheduleResponse:
     jd, sunrise_jd, offset_hours, place = resolve_effective_jd(
         target_y, target_m, target_d, target_hh, target_mm, target_ss, location_name, latitude, longitude, tz
@@ -155,6 +182,9 @@ def compute_schedule(
     # nakshatra is known (Methods A/B; Method C, direct bird selection, has
     # no birth nakshatra to classify).
     tara_bala = compute_tara_bala(birth_nakshatra_index, jd, place) if birth_nakshatra_index is not None else None
+    # Chandrashtama needs a birth RASHI, only unambiguously derivable from a
+    # full birth moment (Method A) — see compute_chandrashtama's docstring.
+    chandrashtama = compute_chandrashtama(natal_moon_rashi, jd, place, offset_hours) if natal_moon_rashi is not None else None
 
     weekday_0based = adapter.weekday_index_0based(jd, place)
     paksha_1based = adapter.paksha_index_1based(jd, place)
@@ -236,6 +266,7 @@ def compute_schedule(
         next_sunrise=_jd_to_aware_datetime(next_sunrise_jd, offset_hours),
         birth_bird=birth_bird,
         tara_bala=tara_bala,
+        chandrashtama=chandrashtama,
         paksha=PakshaId.waxing if paksha_1based == 1 else PakshaId.waning,
         weekday=repository.WEEKDAY_ORDER[weekday_0based],
         padu_pakshi=major_periods[0].padu_pakshi,

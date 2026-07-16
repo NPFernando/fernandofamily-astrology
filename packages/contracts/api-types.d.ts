@@ -480,6 +480,19 @@ export interface components {
              */
             target_time: string;
         };
+        /** ChandrashtamaWindow */
+        ChandrashtamaWindow: {
+            /**
+             * Ends At
+             * Format: date-time
+             */
+            ends_at: string;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+        };
         /** CompatibilityRequest */
         CompatibilityRequest: {
             bird_a: components["schemas"]["BirdId"];
@@ -845,6 +858,7 @@ export interface components {
         ScheduleResponse: {
             bharana_pakshi: components["schemas"]["BirdId"];
             birth_bird: components["schemas"]["BirdId"];
+            chandrashtama: components["schemas"]["ChandrashtamaWindow"] | null;
             current_period: components["schemas"]["SubPeriod"] | null;
             engine: components["schemas"]["EngineMetadata"];
             location: components["schemas"]["Location"];

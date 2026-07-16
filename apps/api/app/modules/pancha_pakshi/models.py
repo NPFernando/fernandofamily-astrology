@@ -67,6 +67,11 @@ class TaraBala(BaseModel):
     effect: EffectId
 
 
+class ChandrashtamaWindow(BaseModel):
+    starts_at: datetime
+    ends_at: datetime
+
+
 class ScheduleResponse(BaseModel):
     engine: EngineMetadata
     location: Location
@@ -78,6 +83,12 @@ class ScheduleResponse(BaseModel):
     # details, or known nakshatra+paksha); null for Method C (direct bird
     # selection), which has no birth nakshatra to classify against.
     tara_bala: TaraBala | None
+    # Only present when a birth RASHI is known and the natal Moon rashi
+    # currently matches the day's afflicted rashi (~1/12 of the time even
+    # when known). Rashi is only unambiguously derivable from a full birth
+    # date/time (Method A) — a bare nakshatra_index (Method B) can straddle
+    # two rashis depending on pada, so this stays null for Methods B and C.
+    chandrashtama: ChandrashtamaWindow | None
     paksha: PakshaId
     weekday: WeekdayId
     # Convenience mirrors of major_periods[0]'s values, kept for API-shape

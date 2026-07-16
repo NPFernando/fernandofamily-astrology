@@ -114,6 +114,11 @@ export type TaraBala = {
   effect: EffectId;
 };
 
+export type ChandrashtamaWindow = {
+  starts_at: string;
+  ends_at: string;
+};
+
 export type ScheduleResponse = {
   engine: EngineMetadata;
   location: Location;
@@ -124,6 +129,10 @@ export type ScheduleResponse = {
   // Only present when a birth nakshatra is known (birth-details or
   // known-nakshatra methods); null for direct bird selection.
   tara_bala: TaraBala | null;
+  // Only present when a birth RASHI is known (birth-details method only —
+  // a bare nakshatra_index can straddle two rashis) AND the natal Moon
+  // rashi currently matches the day's afflicted rashi (~1/12 of the time).
+  chandrashtama: ChandrashtamaWindow | null;
   paksha: PakshaId;
   weekday: WeekdayId;
   padu_pakshi: BirdId;

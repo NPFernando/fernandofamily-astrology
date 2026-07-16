@@ -657,6 +657,26 @@
         "title": "BirthDateTimeWindowsInput",
         "type": "object"
       },
+      "ChandrashtamaWindow": {
+        "properties": {
+          "ends_at": {
+            "format": "date-time",
+            "title": "Ends At",
+            "type": "string"
+          },
+          "starts_at": {
+            "format": "date-time",
+            "title": "Starts At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "starts_at",
+          "ends_at"
+        ],
+        "title": "ChandrashtamaWindow",
+        "type": "object"
+      },
       "CompatibilityRequest": {
         "properties": {
           "bird_a": {
@@ -1554,6 +1574,16 @@
           "birth_bird": {
             "$ref": "#/components/schemas/BirdId"
           },
+          "chandrashtama": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChandrashtamaWindow"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "current_period": {
             "anyOf": [
               {
@@ -1633,6 +1663,7 @@
           "next_sunrise",
           "birth_bird",
           "tara_bala",
+          "chandrashtama",
           "paksha",
           "weekday",
           "padu_pakshi",

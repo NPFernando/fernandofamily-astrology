@@ -30,7 +30,7 @@ def schedule_from_birth_datetime(
     tz = validation.validate_location(latitude, longitude, iana_tz)
     validation.validate_supported_date(birth_date, "birth_date")
     validation.validate_supported_date(target_date, "target_date")
-    birth_bird, birth_nakshatra_index = calculator.compute_birth_bird(
+    birth_bird, birth_nakshatra_index, natal_moon_rashi = calculator.compute_birth_bird(
         birth_date.year,
         birth_date.month,
         birth_date.day,
@@ -62,6 +62,7 @@ def schedule_from_birth_datetime(
         location,
         engine,
         birth_nakshatra_index=birth_nakshatra_index,
+        natal_moon_rashi=natal_moon_rashi,
     )
 
 

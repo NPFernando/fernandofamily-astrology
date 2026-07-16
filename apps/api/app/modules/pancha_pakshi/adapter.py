@@ -7,7 +7,7 @@ from app.core.vendor_path import configure_ayanamsa, ensure_vendor_on_path
 
 ensure_vendor_on_path()
 
-from jhora import utils  # noqa: E402
+from jhora import const, utils  # noqa: E402
 from jhora.panchanga import drik, pancha_paksha  # noqa: E402
 
 configure_ayanamsa(drik)
@@ -67,6 +67,26 @@ def tara_bala_groups(jd: float, p) -> list[list[int]]:
     which tārā category today's Moon nakshatra places them in — index 0..8,
     see calculator.py's TARA_KEYS/TARA_EFFECT_ORDER for what each means."""
     return drik.thaaraabalam(jd, p, return_only_good_stars=False)
+
+
+def natal_moon_rashi_1based(jd: float, p) -> int:
+    return drik.raasi(jd, p)[0]
+
+
+def chandrashtama_today(jd: float, p) -> tuple[int, float]:
+    """(afflicted_rasi_1based, window_end_jd) — the ONE rashi currently
+    8th-from-Moon (whichever natal rashi is presently in chandrashtama),
+    plus the JD the Moon next changes sign (the window's end). Does not
+    take a natal rashi as input — the caller compares afflicted_rasi
+    against the user's own natal Moon rashi."""
+    return drik.chandrashtama(jd, p)
+
+
+def previous_moon_rashi_entry_jd(jd: float, p) -> float:
+    """The JD the Moon most recently entered its current rashi — the start
+    of the current chandrashtama window, if any (chandrashtama_today only
+    gives the end)."""
+    return drik.next_planet_entry_date(const._MOON, jd, p, direction=-1)[0]
 
 
 def birth_bird_1based(nakshatra_1based: int, paksha_1based: int) -> int:

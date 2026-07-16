@@ -272,6 +272,17 @@ export function PanchaPakshiLiveView() {
                       color={EFFECT_COLORS[schedule.tara_bala.effect]}
                     />
                   )}
+                  {schedule.chandrashtama && (
+                    <Fact
+                      label={dict.ui.chandrashtama}
+                      value={
+                        locale === "si"
+                          ? `${timeFormat.format(new Date(schedule.chandrashtama.ends_at))} ${dict.ui.chandrashtamaUntil}`
+                          : `${dict.ui.chandrashtamaUntil} ${timeFormat.format(new Date(schedule.chandrashtama.ends_at))}`
+                      }
+                      color={EFFECT_COLORS.bad}
+                    />
+                  )}
                   <Fact label={dict.ui.weekday} value={translateEnum(dict, "weekdays", schedule.weekday)} />
                   <Fact label={dict.ui.paksha} value={translateEnum(dict, "paksha", schedule.paksha)} />
                   <Fact label={dict.ui.sunrise} value={timeFormat.format(new Date(schedule.sunrise))} />

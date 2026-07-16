@@ -284,6 +284,14 @@ export function PanchaPakshiClient() {
                   {schedule.location.name} — {dict.ui.defaultsNotice}
                 </p>
               )}
+              {schedule.chandrashtama && (
+                <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm">
+                  <span className="font-semibold">{dict.ui.chandrashtama}</span> —{" "}
+                  {locale === "si"
+                    ? `${new Date(schedule.chandrashtama.ends_at).toLocaleTimeString()} ${dict.ui.chandrashtamaUntil}`
+                    : `${dict.ui.chandrashtamaUntil} ${new Date(schedule.chandrashtama.ends_at).toLocaleTimeString()}`}
+                </p>
+              )}
 
               <section className="rounded-xl border border-black/10 bg-white/35 p-3 shadow-sm dark:border-white/10 dark:bg-white/[.03] sm:p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">

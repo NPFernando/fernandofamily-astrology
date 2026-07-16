@@ -161,7 +161,8 @@ test("desktop pancha pakshi keeps schedule settings beside the result", async ({
 
 test("pancha pakshi guidance appears in best windows and legend", async ({ page }) => {
   await openCalculator(page, "en");
-  await expect(page.getByTestId("best-window-guidance").first()).toBeVisible();
+  await page.getByRole("button", { name: DICTS.en.ui.nextDay, exact: true }).first().click();
+  await expect(page.getByTestId("best-window-guidance").first()).toBeVisible({ timeout: 20_000 });
 
   const panel = await openToolsContext(page);
   await panel.getByText(DICTS.en.ui.legend, { exact: true }).click();

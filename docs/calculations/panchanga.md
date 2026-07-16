@@ -19,12 +19,50 @@ own end time, rather than only the value in effect at sunrise.
 
 Sidereal longitudes — which every element above ultimately derives from —
 depend on the ayanamsa (the offset between the tropical and sidereal
-zodiacs). This module uses the vendored engine's own default (a
-Lahiri-family ayanamsa), the same one Pancha Pakshi's schedule calculations
-already rely on, and does not override it. Different published Sri Lankan
-litha can use slightly different ayanamsa conventions; where they diverge
-from Lahiri, an element's end time can differ by a few minutes from what a
-particular printed almanac shows. This is a genuine cross-tradition
+zodiacs). This app explicitly configures **Lahiri** (`app/core/vendor_path.py`,
+`configure_ayanamsa`/`ensure_ayanamsa`), the same mode Pancha Pakshi's
+schedule calculations use.
+
+This wasn't always true, and wasn't always deliberate. Two earlier claims
+about this engine's ayanamsa both turned out to be wrong: the vendored
+engine's own `const.py` states a default of `TRUE_PUSHYA`, but that default
+is only ever applied inside a `drik.py` block guarded by
+`if __name__ == "__main__":` — dead code from this app's point of view. This
+doc previously claimed "a Lahiri-family ayanamsa" as the vendored engine's
+"own default." Neither was actually running: nothing in this app ever called
+swisseph's `set_sid_mode`, so it silently fell back to swisseph's
+compiled-in default, Fagan-Bradley — for every request, in every prior
+release.
+
+**Why Lahiri, and how it was checked.** Sri Lanka's Sinhala/Tamil New Year
+("Aluth Avurudu") officially dawns at the exact instant the Sun's sidereal
+longitude crosses 0 degrees (Mesha Sankranti) — a single moment, published
+annually by the State Astrologers' Committee and reported by national news
+outlets, that a large share of the country sets its New Year rituals by.
+Unlike tithi (a Moon-minus-Sun difference, so the ayanamsa offset cancels
+out and can't distinguish candidate modes — this is why the Poya fixture
+below can't answer this question), the New Year instant is a raw absolute
+solar longitude and is exactly as ayanamsa-sensitive as it gets. Computing
+that instant under Lahiri matches the officially published dawn time to
+within about a minute in each of 2024, 2025, and 2026; Fagan-Bradley (the
+engine's undocumented actual prior behavior) misses by roughly a full day;
+every other candidate mode checked misses by tens of minutes to hours. See
+`apps/api/scripts/dev/ayanamsa_newyear_check.py` for the full derivation and
+cross-check table, and `apps/api/tests/test_ayanamsa.py` for the regression
+guard.
+
+This settles the astronomical/computational question — which single global
+ayanamsa offset this engine should use — against a real, independently
+verifiable, Sri Lankan public source. It is not the same as full expert or
+community review of every downstream element (nakshatra/yoga boundary
+placements, Pancha Pakshi birth-bird assignments right at a boundary); those
+remain open for anyone with deeper traditional-astrology expertise to weigh
+in on.
+
+Different published Sri Lankan litha can still use slightly different
+ayanamsa conventions or rounding; where they diverge from Lahiri, an
+element's end time can differ by a few minutes from what a particular
+printed almanac shows. That remaining gap is a genuine cross-tradition
 difference, not a bug in either source.
 
 ## Sri Lankan layer: Poya days and Sinhala months
@@ -55,22 +93,41 @@ dataset, MIT-licensed, committed as a verification fixture at
 **100% (73/73)** of the gazetted dates, including 2026's intercalary
 "Adhi Esala" Poya.
 
-**Known divergence.** Sinhala month naming matches the gazette for 72 of
-those 73 dates. The one exception is 2026-05-30: the gazette names it
-"Vesak Full Moon Poya Day", while this engine's Lahiri-based placement of
-that year's intercalary month computes it as "Adhi Poson". This is a
-genuine difference in adhika-month placement convention between this
-engine and that year's gazette panel, not a computation error — it is
-encoded as a named, tested exception in `apps/api/tests/test_poya.py`
-rather than silently forced to match.
+**Known divergences.** Sinhala month naming matches the gazette for 71 of
+those 73 dates. Both exceptions come from the same mechanism: which lunar
+cycle in a ~32.5-month period gets flagged as the intercalary (adhika) month
+is a razor's-edge classification — whichever cycle contains no sankranti is
+adhika, and a sankranti's exact moment is exactly as ayanamsa-sensitive as
+the New Year validation above.
+
+- **2023**: the gazette names its intercalary month "Adhi Esala"; under the
+  validated Lahiri ayanamsa this engine places it one cycle later, computing
+  "Adhi Nikini" instead (with the following month, "Esala", not "Adhi
+  Esala"). Confirming Lahiri moved this boundary from where it sat under the
+  engine's prior (accidental) Fagan-Bradley default — see
+  `apps/api/scripts/dev/ayanamsa_newyear_check.py`.
+- **2026-05-30**: the gazette names it "Vesak Full Moon Poya Day", while this
+  engine computes "Adhi Poson". This divergence predates the Lahiri fix and
+  is unaffected by it — that boundary isn't close enough for an
+  ayanamsa-sized shift to move it.
+
+Neither is a computation error — both are convention differences in
+adhika-month placement between this engine and that year's gazette panel,
+encoded as named, tested exceptions in `apps/api/tests/test_poya.py` rather
+than silently forced to match.
 
 **Coverage range.** Poya and Sinhala-month computation share the same
 ephemeris-driven date range as the rest of the engine — see the image's
 trimmed range in [`../../apps/api/vendor/README.md`](../../apps/api/vendor/README.md).
 
-**Not implemented.** Avurudu nekath (the Sinhala/Tamil New Year's
-astrologer-panel auspicious times) are published annually as PDFs by a
-government-convened panel and are not derivable by calculation — there is
-no structured dataset to compute or validate against. Adding them would
-require transcribing each year's published schedule by hand; see
+**Not implemented.** The full Avurudu Nekath Seettuwa (the New Year's other
+astrologer-panel auspicious times — meal preparation, commencing work, oil
+anointing, etc.) are published annually as PDFs by a government-convened
+panel and are not derivable by calculation the way the New Year's own dawn
+instant is — there is no computable methodology behind those specific
+times, only the panel's own published schedule. This app does not expose
+them as a feature; they're used above only as an ayanamsa validation source
+(the dawn instant itself, not the rest of the schedule, is a pure
+astronomical calculation). Adding the full nekath schedule as a feature
+would require transcribing each year's published PDF by hand; see
 [`../roadmap.md`](../roadmap.md).

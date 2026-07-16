@@ -9,22 +9,41 @@ engine can't honestly support an idea, or no verifiable source exists, that's
 said plainly in Section E rather than glossed over — matching the standard
 the Poya gazette validation (`docs/calculations/panchanga.md`) already set.
 
-**A cross-cutting correctness note, found while researching this doc:**
-`docs/calculations/panchanga.md` currently describes the module's ayanamsa as
-"the vendored engine's own default (a Lahiri-family ayanamsa)". Reading the
-actual runtime config chain (`apps/api/vendor/jhora/data/user_settings.json`
-→ `"default_ayanamsa_mode": "TRUE_PUSHYA"`, loaded by
-`apps/api/vendor/jhora/config.py:initialize_runtime`, applied via
-`drik.set_ayanamsa_mode`), the engine is actually configured to
-**TRUE_PUSHYA**, not a Lahiri-family ayanamsa — these are materially
-different sidereal zero points. This doesn't affect what's already shipped
-(tithi/nakshatra/Poya still match the gazette because the gazette-fit was
-validated empirically against the engine's real output, not against a
-documented assumption). But every idea below that touches sidereal
-longitude, rashi, or divisional charts inherits this same ayanamsa, so this
-should be reconciled (fix the doc, or deliberately switch the config and
-re-validate) before shipping any new chart-based feature — it's flagged
-inline wherever relevant.
+**A cross-cutting correctness note, found while researching this doc — now
+resolved.** This doc originally flagged a discrepancy: `docs/calculations/
+panchanga.md` described the module's ayanamsa as "the vendored engine's own
+default (a Lahiri-family ayanamsa)," while the runtime config chain
+(`apps/api/vendor/jhora/data/user_settings.json` → `"default_ayanamsa_mode":
+"TRUE_PUSHYA"`, apparently loaded by `apps/api/vendor/jhora/config.py:
+initialize_runtime`) suggested TRUE_PUSHYA instead. Neither turned out to be
+what was actually running. Tracing the real call chain further: `config.py`'s
+`initialize_runtime` is never actually invoked — `vendor/jhora/__init__.py`
+references it as a bare attribute (`_config.initialize_runtime`, no `()`), a
+no-op. Separately, `drik.py`'s own `set_ayanamsa_mode("TRUE_PUSHYA")` call
+lives inside an `if __name__ == "__main__":` guard, equally never executed
+on import. With nothing anywhere ever calling swisseph's `set_sid_mode`, the
+engine silently ran on swisseph's compiled-in default the entire time:
+**Fagan-Bradley** — not either previously-claimed value.
+
+This has now been fixed and validated: the app explicitly configures
+**Lahiri** (`apps/api/app/core/vendor_path.py`, `configure_ayanamsa`/
+`ensure_ayanamsa`, called at both adapter-import time and at the top of
+every calculator entry point — a single call site wasn't sufficient, see
+that file's docstring). Lahiri was chosen because it matches the officially
+published Sri Lankan New Year ("Aluth Avurudu") dawn instant — a real,
+government-sourced, ayanamsa-sensitive ground truth — to within about a
+minute across 2024, 2025, and 2026; see `apps/api/scripts/dev/
+ayanamsa_newyear_check.py` and `docs/calculations/panchanga.md`'s Ayanamsa
+section for the full derivation, and `apps/api/tests/test_ayanamsa.py` for
+the regression guard. Fagan-Bradley (the accidental prior behavior) missed
+by roughly a full day; TRUE_PUSHYA missed by over a day in the opposite
+direction.
+
+This resolves the ayanamsa question for every idea below that was gated on
+it (flagged inline at the time this doc was written) — sidereal longitude,
+rashi, and divisional-chart features can now proceed against Lahiri as a
+settled, cited, cross-checked default, same as the rest of this app's
+sidereal calculations.
 
 ---
 
@@ -69,9 +88,9 @@ next changes sign (via `next_planet_entry_date`). Needs the user's natal
 Moon rashi, obtainable via `raasi(jd, place)` (`drik.py:765`) at birth time —
 not currently surfaced anywhere in the app today.
 
-**Correctness caveat:** Inherits the ayanamsa question above — a rashi
-boundary a few minutes either side of a TRUE_PUSHYA/Lahiri divergence could
-occasionally flip which sign the Moon is "in" right at a transition.
+**Correctness caveat:** Uses the app's validated Lahiri ayanamsa (see the
+top-of-file note) — no longer gated, but a rashi boundary right at a
+transition is still, inherently, a close call regardless of ayanamsa.
 
 **Effort:** S–M.
 
@@ -154,8 +173,8 @@ grahas, flagging any that are retrograde or stationary.
 (`drik.py:331`) and `planets_in_stationary` (`drik.py:358`) are pure
 `swe.calc_ut` speed-sign checks, no extra data needed.
 
-**Correctness note:** Same ayanamsa caveat as A2 — sign boundaries shift
-slightly between TRUE_PUSHYA and Lahiri.
+**Correctness note:** Same as A2 — uses the app's validated Lahiri ayanamsa,
+no longer gated.
 
 **Effort:** S–M.
 
@@ -239,10 +258,11 @@ Navamsa(9), Dasamsa(10), ... up to Shastyamsa(60), per the function's own
 documented `divisional_chart_factor` table. This is the mathematical core of
 a birth-chart/Kundali module, sitting fully implemented and unused.
 
-**Correctness caveat:** Gated on resolving the ayanamsa discrepancy noted at
-the top of this doc first — a birth chart is the highest-stakes place to get
-the sidereal zero-point wrong, since users will screenshot and compare it
-against other software/pandits using Lahiri.
+**Correctness caveat:** No longer gated — the app now explicitly runs
+validated Lahiri (see top-of-file note), the same convention most other
+software/pandits compare against. A birth chart is still the highest-stakes
+place to get the sidereal zero-point right, since users will screenshot and
+compare it directly.
 
 **Effort:** L (engine math is free; needs real chart-rendering UI, planet/
 rashi iconography from `packages/design-system`, and a decision on which
@@ -319,13 +339,12 @@ platform's methodology pages exist to avoid. If a future idea in this space
 comes up, it needs the same treatment as everything above: cite the rule,
 cite the source, and say plainly when there isn't one.
 
-### E5. Shipping any new sidereal/rashi-dependent feature without resolving the ayanamsa discrepancy
-Not a feature idea but a gating item: fix or confirm the
-TRUE_PUSHYA-vs-Lahiri discrepancy documented at the top of this file before
-shipping A2, B3, B4, or D1. If TRUE_PUSHYA is in fact the intended
-production setting, update `docs/calculations/panchanga.md`'s wording
-instead — either way, don't let the two disagree while building on top of
-sidereal longitude for a user-facing chart feature.
+### E5. ~~Shipping any new sidereal/rashi-dependent feature without resolving the ayanamsa discrepancy~~ — resolved
+Was a gating item; no longer is. The engine explicitly runs Lahiri now,
+validated against the officially published Sri Lankan New Year instant
+across three years (see the top-of-file note and
+`docs/calculations/panchanga.md`). A2, B3, B4, and D1 can proceed against
+that as a settled default.
 
 ---
 
@@ -342,7 +361,7 @@ sidereal longitude for a user-facing chart feature.
 | B4 | Moon Rashi of the day | Deepen Panchanga | Yes (`raasi`) | S |
 | B5 | Ritu / Samvatsara badges | Deepen Panchanga | Ritu yes; Samvatsara caveated | S |
 | C1 | Vivaha Chakra Palan | Deepen Compatibility | Yes | M |
-| D1 | Divisional charts (Navamsa+) | New module | Yes, gated on ayanamsa fix | L |
+| D1 | Divisional charts (Navamsa+) | New module | Yes | L |
 | D2 | Fixed-star precision | New module (exploratory) | Data path unvendored; call proven | L (soft) |
 | E1 | Dasha calculators | Not recommended yet | No — module not vendored | — |
 | E2 | Ashtakoot marriage score | Not recommended | No — constants only, no algorithm | — |

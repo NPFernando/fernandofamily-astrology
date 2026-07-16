@@ -66,6 +66,7 @@ def compute_daily_panchanga(
     tz: ZoneInfo,
     engine: EngineMetadata,
 ) -> DailyPanchanga:
+    adapter.ensure_ayanamsa()
     offset_hours = resolve_utc_offset_hours(target_date, tz)
     place = pp_adapter.place(location_name, latitude, longitude, offset_hours)
 

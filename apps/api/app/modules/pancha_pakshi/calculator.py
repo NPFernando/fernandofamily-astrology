@@ -73,6 +73,7 @@ def resolve_effective_jd(
     must be re-resolved, not reused. Returns (jd, sunrise_jd, offset_hours, place)
     using the correctly-resolved offset/place for whichever date is effective.
     """
+    adapter.ensure_ayanamsa()
     offset_hours, place = _place_for_date(name, latitude, longitude, tz, date_type(y, m, d))
     jd = adapter.julian_day_number(adapter.date(y, m, d), (hh, mm, ss))
     sunrise_jd = _validated_sunrise_jd(jd, place)

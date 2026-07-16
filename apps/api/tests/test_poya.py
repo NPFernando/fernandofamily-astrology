@@ -63,20 +63,27 @@ def test_days_adjacent_to_poya_are_not_poya():
             assert calculator._poya_day_for_purnima(start, place, 5.5) != neighbor
 
 
-#: One documented, principled divergence out of 73: the engine's Lahiri-based
-#: adhika-month placement inserts an extra month (computed index 3,
-#: is_leap=True) spanning 2026-05-17..06-14, which happens to contain that
-#: year's Vesak full moon — so the engine names it "adhi-poson" while the
-#: official gazette calls it plainly "Vesak". This is not a bug: which lunar
-#: cycle a calendar authority designates as the adhika (leap) month in a
-#: given ~32.5-month cycle is itself a matter of tradition/convention, and
-#: Sri Lanka's gazette panel evidently placed (or omitted) 2026's adhika
-#: month differently from our engine. Every OTHER gazetted Poya (72/73),
-#: including the one genuine gazetted adhika month (2023 Adhi Esala), matches
-#: exactly. If this ever starts matching, or a NEW divergence appears
-#: elsewhere, investigate before updating this exception — don't just widen
-#: it silently.
-KNOWN_MONTH_NAMING_DIVERGENCE = {"date": "2026-05-30", "gazette": "vesak", "computed": "adhi-poson"}
+#: Two documented, principled divergences out of 73, both from the same
+#: mechanism: which lunar cycle in a ~32.5-month period gets flagged as the
+#: intercalary (adhika) month is a razor's-edge classification — whichever
+#: cycle contains no sankranti (no monthly solar sign-change) is adhika, and
+#: a sankranti's exact moment is exactly as ayanamsa-sensitive as the Mesha
+#: Sankranti (New Year) validation below. The engine now runs the validated
+#: Lahiri ayanamsa (see app/core/vendor_path.py:configure_ayanamsa) instead
+#: of its prior accidental Fagan-Bradley default; that move shifts 2023's
+#: adhika-month boundary one cycle later (Esala -> Nikini) versus what the
+#: gazette panel published, while leaving the pre-existing 2026 divergence
+#: unchanged (that boundary isn't close enough for an ayanamsa-sized shift to
+#: move it). Neither is a computation error — both are convention
+#: differences in adhika-month placement between this engine and that year's
+#: gazette panel. If this set ever changes size or a NEW divergence appears
+#: elsewhere, investigate before updating this list — don't just widen it
+#: silently.
+KNOWN_MONTH_NAMING_DIVERGENCES = [
+    {"date": "2023-07-03", "gazette": "adhi-esala", "computed": "esala"},
+    {"date": "2023-08-01", "gazette": "esala", "computed": "adhi-nikini"},
+    {"date": "2026-05-30", "gazette": "vesak", "computed": "adhi-poson"},
+]
 
 
 def test_sinhala_month_name_matches_gazette_poya_name():
@@ -88,19 +95,21 @@ def test_sinhala_month_name_matches_gazette_poya_name():
         expected = _gazette_key(entry["name"])
         if key != expected:
             mismatches.append({"date": str(g), "gazette": expected, "computed": key})
-    assert mismatches == [KNOWN_MONTH_NAMING_DIVERGENCE], (
-        f"month-naming mismatches changed from the one documented, understood "
-        f"divergence — investigate before updating this test: {mismatches}"
+    assert mismatches == KNOWN_MONTH_NAMING_DIVERGENCES, (
+        f"month-naming mismatches changed from the documented, understood "
+        f"divergences — investigate before updating this test: {mismatches}"
     )
 
 
-def test_adhi_esala_2023():
+def test_2023_adhika_month_placement_diverges_from_gazette():
+    """Under the validated Lahiri ayanamsa this engine places 2023's
+    intercalary month one cycle later than the gazette (Nikini, not Esala) —
+    see KNOWN_MONTH_NAMING_DIVERGENCES."""
     place = _place()
     key, is_adhi = calculator._sinhala_month_at(date(2023, 7, 3), place)
-    assert key == "adhi-esala" and is_adhi
-    # The nija (regular) Esala follows a month later.
-    key, is_adhi = calculator._sinhala_month_at(date(2023, 8, 1), place)
     assert key == "esala" and not is_adhi
+    key, is_adhi = calculator._sinhala_month_at(date(2023, 8, 1), place)
+    assert key == "adhi-nikini" and is_adhi
 
 
 @pytest.mark.parametrize(

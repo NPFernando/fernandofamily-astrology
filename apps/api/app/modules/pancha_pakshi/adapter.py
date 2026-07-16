@@ -3,12 +3,21 @@ no enums, no business logic, and never touches utils.set_language/resource_strin
 or any image path, since those are upstream UI/localization concerns this
 platform's adapter must not depend on.
 """
-from app.core.vendor_path import ensure_vendor_on_path
+from app.core.vendor_path import configure_ayanamsa, ensure_vendor_on_path
 
 ensure_vendor_on_path()
 
 from jhora import utils  # noqa: E402
 from jhora.panchanga import drik, pancha_paksha  # noqa: E402
+
+configure_ayanamsa(drik)
+
+
+def ensure_ayanamsa() -> None:
+    """Call at the top of every calculator entry point — see
+    configure_ayanamsa's docstring for why the import-time call above isn't
+    sufficient on its own."""
+    configure_ayanamsa(drik)
 
 
 def place(name: str, latitude: float, longitude: float, tz_hours: float):

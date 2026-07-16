@@ -11,11 +11,20 @@ calendar date embedded in `jd` — negative means the previous calendar day,
 functions return 'HH:MM:SS' display strings; callers should prefer the float
 forms.
 """
-from app.core.vendor_path import ensure_vendor_on_path
+from app.core.vendor_path import configure_ayanamsa, ensure_vendor_on_path
 
 ensure_vendor_on_path()
 
 from jhora.panchanga import drik  # noqa: E402
+
+configure_ayanamsa(drik)
+
+
+def ensure_ayanamsa() -> None:
+    """Call at the top of every calculator entry point — see
+    configure_ayanamsa's docstring for why the import-time call above isn't
+    sufficient on its own."""
+    configure_ayanamsa(drik)
 
 
 def tithi(jd: float, p) -> list:

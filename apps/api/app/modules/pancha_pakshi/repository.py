@@ -42,6 +42,11 @@ TARA_EFFECT_ORDER = [
     EffectId.good,       # 8 Mitra
 ]
 
+# 0-based cardinal direction keys, matching the comment directly above
+# upstream's disha_shool_map (vendor/jhora/const.py:1275): "0=East, 1=South,
+# 2=West, 3=North".
+DISHA_KEYS = ["east", "south", "west", "north"]
+
 # 0-based, matches drik.vaara()'s return value directly (0=Sunday..6=Saturday).
 WEEKDAY_ORDER = [
     WeekdayId.sunday,

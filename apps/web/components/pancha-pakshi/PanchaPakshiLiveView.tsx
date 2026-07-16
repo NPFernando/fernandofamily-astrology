@@ -284,6 +284,10 @@ export function PanchaPakshiLiveView() {
                     />
                   )}
                   <Fact label={dict.ui.weekday} value={translateEnum(dict, "weekdays", schedule.weekday)} />
+                  <Fact
+                    label={dict.ui.dishaShool}
+                    value={translateEnum(dict, "directions", schedule.disha_shool)}
+                  />
                   <Fact label={dict.ui.paksha} value={translateEnum(dict, "paksha", schedule.paksha)} />
                   <Fact label={dict.ui.sunrise} value={timeFormat.format(new Date(schedule.sunrise))} />
                   <Fact label={dict.ui.sunset} value={timeFormat.format(new Date(schedule.sunset))} />

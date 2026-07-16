@@ -657,6 +657,101 @@
         "title": "BirthDateTimeWindowsInput",
         "type": "object"
       },
+      "BirthNakshatraDetails": {
+        "properties": {
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "pada": {
+            "title": "Pada",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "index",
+          "key",
+          "pada"
+        ],
+        "title": "BirthNakshatraDetails",
+        "type": "object"
+      },
+      "BirthNakshatraRequest": {
+        "properties": {
+          "birth_date": {
+            "format": "date",
+            "title": "Birth Date",
+            "type": "string"
+          },
+          "birth_time": {
+            "format": "time",
+            "title": "Birth Time",
+            "type": "string"
+          },
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          }
+        },
+        "required": [
+          "birth_date",
+          "birth_time",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz"
+        ],
+        "title": "BirthNakshatraRequest",
+        "type": "object"
+      },
+      "BirthNakshatraResponse": {
+        "properties": {
+          "birth_bird": {
+            "$ref": "#/components/schemas/BirdId"
+          },
+          "engine": {
+            "$ref": "#/components/schemas/EngineMetadata"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "moon_rashi": {
+            "$ref": "#/components/schemas/MoonRashi"
+          },
+          "nakshatra": {
+            "$ref": "#/components/schemas/BirthNakshatraDetails"
+          },
+          "paksha": {
+            "$ref": "#/components/schemas/PakshaId"
+          }
+        },
+        "required": [
+          "engine",
+          "location",
+          "nakshatra",
+          "paksha",
+          "moon_rashi",
+          "birth_bird"
+        ],
+        "title": "BirthNakshatraResponse",
+        "type": "object"
+      },
       "ChandrashtamaWindow": {
         "properties": {
           "ends_at": {
@@ -1140,6 +1235,23 @@
         "title": "MajorPeriod",
         "type": "object"
       },
+      "MoonRashi": {
+        "properties": {
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "key": {
+            "$ref": "#/components/schemas/RashiId"
+          }
+        },
+        "required": [
+          "index",
+          "key"
+        ],
+        "title": "MoonRashi",
+        "type": "object"
+      },
       "NakshatraPakshaInput": {
         "properties": {
           "as_of_date": {
@@ -1540,6 +1652,24 @@
         "title": "PoyaInfo",
         "type": "object"
       },
+      "RashiId": {
+        "enum": [
+          "mesha",
+          "vrishabha",
+          "mithuna",
+          "karka",
+          "simha",
+          "kanya",
+          "tula",
+          "vrischika",
+          "dhanu",
+          "makara",
+          "kumbha",
+          "meena"
+        ],
+        "title": "RashiId",
+        "type": "string"
+      },
       "RelationId": {
         "enum": [
           "enemy",
@@ -1593,6 +1723,10 @@
                 "type": "null"
               }
             ]
+          },
+          "disha_shool": {
+            "title": "Disha Shool",
+            "type": "string"
           },
           "engine": {
             "$ref": "#/components/schemas/EngineMetadata"
@@ -1664,6 +1798,7 @@
           "birth_bird",
           "tara_bala",
           "chandrashtama",
+          "disha_shool",
           "paksha",
           "weekday",
           "padu_pakshi",
@@ -1932,6 +2067,47 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/birth-nakshatra/resolve": {
+      "post": {
+        "operationId": "resolve_api_v1_birth_nakshatra_resolve_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BirthNakshatraRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BirthNakshatraResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Resolve",
+        "tags": [
+          "birth-nakshatra"
+        ]
+      }
+    },
     "/api/v1/compatibility/birds": {
       "post": {
         "operationId": "birds_api_v1_compatibility_birds_post",

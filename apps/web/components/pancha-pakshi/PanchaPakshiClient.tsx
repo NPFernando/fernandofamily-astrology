@@ -26,6 +26,7 @@ import { Legend } from "@/components/pancha-pakshi/Legend";
 import { StickyCurrentBar } from "@/components/pancha-pakshi/StickyCurrentBar";
 import {
   fetchLiveSchedule,
+  hasDerivedIdentitySeed,
   loadCachedSchedule,
   loadSessionSchedule,
   resolveDefaultScheduleRequest,
@@ -111,7 +112,7 @@ export function PanchaPakshiClient() {
     // which unmounts this page). Same-tab-session only, so this never
     // resurrects genuinely old data across a new visit — see
     // loadSessionSchedule's comment.
-    const restored = loadSessionSchedule();
+    const restored = hasDerivedIdentitySeed() ? null : loadSessionSchedule();
     if (restored) {
       /* eslint-disable react-hooks/set-state-in-effect -- one-time hydration
          from sessionStorage on mount, same pattern as the isOnline effect
@@ -383,6 +384,10 @@ export function PanchaPakshiClient() {
                   <div className="grid grid-cols-2 gap-3 rounded-lg border border-black/10 p-4 text-sm dark:border-white/10 sm:grid-cols-4">
                     <Fact label={dict.ui.location} value={schedule.location.name} />
                     <Fact label={dict.ui.weekday} value={translateEnum(dict, "weekdays", schedule.weekday)} />
+                    <Fact
+                      label={dict.ui.dishaShool}
+                      value={translateEnum(dict, "directions", schedule.disha_shool)}
+                    />
                     <Fact label={dict.ui.paksha} value={translateEnum(dict, "paksha", schedule.paksha)} />
                     <Fact label={dict.ui.birthBird} value={translateEnum(dict, "birds", schedule.birth_bird)} />
                     {schedule.tara_bala && (

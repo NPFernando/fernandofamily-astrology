@@ -89,6 +89,14 @@ def previous_moon_rashi_entry_jd(jd: float, p) -> float:
     return drik.next_planet_entry_date(const._MOON, jd, p, direction=-1)[0]
 
 
+def disha_shool_index(jd: float, p) -> int:
+    """0-based cardinal direction index (see repository.DISHA_KEYS) that's
+    classically inauspicious for travel on this date's weekday — a pure
+    weekday lookup, the same vaara() this app already uses for
+    schedule.weekday, so it's always consistent with the day already shown."""
+    return drik.disha_shool(jd, p)
+
+
 def birth_bird_1based(nakshatra_1based: int, paksha_1based: int) -> int:
     return pancha_paksha._get_birth_bird_from_nakshathra(nakshatra_1based, paksha_1based)
 

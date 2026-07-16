@@ -180,6 +180,12 @@
       "sadhana": "සාධන",
       "naidhana": "නිධන",
       "mitra": "මිත්‍ර"
+    },
+    "directions": {
+      "east": "නැගෙනහිර",
+      "south": "දකුණ",
+      "west": "බස්නාහිර",
+      "north": "උතුර"
     }
   },
   "ui": {
@@ -196,6 +202,7 @@
     "taraBala": "තාරාබලය (අද දිනට ඔබේ තාරකාවේ ශක්තිය)",
     "chandrashtama": "චන්ද්‍රාෂ්ටම",
     "chandrashtamaUntil": "දක්වා නව කටයුතු ආරම්භ කිරීමෙන් වළකින්න",
+    "dishaShool": "දෙසට ගමන් කිරීමෙන් වළකින්න",
     "birthNakshatra": "උපන් නැකත",
     "location": "ස්ථානය",
     "timezone": "වේලා කලාපය",

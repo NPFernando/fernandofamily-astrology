@@ -89,6 +89,9 @@ class ScheduleResponse(BaseModel):
     # date/time (Method A) — a bare nakshatra_index (Method B) can straddle
     # two rashis depending on pada, so this stays null for Methods B and C.
     chandrashtama: ChandrashtamaWindow | None
+    # No birth data needed — a pure date/place weekday lookup, so always
+    # present regardless of method. One of repository.DISHA_KEYS.
+    disha_shool: str
     paksha: PakshaId
     weekday: WeekdayId
     # Convenience mirrors of major_periods[0]'s values, kept for API-shape

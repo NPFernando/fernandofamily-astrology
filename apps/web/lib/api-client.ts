@@ -133,6 +133,11 @@ export type ScheduleResponse = {
   // a bare nakshatra_index can straddle two rashis) AND the natal Moon
   // rashi currently matches the day's afflicted rashi (~1/12 of the time).
   chandrashtama: ChandrashtamaWindow | null;
+  // No birth data needed — a pure date/place weekday lookup, always present.
+  // One of repository.DISHA_KEYS, but plain str in the Pydantic model (like
+  // TaraBala.key above), so no literal union here either — see
+  // lib/api-types-check.ts's _CheckSchedule drift guard.
+  disha_shool: string;
   paksha: PakshaId;
   weekday: WeekdayId;
   padu_pakshi: BirdId;

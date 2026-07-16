@@ -180,6 +180,12 @@
       "sadhana": "Sadhana",
       "naidhana": "Naidhana",
       "mitra": "Mitra"
+    },
+    "directions": {
+      "east": "East",
+      "south": "South",
+      "west": "West",
+      "north": "North"
     }
   },
   "ui": {
@@ -196,6 +202,7 @@
     "taraBala": "Tara Bala (today's star strength)",
     "chandrashtama": "Chandrashtama",
     "chandrashtamaUntil": "Avoid starting new ventures until",
+    "dishaShool": "Avoid travelling towards",
     "birthNakshatra": "Birth Nakshatra",
     "location": "Location",
     "timezone": "Timezone",

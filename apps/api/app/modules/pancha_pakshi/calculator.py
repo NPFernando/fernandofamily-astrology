@@ -147,6 +147,13 @@ def compute_chandrashtama(
     )
 
 
+def compute_disha_shool(jd: float, place) -> str:
+    """The classically inauspicious travel direction for this date's weekday
+    — a pure date/place lookup, no birth data involved, so unlike Tara Bala
+    and Chandrashtama this is always present, for every method."""
+    return repository.DISHA_KEYS[adapter.disha_shool_index(jd, place)]
+
+
 # NOTE: PyJHora's Place takes a single fixed UTC-offset-in-hours for its entire
 # astronomical calculation (see resolve_effective_jd) - it has no concept of a
 # mid-calculation DST shift. A schedule computed here therefore uses ONE
@@ -185,6 +192,8 @@ def compute_schedule(
     # Chandrashtama needs a birth RASHI, only unambiguously derivable from a
     # full birth moment (Method A) — see compute_chandrashtama's docstring.
     chandrashtama = compute_chandrashtama(natal_moon_rashi, jd, place, offset_hours) if natal_moon_rashi is not None else None
+    # No birth data needed at all — always present, every method.
+    disha_shool = compute_disha_shool(jd, place)
 
     weekday_0based = adapter.weekday_index_0based(jd, place)
     paksha_1based = adapter.paksha_index_1based(jd, place)
@@ -267,6 +276,7 @@ def compute_schedule(
         birth_bird=birth_bird,
         tara_bala=tara_bala,
         chandrashtama=chandrashtama,
+        disha_shool=disha_shool,
         paksha=PakshaId.waxing if paksha_1based == 1 else PakshaId.waning,
         weekday=repository.WEEKDAY_ORDER[weekday_0based],
         padu_pakshi=major_periods[0].padu_pakshi,

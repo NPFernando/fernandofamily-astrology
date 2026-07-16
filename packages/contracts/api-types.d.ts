@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/api/v1/birth-nakshatra/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resolve */
+        post: operations["resolve_api_v1_birth_nakshatra_resolve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/compatibility/birds": {
         parameters: {
             query?: never;
@@ -480,6 +497,45 @@ export interface components {
              */
             target_time: string;
         };
+        /** BirthNakshatraDetails */
+        BirthNakshatraDetails: {
+            /** Index */
+            index: number;
+            /** Key */
+            key: string;
+            /** Pada */
+            pada: number;
+        };
+        /** BirthNakshatraRequest */
+        BirthNakshatraRequest: {
+            /**
+             * Birth Date
+             * Format: date
+             */
+            birth_date: string;
+            /**
+             * Birth Time
+             * Format: time
+             */
+            birth_time: string;
+            /** Iana Tz */
+            iana_tz: string;
+            /** Latitude */
+            latitude: number;
+            /** Location Name */
+            location_name: string;
+            /** Longitude */
+            longitude: number;
+        };
+        /** BirthNakshatraResponse */
+        BirthNakshatraResponse: {
+            birth_bird: components["schemas"]["BirdId"];
+            engine: components["schemas"]["EngineMetadata"];
+            location: components["schemas"]["Location"];
+            moon_rashi: components["schemas"]["MoonRashi"];
+            nakshatra: components["schemas"]["BirthNakshatraDetails"];
+            paksha: components["schemas"]["PakshaId"];
+        };
         /** ChandrashtamaWindow */
         ChandrashtamaWindow: {
             /**
@@ -675,6 +731,12 @@ export interface components {
             /** Sub Periods */
             sub_periods: components["schemas"]["SubPeriod"][];
         };
+        /** MoonRashi */
+        MoonRashi: {
+            /** Index */
+            index: number;
+            key: components["schemas"]["RashiId"];
+        };
         /** NakshatraPakshaInput */
         NakshatraPakshaInput: {
             /** As Of Date */
@@ -844,6 +906,11 @@ export interface components {
             month_key: string;
         };
         /**
+         * RashiId
+         * @enum {string}
+         */
+        RashiId: "mesha" | "vrishabha" | "mithuna" | "karka" | "simha" | "kanya" | "tula" | "vrischika" | "dhanu" | "makara" | "kumbha" | "meena";
+        /**
          * RelationId
          * @enum {string}
          */
@@ -860,6 +927,8 @@ export interface components {
             birth_bird: components["schemas"]["BirdId"];
             chandrashtama: components["schemas"]["ChandrashtamaWindow"] | null;
             current_period: components["schemas"]["SubPeriod"] | null;
+            /** Disha Shool */
+            disha_shool: string;
             engine: components["schemas"]["EngineMetadata"];
             location: components["schemas"]["Location"];
             /** Major Periods */
@@ -1007,6 +1076,39 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    resolve_api_v1_birth_nakshatra_resolve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BirthNakshatraRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BirthNakshatraResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     birds_api_v1_compatibility_birds_post: {
         parameters: {
             query?: never;

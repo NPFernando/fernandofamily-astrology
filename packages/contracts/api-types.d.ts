@@ -585,6 +585,9 @@ export interface components {
         };
         /** DailyPanchanga */
         DailyPanchanga: {
+            abhijit_muhurta: components["schemas"]["KalamRange"];
+            /** Amrit Kaalam */
+            amrit_kaalam: components["schemas"]["KalamRange"][];
             /** Choghadiya */
             choghadiya: components["schemas"]["ChoghadiyaSpan"][];
             /**
@@ -592,6 +595,8 @@ export interface components {
              * Format: date
              */
             date: string;
+            /** Durmuhurtam */
+            durmuhurtam: components["schemas"]["KalamRange"][];
             engine: components["schemas"]["EngineMetadata"];
             /** Hora */
             hora: components["schemas"]["HoraSpan"][];

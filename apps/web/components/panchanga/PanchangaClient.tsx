@@ -302,6 +302,44 @@ export function PanchangaClient() {
             <p className="mt-2 text-xs opacity-70">{dict.panchanga.kalamsNote}</p>
           </section>
 
+          <section
+            aria-label={dict.panchanga.amritKaalamTitle}
+            data-testid="panchanga-favourable-muhurtas"
+            className="rounded-xl border border-emerald-600/40 bg-emerald-500/10 p-4"
+          >
+            <h2 className="text-sm font-semibold uppercase">{dict.panchanga.amritKaalamTitle}</h2>
+            <div className="mt-2 grid gap-2 sm:grid-cols-3">
+              {data.amrit_kaalam.map((window, i) => (
+                <p key={i} className="tabular-nums text-sm opacity-90">
+                  {formatTime(window.starts_at, locale)} – {formatTime(window.ends_at, locale)}
+                </p>
+              ))}
+            </div>
+            <p className="mt-2 text-xs opacity-70">{dict.panchanga.amritKaalamNote}</p>
+
+            <h2 className="mt-4 text-sm font-semibold uppercase">{dict.panchanga.abhijitMuhurtaTitle}</h2>
+            <p className="mt-2 tabular-nums text-sm opacity-90">
+              {formatTime(data.abhijit_muhurta.starts_at, locale)} – {formatTime(data.abhijit_muhurta.ends_at, locale)}
+            </p>
+            <p className="mt-2 text-xs opacity-70">{dict.panchanga.abhijitMuhurtaNote}</p>
+          </section>
+
+          <section
+            aria-label={dict.panchanga.durmuhurtamTitle}
+            data-testid="panchanga-durmuhurtam"
+            className="rounded-xl border border-amber-600/40 bg-amber-500/10 p-4"
+          >
+            <h2 className="text-sm font-semibold uppercase">{dict.panchanga.durmuhurtamTitle}</h2>
+            <div className="mt-2 grid gap-2 sm:grid-cols-3">
+              {data.durmuhurtam.map((window, i) => (
+                <p key={i} className="tabular-nums text-sm opacity-90">
+                  {formatTime(window.starts_at, locale)} – {formatTime(window.ends_at, locale)}
+                </p>
+              ))}
+            </div>
+            <p className="mt-2 text-xs opacity-70">{dict.panchanga.durmuhurtamNote}</p>
+          </section>
+
           <details
             className="rounded-xl border border-black/10 bg-white/30 p-3 dark:border-white/10 dark:bg-white/[.03]"
             data-testid="panchanga-choghadiya"

@@ -858,6 +858,16 @@
       },
       "DailyPanchanga": {
         "properties": {
+          "abhijit_muhurta": {
+            "$ref": "#/components/schemas/KalamRange"
+          },
+          "amrit_kaalam": {
+            "items": {
+              "$ref": "#/components/schemas/KalamRange"
+            },
+            "title": "Amrit Kaalam",
+            "type": "array"
+          },
           "choghadiya": {
             "items": {
               "$ref": "#/components/schemas/ChoghadiyaSpan"
@@ -869,6 +879,13 @@
             "format": "date",
             "title": "Date",
             "type": "string"
+          },
+          "durmuhurtam": {
+            "items": {
+              "$ref": "#/components/schemas/KalamRange"
+            },
+            "title": "Durmuhurtam",
+            "type": "array"
           },
           "engine": {
             "$ref": "#/components/schemas/EngineMetadata"
@@ -999,7 +1016,10 @@
           "karana",
           "kalams",
           "choghadiya",
-          "hora"
+          "hora",
+          "amrit_kaalam",
+          "abhijit_muhurta",
+          "durmuhurtam"
         ],
         "title": "DailyPanchanga",
         "type": "object"

@@ -91,3 +91,18 @@ def shubha_hora(jd: float, p) -> list[tuple[int, str, str]]:
     segments, same chronological/midnight-crossing shape as
     gauri_choghadiya but twelfths instead of eighths."""
     return drik.shubha_hora(jd, p)
+
+
+def abhijit_muhurta(jd: float, p) -> list:
+    """['HH:MM:SS', 'HH:MM:SS'] start/end — the 8th of 15 daily muhurtas
+    (roughly midday), always exactly one window, well within daytime so
+    never crosses midnight."""
+    return drik.abhijit_muhurta(jd, p)
+
+
+def durmuhurtam(jd: float, p) -> list:
+    """['HH:MM:SS', 'HH:MM:SS'] or ['HH:MM:SS','HH:MM:SS','HH:MM:SS','HH:MM:SS']
+    — Sunday/Wednesday/Saturday have exactly one durmuhurtam window; every
+    other weekday has two. Never empty, never crosses midnight (offsets stay
+    within a single day/night duration)."""
+    return drik.durmuhurtam(jd, p)

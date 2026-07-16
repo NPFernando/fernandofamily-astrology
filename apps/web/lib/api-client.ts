@@ -268,6 +268,9 @@ export type DailyPanchanga = {
   kalams: { rahu: KalamRange; yamaganda: KalamRange; gulika: KalamRange };
   choghadiya: ChoghadiyaSpan[];
   hora: HoraSpan[];
+  amrit_kaalam: KalamRange[];
+  abhijit_muhurta: KalamRange;
+  durmuhurtam: KalamRange[];
 };
 
 export class ApiError extends Error {

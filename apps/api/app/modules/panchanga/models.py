@@ -111,3 +111,10 @@ class DailyPanchanga(BaseModel):
     kalams: Kalams
     choghadiya: list[ChoghadiyaSpan]  # 16: 8 day + 8 night, chronological
     hora: list[HoraSpan]  # 24: 12 day + 12 night, chronological
+    # Favourable window(s) within today's Choghadiya (key == "amrit") — a
+    # filtered view, not a separate engine call; never empty in practice but
+    # not guaranteed non-empty by upstream, so modeled as a list.
+    amrit_kaalam: list[KalamRange]
+    abhijit_muhurta: KalamRange  # always exactly one window, ~midday
+    # 1 window on Sunday/Wednesday/Saturday, 2 on every other weekday.
+    durmuhurtam: list[KalamRange]

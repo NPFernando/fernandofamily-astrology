@@ -261,6 +261,24 @@ def compute_daily_panchanga(
         target_date,
         offset_hours,
     )
+    # A filtered view of choghadiya (key == "amrit"), not a separate engine
+    # call — this IS how upstream's own amrit_kaalam() derives it too.
+    amrit_kaalam = [
+        KalamRange(starts_at=span.starts_at, ends_at=span.ends_at) for span in choghadiya if span.key == "amrit"
+    ]
+    abhijit_start, abhijit_end = adapter.abhijit_muhurta(noon_jd, place)
+    abhijit_muhurta = KalamRange(
+        starts_at=_hms_string_to_datetime(target_date, abhijit_start, offset_hours),
+        ends_at=_hms_string_to_datetime(target_date, abhijit_end, offset_hours),
+    )
+    durmuhurtam_hms = adapter.durmuhurtam(noon_jd, place)
+    durmuhurtam = [
+        KalamRange(
+            starts_at=_hms_string_to_datetime(target_date, durmuhurtam_hms[i], offset_hours),
+            ends_at=_hms_string_to_datetime(target_date, durmuhurtam_hms[i + 1], offset_hours),
+        )
+        for i in range(0, len(durmuhurtam_hms), 2)
+    ]
 
     is_poya, poya, next_poya, sinhala_month = compute_poya(target_date, place, offset_hours)
 
@@ -292,6 +310,9 @@ def compute_daily_panchanga(
         kalams=kalams,
         choghadiya=choghadiya,
         hora=hora,
+        amrit_kaalam=amrit_kaalam,
+        abhijit_muhurta=abhijit_muhurta,
+        durmuhurtam=durmuhurtam,
     )
 
 

@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
-import { getDictionary, nakshatraName, translateEnum } from "@/lib/i18n";
+import { getDictionary, NAKSHATRAS, nakshatraName, translateEnum } from "@/lib/i18n";
 import {
   ApiError,
   fetchPanchanga,
@@ -10,6 +11,7 @@ import {
   type BirdId,
   type DailyPanchanga,
   type EffectId,
+  type PakshaId,
   type ScheduleRequest,
   type ScheduleResponse,
   type SubPeriod,
@@ -31,6 +33,7 @@ import { ACTIVITY_COLORS } from "@/components/pancha-pakshi/activityColors";
 import { SunIcon } from "@/components/icons/sun";
 import { FullMoonIcon } from "@/components/icons/moon";
 import { activityGuidance } from "@/lib/pancha-guidance";
+import { EFFECT_COLORS } from "@fernandofamily/design-system";
 
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
 const EFFECT_RANK: Record<EffectId, number> = {
@@ -166,8 +169,14 @@ export function DailyGuideClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [usedDefaults, setUsedDefaults] = useState(false);
+  const [knownNakshatraIndex, setKnownNakshatraIndex] = useState(1);
+  const [knownPaksha, setKnownPaksha] = useState<PakshaId>("waxing");
 
   const run = useCallback(async (nextRequest: ScheduleRequest) => {
+    if (nextRequest.method === "nakshatra_paksha") {
+      setKnownNakshatraIndex(nextRequest.nakshatra_index);
+      setKnownPaksha(nextRequest.paksha);
+    }
     setRequest(nextRequest);
     setDate(nextRequest.target_date);
     setLocation(locationFromRequest(nextRequest));
@@ -262,6 +271,23 @@ export function DailyGuideClient() {
     });
   }
 
+  function useKnownNakshatra() {
+    const loc = location ?? DEFAULT_LOCATION;
+    const nextDate = date || todayFor(loc).date;
+    setUsedDefaults(false);
+    void run({
+      method: "nakshatra_paksha",
+      nakshatra_index: knownNakshatraIndex,
+      paksha: knownPaksha,
+      target_date: nextDate,
+      target_time: targetTimeFor(nextDate, loc),
+      location_name: loc.name,
+      latitude: loc.latitude,
+      longitude: loc.longitude,
+      iana_tz: loc.iana_tz,
+    });
+  }
+
   function pickProfile(profile: SavedProfile) {
     const loc = location ?? DEFAULT_LOCATION;
     const nextDate = date || todayFor(loc).date;
@@ -303,7 +329,67 @@ export function DailyGuideClient() {
           </div>
           <div className="flex flex-col gap-3 rounded-lg border border-black/10 p-3 dark:border-white/10">
             <SavedProfiles onPick={pickProfile} saveCandidate={null} />
-            <p className="text-xs font-semibold uppercase opacity-60">{dict.ui.birthBird}</p>
+            <div
+              data-testid="daily-guide-known-nakshatra"
+              className="flex flex-col gap-3 border-t border-black/10 pt-3 dark:border-white/10"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase opacity-60">
+                    {dict.dailyGuide.knownNakshatraTitle}
+                  </p>
+                  <p className="mt-1 text-xs leading-relaxed opacity-70">
+                    {dict.dailyGuide.knownNakshatraDescription}
+                  </p>
+                </div>
+                <Link
+                  href={`/${locale}/birth-nakshatra`}
+                  className="shrink-0 rounded-full border border-black/10 px-3 py-1 text-xs font-semibold hover:border-accent hover:text-accent dark:border-white/20"
+                >
+                  {dict.dailyGuide.findNakshatra}
+                </Link>
+              </div>
+              <div className="grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-1">
+                <label className="min-w-0 text-sm">
+                  <span className="mb-1 block text-xs uppercase opacity-60">{dict.ui.birthNakshatra}</span>
+                  <select
+                    value={knownNakshatraIndex}
+                    onChange={(e) => setKnownNakshatraIndex(Number(e.target.value))}
+                    className="w-full min-w-0 rounded-lg border border-black/10 bg-background px-3 py-2 text-sm dark:border-white/20"
+                  >
+                    {NAKSHATRAS.map((n) => (
+                      <option key={n.id} value={n.id}>
+                        {nakshatraName(n.id, locale)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="min-w-0 text-sm">
+                  <span className="mb-1 block text-xs uppercase opacity-60">{dict.ui.paksha}</span>
+                  <select
+                    value={knownPaksha}
+                    onChange={(e) => setKnownPaksha(e.target.value as PakshaId)}
+                    className="w-full min-w-0 rounded-lg border border-black/10 bg-background px-3 py-2 text-sm dark:border-white/20"
+                  >
+                    {(["waxing", "waning"] as PakshaId[]).map((p) => (
+                      <option key={p} value={p}>
+                        {translateEnum(dict, "paksha", p)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <button
+                type="button"
+                onClick={useKnownNakshatra}
+                className="rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-white"
+              >
+                {dict.dailyGuide.useKnownNakshatra}
+              </button>
+            </div>
+            <p className="border-t border-black/10 pt-3 text-xs font-semibold uppercase opacity-60 dark:border-white/10">
+              {dict.ui.birthBird}
+            </p>
             <div className="grid grid-cols-2 gap-2">
               {BIRDS.map((bird) => {
                 const Icon = BIRD_ICONS[bird];
@@ -483,6 +569,8 @@ export function DailyGuideClient() {
             </section>
 
             <aside className="flex flex-col gap-5">
+              <PersonalStrengthCard request={request} schedule={data.schedule} targetDate={data.panchanga.date} />
+
               <section
                 data-testid="daily-guide-avoid-times"
                 className="rounded-xl border border-amber-600/40 bg-amber-500/10 p-4"
@@ -539,6 +627,80 @@ export function DailyGuideClient() {
   );
 }
 
+function PersonalStrengthCard({
+  request,
+  schedule,
+  targetDate,
+}: {
+  request: ScheduleRequest | null;
+  schedule: ScheduleResponse;
+  targetDate: string;
+}) {
+  const { dict, locale } = useLocale();
+  const taraBala = schedule.tara_bala;
+  const chandrashtama = schedule.chandrashtama;
+  const hasFullBirthRequest = request?.method === "birth_datetime";
+
+  return (
+    <section
+      data-testid="daily-guide-personal-strength"
+      className="rounded-xl border border-black/10 bg-white/35 p-4 dark:border-white/10 dark:bg-white/[.03]"
+    >
+      <h2 className="text-sm font-semibold uppercase text-accent">
+        {dict.dailyGuide.personalStrengthTitle}
+      </h2>
+      <p className="mt-1 text-xs leading-relaxed opacity-70">
+        {dict.dailyGuide.personalStrengthDescription}
+      </p>
+      <dl className="mt-3 grid gap-3 text-sm">
+        <StrengthFact
+          label={dict.ui.dishaShool}
+          value={translateEnum(dict, "directions", schedule.disha_shool)}
+          testId="daily-guide-disha-shool"
+        />
+        {taraBala ? (
+          <StrengthFact
+            label={dict.ui.taraBala}
+            value={`${translateEnum(dict, "taraCategories", taraBala.key)} — ${translateEnum(dict, "effects", taraBala.effect)}`}
+            color={EFFECT_COLORS[taraBala.effect]}
+            testId="daily-guide-tara-bala"
+          />
+        ) : (
+          <StrengthFact
+            label={dict.ui.taraBala}
+            value={dict.dailyGuide.taraBalaPrompt}
+            testId="daily-guide-tara-bala"
+          />
+        )}
+        {chandrashtama ? (
+          <StrengthFact
+            label={dict.ui.chandrashtama}
+            value={spanText(
+              chandrashtama.ends_at,
+              targetDate,
+              locale,
+              dict.ui.chandrashtamaUntil,
+              dict.panchanga.nextDay,
+            )}
+            color={EFFECT_COLORS.bad}
+            testId="daily-guide-chandrashtama"
+          />
+        ) : (
+          <StrengthFact
+            label={dict.ui.chandrashtama}
+            value={
+              hasFullBirthRequest
+                ? dict.dailyGuide.chandrashtamaClear
+                : dict.dailyGuide.chandrashtamaNeedsBirth
+            }
+            testId="daily-guide-chandrashtama"
+          />
+        )}
+      </dl>
+    </section>
+  );
+}
+
 function PeriodLine({ period, featured = false }: { period: SubPeriod; featured?: boolean }) {
   const { dict, locale } = useLocale();
   const BirdIcon = BIRD_ICONS[period.sub_bird];
@@ -567,6 +729,27 @@ function PeriodLine({ period, featured = false }: { period: SubPeriod; featured?
       <p className="mt-1 text-xs leading-relaxed opacity-70">
         {activityGuidance(dict, period.sub_activity)}
       </p>
+    </div>
+  );
+}
+
+function StrengthFact({
+  label,
+  value,
+  color,
+  testId,
+}: {
+  label: string;
+  value: string;
+  color?: string;
+  testId?: string;
+}) {
+  return (
+    <div data-testid={testId} className="min-w-0">
+      <dt className="text-xs uppercase opacity-60">{label}</dt>
+      <dd className="mt-1 break-words font-medium" style={color ? { color } : undefined}>
+        {value}
+      </dd>
     </div>
   );
 }

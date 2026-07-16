@@ -643,7 +643,16 @@
     "currentTitle": "වත්මන් පංච පක්ෂි කාලය",
     "currentUnavailable": "සජීවී වර්තමාන කාල මාර්ගෝපදේශය පෙන්වන්නේ අද දිනයට පමණි.",
     "goodWindowsTitle": "හොඳම සුබ වේලාවන්",
-    "avoidTitle": "ආරම්භ කිරීමට වළකින්න"
+    "avoidTitle": "ආරම්භ කිරීමට වළකින්න",
+    "knownNakshatraTitle": "දන්නා නැකත",
+    "knownNakshatraDescription": "උපන් දිනය හෝ වේලාව ඇතුළත් නොකර තාරාබලය සඳහා ඔබේ නැකත සහ පක්ෂය භාවිත කරන්න.",
+    "findNakshatra": "සොයන්න",
+    "useKnownNakshatra": "නැකත භාවිත කරන්න",
+    "personalStrengthTitle": "දවසේ පුද්ගලික ශක්තිය",
+    "personalStrengthDescription": "මෙම දිනය සහ ස්ථානය සඳහා ගමන් දිශාව, තාරාබලය සහ චන්ද්‍රාෂ්ටම සටහන්.",
+    "taraBalaPrompt": "තාරාබලය පෙන්වීමට දන්නා නැකත සහ පක්ෂය තෝරන්න.",
+    "chandrashtamaNeedsBirth": "සම්පූර්ණ උපන් අනන්‍යතාවයෙන් ලැබෙන චන්ද්‍ර රාශිය අවශ්‍ය බැවින්, ලබා ගත හැකි විට පමණක් පෙන්වයි.",
+    "chandrashtamaClear": "මෙම චන්ද්‍ර රාශිය සඳහා චන්ද්‍රාෂ්ටම කාලයක් දැන් සක්‍රීය නැත."
   },
   "muhurta": {
     "title": "සුබ වේලා සෙවුම",

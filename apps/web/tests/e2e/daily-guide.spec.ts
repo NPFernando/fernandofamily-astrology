@@ -32,6 +32,8 @@ for (const locale of ["en", "si"] as const) {
     await expect(page.locator('[data-testid="daily-guide-summary"]')).toBeVisible();
     await expect(page.locator('[data-testid="daily-guide-current"]')).toBeVisible();
     await expect(page.locator('[data-testid="daily-guide-good-windows"]')).toBeVisible();
+    await expect(page.locator('[data-testid="daily-guide-personal-strength"]')).toBeVisible();
+    await expect(page.locator('[data-testid="daily-guide-disha-shool"]')).toBeVisible();
     await expect(page.locator('[data-testid="daily-guide-avoid-times"]')).toBeVisible();
     await expect(page.locator('[data-testid="daily-guide-panchanga"]')).toBeVisible();
     await expect(page.locator('[data-testid="daily-guide-sun-moon"]')).toBeVisible();
@@ -55,6 +57,24 @@ test("daily guide: real Poya date shows Poya badge and ordinary date shows next 
   await expect(page.locator('[data-testid="daily-guide-next-poya"]')).toContainText(
     DICTS.en.enums.sinhalaMonths.esala,
   );
+});
+
+test("daily guide: known Nakshatra unlocks Tara Bala without birth data in URLs", async ({ page }) => {
+  const watcher = watchForBirthDataInUrls(page);
+  await openDailyGuide(page, "en");
+  const picker = page.locator('[data-testid="daily-guide-known-nakshatra"]');
+  await picker.locator("select").first().selectOption("1");
+  await picker.locator("select").nth(1).selectOption("waxing");
+  await picker.getByRole("button", { name: DICTS.en.dailyGuide.useKnownNakshatra }).click();
+
+  await expect(page.locator('[data-testid="daily-guide-tara-bala"]')).not.toContainText(
+    DICTS.en.dailyGuide.taraBalaPrompt,
+    { timeout: 20_000 },
+  );
+  await expect(page.locator('[data-testid="daily-guide-tara-bala"]')).toContainText(
+    DICTS.en.ui.taraBala,
+  );
+  watcher.assertClean();
 });
 
 test("daily guide: changing bird refreshes the guide identity", async ({ page }) => {

@@ -643,7 +643,16 @@
     "currentTitle": "Current Pancha Pakshi period",
     "currentUnavailable": "Live current-period guidance is shown only for today.",
     "goodWindowsTitle": "Best favourable windows",
-    "avoidTitle": "Avoid starting during"
+    "avoidTitle": "Avoid starting during",
+    "knownNakshatraTitle": "Known Nakshatra",
+    "knownNakshatraDescription": "Use your Nakshatra and Paksha to add Tara Bala without entering birth date or time.",
+    "findNakshatra": "Find",
+    "useKnownNakshatra": "Use Nakshatra",
+    "personalStrengthTitle": "Personal day strength",
+    "personalStrengthDescription": "Travel direction, Tara Bala and Chandrashtama notes for this date and location.",
+    "taraBalaPrompt": "Select a known Nakshatra and Paksha to unlock Tara Bala.",
+    "chandrashtamaNeedsBirth": "Needs a full birth-derived Moon sign, so it is shown only when available.",
+    "chandrashtamaClear": "No Chandrashtama window is active for this birth Moon sign."
   },
   "muhurta": {
     "title": "Favourable Time Finder",

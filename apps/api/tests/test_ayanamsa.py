@@ -15,7 +15,9 @@ silently regresses.
 from datetime import datetime, timedelta, timezone
 
 import swisseph as swe
+from fastapi.testclient import TestClient
 
+from app.main import app
 from app.modules.panchanga import adapter
 
 COLOMBO_TZ = timezone(timedelta(hours=5, minutes=30))
@@ -52,3 +54,18 @@ def test_configured_ayanamsa_matches_sri_lankan_new_year_instants():
             f"longitude was {longitude[0]:.4f} degrees from Aries (0) — expected "
             f"within {_TOLERANCE_DEGREES}; the configured ayanamsa may have regressed"
         )
+
+
+def test_health_ready_survives_the_ayanamsa_override():
+    """Regression guard for a real bug this fix introduced and then fixed:
+    configure_ayanamsa's runtime override mutates the shared vendored `const`
+    module's _DEFAULT_AYANAMSA_MODE attribute, which scripts/verify_vendor.py's
+    vendor-internal drift check (used by this exact endpoint) otherwise flags
+    as "Configuration Drift" against factory_settings.json's stale
+    TRUE_PUSHYA entry — a false positive with no way to distinguish an
+    intentional runtime override from an accidental vendor hand-edit. Caught
+    via a CI e2e failure (the readiness check timing out), not by any
+    existing test — nothing previously exercised /health/ready at all."""
+    client = TestClient(app)
+    response = client.get("/api/v1/health/ready")
+    assert response.status_code == 200, response.text

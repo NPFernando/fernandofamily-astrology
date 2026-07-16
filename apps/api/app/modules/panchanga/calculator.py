@@ -12,6 +12,7 @@ from app.modules.panchanga.errors import PanchangaInternalError
 from app.modules.panchanga.models import (
     ChoghadiyaSpan,
     DailyPanchanga,
+    GrahaPosition,
     HoraSpan,
     Kalams,
     KalamRange,
@@ -280,6 +281,8 @@ def compute_daily_panchanga(
         for i in range(0, len(durmuhurtam_hms), 2)
     ]
 
+    graha_positions = compute_graha_positions(noon_jd, place)
+
     is_poya, poya, next_poya, sinhala_month = compute_poya(target_date, place, offset_hours)
 
     return DailyPanchanga(
@@ -313,7 +316,34 @@ def compute_daily_panchanga(
         amrit_kaalam=amrit_kaalam,
         abhijit_muhurta=abhijit_muhurta,
         durmuhurtam=durmuhurtam,
+        graha_positions=graha_positions,
     )
+
+
+def compute_graha_positions(jd: float, place) -> list[GrahaPosition]:
+    """A 'sky today' snapshot: all 9 grahas' sidereal longitude, rashi,
+    nakshatra, and retrograde status. See adapter.graha_longitudes'
+    docstring for why this doesn't call upstream's planetary_positions()
+    directly (it crashes unconditionally in this pinned version) and
+    adapter.retrograde_planet_ids' docstring for why stationary flags
+    aren't offered (upstream's planets_in_stationary() has its own,
+    separate crash on Ketu under this app's actual runtime configuration)."""
+    positions = adapter.graha_longitudes(jd, place)
+    retrograde_ids = set(adapter.retrograde_planet_ids(jd, place))
+    result = []
+    for planet_id, longitude in positions:
+        rashi_index = int(longitude / 30) + 1
+        result.append(
+            GrahaPosition(
+                key=repository.GRAHA_KEYS[planet_id],
+                longitude_degrees=longitude,
+                rashi_index=rashi_index,
+                rashi_key=repository.RASHI_KEYS[rashi_index - 1],
+                nakshatra_index=int(longitude / (360 / 27)) + 1,
+                is_retrograde=planet_id in retrograde_ids,
+            )
+        )
+    return result
 
 
 def adapter_sunset_datetime(jd: float, place, base_date: date_type, offset_hours: float) -> datetime:

@@ -890,6 +890,13 @@
           "engine": {
             "$ref": "#/components/schemas/EngineMetadata"
           },
+          "graha_positions": {
+            "items": {
+              "$ref": "#/components/schemas/GrahaPosition"
+            },
+            "title": "Graha Positions",
+            "type": "array"
+          },
           "hora": {
             "items": {
               "$ref": "#/components/schemas/HoraSpan"
@@ -1019,7 +1026,8 @@
           "hora",
           "amrit_kaalam",
           "abhijit_muhurta",
-          "durmuhurtam"
+          "durmuhurtam",
+          "graha_positions"
         ],
         "title": "DailyPanchanga",
         "type": "object"
@@ -1107,6 +1115,44 @@
           "deployed_commit"
         ],
         "title": "EngineMetadata",
+        "type": "object"
+      },
+      "GrahaPosition": {
+        "properties": {
+          "is_retrograde": {
+            "title": "Is Retrograde",
+            "type": "boolean"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "longitude_degrees": {
+            "title": "Longitude Degrees",
+            "type": "number"
+          },
+          "nakshatra_index": {
+            "title": "Nakshatra Index",
+            "type": "integer"
+          },
+          "rashi_index": {
+            "title": "Rashi Index",
+            "type": "integer"
+          },
+          "rashi_key": {
+            "title": "Rashi Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "longitude_degrees",
+          "rashi_index",
+          "rashi_key",
+          "nakshatra_index",
+          "is_retrograde"
+        ],
+        "title": "GrahaPosition",
         "type": "object"
       },
       "HTTPValidationError": {

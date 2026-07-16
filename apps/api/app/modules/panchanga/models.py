@@ -63,6 +63,15 @@ class HoraSpan(BaseModel):
     ends_at: datetime
 
 
+class GrahaPosition(BaseModel):
+    key: str  # repository.GRAHA_KEYS
+    longitude_degrees: float  # 0..360 sidereal, full precision
+    rashi_index: int  # 1..12
+    rashi_key: str  # repository.RASHI_KEYS
+    nakshatra_index: int  # 1..27
+    is_retrograde: bool  # always False for sun/moon (never retrograde)
+
+
 class LunarMonth(BaseModel):
     key: str
     index: int  # 1..12, amanta, 1 = chaitra
@@ -118,3 +127,4 @@ class DailyPanchanga(BaseModel):
     abhijit_muhurta: KalamRange  # always exactly one window, ~midday
     # 1 window on Sunday/Wednesday/Saturday, 2 on every other weekday.
     durmuhurtam: list[KalamRange]
+    graha_positions: list[GrahaPosition]  # 9: Sun..Ketu, repository.GRAHA_KEYS order

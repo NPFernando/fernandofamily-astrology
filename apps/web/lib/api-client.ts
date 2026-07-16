@@ -245,6 +245,14 @@ export type KaranaSpan = { key: string; index_60: number; starts_at: string; end
 export type KalamRange = { starts_at: string; ends_at: string };
 export type ChoghadiyaSpan = { key: string; is_auspicious: boolean; starts_at: string; ends_at: string };
 export type HoraSpan = { key: string; is_auspicious: boolean; starts_at: string; ends_at: string };
+export type GrahaPosition = {
+  key: string;
+  longitude_degrees: number;
+  rashi_index: number;
+  rashi_key: string;
+  nakshatra_index: number;
+  is_retrograde: boolean;
+};
 
 export type DailyPanchanga = {
   engine: EngineMetadata;
@@ -271,6 +279,7 @@ export type DailyPanchanga = {
   amrit_kaalam: KalamRange[];
   abhijit_muhurta: KalamRange;
   durmuhurtam: KalamRange[];
+  graha_positions: GrahaPosition[];
 };
 
 export class ApiError extends Error {

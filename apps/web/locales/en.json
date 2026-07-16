@@ -203,7 +203,9 @@
       "mercury": "Mercury",
       "jupiter": "Jupiter",
       "venus": "Venus",
-      "saturn": "Saturn"
+      "saturn": "Saturn",
+      "rahu": "Rahu",
+      "ketu": "Ketu"
     }
   },
   "ui": {
@@ -508,6 +510,9 @@
     "abhijitMuhurtaNote": "A generally auspicious window around midday, the 8th of 15 daily muhurtas.",
     "durmuhurtamTitle": "Durmuhurtam",
     "durmuhurtamNote": "Traditionally inauspicious window(s), one or two depending on the weekday.",
+    "grahaPositionsTitle": "Graha Positions",
+    "grahaPositionsNote": "Today's sidereal position for each of the 9 grahas, with retrograde (vakri) planets flagged.",
+    "retrograde": "Retrograde",
     "sunMoonTitle": "Sun & Moon",
     "moonrise": "Moonrise",
     "moonset": "Moonset",

@@ -15,6 +15,7 @@ from app.core.vendor_path import configure_ayanamsa, ensure_vendor_on_path
 
 ensure_vendor_on_path()
 
+from jhora import const  # noqa: E402
 from jhora.panchanga import drik  # noqa: E402
 
 configure_ayanamsa(drik)
@@ -106,3 +107,43 @@ def durmuhurtam(jd: float, p) -> list:
     other weekday has two. Never empty, never crosses midnight (offsets stay
     within a single day/night duration)."""
     return drik.durmuhurtam(jd, p)
+
+
+def graha_longitudes(jd: float, p) -> list[tuple[int, float]]:
+    """[(planet_id 0..8, sidereal_longitude_degrees), ...] for the 9 grahas
+    (Sun..Ketu, see repository.GRAHA_KEYS for the order).
+
+    Deliberately NOT calling upstream's own `planetary_positions()`: it
+    crashes unconditionally (`planet_list.index(planet)`, but `planet_list`
+    is a dict — dicts have no `.index()` — a genuine bug in this pinned
+    vendored version, not a calling-convention issue; confirmed empirically,
+    reproduces every call). This reimplements the same intent using the
+    exact working primitives that function itself was trying to call
+    (`sidereal_longitude()`/`ketu()`), iterating `drik.planet_list` (which
+    IS usable directly as a dict) — not a rewrite of the astronomy, just a
+    workaround for upstream's broken wrapper.
+    """
+    jd_ut = jd - p.timezone / 24.0
+    positions = []
+    for planet_const, planet_id in drik.planet_list.items():
+        if planet_const == const._KETU:
+            longitude = drik.ketu(drik.sidereal_longitude(jd_ut, const._RAHU))
+        else:
+            longitude = drik.sidereal_longitude(jd_ut, planet_const)
+        positions.append((planet_id, longitude))
+    return positions
+
+
+def retrograde_planet_ids(jd: float, p) -> list[int]:
+    """List of planet_id (repository.GRAHA_KEYS) currently retrograde. Sun
+    and Moon never retrograde and are never in this list.
+
+    NOTE: upstream's `planets_in_stationary()` — the natural complement —
+    has its own separate bug in this pinned version: it crashes on Ketu
+    under the true-node Rahu/Ketu configuration this app actually runs
+    with (calls swe.calc_ut with Ketu's sentinel constant directly, which
+    isn't a real body swisseph knows how to compute; confirmed
+    empirically). `planets_in_retrograde()` correctly special-cases Ketu
+    (checks Rahu's speed instead) and does not have this bug, which is why
+    only retrograde is offered here, not stationary."""
+    return drik.planets_in_retrograde(jd, p)

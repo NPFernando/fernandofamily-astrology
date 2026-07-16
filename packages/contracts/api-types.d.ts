@@ -598,6 +598,8 @@ export interface components {
             /** Durmuhurtam */
             durmuhurtam: components["schemas"]["KalamRange"][];
             engine: components["schemas"]["EngineMetadata"];
+            /** Graha Positions */
+            graha_positions: components["schemas"]["GrahaPosition"][];
             /** Hora */
             hora: components["schemas"]["HoraSpan"][];
             /** Is Poya Day */
@@ -671,6 +673,21 @@ export interface components {
             name: string;
             /** Version */
             version: string;
+        };
+        /** GrahaPosition */
+        GrahaPosition: {
+            /** Is Retrograde */
+            is_retrograde: boolean;
+            /** Key */
+            key: string;
+            /** Longitude Degrees */
+            longitude_degrees: number;
+            /** Nakshatra Index */
+            nakshatra_index: number;
+            /** Rashi Index */
+            rashi_index: number;
+            /** Rashi Key */
+            rashi_key: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {

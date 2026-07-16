@@ -88,6 +88,20 @@ CHOGHADIYA_AUSPICIOUS: list[bool] = [False, True, True, True, False, True, False
 HORA_PLANET_KEYS: list[str] = ["sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn"]
 HORA_AUSPICIOUS: list[bool] = [False, True, False, True, True, True, False]
 
+# The 9 grahas, in upstream's own SUN_ID..KETU_ID order (const.py:126-137).
+GRAHA_KEYS: list[str] = [
+    "sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn", "rahu", "ketu",
+]
+
+# The 12 rashis (zodiac signs), standard order starting at Aries (Mesha).
+# Deliberately independent of app/modules/birth_nakshatra's own RashiId enum
+# (same values) rather than importing it — that module is a separate,
+# concurrently-developed feature and panchanga shouldn't couple to it.
+RASHI_KEYS: list[str] = [
+    "mesha", "vrishabha", "mithuna", "karka", "simha", "kanya",
+    "tula", "vrischika", "dhanu", "makara", "kumbha", "meena",
+]
+
 
 def sinhala_month_key(amanta_index: int, is_leap: bool) -> str:
     """Adhika (leap) months take an adhi- prefix, matching the gazette's

@@ -1,3 +1,4 @@
+from calendar import monthrange
 from datetime import date as date_type
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
@@ -20,6 +21,8 @@ from app.modules.panchanga.models import (
     KaranaSpan,
     LunarEclipseEvent,
     LunarMonth,
+    MonthPanchanga,
+    MonthPanchangaDay,
     NakshatraSpan,
     NextPoya,
     PoyaInfo,
@@ -345,6 +348,131 @@ def compute_daily_panchanga(
         durmuhurtam=durmuhurtam,
         graha_positions=graha_positions,
     )
+
+
+def compute_month_panchanga(
+    year: int,
+    month: int,
+    location_name: str,
+    latitude: float,
+    longitude: float,
+    tz: ZoneInfo,
+    engine: EngineMetadata,
+) -> MonthPanchanga:
+    adapter.ensure_ayanamsa()
+    day_count = monthrange(year, month)[1]
+    first_day = date_type(year, month, 1)
+    first_offset = resolve_utc_offset_hours(first_day, tz)
+    days = [
+        _compute_month_day(
+            target_date=date_type(year, month, day),
+            location_name=location_name,
+            latitude=latitude,
+            longitude=longitude,
+            tz=tz,
+        )
+        for day in range(1, day_count + 1)
+    ]
+
+    return MonthPanchanga(
+        engine=engine,
+        location=Location(
+            name=location_name,
+            latitude=latitude,
+            longitude=longitude,
+            iana_tz=str(tz),
+            utc_offset_minutes=round(first_offset * 60),
+        ),
+        year=year,
+        month=month,
+        days=days,
+    )
+
+
+def _compute_month_day(
+    target_date: date_type,
+    location_name: str,
+    latitude: float,
+    longitude: float,
+    tz: ZoneInfo,
+) -> MonthPanchangaDay:
+    offset_hours = resolve_utc_offset_hours(target_date, tz)
+    place = pp_adapter.place(location_name, latitude, longitude, offset_hours)
+    noon_jd = pp_adapter.julian_day_number(
+        pp_adapter.date(target_date.year, target_date.month, target_date.day), (12, 0, 0)
+    )
+    _validated_sunrise_jd(noon_jd, place)
+
+    weekday = WEEKDAY_ORDER[pp_adapter.weekday_index_0based(noon_jd, place)]
+    paksha = PakshaId.waxing if pp_adapter.paksha_index_1based(noon_jd, place) == 1 else PakshaId.waning
+    raw_tithi = adapter.tithi(noon_jd, place)
+    tithi_spans = _tithi_spans_from_raw(raw_tithi, target_date, offset_hours)
+
+    raw_moonrise = adapter.moonrise(noon_jd, place)
+    raw_moonset = adapter.moonset(noon_jd, place)
+    moonrise = (
+        _hours_to_datetime(target_date, raw_moonrise[0], offset_hours)
+        if _plausible_rise_set(raw_moonrise, noon_jd)
+        else None
+    )
+    moonset = (
+        _hours_to_datetime(target_date, raw_moonset[0], offset_hours)
+        if _plausible_rise_set(raw_moonset, noon_jd)
+        else None
+    )
+    is_poya, poya, _next_poya_info, sinhala_month = compute_poya(target_date, place, offset_hours)
+
+    return MonthPanchangaDay(
+        date=target_date,
+        weekday=weekday,
+        paksha=paksha,
+        moon_phase=_moon_phase_key(tithi_spans[0].index, is_poya),
+        sinhala_month=sinhala_month,
+        is_poya_day=is_poya,
+        poya=poya,
+        tithi=tithi_spans,
+        moonrise=moonrise,
+        moonset=moonset,
+    )
+
+
+def _tithi_spans_from_raw(raw_tithi: list, target_date: date_type, offset_hours: float) -> list[TithiSpan]:
+    tithi_spans = [
+        TithiSpan(
+            key=repository.TITHI_KEYS[int(raw_tithi[0]) - 1],
+            index=int(raw_tithi[0]),
+            starts_at=_hours_to_datetime(target_date, raw_tithi[1], offset_hours),
+            ends_at=_hours_to_datetime(target_date, raw_tithi[2], offset_hours),
+        )
+    ]
+    if len(raw_tithi) >= 6:
+        tithi_spans.append(
+            TithiSpan(
+                key=repository.TITHI_KEYS[int(raw_tithi[3]) - 1],
+                index=int(raw_tithi[3]),
+                starts_at=_hours_to_datetime(target_date, raw_tithi[4], offset_hours),
+                ends_at=_hours_to_datetime(target_date, raw_tithi[5], offset_hours),
+            )
+        )
+    return tithi_spans
+
+
+def _moon_phase_key(tithi_index: int, is_poya_day: bool) -> str:
+    if is_poya_day or tithi_index == 15:
+        return "full"
+    if tithi_index == 30:
+        return "new"
+    if 1 <= tithi_index <= 5:
+        return "waxing_crescent"
+    if 6 <= tithi_index <= 8:
+        return "first_quarter"
+    if 9 <= tithi_index <= 14:
+        return "waxing_gibbous"
+    if 16 <= tithi_index <= 20:
+        return "waning_gibbous"
+    if 21 <= tithi_index <= 23:
+        return "last_quarter"
+    return "waning_crescent"
 
 
 def compute_graha_positions(jd: float, place) -> list[GrahaPosition]:

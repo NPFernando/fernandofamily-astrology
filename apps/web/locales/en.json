@@ -16,6 +16,10 @@
       "title": "Daily Panchanga",
       "description": "Tithi, nakshatra, yoga, karana and the day's inauspicious kalams, calculated for any location and date."
     },
+    "moonCalendar": {
+      "title": "Moon & Poya Calendar",
+      "description": "A Sri Lanka-focused monthly calendar for Poya days, tithi changes, moon phases and Sinhala month context."
+    },
     "dailyGuide": {
       "title": "Sinhala Daily Guide",
       "description": "A practical daily view combining Panchanga, Poya, avoid times and Pancha Pakshi favourable windows for Sri Lanka."
@@ -40,6 +44,7 @@
     "licensing": "Licence",
     "sourceCode": "Source code",
     "panchanga": "Panchanga",
+    "moonCalendar": "Moon Calendar",
     "dailyGuide": "Daily Guide",
     "muhurta": "Muhurta"
   },
@@ -515,6 +520,10 @@
       "title": "Daily Panchanga",
       "description": "Daily Panchanga — tithi, nakshatra, yoga, karana, lunar month and rahu kala, calculated from real sunrise times for your location."
     },
+    "moonCalendar": {
+      "title": "Moon & Poya Calendar",
+      "description": "Monthly Sri Lankan moon calendar showing Poya days, tithi changes, moon phases, moonrise/moonset and Sinhala month context."
+    },
     "dailyGuide": {
       "title": "Sinhala Daily Astrology Guide",
       "description": "A practical Sri Lankan day guide combining Panchanga, Poya, avoid times and Pancha Pakshi favourable windows."
@@ -589,6 +598,29 @@
     "poyaTodayLabel": "Today is Poya",
     "poyaFullMoonSuffix": "Full Moon",
     "nextPoyaLabel": "Next Poya"
+  },
+  "moonCalendar": {
+    "title": "Moon & Poya Calendar",
+    "description": "See the month at a glance: Poya days, tithi changes, moon phases, moonrise and moonset for your selected Sri Lankan location.",
+    "controlsTitle": "Calendar settings",
+    "monthLabel": "Month",
+    "pickMonth": "Pick month",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "showingDefaults": "Showing the current month for the default location — change month or location above.",
+    "selectedDay": "Selected day",
+    "moonPhase": "Moon phase",
+    "poyaShort": "Poya",
+    "phaseLabels": {
+      "new": "New Moon",
+      "waxing_crescent": "Waxing crescent",
+      "first_quarter": "First quarter",
+      "waxing_gibbous": "Waxing gibbous",
+      "full": "Full Moon",
+      "waning_gibbous": "Waning gibbous",
+      "last_quarter": "Last quarter",
+      "waning_crescent": "Waning crescent"
+    }
   },
   "birthNakshatra": {
     "title": "Birth Nakshatra Helper",

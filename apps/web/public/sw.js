@@ -3,7 +3,7 @@
 // in localStorage by the app (see app/[locale]/pancha-pakshi/page.tsx) and
 // re-rendered there with an explicit "cached, not live" label — this worker
 // does not attempt any astronomical calculation of its own.
-const CACHE_NAME = "ff-astrology-shell-v3";
+const CACHE_NAME = "ff-astrology-shell-v4";
 // Locale data is bundled into the page JS (imported at build time, not
 // fetched from a public URL), so it's cached automatically once the page
 // itself is cached below — no separate /locales/*.json entries needed here.
@@ -14,6 +14,8 @@ const PRECACHE_URLS = [
   "/si/pancha-pakshi",
   "/en/panchanga",
   "/si/panchanga",
+  "/en/moon-calendar",
+  "/si/moon-calendar",
   "/en/compatibility",
   "/si/compatibility",
   "/icons/app/icon-192.png",

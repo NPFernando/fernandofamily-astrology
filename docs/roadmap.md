@@ -61,6 +61,9 @@
   windows for general work, travel, study/work, purchases and home rituals,
   combining Pancha Pakshi strength with Panchanga avoid/support periods
   (`/muhurta`, `POST /api/v1/muhurta/search`).
+- Moon phase + Tithi calendar — month view focused on Sri Lankan Poya days,
+  tithi changes, tithi-derived moon phases and Sinhala Poya-cycle month
+  context (`/moon-calendar`, `POST /api/v1/panchanga/month`).
 
 - Sri Lankan layer for the Daily Panchanga: Poya (full-moon) day detection
   and Sinhala Poya-cycle month names (bak, vesak, poson, … madin, with
@@ -82,8 +85,7 @@ navigation, the sitemap, or anywhere that implies they are available, until
 they are actually built, registered in the feature registry
 (`packages/feature-registry`), and explicitly enabled.
 
-1. Moon phase + Tithi calendar — month view focused on Poya, tithi changes
-   and Sinhala month context.
+1. No near-term small modules currently selected.
 
 **Explicitly out of scope** (not deferrals — decided against):
 - Telegram bot or other chat integrations.

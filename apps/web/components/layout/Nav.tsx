@@ -18,6 +18,7 @@ export function Nav() {
     if (id === "birth-nakshatra") return dict.nav.birthNakshatra;
     if (id === "pancha-pakshi") return dict.nav.panchaPakshi;
     if (id === "panchanga") return dict.nav.panchanga;
+    if (id === "moon-calendar") return dict.nav.moonCalendar;
     if (id === "daily-guide") return dict.nav.dailyGuide;
     if (id === "muhurta") return dict.nav.muhurta;
     return fallback;

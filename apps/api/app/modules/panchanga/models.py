@@ -1,10 +1,22 @@
 from datetime import date as date_type
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel
 
 from app.modules.pancha_pakshi.enums import PakshaId, WeekdayId
 from app.modules.pancha_pakshi.models import EngineMetadata, Location
+
+MoonPhaseKey = Literal[
+    "new",
+    "waxing_crescent",
+    "first_quarter",
+    "waxing_gibbous",
+    "full",
+    "waning_gibbous",
+    "last_quarter",
+    "waning_crescent",
+]
 
 
 class TithiSpan(BaseModel):
@@ -141,6 +153,27 @@ class EclipseForecast(BaseModel):
     from_date: date_type  # the date the forward search started from
     next_solar: SolarEclipseEvent
     next_lunar: LunarEclipseEvent
+
+
+class MonthPanchangaDay(BaseModel):
+    date: date_type
+    weekday: WeekdayId
+    paksha: PakshaId
+    moon_phase: MoonPhaseKey
+    sinhala_month: SinhalaMonth
+    is_poya_day: bool
+    poya: PoyaInfo | None
+    tithi: list[TithiSpan]
+    moonrise: datetime | None
+    moonset: datetime | None
+
+
+class MonthPanchanga(BaseModel):
+    engine: EngineMetadata
+    location: Location
+    year: int
+    month: int
+    days: list[MonthPanchangaDay]
 
 
 class DailyPanchanga(BaseModel):

@@ -242,6 +242,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/panchanga/month": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Month */
+        post: operations["month_api_v1_panchanga_month_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -884,6 +901,57 @@ export interface components {
             starts_at: string;
             /** Sub Periods */
             sub_periods: components["schemas"]["SubPeriod"][];
+        };
+        /** MonthPanchanga */
+        MonthPanchanga: {
+            /** Days */
+            days: components["schemas"]["MonthPanchangaDay"][];
+            engine: components["schemas"]["EngineMetadata"];
+            location: components["schemas"]["Location"];
+            /** Month */
+            month: number;
+            /** Year */
+            year: number;
+        };
+        /** MonthPanchangaDay */
+        MonthPanchangaDay: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Is Poya Day */
+            is_poya_day: boolean;
+            /**
+             * Moon Phase
+             * @enum {string}
+             */
+            moon_phase: "new" | "waxing_crescent" | "first_quarter" | "waxing_gibbous" | "full" | "waning_gibbous" | "last_quarter" | "waning_crescent";
+            /** Moonrise */
+            moonrise: string | null;
+            /** Moonset */
+            moonset: string | null;
+            paksha: components["schemas"]["PakshaId"];
+            poya: components["schemas"]["PoyaInfo"] | null;
+            sinhala_month: components["schemas"]["SinhalaMonth"];
+            /** Tithi */
+            tithi: components["schemas"]["TithiSpan"][];
+            weekday: components["schemas"]["WeekdayId"];
+        };
+        /** MonthPanchangaRequest */
+        MonthPanchangaRequest: {
+            /** Iana Tz */
+            iana_tz: string;
+            /** Latitude */
+            latitude: number;
+            /** Location Name */
+            location_name: string;
+            /** Longitude */
+            longitude: number;
+            /** Month */
+            month: number;
+            /** Year */
+            year: number;
         };
         /** MoonRashi */
         MoonRashi: {
@@ -1905,6 +1973,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EclipseForecast"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    month_api_v1_panchanga_month_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MonthPanchangaRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonthPanchanga"];
                 };
             };
             /** @description Validation Error */

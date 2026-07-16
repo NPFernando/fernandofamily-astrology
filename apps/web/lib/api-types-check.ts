@@ -24,6 +24,8 @@ import type {
   CompatibilityRequest,
   RelationVariant,
   CompatibilityResponse,
+  MonthPanchangaRequest,
+  MonthPanchanga,
 } from "@/lib/api-client";
 
 type Generated = components["schemas"];
@@ -66,4 +68,10 @@ export type _CheckCompatibilityRequest = Expect<
 export type _CheckRelationVariant = Expect<Equals<RelationVariant, Generated["RelationVariant"]>>;
 export type _CheckCompatibilityResponse = Expect<
   Equals<CompatibilityResponse, Generated["CompatibilityResponse"]>
+>;
+export type _CheckMonthPanchangaRequest = Expect<
+  Equals<MonthPanchangaRequest, Generated["MonthPanchangaRequest"]>
+>;
+export type _CheckMonthPanchanga = Expect<
+  Generated["MonthPanchanga"] extends MonthPanchanga ? true : false
 >;

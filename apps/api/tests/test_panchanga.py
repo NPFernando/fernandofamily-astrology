@@ -31,6 +31,12 @@ def _daily(payload_location: dict, date_str: str):
     return response.json()
 
 
+def _month(payload_location: dict, year: int, month: int):
+    response = client.post("/api/v1/panchanga/month", json={"year": year, "month": month, **payload_location})
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
 def _noon_jd_and_place(loc: dict, d: date_type, offset_hours: float):
     place = pp_adapter.place(loc["location_name"], loc["latitude"], loc["longitude"], offset_hours)
     jd = pp_adapter.julian_day_number(pp_adapter.date(d.year, d.month, d.day), (12, 0, 0))
@@ -197,3 +203,64 @@ def test_metadata_lists_panchanga_feature():
     ids = [f["id"] for f in response.json()["features"]]
     assert "panchanga" in ids
     assert "pancha-pakshi" in ids
+
+
+@pytest.mark.parametrize(
+    ("year", "month", "days"),
+    [
+        (2026, 2, 28),
+        (2028, 2, 29),
+        (2026, 4, 30),
+        (2026, 7, 31),
+    ],
+)
+def test_month_panchanga_returns_calendar_month_length(year, month, days):
+    body = _month(COLOMBO, year, month)
+    assert body["year"] == year
+    assert body["month"] == month
+    assert len(body["days"]) == days
+    assert body["days"][0]["date"] == f"{year:04d}-{month:02d}-01"
+
+
+def test_month_panchanga_marks_real_poya_day():
+    body = _month(COLOMBO, 2026, 7)
+    poya_days = [d for d in body["days"] if d["is_poya_day"]]
+    assert [d["date"] for d in poya_days] == ["2026-07-29"]
+    assert poya_days[0]["poya"]["month_key"] == "esala"
+    assert poya_days[0]["moon_phase"] == "full"
+
+
+def test_month_panchanga_day_matches_daily_endpoint():
+    month_body = _month(COLOMBO, 2026, 7)
+    daily_body = _daily(COLOMBO, "2026-07-14")
+    day = next(d for d in month_body["days"] if d["date"] == "2026-07-14")
+    assert day["weekday"] == daily_body["weekday"]
+    assert day["paksha"] == daily_body["paksha"]
+    assert day["sinhala_month"] == daily_body["sinhala_month"]
+    assert day["is_poya_day"] == daily_body["is_poya_day"]
+    assert day["tithi"] == daily_body["tithi"]
+    assert day["moonrise"] == daily_body["moonrise"]
+    assert day["moonset"] == daily_body["moonset"]
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"year": 2026, "month": 7, "location_name": "X", "latitude": 91.0, "longitude": 0.0, "iana_tz": "UTC"},
+        {"year": 2026, "month": 7, "location_name": "X", "latitude": 0.0, "longitude": 181.0, "iana_tz": "UTC"},
+        {"year": 2026, "month": 7, "location_name": "X", "latitude": 0.0, "longitude": 0.0, "iana_tz": "Not/AZone"},
+        {"year": 2026, "month": 13, **COLOMBO},
+    ],
+)
+def test_month_panchanga_invalid_inputs_rejected(payload):
+    response = client.post("/api/v1/panchanga/month", json=payload)
+    assert response.status_code == 422
+
+
+def test_month_panchanga_image_profile_date_range(monkeypatch):
+    from app.modules.pancha_pakshi import validation
+
+    monkeypatch.setattr(validation, "_IMAGE_PROFILE", True)
+    response = client.post("/api/v1/panchanga/month", json={"year": 1750, "month": 6, **COLOMBO})
+    assert response.status_code == 422
+    assert "1800" in response.json()["message"]

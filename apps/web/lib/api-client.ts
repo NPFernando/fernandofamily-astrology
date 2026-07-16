@@ -316,6 +316,46 @@ export type DailyPanchanga = {
   graha_positions: GrahaPosition[];
 };
 
+export type MoonPhaseKey =
+  | "new"
+  | "waxing_crescent"
+  | "first_quarter"
+  | "waxing_gibbous"
+  | "full"
+  | "waning_gibbous"
+  | "last_quarter"
+  | "waning_crescent";
+
+export type MonthPanchangaRequest = {
+  year: number;
+  month: number; // 1..12
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  iana_tz: string;
+};
+
+export type MonthPanchangaDay = {
+  date: string;
+  weekday: WeekdayId;
+  paksha: PakshaId;
+  moon_phase: MoonPhaseKey;
+  sinhala_month: { key: string; is_adhi: boolean };
+  is_poya_day: boolean;
+  poya: { month_key: string } | null;
+  tithi: TithiSpan[];
+  moonrise: string | null;
+  moonset: string | null;
+};
+
+export type MonthPanchanga = {
+  engine: EngineMetadata;
+  location: Location;
+  year: number;
+  month: number;
+  days: MonthPanchangaDay[];
+};
+
 export type EclipseForecastRequest = {
   from_date: string; // YYYY-MM-DD
   location_name: string;
@@ -531,6 +571,19 @@ export function fetchPanchanga(body: PanchangaRequest): Promise<DailyPanchanga> 
     const data = await r.json().catch(() => null);
     if (!r.ok) throw new ApiError(r.status, data);
     return data as DailyPanchanga;
+  });
+  return res;
+}
+
+export function fetchPanchangaMonth(body: MonthPanchangaRequest): Promise<MonthPanchanga> {
+  const res = fetch(`/api/v1/panchanga/month`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).then(async (r) => {
+    const data = await r.json().catch(() => null);
+    if (!r.ok) throw new ApiError(r.status, data);
+    return data as MonthPanchanga;
   });
   return res;
 }

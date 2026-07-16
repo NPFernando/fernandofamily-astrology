@@ -50,6 +50,17 @@ export const features: FeatureEntry[] = [
     icon: "sun",
   },
   {
+    id: "moon-calendar",
+    enabled: true,
+    public: true,
+    order: 22,
+    route: "/moon-calendar",
+    apiNamespace: "/api/v1/panchanga",
+    titleKey: "features.moonCalendar.title",
+    descriptionKey: "features.moonCalendar.description",
+    icon: "moon",
+  },
+  {
     id: "daily-guide",
     enabled: true,
     public: true,

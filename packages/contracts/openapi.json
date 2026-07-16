@@ -1581,6 +1581,175 @@
         "title": "MajorPeriod",
         "type": "object"
       },
+      "MonthPanchanga": {
+        "properties": {
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/MonthPanchangaDay"
+            },
+            "title": "Days",
+            "type": "array"
+          },
+          "engine": {
+            "$ref": "#/components/schemas/EngineMetadata"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "month": {
+            "title": "Month",
+            "type": "integer"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "engine",
+          "location",
+          "year",
+          "month",
+          "days"
+        ],
+        "title": "MonthPanchanga",
+        "type": "object"
+      },
+      "MonthPanchangaDay": {
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "is_poya_day": {
+            "title": "Is Poya Day",
+            "type": "boolean"
+          },
+          "moon_phase": {
+            "enum": [
+              "new",
+              "waxing_crescent",
+              "first_quarter",
+              "waxing_gibbous",
+              "full",
+              "waning_gibbous",
+              "last_quarter",
+              "waning_crescent"
+            ],
+            "title": "Moon Phase",
+            "type": "string"
+          },
+          "moonrise": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moonrise"
+          },
+          "moonset": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moonset"
+          },
+          "paksha": {
+            "$ref": "#/components/schemas/PakshaId"
+          },
+          "poya": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PoyaInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sinhala_month": {
+            "$ref": "#/components/schemas/SinhalaMonth"
+          },
+          "tithi": {
+            "items": {
+              "$ref": "#/components/schemas/TithiSpan"
+            },
+            "title": "Tithi",
+            "type": "array"
+          },
+          "weekday": {
+            "$ref": "#/components/schemas/WeekdayId"
+          }
+        },
+        "required": [
+          "date",
+          "weekday",
+          "paksha",
+          "moon_phase",
+          "sinhala_month",
+          "is_poya_day",
+          "poya",
+          "tithi",
+          "moonrise",
+          "moonset"
+        ],
+        "title": "MonthPanchangaDay",
+        "type": "object"
+      },
+      "MonthPanchangaRequest": {
+        "properties": {
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "month": {
+            "maximum": 12.0,
+            "minimum": 1.0,
+            "title": "Month",
+            "type": "integer"
+          },
+          "year": {
+            "maximum": 9999.0,
+            "minimum": 1.0,
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "month",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz"
+        ],
+        "title": "MonthPanchangaRequest",
+        "type": "object"
+      },
       "MoonRashi": {
         "properties": {
           "index": {
@@ -3602,6 +3771,47 @@
           }
         },
         "summary": "Eclipses",
+        "tags": [
+          "panchanga"
+        ]
+      }
+    },
+    "/api/v1/panchanga/month": {
+      "post": {
+        "operationId": "month_api_v1_panchanga_month_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MonthPanchangaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonthPanchanga"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Month",
         "tags": [
           "panchanga"
         ]

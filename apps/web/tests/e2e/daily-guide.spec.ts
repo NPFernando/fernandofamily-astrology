@@ -30,6 +30,7 @@ for (const locale of ["en", "si"] as const) {
     const dict = DICTS[locale];
 
     await expect(page.locator('[data-testid="daily-guide-summary"]')).toBeVisible();
+    await expect(page.locator('[data-testid="daily-guide-family-board"]')).toBeVisible();
     await expect(page.locator('[data-testid="daily-guide-current"]')).toBeVisible();
     await expect(page.locator('[data-testid="daily-guide-good-windows"]')).toBeVisible();
     await expect(page.locator('[data-testid="daily-guide-supportive-timing"]')).toBeVisible();
@@ -78,6 +79,56 @@ test("daily guide: known Nakshatra unlocks Tara Bala without birth data in URLs"
   await expect(page.locator('[data-testid="daily-guide-tara-bala"]')).toContainText(
     DICTS.en.ui.taraBala,
   );
+  watcher.assertClean();
+});
+
+test("daily guide: family day board compares saved profiles without birth data in URLs", async ({ page }) => {
+  const watcher = watchForBirthDataInUrls(page);
+  await page.addInitScript(() => {
+    window.localStorage.setItem(
+      "ff_saved_profiles",
+      JSON.stringify([
+        {
+          id: "family-enriched",
+          label: "Amma",
+          bird: null,
+          nakshatra_index: 5,
+          paksha: "waxing",
+          moon_rashi_index: 7,
+          created_at: "2026-07-17T00:00:00.000Z",
+        },
+        {
+          id: "family-direct",
+          label: "Appachchi",
+          bird: "owl",
+          nakshatra_index: null,
+          paksha: null,
+          moon_rashi_index: null,
+          created_at: "2026-07-17T00:01:00.000Z",
+        },
+      ]),
+    );
+  });
+
+  await openDailyGuide(page, "en");
+  const board = page.locator('[data-testid="daily-guide-family-board"]');
+  await expect(board).toContainText(DICTS.en.dailyGuide.familyBoardTitle);
+
+  const enriched = board.locator('[data-testid="daily-guide-family-profile"]').filter({ hasText: "Amma" });
+  await expect(enriched).toBeVisible({ timeout: 20_000 });
+  await expect(enriched).not.toContainText(DICTS.en.dailyGuide.familyBoardNeedsNakshatra);
+  await expect(enriched).not.toContainText(DICTS.en.dailyGuide.familyBoardNeedsMoonRashi);
+  await expect(enriched).toContainText(DICTS.en.dailyGuide.familyBoardBestWindow);
+
+  const direct = board.locator('[data-testid="daily-guide-family-profile"]').filter({ hasText: "Appachchi" });
+  await expect(direct).toContainText(DICTS.en.dailyGuide.familyBoardNeedsNakshatra);
+  await expect(direct).toContainText(DICTS.en.dailyGuide.familyBoardNeedsMoonRashi);
+  await direct.getByRole("button", { name: DICTS.en.dailyGuide.familyBoardUseProfile }).click();
+  await expect(page.locator('[data-testid="daily-guide-summary"]')).toContainText(
+    DICTS.en.enums.birds.owl,
+    { timeout: 20_000 },
+  );
+
   watcher.assertClean();
 });
 

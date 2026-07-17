@@ -27,8 +27,12 @@ import {
 } from "@/components/pancha-pakshi/LocationPicker";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import { resolveDefaultScheduleRequest } from "@/lib/pancha-schedule-state";
-import { SavedProfiles } from "@/components/pancha-pakshi/SavedProfiles";
-import type { SavedProfile } from "@/lib/profiles";
+import {
+  listProfiles,
+  mergeLocalToServerOnce,
+  type SavedProfile,
+} from "@/lib/profiles";
+import { useSessionProbe } from "@/lib/use-session-probe";
 import { BIRD_ICONS } from "@/components/icons/birds";
 import { ACTIVITY_ICONS } from "@/components/icons/activities";
 import { ACTIVITY_COLORS } from "@/components/pancha-pakshi/activityColors";
@@ -38,6 +42,7 @@ import { activityGuidance } from "@/lib/pancha-guidance";
 import { EFFECT_COLORS } from "@fernandofamily/design-system";
 
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
+const FAMILY_BOARD_LIMIT = 8;
 const EFFECT_RANK: Record<EffectId, number> = {
   very_good: 0,
   good: 1,
@@ -52,6 +57,13 @@ type GuideData = {
   serverTime: Date | null;
   fetchedAtClientMs: number;
   referenceAt: string;
+};
+
+type FamilyBoardRow = {
+  profile: SavedProfile;
+  request: ScheduleRequest;
+  schedule: ScheduleResponse | null;
+  failed: boolean;
 };
 
 function sinhalaMonthName(dict: ReturnType<typeof getDictionary>, key: string): string {
@@ -357,10 +369,9 @@ export function DailyGuideClient() {
             </div>
           </div>
           <div className="flex flex-col gap-3 rounded-lg border border-black/10 p-3 dark:border-white/10">
-            <SavedProfiles onPick={pickProfile} saveCandidate={null} />
             <div
               data-testid="daily-guide-known-nakshatra"
-              className="flex flex-col gap-3 border-t border-black/10 pt-3 dark:border-white/10"
+              className="flex flex-col gap-3"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -518,6 +529,14 @@ export function DailyGuideClient() {
             </div>
           </section>
 
+          {location && (
+            <FamilyDayBoard
+              date={date || data.panchanga.date}
+              location={location}
+              onPickProfile={pickProfile}
+            />
+          )}
+
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]">
             <section className="flex flex-col gap-5">
               <section
@@ -661,6 +680,247 @@ export function DailyGuideClient() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function FamilyDayBoard({
+  date,
+  location,
+  onPickProfile,
+}: {
+  date: string;
+  location: LocationValue;
+  onPickProfile: (profile: SavedProfile) => void;
+}) {
+  const { dict, locale } = useLocale();
+  const probe = useSessionProbe();
+  const signedIn = Boolean(probe.user?.email);
+  const [profiles, setProfiles] = useState<SavedProfile[]>([]);
+  const [profileCount, setProfileCount] = useState(0);
+  const [profilesLoaded, setProfilesLoaded] = useState(false);
+  const [rows, setRows] = useState<FamilyBoardRow[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!probe.loaded) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        if (signedIn) await mergeLocalToServerOnce();
+        const next = await listProfiles(signedIn);
+        if (cancelled) return;
+        setProfileCount(next.length);
+        setProfiles(next.slice(0, FAMILY_BOARD_LIMIT));
+      } finally {
+        if (!cancelled) setProfilesLoaded(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [probe.loaded, signedIn]);
+
+  useEffect(() => {
+    if (!profilesLoaded || profiles.length === 0) {
+      return;
+    }
+    const requests = profiles.flatMap((profile) => {
+      const request = requestFromProfile(profile, date, location);
+      return request ? [{ profile, request }] : [];
+    });
+    if (requests.length === 0) {
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      await Promise.resolve();
+      if (cancelled) return;
+      setLoading(true);
+      setRows(requests.map(({ profile, request }) => ({ profile, request, schedule: null, failed: false })));
+      const settled = await Promise.allSettled(
+        requests.map(({ request }) => fetchScheduleWithServerTime(request).then((result) => result.data)),
+      );
+      if (cancelled) return;
+      setRows(
+        requests.map(({ profile, request }, index) => {
+          const result = settled[index];
+          return {
+            profile,
+            request,
+            schedule: result.status === "fulfilled" ? result.value : null,
+            failed: result.status === "rejected",
+          };
+        }),
+      );
+      setLoading(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [date, location, profiles, profilesLoaded]);
+
+  const limited = profileCount > profiles.length;
+
+  return (
+    <section
+      data-testid="daily-guide-family-board"
+      className="rounded-xl border border-black/10 bg-white/35 p-4 dark:border-white/10 dark:bg-white/[.03]"
+    >
+      <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+        <div>
+          <h2 className="text-sm font-semibold uppercase text-accent">{dict.dailyGuide.familyBoardTitle}</h2>
+          <p className="mt-1 text-xs leading-relaxed opacity-70">{dict.dailyGuide.familyBoardDescription}</p>
+        </div>
+        {limited && (
+          <p className="text-xs opacity-70">
+            {dict.dailyGuide.familyBoardLimited.replace("{count}", String(FAMILY_BOARD_LIMIT))}
+          </p>
+        )}
+      </div>
+
+      {!profilesLoaded ? (
+        <p role="status" className="mt-4 text-sm opacity-70">{dict.dailyGuide.familyBoardLoading}</p>
+      ) : profiles.length === 0 ? (
+        <div className="mt-4 rounded-lg border border-dashed border-black/20 p-4 text-sm dark:border-white/20">
+          <p className="font-semibold">{dict.dailyGuide.familyBoardEmptyTitle}</p>
+          <p className="mt-1 opacity-70">{dict.dailyGuide.familyBoardEmptyBody}</p>
+          <Link
+            href={`/${locale}/birth-nakshatra`}
+            className="mt-3 inline-flex rounded-lg border border-accent/40 px-3 py-1.5 text-sm font-semibold text-accent hover:bg-accent/10"
+          >
+            {dict.dailyGuide.familyBoardCreateProfile}
+          </Link>
+        </div>
+      ) : (
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {rows.map((row) => (
+            <FamilyProfileCard
+              key={row.profile.id}
+              row={row}
+              loading={loading && row.schedule === null && !row.failed}
+              onPick={() => onPickProfile(row.profile)}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function FamilyProfileCard({
+  row,
+  loading,
+  onPick,
+}: {
+  row: FamilyBoardRow;
+  loading: boolean;
+  onPick: () => void;
+}) {
+  const { dict, locale } = useLocale();
+  const { profile, schedule, failed } = row;
+  const best = schedule ? bestWindows(schedule)[0] ?? null : null;
+  const BirdIcon = BIRD_ICONS[schedule?.birth_bird ?? profile.bird ?? "peacock"];
+
+  return (
+    <article
+      data-testid="daily-guide-family-profile"
+      className="flex min-w-0 flex-col gap-3 rounded-lg border border-black/10 bg-background p-3 text-sm dark:border-white/10"
+    >
+      <div className="flex min-w-0 items-start gap-2">
+        <BirdIcon className="mt-0.5 shrink-0 text-xl text-accent" />
+        <div className="min-w-0">
+          <h3 className="break-words font-semibold">{profile.label}</h3>
+          <p className="text-xs opacity-70">
+            {schedule
+              ? translateEnum(dict, "birds", schedule.birth_bird)
+              : profile.bird
+                ? translateEnum(dict, "birds", profile.bird)
+                : profile.nakshatra_index
+                  ? nakshatraName(profile.nakshatra_index, locale)
+                  : dict.dailyGuide.familyBoardLoading}
+          </p>
+        </div>
+      </div>
+
+      {failed ? (
+        <p className="rounded-md border border-red-500/30 bg-red-500/10 p-2 text-xs">
+          {dict.dailyGuide.familyBoardLoadFailed}
+        </p>
+      ) : (
+        <dl className="grid gap-2">
+          <FamilyFact
+            label={dict.ui.taraBala}
+            value={
+              loading
+                ? dict.dailyGuide.familyBoardLoading
+                : schedule?.tara_bala
+                  ? `${translateEnum(dict, "taraCategories", schedule.tara_bala.key)} · ${translateEnum(dict, "effects", schedule.tara_bala.effect)}`
+                  : dict.dailyGuide.familyBoardNeedsNakshatra
+            }
+            color={schedule?.tara_bala ? EFFECT_COLORS[schedule.tara_bala.effect] : undefined}
+          />
+          <FamilyFact
+            label={dict.ui.chandrashtama}
+            value={
+              loading
+                ? dict.dailyGuide.familyBoardLoading
+                : schedule?.chandrashtama
+                  ? spanText(
+                      schedule.chandrashtama.ends_at,
+                      row.request.target_date,
+                      locale,
+                      dict.ui.chandrashtamaUntil,
+                      dict.panchanga.nextDay,
+                    )
+                  : profile.moon_rashi_index != null
+                    ? dict.dailyGuide.chandrashtamaClear
+                    : dict.dailyGuide.familyBoardNeedsMoonRashi
+            }
+            color={schedule?.chandrashtama ? EFFECT_COLORS.bad : undefined}
+          />
+          <FamilyFact
+            label={dict.dailyGuide.familyBoardBestWindow}
+            value={
+              loading
+                ? dict.dailyGuide.familyBoardLoading
+                : best
+                  ? `${formatTime(best.starts_at, locale)}-${formatTime(best.ends_at, locale)} · ${translateEnum(dict, "effects", best.effect)}`
+                  : dict.ui.noWindowsLeft
+            }
+            color={best ? EFFECT_COLORS[best.effect] : undefined}
+          />
+        </dl>
+      )}
+
+      <button
+        type="button"
+        onClick={onPick}
+        className="mt-auto rounded-lg border border-accent/40 px-3 py-1.5 text-sm font-semibold text-accent hover:bg-accent/10"
+      >
+        {dict.dailyGuide.familyBoardUseProfile}
+      </button>
+    </article>
+  );
+}
+
+function FamilyFact({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: string;
+  color?: string;
+}) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-xs uppercase opacity-60">{label}</dt>
+      <dd className="mt-0.5 break-words font-medium" style={color ? { color } : undefined}>
+        {value}
+      </dd>
     </div>
   );
 }

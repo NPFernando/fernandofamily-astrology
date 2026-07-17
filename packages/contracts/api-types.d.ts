@@ -310,6 +310,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/porondam/match": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Match */
+        post: operations["match_api_v1_porondam_match_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1608,11 +1625,72 @@ export interface components {
          * @enum {string}
          */
         PakshaId: "waxing" | "waning";
+        /** PartyBirthInput */
+        PartyBirthInput: {
+            /**
+             * Birth Date
+             * Format: date
+             */
+            birth_date: string;
+            /**
+             * Birth Time
+             * Format: time
+             */
+            birth_time: string;
+            /** Iana Tz */
+            iana_tz: string;
+            /** Latitude */
+            latitude: number;
+            /** Location Name */
+            location_name: string;
+            /** Longitude */
+            longitude: number;
+        };
+        /** PartyDetails */
+        PartyDetails: {
+            location: components["schemas"]["Location"];
+            /** Nakshatra Index */
+            nakshatra_index: number;
+            /** Nakshatra Key */
+            nakshatra_key: string;
+            /** Rashi Index */
+            rashi_index: number;
+            /** Rashi Key */
+            rashi_key: string;
+        };
         /**
          * PeriodKind
          * @enum {string}
          */
         PeriodKind: "day" | "night";
+        /** PorondamMatch */
+        PorondamMatch: {
+            /** Key */
+            key: string;
+            /** Passed */
+            passed: boolean;
+        };
+        /** PorondamRequest */
+        PorondamRequest: {
+            bride: components["schemas"]["PartyBirthInput"];
+            groom: components["schemas"]["PartyBirthInput"];
+        };
+        /** PorondamResponse */
+        PorondamResponse: {
+            bride: components["schemas"]["PartyDetails"];
+            engine: components["schemas"]["EngineMetadata"];
+            groom: components["schemas"]["PartyDetails"];
+            result: components["schemas"]["PorondamResult"];
+        };
+        /** PorondamResult */
+        PorondamResult: {
+            /** Checked Count */
+            checked_count: number;
+            /** Matches */
+            matches: components["schemas"]["PorondamMatch"][];
+            /** Passed Count */
+            passed_count: number;
+        };
         /** PoyaInfo */
         PoyaInfo: {
             /** Month Key */
@@ -2416,6 +2494,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MonthPanchanga"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    match_api_v1_porondam_match_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PorondamRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PorondamResponse"];
                 };
             };
             /** @description Validation Error */

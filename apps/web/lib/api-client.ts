@@ -241,6 +241,54 @@ export type VivahaChakraResponse = {
 };
 
 // ---------------------------------------------------------------------------
+// Porondam (/api/v1/porondam) — Sri Lankan wedding horoscope matching.
+// Ships 6 of the traditional 10-12 core Porondama this round. Shapes mirror
+// apps/api/app/modules/porondam/{requests,models}.py.
+
+export type PartyBirthInput = {
+  birth_date: string; // YYYY-MM-DD
+  birth_time: string; // HH:mm:ss
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  iana_tz: string;
+};
+
+export type PorondamRequest = {
+  bride: PartyBirthInput;
+  groom: PartyBirthInput;
+};
+
+export type PorondamPartyDetails = {
+  location: Location;
+  nakshatra_index: number; // 1..27
+  nakshatra_key: string;
+  rashi_index: number; // 1..12
+  rashi_key: string;
+};
+
+// repository.py keys, in this fixed order: nakshatra, gana, yoni, rashi,
+// rashyadpathi, vashya. Not a Literal on the API side (models.py uses str),
+// so kept as `string` here too to stay assignable from the generated type.
+export type PorondamMatch = {
+  key: string;
+  passed: boolean;
+};
+
+export type PorondamResult = {
+  matches: PorondamMatch[]; // 6 entries, this round
+  passed_count: number;
+  checked_count: number; // always 6 this round — the traditional core is 10-12
+};
+
+export type PorondamResponse = {
+  engine: EngineMetadata;
+  bride: PorondamPartyDetails;
+  groom: PorondamPartyDetails;
+  result: PorondamResult;
+};
+
+// ---------------------------------------------------------------------------
 // Divisional Charts (/api/v1/divisional-charts) — D9 Navamsa. Shapes mirror
 // apps/api/app/modules/divisional_charts/models.py.
 
@@ -787,6 +835,19 @@ export function fetchNavamsaChart(body: NavamsaChartRequest): Promise<NavamsaCha
     const data = await r.json().catch(() => null);
     if (!r.ok) throw new ApiError(r.status, data);
     return data as NavamsaChart;
+  });
+  return res;
+}
+
+export function fetchPorondamMatch(body: PorondamRequest): Promise<PorondamResponse> {
+  const res = fetch(`/api/v1/porondam/match`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).then(async (r) => {
+    const data = await r.json().catch(() => null);
+    if (!r.ok) throw new ApiError(r.status, data);
+    return data as PorondamResponse;
   });
   return res;
 }

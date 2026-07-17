@@ -104,6 +104,17 @@ export const features: FeatureEntry[] = [
     descriptionKey: "features.divisionalCharts.description",
     icon: "sun",
   },
+  {
+    id: "porondam",
+    enabled: true,
+    public: true,
+    order: 40,
+    route: "/porondam",
+    apiNamespace: "/api/v1/porondam",
+    titleKey: "features.porondam.title",
+    descriptionKey: "features.porondam.description",
+    icon: "cock",
+  },
 ];
 
 export function enabledFeatures(): FeatureEntry[] {

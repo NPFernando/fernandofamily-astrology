@@ -15,6 +15,7 @@ from app.routes.v1 import (
     muhurta,
     pancha_pakshi,
     panchanga,
+    porondam,
 )
 
 configure_logging()
@@ -47,6 +48,7 @@ app.include_router(divisional_charts.router)
 app.include_router(muhurta.router)
 app.include_router(pancha_pakshi.router)
 app.include_router(panchanga.router)
+app.include_router(porondam.router)
 
 
 @app.exception_handler(InvalidInputError)

@@ -38,6 +38,12 @@ import type {
   MuhurtaSearchResponse,
   NavamsaChartRequest,
   NavamsaChart,
+  PartyBirthInput,
+  PorondamRequest,
+  PorondamPartyDetails,
+  PorondamMatch,
+  PorondamResult,
+  PorondamResponse,
 } from "@/lib/api-client";
 
 type Generated = components["schemas"];
@@ -122,4 +128,22 @@ export type _CheckNavamsaChartRequest = Expect<
 >;
 export type _CheckNavamsaChart = Expect<
   Generated["NavamsaChart"] extends NavamsaChart ? true : false
+>;
+export type _CheckPartyBirthInput = Expect<
+  Equals<PartyBirthInput, Generated["PartyBirthInput"]>
+>;
+export type _CheckPorondamRequest = Expect<
+  Equals<PorondamRequest, Generated["PorondamRequest"]>
+>;
+export type _CheckPorondamPartyDetails = Expect<
+  Generated["PartyDetails"] extends PorondamPartyDetails ? true : false
+>;
+export type _CheckPorondamMatch = Expect<
+  Generated["PorondamMatch"] extends PorondamMatch ? true : false
+>;
+export type _CheckPorondamResult = Expect<
+  Generated["PorondamResult"] extends PorondamResult ? true : false
+>;
+export type _CheckPorondamResponse = Expect<
+  Generated["PorondamResponse"] extends PorondamResponse ? true : false
 >;

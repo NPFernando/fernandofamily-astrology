@@ -35,6 +35,10 @@
     "divisionalCharts": {
       "title": "Divisional Charts (Navamsa)",
       "description": "See your D9 Navamsa chart — planet and Ascendant placements in the ninth-harmonic divisional chart, traditionally consulted alongside the birth chart for marriage and inner-strength analysis."
+    },
+    "porondam": {
+      "title": "Porondam (Wedding Matching)",
+      "description": "Check 6 of the traditional core Porondama between two birth charts using Sri Lanka's Dasa/Visi Porondama wedding-matching system."
     }
   },
   "nav": {
@@ -51,7 +55,8 @@
     "moonCalendar": "Moon Calendar",
     "dailyGuide": "Daily Guide",
     "muhurta": "Muhurta",
-    "divisionalCharts": "Divisional Charts"
+    "divisionalCharts": "Divisional Charts",
+    "porondam": "Porondam"
   },
   "enums": {
     "birds": {
@@ -543,6 +548,10 @@
     "divisionalCharts": {
       "title": "Divisional Charts (Navamsa)",
       "description": "Calculate your D9 Navamsa chart from birth date, time and location — planet and Ascendant placements in the South Indian grid layout."
+    },
+    "porondam": {
+      "title": "Porondam (Wedding Horoscope Matching)",
+      "description": "Check 6 of the traditional core Porondama between a bride and groom's birth charts using Sri Lanka's wedding-matching system."
     }
   },
   "push": {
@@ -807,5 +816,45 @@
     "chartTitle": "D9 Navamsa Chart",
     "ascendant": "Ascendant (Lagna)",
     "layoutNote": "Shown in the South Indian fixed-grid style: each cell always represents the same rashi — only which planets and the Ascendant fall into it changes per chart."
+  },
+  "porondam": {
+    "title": "Porondam (Wedding Horoscope Matching)",
+    "description": "Sri Lanka's traditional wedding horoscope-matching system checks up to 20 named categories (Porondama). This tool checks 6 of the core 10 — Nakshatra, Gana, Yoni, Rashi, Rashyadpathi and Vashya — using the standard, widely-published compatibility tables.",
+    "brideTitle": "Bride's birth details",
+    "groomTitle": "Groom's birth details",
+    "calculate": "Check Porondam match",
+    "resultTitle": "Porondam result",
+    "summaryLabel": "Porondama matched",
+    "passLabel": "Matched",
+    "failLabel": "Not matched",
+    "brideLabel": "Bride",
+    "groomLabel": "Groom",
+    "categories": {
+      "nakshatra": {
+        "name": "Nakshatra (Nekath)",
+        "description": "Interpersonal compatibility, attitudes and life goals, based on the two birth stars."
+      },
+      "gana": {
+        "name": "Gana",
+        "description": "Behaviour and personality temperament match, based on each birth star's Deva/Manushya/Rakshasa group."
+      },
+      "yoni": {
+        "name": "Yoni",
+        "description": "Physical and instinctive compatibility, based on each birth star's animal-type category."
+      },
+      "rashi": {
+        "name": "Rashi",
+        "description": "Zodiac sign (Moon sign) distance compatibility."
+      },
+      "rashyadpathi": {
+        "name": "Rashyadpathi",
+        "description": "Compatibility between the two Moon signs' ruling planets."
+      },
+      "vashya": {
+        "name": "Vashya",
+        "description": "Mutual attraction and influence, based on each Moon sign's temperament group."
+      }
+    },
+    "note": "This checks 6 of the traditional 10-12 core Porondama using standard, cross-tradition documented tables — not yet a full traditional matching. Rajju, Vedha and the remaining categories are planned for a future round. It does not store birth details or replace a family astrologer's judgement."
   }
 }

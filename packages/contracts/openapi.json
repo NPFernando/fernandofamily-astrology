@@ -3124,6 +3124,80 @@
         "title": "PakshaId",
         "type": "string"
       },
+      "PartyBirthInput": {
+        "properties": {
+          "birth_date": {
+            "format": "date",
+            "title": "Birth Date",
+            "type": "string"
+          },
+          "birth_time": {
+            "format": "time",
+            "title": "Birth Time",
+            "type": "string"
+          },
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          }
+        },
+        "required": [
+          "birth_date",
+          "birth_time",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz"
+        ],
+        "title": "PartyBirthInput",
+        "type": "object"
+      },
+      "PartyDetails": {
+        "properties": {
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "nakshatra_index": {
+            "title": "Nakshatra Index",
+            "type": "integer"
+          },
+          "nakshatra_key": {
+            "title": "Nakshatra Key",
+            "type": "string"
+          },
+          "rashi_index": {
+            "title": "Rashi Index",
+            "type": "integer"
+          },
+          "rashi_key": {
+            "title": "Rashi Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "location",
+          "nakshatra_index",
+          "nakshatra_key",
+          "rashi_index",
+          "rashi_key"
+        ],
+        "title": "PartyDetails",
+        "type": "object"
+      },
       "PeriodKind": {
         "enum": [
           "day",
@@ -3131,6 +3205,90 @@
         ],
         "title": "PeriodKind",
         "type": "string"
+      },
+      "PorondamMatch": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "key",
+          "passed"
+        ],
+        "title": "PorondamMatch",
+        "type": "object"
+      },
+      "PorondamRequest": {
+        "properties": {
+          "bride": {
+            "$ref": "#/components/schemas/PartyBirthInput"
+          },
+          "groom": {
+            "$ref": "#/components/schemas/PartyBirthInput"
+          }
+        },
+        "required": [
+          "bride",
+          "groom"
+        ],
+        "title": "PorondamRequest",
+        "type": "object"
+      },
+      "PorondamResponse": {
+        "properties": {
+          "bride": {
+            "$ref": "#/components/schemas/PartyDetails"
+          },
+          "engine": {
+            "$ref": "#/components/schemas/EngineMetadata"
+          },
+          "groom": {
+            "$ref": "#/components/schemas/PartyDetails"
+          },
+          "result": {
+            "$ref": "#/components/schemas/PorondamResult"
+          }
+        },
+        "required": [
+          "engine",
+          "bride",
+          "groom",
+          "result"
+        ],
+        "title": "PorondamResponse",
+        "type": "object"
+      },
+      "PorondamResult": {
+        "properties": {
+          "checked_count": {
+            "title": "Checked Count",
+            "type": "integer"
+          },
+          "matches": {
+            "items": {
+              "$ref": "#/components/schemas/PorondamMatch"
+            },
+            "title": "Matches",
+            "type": "array"
+          },
+          "passed_count": {
+            "title": "Passed Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "matches",
+          "passed_count",
+          "checked_count"
+        ],
+        "title": "PorondamResult",
+        "type": "object"
       },
       "PoyaInfo": {
         "properties": {
@@ -4567,6 +4725,47 @@
         "summary": "Month",
         "tags": [
           "panchanga"
+        ]
+      }
+    },
+    "/api/v1/porondam/match": {
+      "post": {
+        "operationId": "match_api_v1_porondam_match_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PorondamRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PorondamResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Match",
+        "tags": [
+          "porondam"
         ]
       }
     }

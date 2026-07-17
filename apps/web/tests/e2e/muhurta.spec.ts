@@ -17,6 +17,34 @@ async function openMuhurta(page: import("@playwright/test").Page, locale: Locale
   await waitForMuhurta(page);
 }
 
+async function seedFamilyProfiles(page: import("@playwright/test").Page) {
+  await page.addInitScript(() => {
+    window.localStorage.setItem(
+      "ff_saved_profiles",
+      JSON.stringify([
+        {
+          id: "family-amma",
+          label: "Amma",
+          bird: "peacock",
+          nakshatra_index: null,
+          paksha: null,
+          moon_rashi_index: null,
+          created_at: "2026-07-17T00:00:00.000Z",
+        },
+        {
+          id: "family-thaththa",
+          label: "Thaththa",
+          bird: "owl",
+          nakshatra_index: null,
+          paksha: null,
+          moon_rashi_index: null,
+          created_at: "2026-07-17T00:00:00.000Z",
+        },
+      ]),
+    );
+  });
+}
+
 for (const locale of ["en", "si"] as const) {
   test(`muhurta (${locale}): zero-click render shows recommendations`, async ({ page }) => {
     const watcher = watchForBirthDataInUrls(page);
@@ -39,8 +67,36 @@ test("muhurta: travel purpose shows direction caution", async ({ page }) => {
 test("@mobile muhurta keeps layout within 360px", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 740 });
   await openMuhurta(page, "si");
+  await expect(page.locator('[data-testid="muhurta-family-panel"]')).toBeVisible();
   const hasHScroll = await page.evaluate(() => document.body.scrollWidth > window.innerWidth + 5);
   expect(hasHScroll).toBe(false);
+});
+
+test("muhurta: family comparison uses saved profiles without URL data leaks", async ({ page }) => {
+  await seedFamilyProfiles(page);
+  const watcher = watchForBirthDataInUrls(page);
+  await openMuhurta(page, "en");
+
+  const panel = page.locator('[data-testid="muhurta-family-panel"]');
+  await expect(panel).toContainText(DICTS.en.muhurta.familyTitle);
+  await expect(panel.getByTestId("muhurta-family-profile")).toHaveCount(2);
+  await expect(panel.getByTestId("muhurta-family-compare")).toBeEnabled();
+  await panel.getByTestId("muhurta-family-compare").click();
+  await expect(
+    panel.locator('[data-testid="muhurta-family-shared-window"], [data-testid="muhurta-family-individual-window"]').first(),
+  ).toBeVisible({ timeout: 30_000 });
+
+  watcher.assertClean();
+});
+
+test("muhurta: family comparison shows an empty saved-profile state", async ({ page }) => {
+  await openMuhurta(page, "en");
+  const panel = page.locator('[data-testid="muhurta-family-panel"]');
+  await expect(panel).toContainText(DICTS.en.muhurta.familyEmptyTitle);
+  await expect(panel.getByRole("link", { name: DICTS.en.muhurta.familyCreateProfile })).toHaveAttribute(
+    "href",
+    "/en/birth-nakshatra",
+  );
 });
 
 test("muhurta: landing card, nav link, and sitemap are present", async ({ page, request }) => {

@@ -17,6 +17,8 @@ import {
   type ScheduleRequest,
 } from "@/lib/api-client";
 import { features } from "@/lib/feature-registry";
+import { listProfiles, mergeLocalToServerOnce, type SavedProfile } from "@/lib/profiles";
+import { useSessionProbe } from "@/lib/use-session-probe";
 import {
   DEFAULT_LOCATION,
   LocationPicker,
@@ -31,10 +33,34 @@ import { BIRD_ICONS } from "@/components/icons/birds";
 const feature = features.find((f) => f.id === "muhurta")!;
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
 const PURPOSES: MuhurtaPurpose[] = ["general", "travel", "study_work", "purchase", "home_ritual"];
+const FAMILY_PROFILE_LIMIT = 4;
+const FAMILY_DAY_LIMIT = 7;
+const FAMILY_RESULT_LIMIT = 6;
+const MIN_SHARED_SECONDS = 900;
+const GRADE_RANK: Record<MuhurtaGrade, number> = { excellent: 0, good: 1, usable: 2 };
 const GRADE_STYLE: Record<MuhurtaGrade, string> = {
   excellent: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
   good: "border-sky-500/40 bg-sky-500/10 text-sky-700 dark:text-sky-300",
   usable: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+};
+
+type Dictionary = ReturnType<typeof getDictionary>;
+
+type FamilyProfileResult = {
+  profile: SavedProfile;
+  response: MuhurtaSearchResponse | null;
+  failed: boolean;
+};
+
+type FamilySharedWindow = {
+  effective_date: string;
+  starts_at: string;
+  ends_at: string;
+  duration_seconds: number;
+  grade: MuhurtaGrade;
+  score: number;
+  profiles: SavedProfile[];
+  windows: MuhurtaWindow[];
 };
 
 function todayFor(location: LocationValue): string {
@@ -127,6 +153,365 @@ function durationText(seconds: number, dict: ReturnType<typeof getDictionary>) {
 
 function sourceLabel(source: MuhurtaSource, dict: ReturnType<typeof getDictionary>) {
   return dict.muhurta.sources[source];
+}
+
+function requestFromProfile(profile: SavedProfile, date: string, location: LocationValue): ScheduleRequest | null {
+  const base = {
+    target_date: date,
+    target_time: "12:00:00",
+    location_name: location.name,
+    latitude: location.latitude,
+    longitude: location.longitude,
+    iana_tz: location.iana_tz,
+  };
+  if (profile.bird) return { ...base, method: "bird", bird: profile.bird };
+  if (profile.nakshatra_index != null && profile.paksha) {
+    return {
+      ...base,
+      method: "nakshatra_paksha",
+      nakshatra_index: profile.nakshatra_index,
+      paksha: profile.paksha,
+      moon_rashi_index: profile.moon_rashi_index ?? null,
+    };
+  }
+  return null;
+}
+
+function familyGrade(windows: MuhurtaWindow[]): MuhurtaGrade {
+  return windows.reduce<MuhurtaGrade>(
+    (worst, window) => (GRADE_RANK[window.grade] > GRADE_RANK[worst] ? window.grade : worst),
+    "excellent",
+  );
+}
+
+function buildSharedWindows(results: FamilyProfileResult[]): FamilySharedWindow[] {
+  const rows = results.filter(
+    (row): row is FamilyProfileResult & { response: MuhurtaSearchResponse } => Boolean(row.response) && !row.failed,
+  );
+  if (rows.length !== results.length || rows.length < 2) return [];
+
+  let candidates: FamilySharedWindow[] = rows[0].response.windows.map((window) => ({
+    effective_date: window.effective_date,
+    starts_at: window.starts_at,
+    ends_at: window.ends_at,
+    duration_seconds: window.duration_seconds,
+    grade: window.grade,
+    score: window.score,
+    profiles: [rows[0].profile],
+    windows: [window],
+  }));
+
+  for (const row of rows.slice(1)) {
+    const nextCandidates: FamilySharedWindow[] = [];
+    for (const candidate of candidates) {
+      for (const window of row.response.windows) {
+        if (window.effective_date !== candidate.effective_date) continue;
+        const startMs = Math.max(new Date(candidate.starts_at).getTime(), new Date(window.starts_at).getTime());
+        const endMs = Math.min(new Date(candidate.ends_at).getTime(), new Date(window.ends_at).getTime());
+        const durationSeconds = Math.floor((endMs - startMs) / 1000);
+        if (durationSeconds < MIN_SHARED_SECONDS) continue;
+        const windows = [...candidate.windows, window];
+        nextCandidates.push({
+          effective_date: candidate.effective_date,
+          starts_at: new Date(startMs).toISOString(),
+          ends_at: new Date(endMs).toISOString(),
+          duration_seconds: durationSeconds,
+          grade: familyGrade(windows),
+          score: Math.min(...windows.map((item) => item.score)),
+          profiles: [...candidate.profiles, row.profile],
+          windows,
+        });
+      }
+    }
+    candidates = nextCandidates;
+    if (!candidates.length) break;
+  }
+
+  return candidates
+    .sort((a, b) => {
+      const grade = GRADE_RANK[a.grade] - GRADE_RANK[b.grade];
+      if (grade !== 0) return grade;
+      if (a.score !== b.score) return b.score - a.score;
+      if (a.duration_seconds !== b.duration_seconds) return b.duration_seconds - a.duration_seconds;
+      return new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime();
+    })
+    .slice(0, FAMILY_RESULT_LIMIT);
+}
+
+function bestIndividualWindow(response: MuhurtaSearchResponse | null): MuhurtaWindow | null {
+  if (!response?.windows.length) return null;
+  return [...response.windows].sort((a, b) => {
+    const grade = GRADE_RANK[a.grade] - GRADE_RANK[b.grade];
+    if (grade !== 0) return grade;
+    if (a.score !== b.score) return b.score - a.score;
+    if (a.duration_seconds !== b.duration_seconds) return b.duration_seconds - a.duration_seconds;
+    return new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime();
+  })[0];
+}
+
+function profileIdentityText(profile: SavedProfile, dict: Dictionary) {
+  if (profile.bird) return translateEnum(dict, "birds", profile.bird);
+  if (profile.nakshatra_index != null && profile.paksha) {
+    return `Nakshatra ${profile.nakshatra_index} - ${profile.paksha}`;
+  }
+  return dict.muhurta.familyLoadFailed;
+}
+
+function FamilyMuhurtaPanel({
+  date,
+  location,
+  purpose,
+  days,
+  minEffect,
+  locale,
+  dict,
+}: {
+  date: string;
+  location: LocationValue;
+  purpose: MuhurtaPurpose;
+  days: number;
+  minEffect: "good" | "very_good";
+  locale: string;
+  dict: Dictionary;
+}) {
+  const session = useSessionProbe();
+  const [profiles, setProfiles] = useState<SavedProfile[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [loadingProfiles, setLoadingProfiles] = useState(true);
+  const [comparing, setComparing] = useState(false);
+  const [resultState, setResultState] = useState<{ key: string; rows: FamilyProfileResult[] } | null>(null);
+
+  useEffect(() => {
+    if (!session.loaded) return;
+    let cancelled = false;
+    (async () => {
+      const signedIn = Boolean(session.user);
+      if (signedIn) await mergeLocalToServerOnce();
+      const nextProfiles = await listProfiles(signedIn);
+      if (cancelled) return;
+      setProfiles(nextProfiles);
+      setSelectedIds((current) => {
+        const validIds = nextProfiles
+          .filter((profile) => profile.bird || (profile.nakshatra_index != null && profile.paksha))
+          .map((profile) => profile.id);
+        const kept = current.filter((id) => validIds.includes(id)).slice(0, FAMILY_PROFILE_LIMIT);
+        return kept.length ? kept : validIds.slice(0, 2);
+      });
+      setLoadingProfiles(false);
+    })().catch(() => {
+      if (!cancelled) {
+        setProfiles([]);
+        setSelectedIds([]);
+        setLoadingProfiles(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [session.loaded, session.user]);
+
+  const validProfiles = profiles.filter((profile) => requestFromProfile(profile, date, location));
+  const visibleProfiles = validProfiles.slice(0, FAMILY_PROFILE_LIMIT);
+  const selectedProfiles = validProfiles.filter((profile) => selectedIds.includes(profile.id));
+  const familyDays = Math.min(days, FAMILY_DAY_LIMIT);
+  const comparisonKey = [
+    date,
+    location.name,
+    location.latitude,
+    location.longitude,
+    location.iana_tz,
+    purpose,
+    familyDays,
+    minEffect,
+    selectedIds.join(","),
+  ].join("|");
+  const activeResults = resultState?.key === comparisonKey ? resultState.rows : null;
+  const shared = activeResults ? buildSharedWindows(activeResults) : [];
+
+  function toggleProfile(profileId: string) {
+    setSelectedIds((current) => {
+      if (current.includes(profileId)) return current.filter((id) => id !== profileId);
+      if (current.length >= FAMILY_PROFILE_LIMIT) return current;
+      return [...current, profileId];
+    });
+  }
+
+  async function compareFamily() {
+    const requests = selectedProfiles
+      .map((profile) => ({ profile, request: requestFromProfile(profile, date, location) }))
+      .filter((item): item is { profile: SavedProfile; request: ScheduleRequest } => Boolean(item.request));
+    if (requests.length < 2) return;
+
+    setComparing(true);
+    setResultState(null);
+    const settled = await Promise.allSettled(
+      requests.map(({ request }) => fetchMuhurta(toMuhurtaRequest(request, date, location, purpose, familyDays, minEffect))),
+    );
+    setResultState({
+      key: comparisonKey,
+      rows: settled.map((result, index) => ({
+        profile: requests[index].profile,
+        response: result.status === "fulfilled" ? result.value : null,
+        failed: result.status === "rejected",
+      })),
+    });
+    setComparing(false);
+  }
+
+  return (
+    <section
+      className="rounded-xl border border-black/10 bg-white/25 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.03]"
+      data-testid="muhurta-family-panel"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase text-accent">{dict.muhurta.familyTitle}</p>
+          <p className="mt-1 max-w-2xl text-sm opacity-75">{dict.muhurta.familyDescription}</p>
+        </div>
+        <span className="rounded-full border border-black/10 px-3 py-1 text-xs opacity-75 dark:border-white/10">
+          {dict.muhurta.familySelectedCount.replace("{count}", String(selectedProfiles.length))}
+        </span>
+      </div>
+
+      {loadingProfiles ? (
+        <p className="mt-4 rounded-lg border border-black/10 p-3 text-sm opacity-75 dark:border-white/10">
+          {dict.ui.loading}
+        </p>
+      ) : profiles.length === 0 ? (
+        <div className="mt-4 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+          <p className="font-semibold">{dict.muhurta.familyEmptyTitle}</p>
+          <p className="mt-1 opacity-80">{dict.muhurta.familyEmptyBody}</p>
+          <Link
+            href={`/${locale}/birth-nakshatra`}
+            className="mt-3 inline-flex rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-white"
+          >
+            {dict.muhurta.familyCreateProfile}
+          </Link>
+        </div>
+      ) : (
+        <>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            {visibleProfiles.map((profile) => {
+              const selected = selectedIds.includes(profile.id);
+              return (
+                <button
+                  key={profile.id}
+                  type="button"
+                  aria-pressed={selected}
+                  data-testid="muhurta-family-profile"
+                  onClick={() => toggleProfile(profile.id)}
+                  className={`min-w-0 rounded-lg border px-3 py-2 text-left transition ${
+                    selected
+                      ? "border-accent bg-accent/10 text-accent"
+                      : "border-black/10 hover:border-accent/40 dark:border-white/10"
+                  }`}
+                >
+                  <span className="block truncate text-sm font-semibold">{profile.label}</span>
+                  <span className="mt-0.5 block truncate text-xs opacity-70">{profileIdentityText(profile, dict)}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              data-testid="muhurta-family-compare"
+              disabled={selectedProfiles.length < 2 || comparing}
+              onClick={compareFamily}
+              className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {comparing ? dict.muhurta.familyLoading : dict.muhurta.familyCompare}
+            </button>
+            <p className="text-xs opacity-70">
+              {selectedProfiles.length < 2
+                ? dict.muhurta.familyNeedTwo
+                : dict.muhurta.familyDaysNote.replace("{count}", String(familyDays))}
+            </p>
+          </div>
+
+          {validProfiles.length > FAMILY_PROFILE_LIMIT ? (
+            <p className="mt-2 text-xs opacity-70">
+              {dict.muhurta.familyProfileLimit.replace("{count}", String(FAMILY_PROFILE_LIMIT))}
+            </p>
+          ) : null}
+
+          {activeResults && (
+            <div className="mt-5 flex flex-col gap-3">
+              {shared.length ? (
+                <>
+                  <p className="text-sm font-semibold">{dict.muhurta.familySharedTitle}</p>
+                  <div className="grid gap-3 lg:grid-cols-2">
+                    {shared.map((window) => (
+                      <article
+                        key={`${window.starts_at}-${window.ends_at}-${window.score}`}
+                        data-testid="muhurta-family-shared-window"
+                        className="rounded-lg border border-black/10 bg-background p-3 text-sm dark:border-white/10"
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <div>
+                            <p className="font-semibold">{formatDate(window.effective_date, locale)}</p>
+                            <p className="mt-1 text-lg font-bold tabular-nums">
+                              {formatTime(window.starts_at, locale)} - {formatTime(window.ends_at, locale)}
+                            </p>
+                            <p className="mt-1 text-xs opacity-70">{durationText(window.duration_seconds, dict)}</p>
+                          </div>
+                          <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${GRADE_STYLE[window.grade]}`}>
+                            {dict.muhurta.grades[window.grade]}
+                          </span>
+                        </div>
+                        <p className="mt-3 text-xs font-semibold uppercase opacity-60">
+                          {dict.muhurta.familyIncludedProfiles}
+                        </p>
+                        <p className="mt-1 text-xs opacity-80">{window.profiles.map((profile) => profile.label).join(", ")}</p>
+                      </article>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+                    {dict.muhurta.familyNoCommon}
+                  </p>
+                  <p className="text-sm font-semibold">{dict.muhurta.familyIndividualFallback}</p>
+                  <div className="grid gap-3 lg:grid-cols-2">
+                    {activeResults.map((row) => {
+                      const window = bestIndividualWindow(row.response);
+                      return (
+                        <article
+                          key={row.profile.id}
+                          data-testid="muhurta-family-individual-window"
+                          className="rounded-lg border border-black/10 bg-background p-3 text-sm dark:border-white/10"
+                        >
+                          <p className="font-semibold">{row.profile.label}</p>
+                          {row.failed || !window ? (
+                            <p className="mt-2 text-xs opacity-75">{dict.muhurta.familyLoadFailed}</p>
+                          ) : (
+                            <>
+                              <p className="mt-2 text-xs uppercase opacity-60">{dict.muhurta.familyBestIndividual}</p>
+                              <p className="mt-1 font-semibold">{formatDate(window.effective_date, locale)}</p>
+                              <p className="mt-1 text-lg font-bold tabular-nums">
+                                {formatTime(window.starts_at, locale)} - {formatTime(window.ends_at, locale)}
+                              </p>
+                              <span
+                                className={`mt-2 inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${GRADE_STYLE[window.grade]}`}
+                              >
+                                {dict.muhurta.grades[window.grade]}
+                              </span>
+                            </>
+                          )}
+                        </article>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </>
+      )}
+    </section>
+  );
 }
 
 export function MuhurtaClient() {
@@ -399,6 +784,18 @@ export function MuhurtaClient() {
                   ))}
                 </div>
               </section>
+
+              {date && location ? (
+                <FamilyMuhurtaPanel
+                  date={date}
+                  location={location}
+                  purpose={purpose}
+                  days={days}
+                  minEffect={minEffect}
+                  locale={locale}
+                  dict={dict}
+                />
+              ) : null}
 
               {topWindows.length ? (
                 <section className="flex flex-col gap-3" data-testid="muhurta-windows">

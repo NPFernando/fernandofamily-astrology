@@ -5,11 +5,27 @@ import pytest
 from fastapi.testclient import TestClient
 from zoneinfo import ZoneInfo
 
+from app.core import rate_limit
 from app.main import app
 from app.modules.pancha_pakshi import adapter as pp_adapter
 from app.modules.panchanga import adapter, repository
 
 client = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def _clean_rate_limit_buckets():
+    # This file's own request count has grown across several rounds of
+    # feature additions (most recently the month-panchanga parametrized
+    # cases) without anyone tracking the remaining margin under the shared
+    # 40-requests/60-second budget (app/core/rate_limit.py) — the same class
+    # of cross-test 429 flake this session already hit and fixed once for
+    # test_amrit_abhijit_durmuhurtam.py. Adopt the same autouse reset here
+    # before it silently trips.
+    rate_limit._hits.clear()
+    yield
+    rate_limit._hits.clear()
+
 
 COLOMBO = {
     "location_name": "Colombo",
@@ -264,3 +280,38 @@ def test_month_panchanga_image_profile_date_range(monkeypatch):
     response = client.post("/api/v1/panchanga/month", json={"year": 1750, "month": 6, **COLOMBO})
     assert response.status_code == 422
     assert "1800" in response.json()["message"]
+
+
+# Bodo, Norway (67.28N) — a real city right at the edge of the polar-day
+# transition. Confirmed via direct reproduction (before the fix) that this
+# location crashed the API with an unhandled OverflowError instead of the
+# app's own controlled error responses, for two distinct reasons:
+#   - 2026-06-01: sunrise still resolves plausibly but sunset doesn't (was
+#     never plausibility-checked the way sunrise already was).
+#   - 2026-06-02: sunrise/sunset both fail plausibility, but before that's
+#     even reached, compute_poya's forward Poya search (_next_poya) calls
+#     tithi() for a nearby date where the vendored engine's search
+#     numerically diverges and returns garbage on the order of tens of
+#     millions of "hours" instead of an in-range value.
+BODO = {"location_name": "Bodo", "latitude": 67.28, "longitude": 14.4, "iana_tz": "Europe/Oslo"}
+
+
+def test_polar_sunset_only_failure_returns_controlled_error_not_crash():
+    response = client.post("/api/v1/panchanga/daily", json={"date": "2026-06-01", **BODO})
+    assert response.status_code == 422
+    assert response.json()["error"] == "sunrise_unavailable"
+
+
+def test_extreme_latitude_tithi_divergence_returns_controlled_error_not_crash():
+    response = client.post("/api/v1/panchanga/daily", json={"date": "2026-06-02", **BODO})
+    assert response.status_code == 500
+    assert response.json()["error"] == "internal_error"
+
+
+@pytest.mark.parametrize("date_str", [f"2026-06-{day:02d}" for day in range(1, 31)])
+def test_polar_latitude_never_crashes_across_a_full_month(date_str):
+    # No unhandled exception should ever reach the client for this location,
+    # across the entire polar-day transition — every day must resolve to one
+    # of the app's own controlled error responses (422 or handled 500).
+    response = client.post("/api/v1/panchanga/daily", json={"date": date_str, **BODO})
+    assert response.status_code in (200, 422, 500)

@@ -95,6 +95,56 @@ def test_muhurta_accepts_nakshatra_paksha_without_birth_details():
     assert body["birth_bird"] in {"vulture", "owl", "crow", "cock", "peacock"}
 
 
+def test_score_window_duration_bonus_reflects_actual_clipped_window():
+    # Regression test: _score_window's duration bonus must be based on the
+    # actual (possibly kalam/durmuhurtam-clipped) window it's scoring, not
+    # the source Pancha Pakshi period's own unclipped span — otherwise a
+    # 2-minute sliver of a good period scores identically to the full
+    # 44-minute period it was carved from (confirmed via direct reproduction
+    # before this fix).
+    from datetime import datetime, timedelta, timezone
+
+    import app.modules.panchanga.models as panchanga_models
+    from app.modules.muhurta.service import _score_window
+    from app.modules.pancha_pakshi.enums import ActivityId, BirdId, EffectId, RelationId
+    from app.modules.pancha_pakshi.models import SubPeriod
+
+    tz = timezone(timedelta(hours=5, minutes=30))
+    period_start = datetime(2026, 7, 16, 10, 0, 0, tzinfo=tz)
+    period_end = datetime(2026, 7, 16, 10, 45, 0, tzinfo=tz)
+    period = SubPeriod(
+        id="x",
+        kind="day",
+        major_index=0,
+        sub_index=0,
+        starts_at=period_start,
+        ends_at=period_end,
+        duration_seconds=2700,
+        main_bird=BirdId.peacock,
+        main_activity=ActivityId.ruling,
+        sub_bird=BirdId.peacock,
+        sub_activity=ActivityId.ruling,
+        relation=RelationId.same,
+        power_factor=1.0,
+        effect=EffectId.good,
+        rating=50,
+        is_current=False,
+    )
+    panchanga = panchanga_models.DailyPanchanga.model_construct(
+        amrit_kaalam=[],
+        abhijit_muhurta=panchanga_models.KalamRange(
+            starts_at=datetime(2000, 1, 1, tzinfo=tz), ends_at=datetime(2000, 1, 1, tzinfo=tz)
+        ),
+        choghadiya=[],
+        hora=[],
+    )
+
+    score_full, _, _ = _score_window(period_start, period_start + timedelta(minutes=44), period, panchanga)
+    score_clipped, _, _ = _score_window(period_end - timedelta(minutes=2), period_end, period, panchanga)
+
+    assert score_clipped < score_full
+
+
 def test_muhurta_rejects_invalid_location():
     response = client.post(
         "/api/v1/muhurta/search",

@@ -9,7 +9,7 @@ from app.modules.pancha_pakshi.enums import PakshaId
 from app.modules.pancha_pakshi.models import EngineMetadata, Location
 from app.modules.pancha_pakshi.repository import WEEKDAY_ORDER
 from app.modules.panchanga import adapter, repository
-from app.modules.panchanga.errors import PanchangaInternalError
+from app.modules.panchanga.errors import PanchangaInternalError, SunriseUnavailableError
 from app.modules.panchanga.models import (
     ChoghadiyaSpan,
     DailyPanchanga,
@@ -53,7 +53,23 @@ def _hours_to_datetime(base_date: date_type, hours: float, offset_hours: float) 
     """Element times from the engine are float local hours relative to
     midnight of `base_date` — negative reaches into the previous calendar day,
     >= 24 into following days. Normalize to an aware datetime.
+
+    Every element this module computes (tithi/nakshatra/yoga/karana/sunset/
+    choghadiya/hora/etc.) funnels through this one function, so it's the
+    single choke point for a defensive plausibility guard: confirmed via
+    direct reproduction that at extreme latitudes the vendored engine's
+    search (e.g. `tithi()`) can numerically diverge and return garbage on
+    the order of tens of millions of "hours" instead of raising or returning
+    an in-range sentinel — which would otherwise reach `timedelta` below and
+    raise an unhandled `OverflowError` deep inside datetime arithmetic. Real
+    element spans never exceed a few days either side of midnight, so ±240
+    hours (±10 days) is generous headroom that never rejects legitimate data.
     """
+    if not (-240.0 <= hours <= 240.0):
+        raise PanchangaInternalError(
+            f"implausible element hour {hours!r} for {base_date} (likely an extreme-latitude "
+            "numerical divergence in the vendored engine, not a real event)"
+        )
     base = datetime(base_date.year, base_date.month, base_date.day, tzinfo=timezone(timedelta(hours=offset_hours)))
     return base + timedelta(seconds=round(hours * 3600))
 
@@ -596,8 +612,32 @@ def _compute_next_lunar_eclipse(jd_ut: float, place, offset_hours: float) -> Lun
     )
 
 
+def _validated_sunset_hour(jd: float, place) -> float:
+    """Mirrors pancha_pakshi.calculator._validated_sunrise_jd's plausibility
+    check — sunset is subject to the exact same polar-latitude failure mode
+    (swisseph/PyJHora return an implausible sentinel instead of raising) but
+    was never guarded here, letting the implausible fractional hour reach
+    _hours_to_datetime and overflow datetime's bounded range. Confirmed via
+    direct reproduction: real northern-latitude cities (e.g. Bodo, Norway,
+    67.28N) crash with an unhandled OverflowError for several days a year
+    (right at the transition into permanent daylight) instead of getting the
+    same controlled sunrise_unavailable error every other polar case gets.
+    """
+    try:
+        result = pp_adapter.sunset(jd, place)
+        fractional_hour, result_jd = result[0], result[-1]
+    except Exception as exc:
+        raise SunriseUnavailableError(f"could not calculate sunset: {exc}") from exc
+    if not (0.0 <= fractional_hour < 24.0) or abs(result_jd - jd) > 2.0:
+        raise SunriseUnavailableError(
+            "sunset could not be reliably calculated for this location/date "
+            "(e.g. a polar latitude with permanent daylight or darkness)"
+        )
+    return fractional_hour
+
+
 def adapter_sunset_datetime(jd: float, place, base_date: date_type, offset_hours: float) -> datetime:
-    return _hours_to_datetime(base_date, pp_adapter.sunset(jd, place)[0], offset_hours)
+    return _hours_to_datetime(base_date, _validated_sunset_hour(jd, place), offset_hours)
 
 
 def _kalam_range(jd: float, place, option: str, base_date: date_type, offset_hours: float) -> KalamRange:
@@ -666,7 +706,7 @@ def _tithi_spans_raw(day: date_type, place, offset_hours: float) -> list[tuple[i
 
 def _sunset_datetime(day: date_type, place, offset_hours: float) -> datetime:
     noon_jd = pp_adapter.julian_day_number(pp_adapter.date(day.year, day.month, day.day), (12, 0, 0))
-    return _hours_to_datetime(day, pp_adapter.sunset(noon_jd, place)[0], offset_hours)
+    return _hours_to_datetime(day, _validated_sunset_hour(noon_jd, place), offset_hours)
 
 
 def _poya_day_for_purnima(purnima_start: datetime, place, offset_hours: float) -> date_type:

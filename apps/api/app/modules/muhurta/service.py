@@ -195,7 +195,14 @@ def _score_window(
     period: SubPeriod,
     panchanga: DailyPanchanga,
 ) -> tuple[float, list[str], list[MuhurtaSourceOverlap]]:
-    score = _EFFECT_SCORE[period.effect] + min(period.duration_seconds / 1800.0, 12.0)
+    # Duration bonus must reflect the actual (possibly kalam/durmuhurtam
+    # -clipped) window being scored, not the source Pancha Pakshi period's
+    # own unclipped span — otherwise a barely-usable sliver of a good period
+    # scores identically to the full, unclipped period (confirmed via direct
+    # reproduction: a 2-minute window and a 44-minute window carved from the
+    # same 45-minute period scored the same before this fix).
+    window_duration_seconds = (ends_at - starts_at).total_seconds()
+    score = _EFFECT_SCORE[period.effect] + min(window_duration_seconds / 1800.0, 12.0)
     reasons: list[str] = ["pancha_pakshi"]
     overlaps = [
         MuhurtaSourceOverlap(source="pancha_pakshi", starts_at=starts_at, ends_at=ends_at),

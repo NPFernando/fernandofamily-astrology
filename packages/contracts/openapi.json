@@ -924,6 +924,9 @@
           "lunar_month": {
             "$ref": "#/components/schemas/LunarMonth"
           },
+          "moon_rashi": {
+            "$ref": "#/components/schemas/MoonRashiSpan"
+          },
           "moonrise": {
             "anyOf": [
               {
@@ -971,6 +974,9 @@
               }
             ]
           },
+          "ritu": {
+            "$ref": "#/components/schemas/Ritu"
+          },
           "sinhala_month": {
             "$ref": "#/components/schemas/SinhalaMonth"
           },
@@ -1013,6 +1019,8 @@
           "moonrise",
           "moonset",
           "lunar_month",
+          "moon_rashi",
+          "ritu",
           "sinhala_month",
           "is_poya_day",
           "poya",
@@ -1765,6 +1773,36 @@
           "key"
         ],
         "title": "MoonRashi",
+        "type": "object"
+      },
+      "MoonRashiSpan": {
+        "properties": {
+          "ends_at": {
+            "format": "date-time",
+            "title": "Ends At",
+            "type": "string"
+          },
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "starts_at": {
+            "format": "date-time",
+            "title": "Starts At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "index",
+          "starts_at",
+          "ends_at"
+        ],
+        "title": "MoonRashiSpan",
         "type": "object"
       },
       "MuhurtaBirdSelectionInput": {
@@ -2740,6 +2778,24 @@
           "count"
         ],
         "title": "RelationVariant",
+        "type": "object"
+      },
+      "Ritu": {
+        "properties": {
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "index"
+        ],
+        "title": "Ritu",
         "type": "object"
       },
       "ScheduleResponse": {

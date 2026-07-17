@@ -39,6 +39,7 @@ import { ACTIVITY_COLORS } from "@/components/pancha-pakshi/activityColors";
 import { SunIcon } from "@/components/icons/sun";
 import { FullMoonIcon } from "@/components/icons/moon";
 import { activityGuidance } from "@/lib/pancha-guidance";
+import { SkyTodayPanel } from "@/components/panchanga/SkyTodayPanel";
 import { EFFECT_COLORS } from "@fernandofamily/design-system";
 
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
@@ -570,6 +571,8 @@ export function DailyGuideClient() {
               </section>
 
               <SupportiveTimingCard panchanga={data.panchanga} referenceAt={data.referenceAt} />
+
+              <SkyTodayPanel panchanga={data.panchanga} compact testId="daily-guide-sky-today" />
 
               <section
                 data-testid="daily-guide-panchanga"

@@ -10,6 +10,7 @@ import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFi
 import { SunIcon } from "@/components/icons/sun";
 import { FullMoonIcon } from "@/components/icons/moon";
 import { loadAccountPreferences } from "@/lib/account-preferences";
+import { SkyTodayPanel } from "@/components/panchanga/SkyTodayPanel";
 import { EFFECT_COLORS } from "@fernandofamily/design-system";
 
 // Sinhala Poya-cycle month names (bak, vesak, ... madin) live under
@@ -214,6 +215,8 @@ export function PanchangaClient() {
             )}
           </p>
 
+          <SkyTodayPanel panchanga={data} testId="panchanga-sky-today" />
+
           <section
             aria-label={dict.panchanga.title}
             className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 print:grid-cols-2"
@@ -363,29 +366,6 @@ export function PanchangaClient() {
             </div>
             <p className="mt-2 text-xs opacity-70">{dict.panchanga.durmuhurtamNote}</p>
           </section>
-
-          <details
-            className="rounded-xl border border-black/10 bg-white/30 p-3 dark:border-white/10 dark:bg-white/[.03]"
-            data-testid="panchanga-graha-positions"
-          >
-            <summary className="cursor-pointer text-sm font-semibold uppercase text-accent">
-              {dict.panchanga.grahaPositionsTitle}
-            </summary>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {data.graha_positions.map((p) => (
-                <div key={p.key} className="rounded-lg bg-white/40 p-2 text-xs dark:bg-black/20">
-                  <p className="font-medium">
-                    {translateEnum(dict, "horaPlanets", p.key)}
-                    {p.is_retrograde && (
-                      <span className="ml-1 text-amber-600 dark:text-amber-400">({dict.panchanga.retrograde})</span>
-                    )}
-                  </p>
-                  <p className="opacity-80">{translateEnum(dict, "rashis", p.rashi_key)}</p>
-                </div>
-              ))}
-            </div>
-            <p className="mt-2 text-xs opacity-70">{dict.panchanga.grahaPositionsNote}</p>
-          </details>
 
           <details
             className="rounded-xl border border-black/10 bg-white/30 p-3 dark:border-white/10 dark:bg-white/[.03]"

@@ -60,6 +60,25 @@ def lunar_month(jd: float, p) -> list:
     return drik.lunar_month(jd, p)
 
 
+def raasi(jd: float, p) -> list:
+    """Moon rashi at the given moment.
+
+    Returns [rashi_no(1..12), end_hrs, frac_left] and may include a skipped
+    rashi successor. The end time follows the same float-local-hours convention
+    as tithi/nakshatra.
+    """
+    return drik.raasi(jd, p)
+
+
+def previous_moon_rashi_entry_jd(jd: float, p) -> float:
+    return drik.next_planet_entry_date(const._MOON, jd, p, direction=-1)[0]
+
+
+def ritu(maasa_index: int) -> int:
+    """0..5 season index derived from lunar month index."""
+    return drik.ritu(maasa_index)
+
+
 def moonrise(jd: float, p) -> list:
     """[local_hrs_float, 'HH:MM:SS', jd] — may hold implausible sentinel values
     at extreme latitudes (no rise that day); callers must plausibility-check."""

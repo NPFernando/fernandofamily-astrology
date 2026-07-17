@@ -677,6 +677,7 @@ export interface components {
             karana: components["schemas"]["KaranaSpan"][];
             location: components["schemas"]["Location"];
             lunar_month: components["schemas"]["LunarMonth"];
+            moon_rashi: components["schemas"]["MoonRashiSpan"];
             /** Moonrise */
             moonrise: string | null;
             /** Moonset */
@@ -686,6 +687,7 @@ export interface components {
             next_poya: components["schemas"]["NextPoya"];
             paksha: components["schemas"]["PakshaId"];
             poya: components["schemas"]["PoyaInfo"] | null;
+            ritu: components["schemas"]["Ritu"];
             sinhala_month: components["schemas"]["SinhalaMonth"];
             /**
              * Sunrise
@@ -975,6 +977,23 @@ export interface components {
             /** Index */
             index: number;
             key: components["schemas"]["RashiId"];
+        };
+        /** MoonRashiSpan */
+        MoonRashiSpan: {
+            /**
+             * Ends At
+             * Format: date-time
+             */
+            ends_at: string;
+            /** Index */
+            index: number;
+            /** Key */
+            key: string;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
         };
         /** MuhurtaBirdSelectionInput */
         MuhurtaBirdSelectionInput: {
@@ -1407,6 +1426,13 @@ export interface components {
             /** Count */
             count: number;
             relation: components["schemas"]["RelationId"];
+        };
+        /** Ritu */
+        Ritu: {
+            /** Index */
+            index: number;
+            /** Key */
+            key: string;
         };
         /** ScheduleResponse */
         ScheduleResponse: {

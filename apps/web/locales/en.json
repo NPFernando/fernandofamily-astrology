@@ -190,6 +190,14 @@
       "magha": "Magha",
       "phalguna": "Phalguna"
     },
+    "ritus": {
+      "vasanta": "Vasanta",
+      "grishma": "Grishma",
+      "varsha": "Varsha",
+      "sharad": "Sharad",
+      "hemanta": "Hemanta",
+      "shishira": "Shishira"
+    },
     "sinhalaMonths": {
       "bak": "Bak",
       "vesak": "Vesak",
@@ -569,6 +577,13 @@
     "durmuhurtamNote": "Traditionally inauspicious window(s), one or two depending on the weekday.",
     "grahaPositionsTitle": "Graha Positions",
     "grahaPositionsNote": "Today's sidereal position for each of the 9 grahas, with retrograde (vakri) planets flagged.",
+    "skyTodayTitle": "Sky Today",
+    "skyTodayNote": "Moon sign, season and sidereal graha positions for the selected date and location.",
+    "moonRashi": "Moon Rashi",
+    "ritu": "Ritu",
+    "season": "Season",
+    "retrogradeSummary": "Retrograde grahas",
+    "noRetrograde": "No grahas retrograde",
     "retrograde": "Retrograde",
     "eclipseTitle": "Eclipse & Grahan Forecast",
     "eclipseNote": "The next solar and lunar eclipse with any part visible from this location, computed directly from the Swiss Ephemeris.",

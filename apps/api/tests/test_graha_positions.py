@@ -105,3 +105,22 @@ def test_ketu_retrograde_status_mirrors_rahu():
     body = _daily("2026-07-16")
     by_key = {p["key"]: p for p in body["graha_positions"]}
     assert by_key["rahu"]["is_retrograde"] == by_key["ketu"]["is_retrograde"]
+
+
+def test_daily_panchanga_includes_moon_rashi_span_and_ritu():
+    body = _daily("2026-07-16")
+
+    pp_adapter.ensure_ayanamsa()
+    place = pp_adapter.place("Colombo", COLOMBO["latitude"], COLOMBO["longitude"], 5.5)
+    jd = pp_adapter.julian_day_number(pp_adapter.date(2026, 7, 16), (12, 0, 0))
+
+    moon_rashi = body["moon_rashi"]
+    expected_rashi_index = adapter.raasi(jd, place)[0]
+    assert moon_rashi["index"] == expected_rashi_index
+    assert moon_rashi["key"] == repository.RASHI_KEYS[expected_rashi_index - 1]
+    assert moon_rashi["starts_at"] < "2026-07-16T12:00:00+05:30" < moon_rashi["ends_at"]
+
+    ritu = body["ritu"]
+    expected_ritu_index = adapter.ritu(body["lunar_month"]["index"])
+    assert ritu["index"] == expected_ritu_index
+    assert ritu["key"] == repository.RITU_KEYS[expected_ritu_index]

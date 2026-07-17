@@ -321,6 +321,8 @@ export type GrahaPosition = {
   nakshatra_index: number;
   is_retrograde: boolean;
 };
+export type MoonRashiSpan = { key: RashiId; index: number; starts_at: string; ends_at: string };
+export type Ritu = { key: string; index: number };
 
 export type DailyPanchanga = {
   engine: EngineMetadata;
@@ -333,6 +335,8 @@ export type DailyPanchanga = {
   moonrise: string | null;
   moonset: string | null;
   lunar_month: { key: string; index: number; is_leap: boolean };
+  moon_rashi: MoonRashiSpan;
+  ritu: Ritu;
   sinhala_month: { key: string; is_adhi: boolean };
   is_poya_day: boolean;
   poya: { month_key: string } | null;

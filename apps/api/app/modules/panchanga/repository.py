@@ -102,6 +102,9 @@ RASHI_KEYS: list[str] = [
     "tula", "vrischika", "dhanu", "makara", "kumbha", "meena",
 ]
 
+# Ritu / seasons 0..5, matching upstream drik.ritu().
+RITU_KEYS: list[str] = ["vasanta", "grishma", "varsha", "sharad", "hemanta", "shishira"]
+
 
 def sinhala_month_key(amanta_index: int, is_leap: bool) -> str:
     """Adhika (leap) months take an adhi- prefix, matching the gazette's

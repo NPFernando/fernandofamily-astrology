@@ -21,11 +21,13 @@ from app.modules.panchanga.models import (
     KaranaSpan,
     LunarEclipseEvent,
     LunarMonth,
+    MoonRashiSpan,
     MonthPanchanga,
     MonthPanchangaDay,
     NakshatraSpan,
     NextPoya,
     PoyaInfo,
+    Ritu,
     SinhalaMonth,
     SolarEclipseEvent,
     TithiSpan,
@@ -88,6 +90,13 @@ def _jd_ut_to_datetime(jd_ut: float, offset_hours: float) -> datetime:
     then reuse the normal float-hours path."""
     local_embedded_jd = jd_ut + offset_hours / 24.0
     y, m, d, fh = pp_adapter.jd_to_gregorian(local_embedded_jd)
+    return _hours_to_datetime(date_type(y, m, d), fh, offset_hours)
+
+
+def _jd_to_aware_datetime(jd: float, offset_hours: float) -> datetime:
+    """Local-embedded JD to aware datetime, matching the convention used by
+    the non-eclipse panchanga helpers."""
+    y, m, d, fh = pp_adapter.jd_to_gregorian(jd)
     return _hours_to_datetime(date_type(y, m, d), fh, offset_hours)
 
 
@@ -285,6 +294,17 @@ def compute_daily_panchanga(
         index=month_index,
         is_leap=bool(raw_month[1]),
     )
+    ritu_index = adapter.ritu(month_index)
+    ritu = Ritu(key=repository.RITU_KEYS[ritu_index], index=ritu_index)
+
+    raw_moon_rashi = adapter.raasi(noon_jd, place)
+    moon_rashi_index = int(raw_moon_rashi[0])
+    moon_rashi = MoonRashiSpan(
+        key=repository.RASHI_KEYS[moon_rashi_index - 1],
+        index=moon_rashi_index,
+        starts_at=_jd_to_aware_datetime(adapter.previous_moon_rashi_entry_jd(noon_jd, place), offset_hours),
+        ends_at=_hours_to_datetime(target_date, raw_moon_rashi[1], offset_hours),
+    )
 
     kalams = Kalams(
         rahu=_kalam_range(noon_jd, place, "raahu kaalam", target_date, offset_hours),
@@ -348,6 +368,8 @@ def compute_daily_panchanga(
         moonrise=moonrise,
         moonset=moonset,
         lunar_month=month,
+        moon_rashi=moon_rashi,
+        ritu=ritu,
         sinhala_month=sinhala_month,
         is_poya_day=is_poya,
         poya=poya,

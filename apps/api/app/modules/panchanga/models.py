@@ -84,6 +84,18 @@ class GrahaPosition(BaseModel):
     is_retrograde: bool  # always False for sun/moon (never retrograde)
 
 
+class MoonRashiSpan(BaseModel):
+    key: str  # repository.RASHI_KEYS
+    index: int  # 1..12
+    starts_at: datetime
+    ends_at: datetime
+
+
+class Ritu(BaseModel):
+    key: str  # repository.RITU_KEYS
+    index: int  # 0..5, matching upstream drik.ritu()
+
+
 class LunarMonth(BaseModel):
     key: str
     index: int  # 1..12, amanta, 1 = chaitra
@@ -189,6 +201,8 @@ class DailyPanchanga(BaseModel):
     moonrise: datetime | None
     moonset: datetime | None
     lunar_month: LunarMonth
+    moon_rashi: MoonRashiSpan
+    ritu: Ritu
     sinhala_month: SinhalaMonth
     is_poya_day: bool
     poya: PoyaInfo | None  # set only when is_poya_day

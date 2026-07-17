@@ -444,6 +444,23 @@ export function MuhurtaClient() {
           ))}
         </div>
 
+        <div
+          data-testid="muhurta-source-overlaps"
+          className="mt-3 rounded-lg border border-black/10 bg-background p-3 text-xs dark:border-white/10"
+        >
+          <p className="font-semibold uppercase opacity-60">{dict.muhurta.sourceOverlapsTitle}</p>
+          <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
+            {window.source_overlaps.map((overlap, i) => (
+              <p key={`${overlap.source}-${overlap.starts_at}-${i}`} className="min-w-0">
+                <span className="font-medium">{sourceLabel(overlap.source, dict)}</span>{" "}
+                <span className="tabular-nums opacity-75">
+                  {formatTime(overlap.starts_at, locale)}-{formatTime(overlap.ends_at, locale)}
+                </span>
+              </p>
+            ))}
+          </div>
+        </div>
+
         {window.cautions.length ? (
           <div className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs">
             {window.cautions.map((caution) => (

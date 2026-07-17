@@ -50,11 +50,12 @@
   zero-click on load (`/compatibility`, `POST /api/v1/compatibility/birds`)
 - Sinhala Daily Astrology Guide — a Sri Lanka-focused day view combining
   Daily Panchanga, Poya status, avoid times (rahu / yamaganda / gulika),
-  sun/moon times, Disha Shool, Tara Bala for known Nakshatra/Paksha
-  identities, Chandrashtama when a full birth-derived Moon sign is available,
-  current Pancha Pakshi period and favourable windows (`/daily-guide`). This
-  composes the existing Panchanga and Pancha Pakshi APIs rather than adding a
-  separate calculation engine.
+  durmuhurtam, sun/moon times, Disha Shool, Tara Bala for known
+  Nakshatra/Paksha identities, Chandrashtama when a full birth-derived Moon
+  sign is available, Amrit/Abhijit/Choghadiya/Hora timing layers, current
+  Pancha Pakshi period and favourable windows (`/daily-guide`). This composes
+  the existing Panchanga and Pancha Pakshi APIs rather than adding a separate
+  calculation engine.
 - Birth Nakshatra helper — exact birth timestamp/location to Nakshatra,
   Pada, Paksha, Moon sign and derived Pancha Pakshi birth bird, with quick
   handoff into Pancha Pakshi or the Daily Guide using only derived data
@@ -62,7 +63,8 @@
 - Muhurta-style favourable time finder — Sri Lanka-focused practical start
   windows for general work, travel, study/work, purchases and home rituals,
   combining Pancha Pakshi strength with Panchanga avoid/support periods
-  (`/muhurta`, `POST /api/v1/muhurta/search`).
+  (`/muhurta`, `POST /api/v1/muhurta/search`), with source-overlap details
+  showing which supportive layers contributed to each recommendation.
 - Moon phase + Tithi calendar — month view focused on Sri Lankan Poya days,
   tithi changes, tithi-derived moon phases and Sinhala Poya-cycle month
   context (`/moon-calendar`, `POST /api/v1/panchanga/month`).

@@ -652,7 +652,13 @@
     "personalStrengthDescription": "Travel direction, Tara Bala and Chandrashtama notes for this date and location.",
     "taraBalaPrompt": "Select a known Nakshatra and Paksha to unlock Tara Bala.",
     "chandrashtamaNeedsBirth": "Needs a full birth-derived Moon sign, so it is shown only when available.",
-    "chandrashtamaClear": "No Chandrashtama window is active for this birth Moon sign."
+    "chandrashtamaClear": "No Chandrashtama window is active for this birth Moon sign.",
+    "supportiveTimingTitle": "Supportive timing",
+    "supportiveTimingDescription": "Amrit, Abhijit, Choghadiya and Hora layers for choosing a stronger start time.",
+    "currentChoghadiya": "Current Choghadiya",
+    "nextChoghadiya": "Next Choghadiya",
+    "currentHora": "Current Hora",
+    "nextHora": "Next Hora"
   },
   "muhurta": {
     "title": "Favourable Time Finder",
@@ -676,6 +682,7 @@
     "hours": "hr",
     "openDailyGuide": "Open Daily Guide",
     "noWindows": "No matching windows were found. Try more days or lower the minimum strength.",
+    "sourceOverlapsTitle": "Why this window",
     "grades": {
       "excellent": "Excellent",
       "good": "Good",

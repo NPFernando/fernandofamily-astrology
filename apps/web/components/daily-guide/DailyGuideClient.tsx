@@ -9,8 +9,10 @@ import {
   fetchPanchanga,
   fetchScheduleWithServerTime,
   type BirdId,
+  type ChoghadiyaSpan,
   type DailyPanchanga,
   type EffectId,
+  type HoraSpan,
   type PakshaId,
   type ScheduleRequest,
   type ScheduleResponse,
@@ -49,6 +51,7 @@ type GuideData = {
   schedule: ScheduleResponse;
   serverTime: Date | null;
   fetchedAtClientMs: number;
+  referenceAt: string;
 };
 
 function sinhalaMonthName(dict: ReturnType<typeof getDictionary>, key: string): string {
@@ -160,6 +163,28 @@ function spanText(endsAt: string, date: string, locale: string, untilLabel: stri
   return endsAt.startsWith(date) ? phrase : `${phrase} (${nextDayLabel})`;
 }
 
+function offsetSuffix(iso: string): string {
+  return iso.endsWith("Z") ? "Z" : iso.slice(-6);
+}
+
+function requestReferenceIso(request: ScheduleRequest, panchanga: DailyPanchanga): string {
+  return `${request.target_date}T${request.target_time}${offsetSuffix(panchanga.sunrise)}`;
+}
+
+function currentAndNext<T extends { starts_at: string; ends_at: string }>(
+  spans: T[],
+  referenceAt: string,
+): { current: T | null; next: T | null } {
+  const referenceMs = new Date(referenceAt).getTime();
+  const current =
+    spans.find(
+      (span) =>
+        new Date(span.starts_at).getTime() <= referenceMs && referenceMs < new Date(span.ends_at).getTime(),
+    ) ?? null;
+  const next = spans.find((span) => new Date(span.starts_at).getTime() > referenceMs) ?? null;
+  return { current, next };
+}
+
 export function DailyGuideClient() {
   const { dict, locale } = useLocale();
   const [request, setRequest] = useState<ScheduleRequest | null>(null);
@@ -198,6 +223,7 @@ export function DailyGuideClient() {
         schedule: scheduleResult.data,
         serverTime: scheduleResult.serverTime,
         fetchedAtClientMs: Date.now(),
+        referenceAt: requestReferenceIso(nextRequest, panchanga),
       });
     } catch (e) {
       setError(e instanceof ApiError ? dict.ui.error : dict.ui.error);
@@ -521,6 +547,8 @@ export function DailyGuideClient() {
                 )}
               </section>
 
+              <SupportiveTimingCard panchanga={data.panchanga} referenceAt={data.referenceAt} />
+
               <section
                 data-testid="daily-guide-panchanga"
                 className="grid gap-3 sm:grid-cols-2"
@@ -593,6 +621,13 @@ export function DailyGuideClient() {
                       )}`}
                     />
                   ))}
+                  {data.panchanga.durmuhurtam.map((window, i) => (
+                    <TimeRow
+                      key={`${window.starts_at}-${window.ends_at}`}
+                      label={`${dict.panchanga.durmuhurtamTitle}${data.panchanga.durmuhurtam.length > 1 ? ` ${i + 1}` : ""}`}
+                      value={`${formatTime(window.starts_at, locale)}-${formatTime(window.ends_at, locale)}`}
+                    />
+                  ))}
                 </div>
                 <p className="mt-3 text-xs opacity-70">{dict.panchanga.kalamsNote}</p>
               </section>
@@ -622,6 +657,122 @@ export function DailyGuideClient() {
             </aside>
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+function SupportiveTimingCard({
+  panchanga,
+  referenceAt,
+}: {
+  panchanga: DailyPanchanga;
+  referenceAt: string;
+}) {
+  const { dict, locale } = useLocale();
+  const choghadiya = currentAndNext(panchanga.choghadiya, referenceAt);
+  const hora = currentAndNext(panchanga.hora, referenceAt);
+
+  return (
+    <section
+      data-testid="daily-guide-supportive-timing"
+      className="rounded-xl border border-emerald-600/25 bg-emerald-600/5 p-4"
+    >
+      <h2 className="text-sm font-semibold uppercase">{dict.dailyGuide.supportiveTimingTitle}</h2>
+      <p className="mt-1 text-xs leading-relaxed opacity-70">{dict.dailyGuide.supportiveTimingDescription}</p>
+
+      <div className="mt-3 grid gap-3 md:grid-cols-2">
+        <div className="rounded-lg border border-emerald-600/20 bg-background p-3 dark:border-emerald-400/20">
+          <h3 className="text-xs font-semibold uppercase opacity-60">{dict.panchanga.amritKaalamTitle}</h3>
+          <div className="mt-2 flex flex-col gap-1 text-sm">
+            {panchanga.amrit_kaalam.map((window) => (
+              <span key={`${window.starts_at}-${window.ends_at}`} className="tabular-nums">
+                {formatTime(window.starts_at, locale)}-{formatTime(window.ends_at, locale)}
+              </span>
+            ))}
+          </div>
+        </div>
+        <div className="rounded-lg border border-emerald-600/20 bg-background p-3 dark:border-emerald-400/20">
+          <h3 className="text-xs font-semibold uppercase opacity-60">{dict.panchanga.abhijitMuhurtaTitle}</h3>
+          <p className="mt-2 text-sm tabular-nums">
+            {formatTime(panchanga.abhijit_muhurta.starts_at, locale)}-
+            {formatTime(panchanga.abhijit_muhurta.ends_at, locale)}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 grid gap-3 md:grid-cols-2">
+        <TimingPair
+          title={dict.panchanga.choghadiyaTitle}
+          currentLabel={dict.dailyGuide.currentChoghadiya}
+          nextLabel={dict.dailyGuide.nextChoghadiya}
+          current={choghadiya.current}
+          next={choghadiya.next}
+          labelFor={(span) => translateEnum(dict, "choghadiya", span.key)}
+        />
+        <TimingPair
+          title={dict.panchanga.horaTitle}
+          currentLabel={dict.dailyGuide.currentHora}
+          nextLabel={dict.dailyGuide.nextHora}
+          current={hora.current}
+          next={hora.next}
+          labelFor={(span) => translateEnum(dict, "horaPlanets", span.key)}
+        />
+      </div>
+    </section>
+  );
+}
+
+function TimingPair<T extends ChoghadiyaSpan | HoraSpan>({
+  title,
+  currentLabel,
+  nextLabel,
+  current,
+  next,
+  labelFor,
+}: {
+  title: string;
+  currentLabel: string;
+  nextLabel: string;
+  current: T | null;
+  next: T | null;
+  labelFor: (span: T) => string;
+}) {
+  return (
+    <div className="rounded-lg border border-black/10 bg-background p-3 dark:border-white/10">
+      <h3 className="text-xs font-semibold uppercase opacity-60">{title}</h3>
+      <div className="mt-2 grid gap-2 text-sm">
+        <TimingLine label={currentLabel} span={current} labelFor={labelFor} />
+        <TimingLine label={nextLabel} span={next} labelFor={labelFor} />
+      </div>
+    </div>
+  );
+}
+
+function TimingLine<T extends ChoghadiyaSpan | HoraSpan>({
+  label,
+  span,
+  labelFor,
+}: {
+  label: string;
+  span: T | null;
+  labelFor: (span: T) => string;
+}) {
+  const { dict, locale } = useLocale();
+  return (
+    <div className="min-w-0">
+      <p className="text-xs uppercase opacity-60">{label}</p>
+      {span ? (
+        <p className="break-words font-medium">
+          <span style={{ color: span.is_auspicious ? EFFECT_COLORS.good : EFFECT_COLORS.bad }}>
+            {labelFor(span)}
+          </span>{" "}
+          <span className="tabular-nums opacity-75">
+            {formatTime(span.starts_at, locale)}-{formatTime(span.ends_at, locale)}
+          </span>
+        </p>
+      ) : (
+        <p className="font-medium opacity-70">{dict.ui.noWindowsLeft}</p>
       )}
     </div>
   );

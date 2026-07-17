@@ -24,6 +24,8 @@ for (const locale of ["en", "si"] as const) {
     await expect(page.locator('[data-testid="muhurta-controls"]')).toBeVisible();
     await expect(page.locator('[data-testid="muhurta-day-summary"]')).toBeVisible();
     await expect(page.locator('[data-testid="muhurta-windows"]')).toBeVisible();
+    await expect(page.locator('[data-testid="muhurta-source-overlaps"]').first()).toBeVisible();
+    await expect(page.getByText(DICTS[locale].muhurta.sourceOverlapsTitle).first()).toBeVisible();
     watcher.assertClean();
   });
 }

@@ -2035,6 +2035,411 @@
         "title": "MuhurtaDaySummary",
         "type": "object"
       },
+      "MuhurtaMonthBirdSelectionInput": {
+        "properties": {
+          "bird": {
+            "$ref": "#/components/schemas/BirdId"
+          },
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "method": {
+            "const": "bird",
+            "title": "Method",
+            "type": "string"
+          },
+          "min_duration_seconds": {
+            "default": 900,
+            "maximum": 86400.0,
+            "minimum": 60.0,
+            "title": "Min Duration Seconds",
+            "type": "integer"
+          },
+          "min_effect": {
+            "default": "good",
+            "enum": [
+              "good",
+              "very_good"
+            ],
+            "title": "Min Effect",
+            "type": "string"
+          },
+          "month": {
+            "maximum": 12.0,
+            "minimum": 1.0,
+            "title": "Month",
+            "type": "integer"
+          },
+          "purpose": {
+            "default": "general",
+            "enum": [
+              "general",
+              "travel",
+              "study_work",
+              "purchase",
+              "home_ritual"
+            ],
+            "title": "Purpose",
+            "type": "string"
+          },
+          "year": {
+            "maximum": 9999.0,
+            "minimum": 1.0,
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "month",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz",
+          "method",
+          "bird"
+        ],
+        "title": "MuhurtaMonthBirdSelectionInput",
+        "type": "object"
+      },
+      "MuhurtaMonthBirthDateTimeInput": {
+        "properties": {
+          "birth_date": {
+            "format": "date",
+            "title": "Birth Date",
+            "type": "string"
+          },
+          "birth_time": {
+            "format": "time",
+            "title": "Birth Time",
+            "type": "string"
+          },
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "method": {
+            "const": "birth_datetime",
+            "title": "Method",
+            "type": "string"
+          },
+          "min_duration_seconds": {
+            "default": 900,
+            "maximum": 86400.0,
+            "minimum": 60.0,
+            "title": "Min Duration Seconds",
+            "type": "integer"
+          },
+          "min_effect": {
+            "default": "good",
+            "enum": [
+              "good",
+              "very_good"
+            ],
+            "title": "Min Effect",
+            "type": "string"
+          },
+          "month": {
+            "maximum": 12.0,
+            "minimum": 1.0,
+            "title": "Month",
+            "type": "integer"
+          },
+          "purpose": {
+            "default": "general",
+            "enum": [
+              "general",
+              "travel",
+              "study_work",
+              "purchase",
+              "home_ritual"
+            ],
+            "title": "Purpose",
+            "type": "string"
+          },
+          "year": {
+            "maximum": 9999.0,
+            "minimum": 1.0,
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "month",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz",
+          "method",
+          "birth_date",
+          "birth_time"
+        ],
+        "title": "MuhurtaMonthBirthDateTimeInput",
+        "type": "object"
+      },
+      "MuhurtaMonthDay": {
+        "properties": {
+          "best_grade": {
+            "anyOf": [
+              {
+                "enum": [
+                  "excellent",
+                  "good",
+                  "usable"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Best Grade"
+          },
+          "best_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Best Score"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "is_poya_day": {
+            "title": "Is Poya Day",
+            "type": "boolean"
+          },
+          "moon_phase": {
+            "enum": [
+              "new",
+              "waxing_crescent",
+              "first_quarter",
+              "waxing_gibbous",
+              "full",
+              "waning_gibbous",
+              "last_quarter",
+              "waning_crescent"
+            ],
+            "title": "Moon Phase",
+            "type": "string"
+          },
+          "poya": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PoyaInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sinhala_month": {
+            "$ref": "#/components/schemas/SinhalaMonth"
+          },
+          "top_windows": {
+            "items": {
+              "$ref": "#/components/schemas/MuhurtaWindow"
+            },
+            "title": "Top Windows",
+            "type": "array"
+          },
+          "total_seconds": {
+            "title": "Total Seconds",
+            "type": "integer"
+          },
+          "window_count": {
+            "title": "Window Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "date",
+          "window_count",
+          "total_seconds",
+          "best_grade",
+          "best_score",
+          "top_windows",
+          "is_poya_day",
+          "poya",
+          "sinhala_month",
+          "moon_phase"
+        ],
+        "title": "MuhurtaMonthDay",
+        "type": "object"
+      },
+      "MuhurtaMonthNakshatraPakshaInput": {
+        "properties": {
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "method": {
+            "const": "nakshatra_paksha",
+            "title": "Method",
+            "type": "string"
+          },
+          "min_duration_seconds": {
+            "default": 900,
+            "maximum": 86400.0,
+            "minimum": 60.0,
+            "title": "Min Duration Seconds",
+            "type": "integer"
+          },
+          "min_effect": {
+            "default": "good",
+            "enum": [
+              "good",
+              "very_good"
+            ],
+            "title": "Min Effect",
+            "type": "string"
+          },
+          "month": {
+            "maximum": 12.0,
+            "minimum": 1.0,
+            "title": "Month",
+            "type": "integer"
+          },
+          "nakshatra_index": {
+            "title": "Nakshatra Index",
+            "type": "integer"
+          },
+          "paksha": {
+            "$ref": "#/components/schemas/PakshaId"
+          },
+          "purpose": {
+            "default": "general",
+            "enum": [
+              "general",
+              "travel",
+              "study_work",
+              "purchase",
+              "home_ritual"
+            ],
+            "title": "Purpose",
+            "type": "string"
+          },
+          "year": {
+            "maximum": 9999.0,
+            "minimum": 1.0,
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "month",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz",
+          "method",
+          "nakshatra_index",
+          "paksha"
+        ],
+        "title": "MuhurtaMonthNakshatraPakshaInput",
+        "type": "object"
+      },
+      "MuhurtaMonthResponse": {
+        "properties": {
+          "birth_bird": {
+            "$ref": "#/components/schemas/BirdId"
+          },
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/MuhurtaMonthDay"
+            },
+            "title": "Days",
+            "type": "array"
+          },
+          "engine": {
+            "$ref": "#/components/schemas/EngineMetadata"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "month": {
+            "title": "Month",
+            "type": "integer"
+          },
+          "purpose": {
+            "enum": [
+              "general",
+              "travel",
+              "study_work",
+              "purchase",
+              "home_ritual"
+            ],
+            "title": "Purpose",
+            "type": "string"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "engine",
+          "location",
+          "birth_bird",
+          "year",
+          "month",
+          "purpose",
+          "days"
+        ],
+        "title": "MuhurtaMonthResponse",
+        "type": "object"
+      },
       "MuhurtaNakshatraPakshaInput": {
         "properties": {
           "days": {
@@ -3577,6 +3982,66 @@
         "summary": "Platform Metadata",
         "tags": [
           "platform"
+        ]
+      }
+    },
+    "/api/v1/muhurta/month": {
+      "post": {
+        "operationId": "month_api_v1_muhurta_month_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "discriminator": {
+                  "mapping": {
+                    "bird": "#/components/schemas/MuhurtaMonthBirdSelectionInput",
+                    "birth_datetime": "#/components/schemas/MuhurtaMonthBirthDateTimeInput",
+                    "nakshatra_paksha": "#/components/schemas/MuhurtaMonthNakshatraPakshaInput"
+                  },
+                  "propertyName": "method"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/MuhurtaMonthBirthDateTimeInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MuhurtaMonthNakshatraPakshaInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MuhurtaMonthBirdSelectionInput"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MuhurtaMonthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Month",
+        "tags": [
+          "muhurta"
         ]
       }
     },

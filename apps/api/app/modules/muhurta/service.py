@@ -1,25 +1,29 @@
 from __future__ import annotations
 
+from calendar import monthrange
 from datetime import date as date_type
 from datetime import datetime, time, timedelta
 
 from app.modules.muhurta.models import (
     MuhurtaCautionInfo,
     MuhurtaDaySummary,
+    MuhurtaMonthDay,
+    MuhurtaMonthResponse,
     MuhurtaSearchResponse,
     MuhurtaSourceOverlap,
     MuhurtaWindow,
 )
-from app.modules.muhurta.requests import MuhurtaSearchRequest
+from app.modules.muhurta.requests import MuhurtaMonthRequest, MuhurtaSearchRequest
 from app.modules.pancha_pakshi.enums import ActivityId, EffectId
 from app.modules.pancha_pakshi.models import EngineMetadata, ScheduleResponse, SubPeriod
 from app.modules.pancha_pakshi import service as pancha_service
 from app.modules.panchanga import service as panchanga_service
 from app.modules.panchanga.models import DailyPanchanga, KalamRange
-from app.modules.panchanga.requests import DailyPanchangaRequest
+from app.modules.panchanga.requests import DailyPanchangaRequest, MonthPanchangaRequest
 
 
 _NOON = time(12, 0, 0)
+_MONTH_TOP_WINDOWS = 3
 _EFFECT_SCORE = {EffectId.good: 50.0, EffectId.very_good: 70.0}
 _GRADE_RANK = {"excellent": 0, "good": 1, "usable": 2}
 
@@ -77,7 +81,68 @@ def search(request: MuhurtaSearchRequest, engine: EngineMetadata) -> MuhurtaSear
     )
 
 
-def _schedule_for_day(request: MuhurtaSearchRequest, day: date_type, engine: EngineMetadata) -> ScheduleResponse:
+def month(request: MuhurtaMonthRequest, engine: EngineMetadata) -> MuhurtaMonthResponse:
+    days: list[MuhurtaMonthDay] = []
+    first_schedule: ScheduleResponse | None = None
+    calendar_month = panchanga_service.month_panchanga(
+        MonthPanchangaRequest(
+            year=request.year,
+            month=request.month,
+            location_name=request.location_name,
+            latitude=request.latitude,
+            longitude=request.longitude,
+            iana_tz=request.iana_tz,
+        ),
+        engine,
+    )
+    calendar_by_date = {day.date: day for day in calendar_month.days}
+
+    for day_number in range(1, monthrange(request.year, request.month)[1] + 1):
+        day = date_type(request.year, request.month, day_number)
+        calendar_day = calendar_by_date[day]
+        schedule = _schedule_for_day(request, day, engine)
+        if first_schedule is None:
+            first_schedule = schedule
+        panchanga = panchanga_service.daily_panchanga(
+            DailyPanchangaRequest(
+                date=day,
+                location_name=request.location_name,
+                latitude=request.latitude,
+                longitude=request.longitude,
+                iana_tz=request.iana_tz,
+            ),
+            engine,
+        )
+        day_windows = _windows_for_day(request, day, schedule, panchanga)
+        ranked_windows = sorted(day_windows, key=lambda w: (-w.score, w.starts_at))
+        days.append(
+            MuhurtaMonthDay(
+                date=day,
+                window_count=len(day_windows),
+                total_seconds=sum(w.duration_seconds for w in day_windows),
+                best_grade=_best_grade(day_windows),
+                best_score=ranked_windows[0].score if ranked_windows else None,
+                top_windows=ranked_windows[:_MONTH_TOP_WINDOWS],
+                is_poya_day=calendar_day.is_poya_day,
+                poya=calendar_day.poya,
+                sinhala_month=calendar_day.sinhala_month,
+                moon_phase=calendar_day.moon_phase,
+            )
+        )
+
+    assert first_schedule is not None
+    return MuhurtaMonthResponse(
+        engine=first_schedule.engine,
+        location=first_schedule.location,
+        birth_bird=first_schedule.birth_bird,
+        year=request.year,
+        month=request.month,
+        purpose=request.purpose,
+        days=days,
+    )
+
+
+def _schedule_for_day(request: MuhurtaSearchRequest | MuhurtaMonthRequest, day: date_type, engine: EngineMetadata) -> ScheduleResponse:
     if request.method == "birth_datetime":
         return pancha_service.schedule_from_birth_datetime(
             request.birth_date,

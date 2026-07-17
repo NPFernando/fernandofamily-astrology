@@ -106,6 +106,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/muhurta/month": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Month */
+        post: operations["month_api_v1_muhurta_month_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/muhurta/search": {
         parameters: {
             query?: never;
@@ -1116,6 +1133,175 @@ export interface components {
             /** Window Count */
             window_count: number;
         };
+        /** MuhurtaMonthBirdSelectionInput */
+        MuhurtaMonthBirdSelectionInput: {
+            bird: components["schemas"]["BirdId"];
+            /** Iana Tz */
+            iana_tz: string;
+            /** Latitude */
+            latitude: number;
+            /** Location Name */
+            location_name: string;
+            /** Longitude */
+            longitude: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            method: "bird";
+            /**
+             * Min Duration Seconds
+             * @default 900
+             */
+            min_duration_seconds: number;
+            /**
+             * Min Effect
+             * @default good
+             * @enum {string}
+             */
+            min_effect: "good" | "very_good";
+            /** Month */
+            month: number;
+            /**
+             * Purpose
+             * @default general
+             * @enum {string}
+             */
+            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual";
+            /** Year */
+            year: number;
+        };
+        /** MuhurtaMonthBirthDateTimeInput */
+        MuhurtaMonthBirthDateTimeInput: {
+            /**
+             * Birth Date
+             * Format: date
+             */
+            birth_date: string;
+            /**
+             * Birth Time
+             * Format: time
+             */
+            birth_time: string;
+            /** Iana Tz */
+            iana_tz: string;
+            /** Latitude */
+            latitude: number;
+            /** Location Name */
+            location_name: string;
+            /** Longitude */
+            longitude: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            method: "birth_datetime";
+            /**
+             * Min Duration Seconds
+             * @default 900
+             */
+            min_duration_seconds: number;
+            /**
+             * Min Effect
+             * @default good
+             * @enum {string}
+             */
+            min_effect: "good" | "very_good";
+            /** Month */
+            month: number;
+            /**
+             * Purpose
+             * @default general
+             * @enum {string}
+             */
+            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual";
+            /** Year */
+            year: number;
+        };
+        /** MuhurtaMonthDay */
+        MuhurtaMonthDay: {
+            /** Best Grade */
+            best_grade: ("excellent" | "good" | "usable") | null;
+            /** Best Score */
+            best_score: number | null;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Is Poya Day */
+            is_poya_day: boolean;
+            /**
+             * Moon Phase
+             * @enum {string}
+             */
+            moon_phase: "new" | "waxing_crescent" | "first_quarter" | "waxing_gibbous" | "full" | "waning_gibbous" | "last_quarter" | "waning_crescent";
+            poya: components["schemas"]["PoyaInfo"] | null;
+            sinhala_month: components["schemas"]["SinhalaMonth"];
+            /** Top Windows */
+            top_windows: components["schemas"]["MuhurtaWindow"][];
+            /** Total Seconds */
+            total_seconds: number;
+            /** Window Count */
+            window_count: number;
+        };
+        /** MuhurtaMonthNakshatraPakshaInput */
+        MuhurtaMonthNakshatraPakshaInput: {
+            /** Iana Tz */
+            iana_tz: string;
+            /** Latitude */
+            latitude: number;
+            /** Location Name */
+            location_name: string;
+            /** Longitude */
+            longitude: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            method: "nakshatra_paksha";
+            /**
+             * Min Duration Seconds
+             * @default 900
+             */
+            min_duration_seconds: number;
+            /**
+             * Min Effect
+             * @default good
+             * @enum {string}
+             */
+            min_effect: "good" | "very_good";
+            /** Month */
+            month: number;
+            /** Nakshatra Index */
+            nakshatra_index: number;
+            paksha: components["schemas"]["PakshaId"];
+            /**
+             * Purpose
+             * @default general
+             * @enum {string}
+             */
+            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual";
+            /** Year */
+            year: number;
+        };
+        /** MuhurtaMonthResponse */
+        MuhurtaMonthResponse: {
+            birth_bird: components["schemas"]["BirdId"];
+            /** Days */
+            days: components["schemas"]["MuhurtaMonthDay"][];
+            engine: components["schemas"]["EngineMetadata"];
+            location: components["schemas"]["Location"];
+            /** Month */
+            month: number;
+            /**
+             * Purpose
+             * @enum {string}
+             */
+            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual";
+            /** Year */
+            year: number;
+        };
         /** MuhurtaNakshatraPakshaInput */
         MuhurtaNakshatraPakshaInput: {
             /**
@@ -1833,6 +2019,39 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    month_api_v1_muhurta_month_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MuhurtaMonthBirthDateTimeInput"] | components["schemas"]["MuhurtaMonthNakshatraPakshaInput"] | components["schemas"]["MuhurtaMonthBirdSelectionInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MuhurtaMonthResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

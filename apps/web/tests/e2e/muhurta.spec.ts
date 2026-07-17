@@ -99,6 +99,35 @@ test("muhurta: family comparison shows an empty saved-profile state", async ({ p
   );
 });
 
+test("muhurta: month view highlights July 2026 Poya and opens the selected date", async ({ page }) => {
+  const watcher = watchForBirthDataInUrls(page);
+  await openMuhurta(page, "en");
+  await page.getByRole("button", { name: DICTS.en.muhurta.viewMonth }).click();
+  const panel = page.locator('[data-testid="muhurta-month-panel"]');
+  await expect(panel).toBeVisible();
+  await panel.locator('input[type="month"]').fill("2026-07");
+  const poya = panel.locator('[data-testid="muhurta-month-poya"]').first();
+  await expect(poya).toBeVisible({ timeout: 60_000 });
+  await poya.click();
+  await expect(panel.locator('[data-testid="muhurta-month-selected-day"]')).toContainText(
+    DICTS.en.enums.sinhalaMonths.esala,
+  );
+  await panel.getByTestId("muhurta-month-use-date").click();
+  await expect(page.locator('[data-testid="muhurta-result"]')).toBeVisible({ timeout: 60_000 });
+  await expect(page.locator('[data-testid="muhurta-day-summary"]')).toContainText("Jul 29");
+  watcher.assertClean();
+});
+
+test("@mobile muhurta month keeps layout within 360px", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await openMuhurta(page, "si");
+  await page.getByRole("button", { name: DICTS.si.muhurta.viewMonth }).click();
+  const panel = page.locator('[data-testid="muhurta-month-panel"]');
+  await expect(panel.locator('[data-testid="muhurta-month-mobile-list"]')).toBeVisible({ timeout: 60_000 });
+  const hasHScroll = await page.evaluate(() => document.body.scrollWidth > window.innerWidth + 5);
+  expect(hasHScroll).toBe(false);
+});
+
 test("muhurta: landing card, nav link, and sitemap are present", async ({ page, request }) => {
   await page.goto("/en");
   await expect(

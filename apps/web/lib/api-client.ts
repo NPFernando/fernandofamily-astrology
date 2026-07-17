@@ -477,6 +477,40 @@ export type MuhurtaSearchRequest =
   | MuhurtaNakshatraPakshaInput
   | MuhurtaBirdSelectionInput;
 
+type MuhurtaMonthBase = {
+  year: number;
+  month: number;
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  iana_tz: string;
+  purpose: MuhurtaPurpose;
+  min_effect: "good" | "very_good";
+  min_duration_seconds: number;
+};
+
+export type MuhurtaMonthBirthDateTimeInput = MuhurtaMonthBase & {
+  method: "birth_datetime";
+  birth_date: string;
+  birth_time: string;
+};
+
+export type MuhurtaMonthNakshatraPakshaInput = MuhurtaMonthBase & {
+  method: "nakshatra_paksha";
+  nakshatra_index: number;
+  paksha: PakshaId;
+};
+
+export type MuhurtaMonthBirdSelectionInput = MuhurtaMonthBase & {
+  method: "bird";
+  bird: BirdId;
+};
+
+export type MuhurtaMonthRequest =
+  | MuhurtaMonthBirthDateTimeInput
+  | MuhurtaMonthNakshatraPakshaInput
+  | MuhurtaMonthBirdSelectionInput;
+
 export type MuhurtaSourceOverlap = {
   source: MuhurtaSource;
   starts_at: string;
@@ -518,6 +552,29 @@ export type MuhurtaSearchResponse = {
   purpose: MuhurtaPurpose;
   windows: MuhurtaWindow[];
   per_day: MuhurtaDaySummary[];
+};
+
+export type MuhurtaMonthDay = {
+  date: string;
+  window_count: number;
+  total_seconds: number;
+  best_grade: MuhurtaGrade | null;
+  best_score: number | null;
+  top_windows: MuhurtaWindow[];
+  is_poya_day: boolean;
+  poya: { month_key: string } | null;
+  sinhala_month: { key: string; is_adhi: boolean };
+  moon_phase: MoonPhaseKey;
+};
+
+export type MuhurtaMonthResponse = {
+  engine: EngineMetadata;
+  location: Location;
+  birth_bird: BirdId;
+  year: number;
+  month: number;
+  purpose: MuhurtaPurpose;
+  days: MuhurtaMonthDay[];
 };
 
 export class ApiError extends Error {
@@ -648,6 +705,19 @@ export function fetchMuhurta(body: MuhurtaSearchRequest): Promise<MuhurtaSearchR
     const data = await r.json().catch(() => null);
     if (!r.ok) throw new ApiError(r.status, data);
     return data as MuhurtaSearchResponse;
+  });
+  return res;
+}
+
+export function fetchMuhurtaMonth(body: MuhurtaMonthRequest): Promise<MuhurtaMonthResponse> {
+  const res = fetch(`${MUHURTA_API_BASE}/month`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).then(async (r) => {
+    const data = await r.json().catch(() => null);
+    if (!r.ok) throw new ApiError(r.status, data);
+    return data as MuhurtaMonthResponse;
   });
   return res;
 }

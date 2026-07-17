@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from app.modules.pancha_pakshi.enums import ActivityId, BirdId, EffectId
 from app.modules.pancha_pakshi.models import EngineMetadata, Location
+from app.modules.panchanga.models import MoonPhaseKey, PoyaInfo, SinhalaMonth
 
 
 MuhurtaPurpose = Literal["general", "travel", "study_work", "purchase", "home_ritual"]
@@ -61,3 +62,26 @@ class MuhurtaSearchResponse(BaseModel):
     purpose: MuhurtaPurpose
     windows: list[MuhurtaWindow]
     per_day: list[MuhurtaDaySummary]
+
+
+class MuhurtaMonthDay(BaseModel):
+    date: date_type
+    window_count: int
+    total_seconds: int
+    best_grade: MuhurtaGrade | None
+    best_score: float | None
+    top_windows: list[MuhurtaWindow]
+    is_poya_day: bool
+    poya: PoyaInfo | None
+    sinhala_month: SinhalaMonth
+    moon_phase: MoonPhaseKey
+
+
+class MuhurtaMonthResponse(BaseModel):
+    engine: EngineMetadata
+    location: Location
+    birth_bird: BirdId
+    year: int
+    month: int
+    purpose: MuhurtaPurpose
+    days: list[MuhurtaMonthDay]

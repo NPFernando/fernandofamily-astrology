@@ -40,6 +40,23 @@ def _search(**overrides) -> dict:
     return response.json()
 
 
+def _month(**overrides) -> dict:
+    body = {
+        "method": "bird",
+        "bird": "peacock",
+        "year": 2026,
+        "month": 7,
+        "purpose": "general",
+        "min_effect": "good",
+        "min_duration_seconds": 900,
+        **COLOMBO,
+        **overrides,
+    }
+    response = client.post("/api/v1/muhurta/month", json=body)
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
 def _overlaps(a_start: str, a_end: str, b_start: str, b_end: str) -> bool:
     return max(datetime.fromisoformat(a_start), datetime.fromisoformat(b_start)) < min(
         datetime.fromisoformat(a_end), datetime.fromisoformat(b_end)
@@ -57,6 +74,33 @@ def test_muhurta_search_returns_ranked_windows_and_daily_summaries():
     assert body["windows"][0]["score"] >= body["windows"][-1]["score"]
     assert {"source_overlaps", "reasons"} <= set(body["windows"][0].keys())
     assert "pancha_pakshi" in body["windows"][0]["reasons"]
+
+
+def test_muhurta_month_returns_daily_summaries_and_top_windows():
+    body = _month()
+    assert body["year"] == 2026
+    assert body["month"] == 7
+    assert body["purpose"] == "general"
+    assert body["birth_bird"] == "peacock"
+    assert len(body["days"]) == 31
+    assert {day["date"] for day in body["days"]} >= {"2026-07-01", "2026-07-31"}
+    day_with_windows = next(day for day in body["days"] if day["window_count"] > 0)
+    assert day_with_windows["best_score"] == day_with_windows["top_windows"][0]["score"]
+    assert len(day_with_windows["top_windows"]) <= 3
+    assert {"moon_phase", "sinhala_month", "is_poya_day"} <= set(day_with_windows.keys())
+
+
+def test_muhurta_month_includes_sri_lankan_poya_metadata():
+    body = _month()
+    poya_days = [day for day in body["days"] if day["is_poya_day"]]
+    assert [day["date"] for day in poya_days] == ["2026-07-29"]
+    assert poya_days[0]["poya"]["month_key"] == "esala"
+
+
+def test_muhurta_month_accepts_nakshatra_paksha_without_birth_details():
+    body = _month(method="nakshatra_paksha", nakshatra_index=4, paksha="waxing")
+    assert body["birth_bird"] in {"vulture", "owl", "crow", "cock", "peacock"}
+    assert len(body["days"]) == 31
 
 
 def test_muhurta_windows_do_not_overlap_avoid_periods():
@@ -152,6 +196,23 @@ def test_muhurta_rejects_invalid_location():
             "method": "bird",
             "bird": "peacock",
             "from_date": "2026-07-16",
+            "latitude": 999,
+            "longitude": 79.8612,
+            "location_name": "Nowhere",
+            "iana_tz": "Asia/Colombo",
+        },
+    )
+    assert response.status_code == 422
+
+
+def test_muhurta_month_rejects_invalid_location():
+    response = client.post(
+        "/api/v1/muhurta/month",
+        json={
+            "method": "bird",
+            "bird": "peacock",
+            "year": 2026,
+            "month": 7,
             "latitude": 999,
             "longitude": 79.8612,
             "location_name": "Nowhere",

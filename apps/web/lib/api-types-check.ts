@@ -31,6 +31,10 @@ import type {
   MuhurtaBirthDateTimeInput,
   MuhurtaNakshatraPakshaInput,
   MuhurtaBirdSelectionInput,
+  MuhurtaMonthBirthDateTimeInput,
+  MuhurtaMonthNakshatraPakshaInput,
+  MuhurtaMonthBirdSelectionInput,
+  MuhurtaMonthResponse,
   MuhurtaSearchResponse,
 } from "@/lib/api-client";
 
@@ -98,4 +102,16 @@ export type _CheckMuhurtaBirdSelectionInput = Expect<
 >;
 export type _CheckMuhurtaSearchResponse = Expect<
   Generated["MuhurtaSearchResponse"] extends MuhurtaSearchResponse ? true : false
+>;
+export type _CheckMuhurtaMonthBirthDateTimeInput = Expect<
+  Equals<MuhurtaMonthBirthDateTimeInput, Generated["MuhurtaMonthBirthDateTimeInput"]>
+>;
+export type _CheckMuhurtaMonthNakshatraPakshaInput = Expect<
+  Equals<MuhurtaMonthNakshatraPakshaInput, Generated["MuhurtaMonthNakshatraPakshaInput"]>
+>;
+export type _CheckMuhurtaMonthBirdSelectionInput = Expect<
+  Equals<MuhurtaMonthBirdSelectionInput, Generated["MuhurtaMonthBirdSelectionInput"]>
+>;
+export type _CheckMuhurtaMonthResponse = Expect<
+  Generated["MuhurtaMonthResponse"] extends MuhurtaMonthResponse ? true : false
 >;

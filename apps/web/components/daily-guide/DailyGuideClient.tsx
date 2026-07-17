@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { getDictionary, NAKSHATRAS, nakshatraName, translateEnum } from "@/lib/i18n";
@@ -41,6 +42,7 @@ import { FullMoonIcon } from "@/components/icons/moon";
 import { activityGuidance } from "@/lib/pancha-guidance";
 import { SkyTodayPanel } from "@/components/panchanga/SkyTodayPanel";
 import { DailyTimingTimeline } from "@/components/panchanga/DailyTimingTimeline";
+import { PoyaDetailCard } from "@/components/panchanga/PoyaDetailCard";
 import { EFFECT_COLORS } from "@fernandofamily/design-system";
 
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
@@ -98,6 +100,13 @@ function todayFor(location: LocationValue): { date: string; time: string } {
 function targetTimeFor(date: string, location: LocationValue): string {
   const nowThere = todayFor(location);
   return date === nowThere.date ? nowThere.time : "12:00:00";
+}
+
+function validDateParam(value: string | null): string | null {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const parsed = new Date(`${value}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.toISOString().slice(0, 10) === value ? value : null;
 }
 
 function locationFromRequest(request: ScheduleRequest): LocationValue {
@@ -203,6 +212,8 @@ function currentAndNext<T extends { starts_at: string; ends_at: string }>(
 
 export function DailyGuideClient() {
   const { dict, locale } = useLocale();
+  const searchParams = useSearchParams();
+  const requestedDate = validDateParam(searchParams.get("date"));
   const [request, setRequest] = useState<ScheduleRequest | null>(null);
   const [date, setDate] = useState<string>("");
   const [location, setLocation] = useState<LocationValue | null>(null);
@@ -253,13 +264,15 @@ export function DailyGuideClient() {
     (async () => {
       const initial = await resolveDefaultScheduleRequest();
       if (cancelled) return;
-      setUsedDefaults(true);
-      void run(initial);
+      const initialLocation = locationFromRequest(initial);
+      const next = requestedDate ? withDateLocation(initial, requestedDate, initialLocation) : initial;
+      setUsedDefaults(!requestedDate);
+      void run(next);
     })();
     return () => {
       cancelled = true;
     };
-  }, [run]);
+  }, [requestedDate, run]);
 
   const viewingToday = Boolean(location && date === todayFor(location).date);
   const currentPeriod = viewingToday ? data?.schedule.current_period ?? null : null;
@@ -519,17 +532,31 @@ export function DailyGuideClient() {
                     {dict.dailyGuide.notPoya}
                   </span>
                 )}
-                <span data-testid="daily-guide-next-poya" className="text-xs opacity-70">
-                  {dict.panchanga.nextPoyaLabel}:{" "}
-                  {sinhalaMonthName(dict, data.panchanga.next_poya.month_key)}{" "}
-                  {new Date(`${data.panchanga.next_poya.date}T12:00:00`).toLocaleDateString(
-                    locale === "si" ? "si-LK" : "en-US",
-                    { month: "long", day: "numeric" },
-                  )}
-                </span>
               </div>
             </div>
           </section>
+
+          <PoyaDetailCard
+            locale={locale}
+            dict={dict}
+            date={data.panchanga.is_poya_day ? data.panchanga.date : data.panchanga.next_poya.date}
+            titleMonthKey={
+              data.panchanga.is_poya_day && data.panchanga.poya
+                ? data.panchanga.poya.month_key
+                : data.panchanga.next_poya.month_key
+            }
+            isPoyaDay={data.panchanga.is_poya_day}
+            todayLabel={dict.panchanga.poyaTodayLabel}
+            upcomingLabel={dict.dailyGuide.nextPoyaDetailTitle}
+            moonrise={data.panchanga.is_poya_day ? data.panchanga.moonrise : undefined}
+            moonset={data.panchanga.is_poya_day ? data.panchanga.moonset : undefined}
+            tithi={data.panchanga.is_poya_day ? data.panchanga.tithi : undefined}
+            href={`/${locale}/moon-calendar?date=${
+              data.panchanga.is_poya_day ? data.panchanga.date : data.panchanga.next_poya.date
+            }`}
+            actionLabel={dict.dailyGuide.openMoonCalendar}
+            testId="daily-guide-poya-detail"
+          />
 
           <DailyTimingTimeline
             panchanga={data.panchanga}

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { DailyGuideClient } from "@/components/daily-guide/DailyGuideClient";
 import { localizedPageMetadata } from "@/lib/page-metadata";
 
@@ -11,5 +12,9 @@ export async function generateMetadata({
 }
 
 export default function DailyGuidePage() {
-  return <DailyGuideClient />;
+  return (
+    <Suspense>
+      <DailyGuideClient />
+    </Suspense>
+  );
 }

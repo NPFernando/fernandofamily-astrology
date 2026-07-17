@@ -36,8 +36,23 @@ test("moon calendar: July 2026 highlights the real Esala Poya day", async ({ pag
   const poya = page.locator('[data-testid="moon-calendar-poya"]').first();
   await expect(poya).toBeVisible({ timeout: 30_000 });
   await expect(poya).toContainText(DICTS.en.moonCalendar.poyaShort);
-  await expect(page.locator('[data-testid="moon-calendar-selected-day"]')).toContainText(
-    DICTS.en.enums.sinhalaMonths.esala,
+  await poya.click();
+  const selected = page.locator('[data-testid="moon-calendar-selected-day"]');
+  await expect(selected).toContainText(DICTS.en.enums.sinhalaMonths.esala, { timeout: 30_000 });
+  await expect(page.locator('[data-testid="moon-calendar-poya-detail"]')).toContainText(
+    DICTS.en.panchanga.poyaTodayLabel,
+  );
+});
+
+test("moon calendar: date query and Daily Guide action use the selected day", async ({ page }) => {
+  await page.goto("/en/moon-calendar?date=2026-07-29");
+  await waitForMoonCalendar(page, "en");
+  const detail = page.locator('[data-testid="moon-calendar-poya-detail"]');
+  await expect(detail).toContainText(DICTS.en.enums.sinhalaMonths.esala);
+  await detail.getByRole("link", { name: DICTS.en.moonCalendar.openDailyGuide }).click();
+  await expect(page).toHaveURL(/\/en\/daily-guide\?date=2026-07-29$/);
+  await expect(page.locator('[data-testid="daily-guide-poya-detail"]')).toContainText(
+    DICTS.en.panchanga.poyaTodayLabel,
     { timeout: 30_000 },
   );
 });

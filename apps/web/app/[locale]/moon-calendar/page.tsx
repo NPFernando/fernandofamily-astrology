@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { localizedPageMetadata } from "@/lib/page-metadata";
 import { MoonCalendarClient } from "@/components/moon-calendar/MoonCalendarClient";
 
@@ -11,5 +12,9 @@ export async function generateMetadata({
 }
 
 export default function MoonCalendarPage() {
-  return <MoonCalendarClient />;
+  return (
+    <Suspense>
+      <MoonCalendarClient />
+    </Suspense>
+  );
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { getDictionary, translateEnum } from "@/lib/i18n";
@@ -19,6 +21,7 @@ import {
 } from "@/components/pancha-pakshi/LocationPicker";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import { FullMoonIcon } from "@/components/icons/moon";
+import { PoyaDetailCard } from "@/components/panchanga/PoyaDetailCard";
 
 function sinhalaMonthName(dict: ReturnType<typeof getDictionary>, key: string): string {
   const isAdhi = key.startsWith("adhi-");
@@ -42,6 +45,13 @@ function shiftMonth(year: number, month: number, delta: number): { year: number;
 
 function todayIsoForLocation(loc: LocationValue): string {
   return nowAsTargetDateTime(loc.iana_tz).date;
+}
+
+function validDateParam(value: string | null): string | null {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const parsed = new Date(`${value}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.toISOString().slice(0, 10) === value ? value : null;
 }
 
 function formatDate(date: string, locale: string) {
@@ -70,6 +80,8 @@ function phaseTone(phase: MoonPhaseKey, isPoya: boolean): string {
 
 export function MoonCalendarClient() {
   const { dict, locale } = useLocale();
+  const searchParams = useSearchParams();
+  const requestedDate = validDateParam(searchParams.get("date"));
   const [month, setMonth] = useState(() => monthFromDate(new Date().toISOString().slice(0, 10)));
   const [location, setLocation] = useState<LocationValue | null>(null);
   const [data, setData] = useState<MonthPanchanga | null>(null);
@@ -109,17 +121,17 @@ export function MoonCalendarClient() {
       const account = await loadAccountPreferences();
       if (cancelled) return;
       const loc = account.preferences?.default_location ?? mostRecentLocation() ?? DEFAULT_LOCATION;
-      const today = todayIsoForLocation(loc);
-      const initialMonth = monthFromDate(today);
+      const targetDate = requestedDate ?? todayIsoForLocation(loc);
+      const initialMonth = monthFromDate(targetDate);
       setLocation(loc);
       setMonth(initialMonth);
-      setUsedDefaults(true);
-      void run(initialMonth, loc, today);
+      setUsedDefaults(!requestedDate);
+      void run(initialMonth, loc, targetDate);
     })();
     return () => {
       cancelled = true;
     };
-  }, [run]);
+  }, [requestedDate, run]);
 
   const selectedDay = useMemo(
     () => data?.days.find((d) => d.date === selectedDate) ?? data?.days[0] ?? null,
@@ -423,9 +435,22 @@ function SelectedDayPanel({
       <p className="text-xs font-semibold uppercase text-accent">{dict.moonCalendar.selectedDay}</p>
       <h2 className="mt-1 text-lg font-semibold">{formatDate(day.date, locale)}</h2>
       {day.is_poya_day && day.poya && (
-        <div className="mt-3 flex items-center gap-2 rounded-lg border border-amber-500/50 bg-amber-500/15 px-3 py-2 text-sm font-semibold">
-          <FullMoonIcon className="shrink-0 text-lg text-amber-600 dark:text-amber-400" />
-          {dict.panchanga.poyaTodayLabel} · {sinhalaMonthName(dict, day.poya.month_key)}
+        <div className="mt-3">
+          <PoyaDetailCard
+            locale={locale}
+            dict={dict}
+            date={day.date}
+            titleMonthKey={day.poya.month_key}
+            isPoyaDay
+            todayLabel={dict.panchanga.poyaTodayLabel}
+            moonrise={day.moonrise}
+            moonset={day.moonset}
+            moonPhase={dict.moonCalendar.phaseLabels[day.moon_phase]}
+            tithi={day.tithi}
+            href={`/${locale}/daily-guide?date=${day.date}`}
+            actionLabel={dict.moonCalendar.openDailyGuide}
+            testId="moon-calendar-poya-detail"
+          />
         </div>
       )}
       <dl className="mt-4 grid gap-3 text-sm">
@@ -450,6 +475,14 @@ function SelectedDayPanel({
           ))}
         </div>
       </div>
+      {!day.is_poya_day && (
+        <Link
+          href={`/${locale}/daily-guide?date=${day.date}`}
+          className="mt-4 inline-flex w-full items-center justify-center rounded-lg border border-black/10 px-3 py-2 text-sm font-semibold hover:border-accent hover:text-accent dark:border-white/20"
+        >
+          {dict.moonCalendar.openDailyGuide}
+        </Link>
+      )}
     </aside>
   );
 }

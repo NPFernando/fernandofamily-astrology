@@ -59,12 +59,25 @@ test("daily guide: real Poya date shows Poya badge and ordinary date shows next 
   const badge = page.locator('[data-testid="daily-guide-poya-badge"]');
   await expect(badge).toBeVisible({ timeout: 20_000 });
   await expect(badge).toContainText(DICTS.en.panchanga.poyaTodayLabel);
+  const poyaDetail = page.locator('[data-testid="daily-guide-poya-detail"]');
+  await expect(poyaDetail).toBeVisible();
+  await expect(poyaDetail).toContainText(DICTS.en.enums.sinhalaMonths.esala);
+  await expect(poyaDetail).toContainText(DICTS.en.panchanga.moonrise);
 
   await gotoDate(page, "2026-07-15");
   await expect(page.locator('[data-testid="daily-guide-poya-badge"]')).toHaveCount(0);
-  await expect(page.locator('[data-testid="daily-guide-next-poya"]')).toContainText(
-    DICTS.en.enums.sinhalaMonths.esala,
+  await expect(page.locator('[data-testid="daily-guide-poya-detail"]')).toContainText(
+    DICTS.en.dailyGuide.nextPoyaDetailTitle,
   );
+  await expect(page.locator('[data-testid="daily-guide-poya-detail"]')).toContainText(DICTS.en.enums.sinhalaMonths.esala);
+});
+
+test("daily guide: date query opens the requested Poya date", async ({ page }) => {
+  await page.goto("/si/daily-guide?date=2026-07-29");
+  await waitForDailyGuide(page, "si");
+  const poyaDetail = page.locator('[data-testid="daily-guide-poya-detail"]');
+  await expect(poyaDetail).toContainText(DICTS.si.panchanga.poyaTodayLabel);
+  await expect(poyaDetail).toContainText(DICTS.si.enums.sinhalaMonths.esala);
 });
 
 test("daily guide: known Nakshatra unlocks Tara Bala without birth data in URLs", async ({ page }) => {

@@ -94,6 +94,7 @@ def _schedule_for_day(request: MuhurtaSearchRequest, day: date_type, engine: Eng
         return pancha_service.schedule_from_nakshatra_paksha(
             request.nakshatra_index,
             request.paksha,
+            None,
             day,
             _NOON,
             request.location_name,

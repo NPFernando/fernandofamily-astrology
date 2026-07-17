@@ -2,7 +2,7 @@
 --
 -- Deliberately NO raw birth date/time/coordinates columns anywhere here:
 -- even for logged-in users the server stores only the *derived* bird or
--- (nakshatra, paksha). See docs/privacy.md.
+-- (nakshatra, paksha, optional Moon rashi). See docs/privacy.md.
 
 CREATE TABLE IF NOT EXISTS profiles (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   bird text,
   nakshatra_index int,
   paksha text,
+  moon_rashi_index int,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT profiles_bird_valid CHECK (
@@ -21,6 +22,9 @@ CREATE TABLE IF NOT EXISTS profiles (
   ),
   CONSTRAINT profiles_nakshatra_valid CHECK (
     nakshatra_index IS NULL OR (nakshatra_index BETWEEN 1 AND 27)
+  ),
+  CONSTRAINT profiles_moon_rashi_valid CHECK (
+    moon_rashi_index IS NULL OR (moon_rashi_index BETWEEN 1 AND 12)
   ),
   -- A profile must identify a bird somehow: directly, or derivably.
   CONSTRAINT profiles_bird_or_nakshatra CHECK (

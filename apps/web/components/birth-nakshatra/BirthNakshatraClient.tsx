@@ -71,6 +71,7 @@ export function BirthNakshatraClient() {
       bird: result.birth_bird,
       nakshatra_index: result.nakshatra.index,
       paksha: result.paksha,
+      moon_rashi_index: result.moon_rashi.index,
     });
   }
 
@@ -90,6 +91,7 @@ export function BirthNakshatraClient() {
         bird: null,
         nakshatra_index: result.nakshatra.index,
         paksha: result.paksha,
+        moon_rashi_index: result.moon_rashi.index,
       });
       setJustSaved(true);
       window.setTimeout(() => setJustSaved(false), 2500);

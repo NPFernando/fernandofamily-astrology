@@ -61,8 +61,10 @@
   calculation engine.
 - Birth Nakshatra helper — exact birth timestamp/location to Nakshatra,
   Pada, Paksha, Moon sign and derived Pancha Pakshi birth bird, with quick
-  handoff into Pancha Pakshi or the Daily Guide using only derived data
-  (`/birth-nakshatra`, `POST /api/v1/birth-nakshatra/resolve`).
+  handoff into Pancha Pakshi or the Daily Guide using only derived data;
+  saved profiles keep the derived Moon sign so Daily Guide Chandrashtama can
+  work without storing raw birth details (`/birth-nakshatra`,
+  `POST /api/v1/birth-nakshatra/resolve`).
 - Muhurta-style favourable time finder — Sri Lanka-focused practical start
   windows for general work, travel, study/work, purchases and home rituals,
   combining Pancha Pakshi strength with Panchanga avoid/support periods

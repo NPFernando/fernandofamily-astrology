@@ -1,10 +1,8 @@
 """Chandrashtama alert coverage.
 
 Golden-value check against the vendored engine directly (same pattern as
-test_tara_bala.py), plus a check that only Method A (birth date/time)
-populates chandrashtama — Methods B (known nakshatra+paksha) and C (direct
-bird) have no way to unambiguously resolve a natal Moon rashi (see
-calculator.compute_chandrashtama's docstring) and must stay null.
+test_tara_bala.py), plus checks that Chandrashtama is present only when the
+request carries a derived natal Moon rashi.
 """
 from fastapi.testclient import TestClient
 
@@ -60,7 +58,22 @@ def test_method_birth_datetime_populates_chandrashtama_during_the_window():
     assert outside_window["chandrashtama"] is None
 
 
-def test_method_nakshatra_paksha_leaves_chandrashtama_null():
+def test_method_nakshatra_paksha_with_moon_rashi_populates_chandrashtama():
+    body = _schedule(
+        {
+            "method": "nakshatra_paksha",
+            "nakshatra_index": 5,
+            "paksha": "waxing",
+            "moon_rashi_index": 7,
+            "target_date": "2026-07-11",
+            "target_time": "12:00:00",
+        }
+    )
+    assert body["chandrashtama"] is not None
+    assert body["chandrashtama"]["starts_at"] < body["chandrashtama"]["ends_at"]
+
+
+def test_method_nakshatra_paksha_without_moon_rashi_leaves_chandrashtama_null():
     body = _schedule(
         {
             "method": "nakshatra_paksha",
@@ -71,6 +84,22 @@ def test_method_nakshatra_paksha_leaves_chandrashtama_null():
         }
     )
     assert body["chandrashtama"] is None
+
+
+def test_method_nakshatra_paksha_rejects_invalid_moon_rashi():
+    response = client.post(
+        "/api/v1/pancha-pakshi/schedule",
+        json={
+            **COLOMBO,
+            "method": "nakshatra_paksha",
+            "nakshatra_index": 5,
+            "paksha": "waxing",
+            "moon_rashi_index": 13,
+            "target_date": "2026-07-11",
+            "target_time": "12:00:00",
+        },
+    )
+    assert response.status_code == 422
 
 
 def test_method_direct_bird_leaves_chandrashtama_null():

@@ -24,6 +24,7 @@ export type DerivedIdentitySeed = {
   bird: BirdId;
   nakshatra_index: number | null;
   paksha: PakshaId | null;
+  moon_rashi_index: number | null;
   savedAtIso: string;
 };
 
@@ -152,6 +153,7 @@ export async function resolveDefaultScheduleRequest(): Promise<ScheduleRequest> 
       method: "nakshatra_paksha",
       nakshatra_index: derivedSeed.nakshatra_index,
       paksha: derivedSeed.paksha,
+      moon_rashi_index: derivedSeed.moon_rashi_index ?? null,
     };
   }
   if (derivedSeed?.bird) {
@@ -169,6 +171,7 @@ export async function resolveDefaultScheduleRequest(): Promise<ScheduleRequest> 
       method: "nakshatra_paksha",
       nakshatra_index: newest.nakshatra_index,
       paksha: newest.paksha,
+      moon_rashi_index: newest.moon_rashi_index ?? null,
     };
   }
   return { ...base, method: "bird", bird: storedBird ?? "peacock" };

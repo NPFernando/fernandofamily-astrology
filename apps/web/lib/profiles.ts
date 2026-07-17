@@ -3,25 +3,34 @@
 import type { BirdId, PakshaId } from "@/lib/api-client";
 
 // A saved profile identifies a person's bird either directly or via
-// (nakshatra, paksha) — never raw birth date/time/coordinates, in local
-// storage or on the server. Field names deliberately match the server's
-// profiles table so the login merge is a straight copy.
+// (nakshatra, paksha), optionally enriched with derived Moon rashi for
+// Chandrashtama — never raw birth date/time/coordinates, in local storage or
+// on the server. Field names deliberately match the server's profiles table
+// so the login merge is a straight copy.
 export type SavedProfile = {
   id: string;
   label: string;
   bird: BirdId | null;
   nakshatra_index: number | null;
   paksha: PakshaId | null;
+  moon_rashi_index: number | null;
   created_at: string;
 };
 
 const STORAGE_KEY = "ff_saved_profiles";
 
+function normalizeProfile(profile: SavedProfile): SavedProfile {
+  return {
+    ...profile,
+    moon_rashi_index: profile.moon_rashi_index ?? null,
+  };
+}
+
 function loadLocal(): SavedProfile[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as SavedProfile[]) : [];
+    return raw ? (JSON.parse(raw) as SavedProfile[]).map(normalizeProfile) : [];
   } catch {
     return [];
   }
@@ -36,7 +45,8 @@ function sameIdentity(a: SavedProfile, b: SavedProfile): boolean {
     a.label === b.label &&
     a.bird === b.bird &&
     a.nakshatra_index === b.nakshatra_index &&
-    a.paksha === b.paksha
+    a.paksha === b.paksha &&
+    a.moon_rashi_index === b.moon_rashi_index
   );
 }
 
@@ -71,7 +81,7 @@ async function listServerProfiles(): Promise<SavedProfile[] | null> {
   const res = await fetch("/api/account/profiles");
   if (!res.ok) return null; // 401/404 -> treat as no server backend
   const data = await res.json();
-  return data.profiles as SavedProfile[];
+  return (data.profiles as SavedProfile[]).map(normalizeProfile);
 }
 
 async function addServerProfile(
@@ -84,7 +94,7 @@ async function addServerProfile(
   });
   if (!res.ok) return null;
   const data = await res.json();
-  return data.profile as SavedProfile;
+  return normalizeProfile(data.profile as SavedProfile);
 }
 
 async function removeServerProfile(id: string): Promise<boolean> {
@@ -150,6 +160,7 @@ export async function mergeLocalToServerOnce(): Promise<void> {
         bird: local.bird,
         nakshatra_index: local.nakshatra_index,
         paksha: local.paksha,
+        moon_rashi_index: local.moon_rashi_index,
       });
     }
   }

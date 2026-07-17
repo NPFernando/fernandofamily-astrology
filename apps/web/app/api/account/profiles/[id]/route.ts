@@ -28,10 +28,15 @@ export async function PUT(request: Request, { params }: Params) {
   // what stops one account touching another's rows.
   const rows = await query(
     `UPDATE profiles
-        SET label = $1, bird = $2, nakshatra_index = $3, paksha = $4, updated_at = now()
-      WHERE id = $5 AND owner_email = $6
-      RETURNING id, label, bird, nakshatra_index, paksha, created_at, updated_at`,
-    [parsed.label, parsed.bird, parsed.nakshatra_index, parsed.paksha, id, gate.email],
+        SET label = $1,
+            bird = $2,
+            nakshatra_index = $3,
+            paksha = $4,
+            moon_rashi_index = $5,
+            updated_at = now()
+      WHERE id = $6 AND owner_email = $7
+      RETURNING id, label, bird, nakshatra_index, paksha, moon_rashi_index, created_at, updated_at`,
+    [parsed.label, parsed.bird, parsed.nakshatra_index, parsed.paksha, parsed.moon_rashi_index, id, gate.email],
   );
   if (rows.length === 0) return NextResponse.json({ error: "not_found" }, { status: 404 });
   return NextResponse.json({ profile: rows[0] });

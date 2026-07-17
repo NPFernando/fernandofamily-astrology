@@ -101,6 +101,7 @@ export function NakshatraPakshaForm({
             method: "nakshatra_paksha",
             nakshatra_index: nakshatraId!,
             paksha: paksha!,
+            moon_rashi_index: null,
             target_date: target.date,
             target_time: target.time,
             location_name: location!.name,

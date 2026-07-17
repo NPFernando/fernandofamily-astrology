@@ -47,6 +47,11 @@ def validate_nakshatra_index(value: int) -> None:
         raise InvalidInputError(f"nakshatra_index must be between 1 and 27, got {value}")
 
 
+def validate_moon_rashi_index(value: int) -> None:
+    if not (1 <= value <= 12):
+        raise InvalidInputError(f"moon_rashi_index must be between 1 and 12, got {value}")
+
+
 def validate_paksha(value: str) -> PakshaId:
     try:
         return PakshaId(value)

@@ -55,6 +55,9 @@ test("birth nakshatra: quick action opens Daily Guide with derived identity", as
   await expect(page.locator('[data-testid="daily-guide-summary"]')).toContainText(
     DICTS.en.enums.birds[SAMPLE.bird],
   );
+  await expect(page.locator('[data-testid="daily-guide-chandrashtama"]')).not.toContainText(
+    DICTS.en.dailyGuide.chandrashtamaNeedsBirth,
+  );
 });
 
 test("birth nakshatra: saving profile stores only derived fields", async ({ page }) => {
@@ -68,6 +71,7 @@ test("birth nakshatra: saving profile stores only derived fields", async ({ page
   const raw = await page.evaluate(() => window.localStorage.getItem("ff_saved_profiles"));
   expect(raw).toContain("nakshatra_index");
   expect(raw).toContain("paksha");
+  expect(raw).toContain("moon_rashi_index");
   expect(raw).not.toContain("birth_date");
   expect(raw).not.toContain("birth_time");
   expect(raw).not.toContain("latitude");

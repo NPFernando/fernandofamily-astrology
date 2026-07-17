@@ -30,7 +30,7 @@ def test_birth_bird_mapping_all_27_nakshatras_both_pakshas(nakshatra_index, paks
     expected_waxing, expected_waning = _EXPECTED[nakshatra_index]
     expected = expected_waxing if paksha == PakshaId.waxing else expected_waning
     sched = schedule_from_nakshatra_paksha(
-        nakshatra_index, paksha, date(2026, 7, 11), time(12, 0, 0),
+        nakshatra_index, paksha, None, date(2026, 7, 11), time(12, 0, 0),
         "Colombo, Sri Lanka", 6.9271, 79.8612, "Asia/Colombo", _ENGINE,
     )
     assert sched.birth_bird == expected

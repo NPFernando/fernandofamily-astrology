@@ -47,6 +47,7 @@ export type NakshatraPakshaInput = TargetAndLocation & {
   method: "nakshatra_paksha";
   nakshatra_index: number;
   paksha: PakshaId;
+  moon_rashi_index?: number | null;
 };
 
 export type BirdSelectionInput = TargetAndLocation & {
@@ -163,9 +164,9 @@ export type ScheduleResponse = {
   // Only present when a birth nakshatra is known (birth-details or
   // known-nakshatra methods); null for direct bird selection.
   tara_bala: TaraBala | null;
-  // Only present when a birth RASHI is known (birth-details method only —
-  // a bare nakshatra_index can straddle two rashis) AND the natal Moon
-  // rashi currently matches the day's afflicted rashi (~1/12 of the time).
+  // Only present when a derived natal Moon rashi is known (birth-details or
+  // a saved known-nakshatra identity enriched by the Birth Nakshatra helper)
+  // AND it currently matches the day's afflicted rashi (~1/12 of the time).
   chandrashtama: ChandrashtamaWindow | null;
   // No birth data needed — a pure date/place weekday lookup, always present.
   // One of repository.DISHA_KEYS, but plain str in the Pydantic model (like

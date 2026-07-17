@@ -32,6 +32,9 @@ class NakshatraPakshaInput(_TargetAndLocation):
     method: Literal["nakshatra_paksha"]
     nakshatra_index: int
     paksha: PakshaId
+    # Optional derived natal Moon rashi (1..12). This is enough to compute
+    # Chandrashtama without storing or resending raw birth date/time/location.
+    moon_rashi_index: int | None = Field(default=None, ge=1, le=12)
 
 
 class BirdSelectionInput(_TargetAndLocation):

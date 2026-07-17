@@ -7,7 +7,7 @@ export async function GET() {
   if (!gate.ok) return gate.response;
 
   const rows = await query(
-    `SELECT id, label, bird, nakshatra_index, paksha, created_at, updated_at
+    `SELECT id, label, bird, nakshatra_index, paksha, moon_rashi_index, created_at, updated_at
        FROM profiles WHERE owner_email = $1 ORDER BY created_at`,
     [gate.email],
   );
@@ -30,10 +30,10 @@ export async function POST(request: Request) {
   }
 
   const rows = await query(
-    `INSERT INTO profiles (owner_email, label, bird, nakshatra_index, paksha)
-     VALUES ($1, $2, $3, $4, $5)
-     RETURNING id, label, bird, nakshatra_index, paksha, created_at, updated_at`,
-    [gate.email, parsed.label, parsed.bird, parsed.nakshatra_index, parsed.paksha],
+    `INSERT INTO profiles (owner_email, label, bird, nakshatra_index, paksha, moon_rashi_index)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING id, label, bird, nakshatra_index, paksha, moon_rashi_index, created_at, updated_at`,
+    [gate.email, parsed.label, parsed.bird, parsed.nakshatra_index, parsed.paksha, parsed.moon_rashi_index],
   );
   return NextResponse.json({ profile: rows[0] }, { status: 201 });
 }

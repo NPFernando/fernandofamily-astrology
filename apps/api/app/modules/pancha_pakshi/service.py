@@ -69,6 +69,7 @@ def schedule_from_birth_datetime(
 def schedule_from_nakshatra_paksha(
     nakshatra_index: int,
     paksha: PakshaId,
+    moon_rashi_index: int | None,
     target_date: date_type,
     target_time: time_type,
     location_name: str,
@@ -78,6 +79,8 @@ def schedule_from_nakshatra_paksha(
     engine: EngineMetadata,
 ) -> ScheduleResponse:
     validation.validate_nakshatra_index(nakshatra_index)
+    if moon_rashi_index is not None:
+        validation.validate_moon_rashi_index(moon_rashi_index)
     tz = validation.validate_location(latitude, longitude, iana_tz)
     validation.validate_supported_date(target_date, "target_date")
     paksha_column = 0 if paksha == PakshaId.waxing else 1
@@ -103,6 +106,7 @@ def schedule_from_nakshatra_paksha(
         location,
         engine,
         birth_nakshatra_index=nakshatra_index,
+        natal_moon_rashi=moon_rashi_index,
     )
 
 
@@ -138,4 +142,3 @@ def schedule_from_bird(
         location,
         engine,
     )
-

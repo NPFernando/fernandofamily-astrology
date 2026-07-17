@@ -110,6 +110,7 @@ function withDateLocation(request: ScheduleRequest, date: string, location: Loca
       method: "nakshatra_paksha",
       nakshatra_index: request.nakshatra_index,
       paksha: request.paksha,
+      moon_rashi_index: request.moon_rashi_index ?? null,
     };
   }
   if (request.method === "birth_datetime") {
@@ -139,6 +140,7 @@ function requestFromProfile(profile: SavedProfile, date: string, location: Locat
       method: "nakshatra_paksha",
       nakshatra_index: profile.nakshatra_index,
       paksha: profile.paksha,
+      moon_rashi_index: profile.moon_rashi_index ?? null,
     };
   }
   return null;
@@ -305,6 +307,7 @@ export function DailyGuideClient() {
       method: "nakshatra_paksha",
       nakshatra_index: knownNakshatraIndex,
       paksha: knownPaksha,
+      moon_rashi_index: null,
       target_date: nextDate,
       target_time: targetTimeFor(nextDate, loc),
       location_name: loc.name,
@@ -790,7 +793,9 @@ function PersonalStrengthCard({
   const { dict, locale } = useLocale();
   const taraBala = schedule.tara_bala;
   const chandrashtama = schedule.chandrashtama;
-  const hasFullBirthRequest = request?.method === "birth_datetime";
+  const hasMoonRashi =
+    request?.method === "birth_datetime" ||
+    (request?.method === "nakshatra_paksha" && request.moon_rashi_index != null);
 
   return (
     <section
@@ -840,7 +845,7 @@ function PersonalStrengthCard({
           <StrengthFact
             label={dict.ui.chandrashtama}
             value={
-              hasFullBirthRequest
+              hasMoonRashi
                 ? dict.dailyGuide.chandrashtamaClear
                 : dict.dailyGuide.chandrashtamaNeedsBirth
             }

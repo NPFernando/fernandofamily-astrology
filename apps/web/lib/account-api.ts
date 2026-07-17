@@ -12,6 +12,7 @@ export type ProfileBody = {
   bird?: unknown;
   nakshatra_index?: unknown;
   paksha?: unknown;
+  moon_rashi_index?: unknown;
 };
 
 // Shared gate for every /api/account/* handler: 404 when the account system
@@ -37,7 +38,7 @@ export async function requireAccountSession(): Promise<
 // before ever reaching Postgres.
 export function validateProfileBody(
   body: ProfileBody,
-): { ok: true; label: string; bird: string | null; nakshatra_index: number | null; paksha: string | null } | { ok: false; message: string } {
+): { ok: true; label: string; bird: string | null; nakshatra_index: number | null; paksha: string | null; moon_rashi_index: number | null } | { ok: false; message: string } {
   const label = typeof body.label === "string" ? body.label.trim() : "";
   if (!label || label.length > 100) return { ok: false, message: "label must be a non-empty string (max 100 chars)" };
 
@@ -56,9 +57,14 @@ export function validateProfileBody(
     return { ok: false, message: "invalid paksha" };
   }
 
+  const moonRashi = body.moon_rashi_index == null ? null : Number(body.moon_rashi_index);
+  if (moonRashi !== null && (!Number.isInteger(moonRashi) || moonRashi < 1 || moonRashi > 12)) {
+    return { ok: false, message: "moon_rashi_index must be 1..12" };
+  }
+
   if (bird === null && (nak === null || paksha === null)) {
     return { ok: false, message: "provide bird, or nakshatra_index + paksha" };
   }
 
-  return { ok: true, label, bird, nakshatra_index: nak, paksha };
+  return { ok: true, label, bird, nakshatra_index: nak, paksha, moon_rashi_index: moonRashi };
 }

@@ -8,14 +8,14 @@ result returned; nothing about the request itself is retained afterward.
 
 An **invite-only Google sign-in** exists for syncing saved profiles and
 preferences across devices. When signed in, saved profiles store only: a
-label you chose, plus the derived bird — or nakshatra and paksha. Account
-defaults may store language, theme, default bird, and a default location you
-explicitly chose — that location is **rounded to ~1 km before storage** (2
-decimal places), the same bound applied everywhere else a location is kept
-server-side. **Raw birth date, time, and event-specific coordinates are
-never stored server-side, signed in or not** (they're not even sent to the
-account endpoints). Who may sign in is controlled by an explicit server-side
-allowlist.
+label you chose, plus the derived bird — or nakshatra, paksha, and
+optionally the derived Moon sign. Account defaults may store language,
+theme, default bird, and a default location you explicitly chose — that
+location is **rounded to ~1 km before storage** (2 decimal places), the same
+bound applied everywhere else a location is kept server-side. **Raw birth
+date, time, and event-specific coordinates are never stored server-side,
+signed in or not** (they're not even sent to the account endpoints). Who may
+sign in is controlled by an explicit server-side allowlist.
 
 Birth data and precise coordinates are never:
 

@@ -74,7 +74,7 @@ def _resolve_schedule(body: ScheduleRequest) -> ScheduleResponse:
         )
     elif isinstance(body, NakshatraPakshaInput):
         schedule = service.schedule_from_nakshatra_paksha(
-            body.nakshatra_index, body.paksha, body.target_date, body.target_time,
+            body.nakshatra_index, body.paksha, body.moon_rashi_index, body.target_date, body.target_time,
             body.location_name, body.latitude, body.longitude, body.iana_tz, engine,
         )
     else:

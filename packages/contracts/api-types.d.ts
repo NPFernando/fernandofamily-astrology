@@ -1237,6 +1237,8 @@ export interface components {
              * @enum {string}
              */
             method: "nakshatra_paksha";
+            /** Moon Rashi Index */
+            moon_rashi_index?: number | null;
             /** Nakshatra Index */
             nakshatra_index: number;
             paksha: components["schemas"]["PakshaId"];
@@ -1281,6 +1283,8 @@ export interface components {
              * @enum {string}
              */
             min_effect: "good" | "very_good";
+            /** Moon Rashi Index */
+            moon_rashi_index?: number | null;
             /** Nakshatra Index */
             nakshatra_index: number;
             paksha: components["schemas"]["PakshaId"];
@@ -1331,6 +1335,8 @@ export interface components {
              * @enum {string}
              */
             min_effect: "good" | "very_good";
+            /** Moon Rashi Index */
+            moon_rashi_index?: number | null;
             /** Nakshatra Index */
             nakshatra_index: number;
             paksha: components["schemas"]["PakshaId"];

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { translateEnum, nakshatraName } from "@/lib/i18n";
 import { BIRD_ICONS } from "@/components/icons/birds";
-import type { BirdId } from "@/lib/api-client";
+import type { BirdId, RashiId } from "@/lib/api-client";
 import {
   listProfiles,
   addProfile,
@@ -13,6 +13,21 @@ import {
   type SavedProfile,
 } from "@/lib/profiles";
 import { useSessionProbe } from "@/lib/use-session-probe";
+
+const RASHI_KEYS: RashiId[] = [
+  "mesha",
+  "vrishabha",
+  "mithuna",
+  "karka",
+  "simha",
+  "kanya",
+  "tula",
+  "vrischika",
+  "dhanu",
+  "makara",
+  "kumbha",
+  "meena",
+];
 
 // Renders the saved-profile chips and exposes a save affordance for the
 // current result. Session state comes from the shared probe (one request per
@@ -73,7 +88,9 @@ export function SavedProfiles({
   function chipText(p: SavedProfile): string {
     if (p.bird) return `${p.label} · ${translateEnum(dict, "birds", p.bird)}`;
     if (p.nakshatra_index && p.paksha) {
-      return `${p.label} · ${nakshatraName(p.nakshatra_index, locale)}`;
+      const moonRashiKey = p.moon_rashi_index ? RASHI_KEYS[p.moon_rashi_index - 1] : null;
+      const moonRashi = moonRashiKey ? ` · ${translateEnum(dict, "rashis", moonRashiKey)}` : "";
+      return `${p.label} · ${nakshatraName(p.nakshatra_index, locale)}${moonRashi}`;
     }
     return p.label;
   }

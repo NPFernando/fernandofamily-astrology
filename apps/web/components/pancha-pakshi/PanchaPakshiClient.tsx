@@ -181,8 +181,9 @@ export function PanchaPakshiClient() {
             bird: null,
             nakshatra_index: lastRequest.nakshatra_index,
             paksha: lastRequest.paksha,
+            moon_rashi_index: lastRequest.moon_rashi_index ?? null,
           }
-        : { bird: schedule.birth_bird, nakshatra_index: null, paksha: null }
+        : { bird: schedule.birth_bird, nakshatra_index: null, paksha: null, moon_rashi_index: null }
       : null;
 
   const scheduleFromProfile = useCallback(
@@ -205,6 +206,7 @@ export function PanchaPakshiClient() {
           method: "nakshatra_paksha",
           nakshatra_index: profile.nakshatra_index,
           paksha: profile.paksha,
+          moon_rashi_index: profile.moon_rashi_index ?? null,
         });
       }
     },

@@ -10,7 +10,8 @@ test("direct Pancha Pakshi live view renders the ambient countdown", async ({ pa
   await page.goto("/en/pancha-pakshi/live");
   await waitForLiveView(page, "en");
   await expect(page.getByText(DICTS.en.ui.exitLiveView)).toBeVisible();
-  await expect(page.getByText(DICTS.en.ui.nextPeriod).first()).toBeVisible();
+  await expect(page.getByText(DICTS.en.ui.mainBird).first()).toBeVisible();
+  await expect(page.getByText(DICTS.en.ui.subBird).first()).toBeVisible();
   await expect(page.getByTestId("live-birth-bird")).toBeVisible();
 });
 

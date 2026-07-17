@@ -57,7 +57,7 @@ for (const locale of ["en", "si"] as const) {
     }
     await expect(page.locator('[data-testid="panchanga-timing-timeline"]')).toBeVisible();
     await expect(page.locator('[data-testid="panchanga-kalams"]')).toBeVisible();
-    await expect(page.getByText(dict.panchanga.rahuKala)).toBeVisible();
+    await expect(page.locator('[data-testid="panchanga-kalams"]').getByText(dict.panchanga.rahuKala)).toBeVisible();
     await expect(page.getByText(dict.dailyGuide.timeline.title)).toBeVisible();
     // Element cards must show real values, not empty shells: the tithi card
     // has at least one "until HH:MM" line.

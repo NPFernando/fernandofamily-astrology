@@ -41,10 +41,10 @@ for (const locale of ["en", "si"] as const) {
     await expect(page.locator('[data-testid="daily-guide-avoid-times"]')).toBeVisible();
     await expect(page.locator('[data-testid="daily-guide-panchanga"]')).toBeVisible();
     await expect(page.locator('[data-testid="daily-guide-sun-moon"]')).toBeVisible();
-    await expect(page.getByText(dict.panchanga.rahuKala)).toBeVisible();
-    await expect(page.getByText(dict.panchanga.amritKaalamTitle)).toBeVisible();
-    await expect(page.getByText(dict.panchanga.abhijitMuhurtaTitle)).toBeVisible();
-    await expect(page.getByText(dict.panchanga.durmuhurtamTitle).first()).toBeVisible();
+    await expect(page.locator('[data-testid="daily-guide-avoid-times"]').getByText(dict.panchanga.rahuKala)).toBeVisible();
+    await expect(page.locator('[data-testid="daily-guide-supportive-timing"]').getByText(dict.panchanga.amritKaalamTitle)).toBeVisible();
+    await expect(page.locator('[data-testid="daily-guide-supportive-timing"]').getByText(dict.panchanga.abhijitMuhurtaTitle)).toBeVisible();
+    await expect(page.locator('[data-testid="daily-guide-avoid-times"]').getByText(dict.panchanga.durmuhurtamTitle).first()).toBeVisible();
     await expect(page.getByText(dict.panchanga.nakshatra).first()).toBeVisible();
     await expect(page.getByText(dict.dailyGuide.timeline.title)).toBeVisible();
     watcher.assertClean();

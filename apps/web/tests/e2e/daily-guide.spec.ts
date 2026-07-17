@@ -23,6 +23,34 @@ async function gotoDate(page: import("@playwright/test").Page, date: string) {
   await page.waitForTimeout(300);
 }
 
+async function seedFamilyWeekProfiles(page: import("@playwright/test").Page) {
+  await page.addInitScript(() => {
+    window.localStorage.setItem(
+      "ff_saved_profiles",
+      JSON.stringify([
+        {
+          id: "week-amma",
+          label: "Amma",
+          bird: "peacock",
+          nakshatra_index: null,
+          paksha: null,
+          moon_rashi_index: null,
+          created_at: "2026-07-17T00:00:00.000Z",
+        },
+        {
+          id: "week-thaththa",
+          label: "Thaththa",
+          bird: "owl",
+          nakshatra_index: null,
+          paksha: null,
+          moon_rashi_index: null,
+          created_at: "2026-07-17T00:01:00.000Z",
+        },
+      ]),
+    );
+  });
+}
+
 for (const locale of ["en", "si"] as const) {
   test(`daily guide (${locale}): zero-click render combines Panchanga and Pancha Pakshi`, async ({ page }) => {
     const watcher = watchForBirthDataInUrls(page);
@@ -148,6 +176,36 @@ test("daily guide: family day board compares saved profiles without birth data i
   watcher.assertClean();
 });
 
+test("daily guide: family week planner shows Poya context and opens selected day", async ({ page }) => {
+  await seedFamilyWeekProfiles(page);
+  const watcher = watchForBirthDataInUrls(page);
+  await openDailyGuide(page, "en");
+  await gotoDate(page, "2026-07-23");
+  await page.getByRole("button", { name: DICTS.en.dailyGuide.viewWeek }).click();
+
+  const planner = page.locator('[data-testid="daily-guide-family-week-planner"]');
+  await expect(planner).toBeVisible();
+  await expect(planner).toContainText(DICTS.en.dailyGuide.familyWeekTitle);
+  await expect(planner.getByTestId("daily-guide-family-week-profiles")).toContainText("Amma");
+  await expect(planner.getByTestId("daily-guide-family-week-profiles")).toContainText("Thaththa");
+  await expect(planner.locator('[data-testid="daily-guide-family-week-day"]')).toHaveCount(7);
+  await expect(planner.locator('[data-testid="daily-guide-family-week-poya"]')).toContainText(
+    DICTS.en.enums.sinhalaMonths.esala,
+    { timeout: 60_000 },
+  );
+  await expect(
+    planner
+      .locator('[data-testid="daily-guide-family-week-shared-window"], [data-testid="daily-guide-family-week-individual-window"]')
+      .first(),
+  ).toBeVisible({ timeout: 60_000 });
+
+  const poyaCard = planner.locator('[data-testid="daily-guide-family-week-poya"]').locator("xpath=ancestor::article[1]");
+  await poyaCard.getByTestId("daily-guide-family-week-use-date").click();
+  await expect(page.locator('[data-testid="daily-guide-result"]')).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator('[data-testid="daily-guide-summary"]')).toContainText("July 29");
+  watcher.assertClean();
+});
+
 test("daily guide: changing bird refreshes the guide identity", async ({ page }) => {
   await openDailyGuide(page, "en");
   await page.getByRole("button", { name: DICTS.en.enums.birds.owl, exact: true }).click();
@@ -161,6 +219,8 @@ test("@mobile daily guide keeps cards within 360px", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 740 });
   await openDailyGuide(page, "si");
   await expect(page.locator('[data-testid="daily-guide-timing-timeline-cards"]')).toBeVisible();
+  await page.getByRole("button", { name: DICTS.si.dailyGuide.viewWeek }).click();
+  await expect(page.locator('[data-testid="daily-guide-family-week-planner"]')).toBeVisible();
   const hasHScroll = await page.evaluate(() => document.body.scrollWidth > window.innerWidth + 5);
   expect(hasHScroll).toBe(false);
 });

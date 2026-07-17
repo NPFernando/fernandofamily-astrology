@@ -7,6 +7,7 @@ import { useLocale } from "@/lib/locale-context";
 import { getDictionary, NAKSHATRAS, nakshatraName, translateEnum } from "@/lib/i18n";
 import {
   ApiError,
+  fetchMuhurta,
   fetchPanchanga,
   fetchScheduleWithServerTime,
   type BirdId,
@@ -14,6 +15,8 @@ import {
   type DailyPanchanga,
   type EffectId,
   type HoraSpan,
+  type MuhurtaGrade,
+  type MuhurtaWindow,
   type PakshaId,
   type ScheduleRequest,
   type ScheduleResponse,
@@ -47,6 +50,9 @@ import { EFFECT_COLORS } from "@fernandofamily/design-system";
 
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
 const FAMILY_BOARD_LIMIT = 8;
+const FAMILY_WEEK_DAYS = 7;
+const FAMILY_WEEK_PROFILE_LIMIT = 4;
+const FAMILY_WEEK_MIN_SHARED_SECONDS = 900;
 const EFFECT_RANK: Record<EffectId, number> = {
   very_good: 0,
   good: 1,
@@ -54,6 +60,7 @@ const EFFECT_RANK: Record<EffectId, number> = {
   bad: 3,
   very_bad: 4,
 };
+const MUHURTA_GRADE_RANK: Record<MuhurtaGrade, number> = { excellent: 0, good: 1, usable: 2 };
 
 type GuideData = {
   panchanga: DailyPanchanga;
@@ -68,6 +75,26 @@ type FamilyBoardRow = {
   request: ScheduleRequest;
   schedule: ScheduleResponse | null;
   failed: boolean;
+};
+
+type FamilyWeekProfileResult = {
+  profile: SavedProfile;
+  windows: MuhurtaWindow[];
+  failed: boolean;
+};
+
+type SharedFamilyWindow = {
+  starts_at: string;
+  ends_at: string;
+  duration_seconds: number;
+  grade: MuhurtaGrade;
+  average_score: number;
+  windows: MuhurtaWindow[];
+};
+
+type IndividualFamilyWindow = {
+  profile: SavedProfile;
+  window: MuhurtaWindow;
 };
 
 function sinhalaMonthName(dict: ReturnType<typeof getDictionary>, key: string): string {
@@ -107,6 +134,12 @@ function validDateParam(value: string | null): string | null {
   const parsed = new Date(`${value}T12:00:00`);
   if (Number.isNaN(parsed.getTime())) return null;
   return parsed.toISOString().slice(0, 10) === value ? value : null;
+}
+
+function addDays(date: string, days: number): string {
+  const d = new Date(`${date}T12:00:00`);
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
 }
 
 function locationFromRequest(request: ScheduleRequest): LocationValue {
@@ -169,6 +202,30 @@ function requestFromProfile(profile: SavedProfile, date: string, location: Locat
   return null;
 }
 
+function muhurtaRequestFromProfile(profile: SavedProfile, date: string, location: LocationValue) {
+  const base = {
+    from_date: date,
+    days: FAMILY_WEEK_DAYS,
+    location_name: location.name,
+    latitude: location.latitude,
+    longitude: location.longitude,
+    iana_tz: location.iana_tz,
+    purpose: "general" as const,
+    min_effect: "good" as const,
+    min_duration_seconds: FAMILY_WEEK_MIN_SHARED_SECONDS,
+  };
+  if (profile.bird) return { ...base, method: "bird" as const, bird: profile.bird };
+  if (profile.nakshatra_index && profile.paksha) {
+    return {
+      ...base,
+      method: "nakshatra_paksha" as const,
+      nakshatra_index: profile.nakshatra_index,
+      paksha: profile.paksha,
+    };
+  }
+  return null;
+}
+
 function bestWindows(schedule: ScheduleResponse): SubPeriod[] {
   return schedule.major_periods
     .flatMap((m) => m.sub_periods)
@@ -180,6 +237,90 @@ function bestWindows(schedule: ScheduleResponse): SubPeriod[] {
       return new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime();
     })
     .slice(0, 5);
+}
+
+function bestMuhurtaWindow(windows: MuhurtaWindow[]): MuhurtaWindow | null {
+  return [...windows].sort((a, b) => {
+    const grade = MUHURTA_GRADE_RANK[a.grade] - MUHURTA_GRADE_RANK[b.grade];
+    if (grade !== 0) return grade;
+    if (a.score !== b.score) return b.score - a.score;
+    return new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime();
+  })[0] ?? null;
+}
+
+function overlapWindow(aStart: string, aEnd: string, bStart: string, bEnd: string): { starts_at: string; ends_at: string } | null {
+  const startMs = Math.max(new Date(aStart).getTime(), new Date(bStart).getTime());
+  const endMs = Math.min(new Date(aEnd).getTime(), new Date(bEnd).getTime());
+  if (endMs - startMs < FAMILY_WEEK_MIN_SHARED_SECONDS * 1000) return null;
+  return {
+    starts_at: new Date(aStart).getTime() >= new Date(bStart).getTime() ? aStart : bStart,
+    ends_at: new Date(aEnd).getTime() <= new Date(bEnd).getTime() ? aEnd : bEnd,
+  };
+}
+
+function sharedWindowsForDay(results: FamilyWeekProfileResult[], date: string): SharedFamilyWindow[] {
+  const usable = results
+    .filter((result) => !result.failed)
+    .map((result) => ({
+      profile: result.profile,
+      windows: result.windows.filter((window) => window.effective_date === date),
+    }))
+    .filter((result) => result.windows.length > 0);
+  if (usable.length === 0 || usable.length !== results.length) return [];
+
+  let candidates = usable[0].windows.map((window) => ({
+    starts_at: window.starts_at,
+    ends_at: window.ends_at,
+    windows: [window],
+  }));
+
+  for (const result of usable.slice(1)) {
+    const next = [];
+    for (const candidate of candidates) {
+      for (const window of result.windows) {
+        const overlap = overlapWindow(candidate.starts_at, candidate.ends_at, window.starts_at, window.ends_at);
+        if (overlap) next.push({ ...overlap, windows: [...candidate.windows, window] });
+      }
+    }
+    candidates = next;
+    if (candidates.length === 0) return [];
+  }
+
+  return candidates
+    .map((candidate) => {
+      const grade = candidate.windows.reduce<MuhurtaGrade>(
+        (worst, window) =>
+          MUHURTA_GRADE_RANK[window.grade] > MUHURTA_GRADE_RANK[worst] ? window.grade : worst,
+        "excellent",
+      );
+      return {
+        ...candidate,
+        duration_seconds: Math.round((new Date(candidate.ends_at).getTime() - new Date(candidate.starts_at).getTime()) / 1000),
+        grade,
+        average_score: candidate.windows.reduce((sum, window) => sum + window.score, 0) / candidate.windows.length,
+      };
+    })
+    .sort((a, b) => {
+      const grade = MUHURTA_GRADE_RANK[a.grade] - MUHURTA_GRADE_RANK[b.grade];
+      if (grade !== 0) return grade;
+      if (a.average_score !== b.average_score) return b.average_score - a.average_score;
+      return new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime();
+    });
+}
+
+function individualWindowsForDay(results: FamilyWeekProfileResult[], date: string): IndividualFamilyWindow[] {
+  return results
+    .filter((result) => !result.failed)
+    .flatMap((result) => {
+      const best = bestMuhurtaWindow(result.windows.filter((window) => window.effective_date === date));
+      return best ? [{ profile: result.profile, window: best }] : [];
+    })
+    .sort((a, b) => {
+      const grade = MUHURTA_GRADE_RANK[a.window.grade] - MUHURTA_GRADE_RANK[b.window.grade];
+      if (grade !== 0) return grade;
+      if (a.window.score !== b.window.score) return b.window.score - a.window.score;
+      return new Date(a.window.starts_at).getTime() - new Date(b.window.starts_at).getTime();
+    });
 }
 
 function spanText(endsAt: string, date: string, locale: string, untilLabel: string, nextDayLabel: string) {
@@ -223,6 +364,7 @@ export function DailyGuideClient() {
   const [usedDefaults, setUsedDefaults] = useState(false);
   const [knownNakshatraIndex, setKnownNakshatraIndex] = useState(1);
   const [knownPaksha, setKnownPaksha] = useState<PakshaId>("waxing");
+  const [activeView, setActiveView] = useState<"today" | "week">("today");
 
   const run = useCallback(async (nextRequest: ScheduleRequest) => {
     if (nextRequest.method === "nakshatra_paksha") {
@@ -353,6 +495,11 @@ export function DailyGuideClient() {
     void run(next);
   }
 
+  function useWeekDate(nextDate: string) {
+    setActiveView("today");
+    changeDate(nextDate);
+  }
+
   const activeBird =
     request?.method === "bird" ? request.bird : data?.schedule.birth_bird ?? null;
 
@@ -367,6 +514,24 @@ export function DailyGuideClient() {
           {dict.dailyGuide.description}
         </p>
       </header>
+
+      <div
+        className="flex w-fit rounded-lg border border-black/10 bg-white/30 p-1 text-sm dark:border-white/10 dark:bg-white/[.03]"
+        data-testid="daily-guide-view-tabs"
+      >
+        {(["today", "week"] as const).map((view) => (
+          <button
+            key={view}
+            type="button"
+            onClick={() => setActiveView(view)}
+            className={`rounded-md px-3 py-1.5 font-semibold transition ${
+              activeView === view ? "bg-accent text-white" : "hover:bg-black/5 dark:hover:bg-white/10"
+            }`}
+          >
+            {view === "today" ? dict.dailyGuide.viewToday : dict.dailyGuide.viewWeek}
+          </button>
+        ))}
+      </div>
 
       <section
         data-testid="daily-guide-controls"
@@ -500,7 +665,11 @@ export function DailyGuideClient() {
         </div>
       )}
 
-      {data && (
+      {data && activeView === "week" && location && date && (
+        <FamilyWeekPlanner startDate={date} location={location} onUseDate={useWeekDate} />
+      )}
+
+      {data && activeView === "today" && (
         <div data-testid="daily-guide-result" className="flex flex-col gap-5">
           <section
             data-testid="daily-guide-summary"
@@ -719,6 +888,302 @@ export function DailyGuideClient() {
         </div>
       )}
     </div>
+  );
+}
+
+function FamilyWeekPlanner({
+  startDate,
+  location,
+  onUseDate,
+}: {
+  startDate: string;
+  location: LocationValue;
+  onUseDate: (date: string) => void;
+}) {
+  const { dict, locale } = useLocale();
+  const probe = useSessionProbe();
+  const signedIn = Boolean(probe.user?.email);
+  const dates = useMemo(() => Array.from({ length: FAMILY_WEEK_DAYS }, (_, i) => addDays(startDate, i)), [startDate]);
+  const [profiles, setProfiles] = useState<SavedProfile[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [profilesLoaded, setProfilesLoaded] = useState(false);
+  const [panchangas, setPanchangas] = useState<Record<string, DailyPanchanga>>({});
+  const [profileResults, setProfileResults] = useState<FamilyWeekProfileResult[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!probe.loaded) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        if (signedIn) await mergeLocalToServerOnce();
+        const complete = (await listProfiles(signedIn)).filter((profile) => muhurtaRequestFromProfile(profile, startDate, location));
+        if (cancelled) return;
+        setProfiles(complete);
+        setSelectedIds(complete.slice(0, FAMILY_WEEK_PROFILE_LIMIT).map((profile) => profile.id));
+      } finally {
+        if (!cancelled) setProfilesLoaded(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [location, probe.loaded, signedIn, startDate]);
+
+  const selectedProfiles = useMemo(
+    () => profiles.filter((profile) => selectedIds.includes(profile.id)).slice(0, FAMILY_WEEK_PROFILE_LIMIT),
+    [profiles, selectedIds],
+  );
+
+  useEffect(() => {
+    if (!profilesLoaded) return;
+    let cancelled = false;
+    (async () => {
+      await Promise.resolve();
+      if (cancelled) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const panchangaSettled = await Promise.allSettled(
+          dates.map((date) =>
+            fetchPanchanga({
+              date,
+              location_name: location.name,
+              latitude: location.latitude,
+              longitude: location.longitude,
+              iana_tz: location.iana_tz,
+            }),
+          ),
+        );
+        if (cancelled) return;
+        const nextPanchangas: Record<string, DailyPanchanga> = {};
+        panchangaSettled.forEach((result, index) => {
+          if (result.status === "fulfilled") nextPanchangas[dates[index]] = result.value;
+        });
+        setPanchangas(nextPanchangas);
+
+        const requests = selectedProfiles.flatMap((profile) => {
+          const request = muhurtaRequestFromProfile(profile, startDate, location);
+          return request ? [{ profile, request }] : [];
+        });
+        const settled = await Promise.allSettled(requests.map(({ request }) => fetchMuhurta(request)));
+        if (cancelled) return;
+        setProfileResults(
+          requests.map(({ profile }, index) => {
+            const result = settled[index];
+            return {
+              profile,
+              windows: result.status === "fulfilled" ? result.value.windows : [],
+              failed: result.status === "rejected",
+            };
+          }),
+        );
+      } catch (e) {
+        if (!cancelled) setError(e instanceof ApiError ? dict.ui.error : dict.ui.error);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [dates, dict.ui.error, location, profilesLoaded, selectedProfiles, startDate]);
+
+  function toggleProfile(id: string) {
+    setSelectedIds((current) => {
+      if (current.includes(id)) return current.filter((item) => item !== id);
+      if (current.length >= FAMILY_WEEK_PROFILE_LIMIT) return current;
+      return [...current, id];
+    });
+  }
+
+  return (
+    <section
+      data-testid="daily-guide-family-week-planner"
+      className="rounded-xl border border-black/10 bg-white/35 p-4 dark:border-white/10 dark:bg-white/[.03]"
+    >
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <h2 className="text-sm font-semibold uppercase text-accent">{dict.dailyGuide.familyWeekTitle}</h2>
+          <p className="mt-1 max-w-3xl text-xs leading-relaxed opacity-70">{dict.dailyGuide.familyWeekDescription}</p>
+          <p className="mt-2 text-xs opacity-70">
+            {formatDate(startDate, locale)} - {formatDate(dates[dates.length - 1], locale)}
+          </p>
+        </div>
+        <p className="rounded-full border border-black/10 px-3 py-1.5 text-xs opacity-75 dark:border-white/10">
+          {dict.dailyGuide.familyWeekSelected.replace("{count}", String(selectedProfiles.length))}
+        </p>
+      </div>
+
+      {!profilesLoaded ? (
+        <p role="status" className="mt-4 text-sm opacity-70">{dict.dailyGuide.familyBoardLoading}</p>
+      ) : profiles.length === 0 ? (
+        <div className="mt-4 rounded-lg border border-dashed border-black/20 p-4 text-sm dark:border-white/20">
+          <p className="font-semibold">{dict.dailyGuide.familyWeekEmptyTitle}</p>
+          <p className="mt-1 opacity-70">{dict.dailyGuide.familyWeekEmptyBody}</p>
+          <Link
+            href={`/${locale}/birth-nakshatra`}
+            className="mt-3 inline-flex rounded-lg border border-accent/40 px-3 py-1.5 text-sm font-semibold text-accent hover:bg-accent/10"
+          >
+            {dict.dailyGuide.familyBoardCreateProfile}
+          </Link>
+        </div>
+      ) : (
+        <div className="mt-4 flex flex-col gap-4">
+          <div className="flex flex-wrap gap-2" data-testid="daily-guide-family-week-profiles">
+            {profiles.map((profile) => {
+              const selected = selectedIds.includes(profile.id);
+              const disabled = !selected && selectedIds.length >= FAMILY_WEEK_PROFILE_LIMIT;
+              return (
+                <button
+                  key={profile.id}
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => toggleProfile(profile.id)}
+                  className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                    selected
+                      ? "border-accent bg-accent/10 font-semibold text-accent"
+                      : "border-black/10 opacity-80 hover:border-accent/40 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10"
+                  }`}
+                >
+                  {profile.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {error ? (
+            <div role="alert" className="rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm">
+              {error}
+            </div>
+          ) : null}
+
+          {loading && Object.keys(panchangas).length === 0 ? (
+            <div role="status" className="grid gap-3 md:grid-cols-2 xl:grid-cols-7">
+              <span className="sr-only">{dict.ui.loading}</span>
+              {dates.map((day) => (
+                <div key={day} className="h-36 rounded-lg border border-black/10 motion-safe:animate-pulse dark:border-white/10" />
+              ))}
+            </div>
+          ) : null}
+
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-7">
+            {dates.map((day) => (
+              <FamilyWeekDayCard
+                key={day}
+                date={day}
+                panchanga={panchangas[day] ?? null}
+                results={profileResults}
+                loading={loading}
+                onUseDate={() => onUseDate(day)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function FamilyWeekDayCard({
+  date,
+  panchanga,
+  results,
+  loading,
+  onUseDate,
+}: {
+  date: string;
+  panchanga: DailyPanchanga | null;
+  results: FamilyWeekProfileResult[];
+  loading: boolean;
+  onUseDate: () => void;
+}) {
+  const { dict, locale } = useLocale();
+  const shared = sharedWindowsForDay(results, date)[0] ?? null;
+  const individual = individualWindowsForDay(results, date).slice(0, 2);
+
+  return (
+    <article
+      data-testid="daily-guide-family-week-day"
+      className="flex min-w-0 flex-col rounded-lg border border-black/10 bg-background p-3 text-sm dark:border-white/10"
+    >
+      <div>
+        <p className="text-xs font-semibold uppercase opacity-60">
+          {new Date(`${date}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", { weekday: "short" })}
+        </p>
+        <h3 className="mt-1 font-semibold">{formatDate(date, locale)}</h3>
+        {panchanga ? (
+          <p className="mt-1 text-xs opacity-70">{sinhalaMonthName(dict, panchanga.sinhala_month.key)}</p>
+        ) : null}
+      </div>
+
+      {panchanga?.is_poya_day && panchanga.poya ? (
+        <span
+          data-testid="daily-guide-family-week-poya"
+          className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-full border border-amber-500/50 bg-amber-500/15 px-2 py-1 text-xs font-semibold"
+        >
+          <FullMoonIcon className="text-base text-amber-600 dark:text-amber-400" />
+          {sinhalaMonthName(dict, panchanga.poya.month_key)}
+        </span>
+      ) : null}
+
+      {panchanga ? (
+        <div className="mt-3 rounded-md border border-amber-500/30 bg-amber-500/10 p-2 text-xs">
+          <p className="font-semibold">{dict.dailyGuide.avoidTitle}</p>
+          <p className="mt-1 tabular-nums">
+            {formatTime(panchanga.kalams.rahu.starts_at, locale)}-{formatTime(panchanga.kalams.rahu.ends_at, locale)}
+          </p>
+          <p className="mt-0.5 opacity-75">
+            {dict.panchanga.durmuhurtamTitle}: {panchanga.durmuhurtam.length}
+          </p>
+        </div>
+      ) : null}
+
+      <div className="mt-3 flex flex-1 flex-col gap-2">
+        {shared ? (
+          <div
+            data-testid="daily-guide-family-week-shared-window"
+            className="rounded-md border border-emerald-500/40 bg-emerald-500/10 p-2 text-xs"
+          >
+            <p className="font-semibold">{dict.dailyGuide.familyWeekSharedWindow}</p>
+            <p className="mt-1 tabular-nums">
+              {formatTime(shared.starts_at, locale)}-{formatTime(shared.ends_at, locale)}
+            </p>
+            <p className="mt-0.5 opacity-75">
+              {dict.muhurta.grades[shared.grade]} · {Math.round(shared.average_score)}
+            </p>
+          </div>
+        ) : individual.length > 0 ? (
+          <div className="rounded-md border border-sky-500/40 bg-sky-500/10 p-2 text-xs">
+            <p className="font-semibold">{dict.dailyGuide.familyWeekIndividualFallback}</p>
+            <div className="mt-1 grid gap-1">
+              {individual.map(({ profile, window }) => (
+                <p key={`${profile.id}-${window.starts_at}`} data-testid="daily-guide-family-week-individual-window">
+                  <span className="font-medium">{profile.label}</span>{" "}
+                  <span className="tabular-nums">
+                    {formatTime(window.starts_at, locale)}-{formatTime(window.ends_at, locale)}
+                  </span>
+                </p>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <p className="rounded-md border border-black/10 p-2 text-xs opacity-70 dark:border-white/10">
+            {loading ? dict.dailyGuide.familyBoardLoading : dict.dailyGuide.familyWeekNoWindows}
+          </p>
+        )}
+      </div>
+
+      <button
+        type="button"
+        onClick={onUseDate}
+        data-testid="daily-guide-family-week-use-date"
+        className="mt-3 rounded-lg border border-accent/40 px-3 py-1.5 text-xs font-semibold text-accent hover:bg-accent/10"
+      >
+        {dict.dailyGuide.familyWeekUseDate}
+      </button>
+    </article>
   );
 }
 

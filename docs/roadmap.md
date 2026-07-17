@@ -45,9 +45,12 @@
   weekday and the day's inauspicious kalams (rahu / yamaganda / gulika) with
   sun and moon times, for any location and date, bilingual, zero-click on
   load (`/panchanga`, `POST /api/v1/panchanga/daily`)
-- Bird Compatibility mini-tool — direct two-bird friend/same/enemy
-  comparison using the pinned Pancha Pakshi source tables, bilingual and
-  zero-click on load (`/compatibility`, `POST /api/v1/compatibility/birds`)
+- Compatibility tools — direct two-bird friend/same/enemy comparison using
+  the pinned Pancha Pakshi source tables, plus a Vivaha Chakra wedding-date
+  screener for a candidate ceremony start date/time/place using the vendored
+  date rule, bilingual and zero-click on load (`/compatibility`,
+  `POST /api/v1/compatibility/birds`,
+  `POST /api/v1/compatibility/vivaha-chakra`)
 - Sinhala Daily Astrology Guide — a Sri Lanka-focused day view combining
   Daily Panchanga, Poya status, avoid times (rahu / yamaganda / gulika),
   durmuhurtam, sun/moon times, Disha Shool, Tara Bala for known

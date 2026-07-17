@@ -29,8 +29,8 @@
       "description": "Find practical Muhurta-style start windows by combining Pancha Pakshi strength with Panchanga avoid and support periods."
     },
     "compatibility": {
-      "title": "Bird Compatibility",
-      "description": "Compare two Pancha Pakshi birds and see whether the source tables treat the pair as friend, same or enemy."
+      "title": "Compatibility Tools",
+      "description": "Compare Pancha Pakshi birds and screen a candidate wedding start time with the Vivaha Chakra rule."
     }
   },
   "nav": {
@@ -700,14 +700,33 @@
     }
   },
   "compatibility": {
-    "title": "Bird Compatibility",
-    "description": "Choose two Pancha Pakshi birds to compare their relationship in the pinned source tables.",
+    "title": "Compatibility Tools",
+    "description": "Choose two Pancha Pakshi birds, or screen a candidate wedding start time using the Vivaha Chakra date rule.",
+    "birdToolTitle": "Bird-pair comparison",
     "firstBird": "First bird",
     "secondBird": "Second bird",
     "result": "Compatibility result",
     "sampleSize": "Source rows checked",
     "sourceRows": "Rows",
     "contextDependent": "This pair appears with more than one relationship in the source tables. The headline uses the most common relationship.",
-    "note": "This tool compares direct bird pairs only. It does not use birth data, location, date, or account state."
+    "vivahaTitle": "Wedding date screener",
+    "vivahaControlsTitle": "Candidate start",
+    "vivahaDescription": "Check the ceremony start date, time and place against the vendored Vivaha Chakra Palan method.",
+    "vivahaIndex": "Vivaha Chakra index",
+    "sunNakshatra": "Sun Nakshatra",
+    "moonNakshatra": "Moon Nakshatra",
+    "vivahaNote": "This screens the selected date and time only. It is not two-person Guna Milan, Ashtakoot matching, or a full marriage Muhurta.",
+    "vivahaVerdicts": {
+      "family_damage": "Collateral damage to the family",
+      "wealthy_blessed": "Wealthy and blessed",
+      "bride_family_damage": "Collateral damage to the bride's family",
+      "poverty_cursed": "Poverty and cursed",
+      "gainful_beneficial": "Gainful and beneficial",
+      "reputation_loss": "Loss of reputation and honour",
+      "bride_devastating": "Devastating results for the bride",
+      "successful": "Completely successful",
+      "wonderful_blessed": "Wonderful pair and blessed"
+    },
+    "note": "These compatibility tools use named rules from the pinned calculation sources. They do not store birth details or replace expert judgement."
   }
 }

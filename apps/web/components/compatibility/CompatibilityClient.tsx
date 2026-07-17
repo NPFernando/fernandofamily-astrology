@@ -3,13 +3,26 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   fetchCompatibility,
+  fetchVivahaChakra,
   type BirdId,
   type CompatibilityResponse,
   type RelationId,
+  type VivahaChakraResponse,
+  type VivahaChakraTone,
 } from "@/lib/api-client";
-import { translateEnum } from "@/lib/i18n";
+import { nakshatraName, translateEnum } from "@/lib/i18n";
 import { useLocale } from "@/lib/locale-context";
 import { BIRD_ICONS } from "@/components/icons/birds";
+import {
+  DEFAULT_LOCATION,
+  LocationPicker,
+  type LocationValue,
+} from "@/components/pancha-pakshi/LocationPicker";
+import {
+  nowAsTargetDateTime,
+  TargetDateTimeFields,
+  type TargetDateTime,
+} from "@/components/pancha-pakshi/TargetDateTimeFields";
 
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
 const DEFAULT_A: BirdId = "vulture";
@@ -21,14 +34,50 @@ const RELATION_TONE: Record<RelationId, string> = {
   enemy: "border-red-500/40 bg-red-500/10 text-red-800 dark:text-red-200",
 };
 
+const VIVAHA_TONE: Record<VivahaChakraTone, string> = {
+  supportive: "border-emerald-500/40 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200",
+  caution: "border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-200",
+};
+
+function defaultWeddingDateTime(): TargetDateTime {
+  return { date: nowAsTargetDateTime(DEFAULT_LOCATION.iana_tz).date, time: "09:00:00" };
+}
+
+function locationRequest(location: LocationValue) {
+  return {
+    location_name: location.name,
+    latitude: location.latitude,
+    longitude: location.longitude,
+    iana_tz: location.iana_tz,
+  };
+}
+
+function formatDate(date: string, locale: string) {
+  return new Date(`${date}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+    dateStyle: "medium",
+  });
+}
+
+function formatClock(time: string) {
+  return time.slice(0, 5);
+}
+
 export function CompatibilityClient() {
-  const { dict } = useLocale();
+  const { dict, locale } = useLocale();
   const [birdA, setBirdA] = useState<BirdId>(DEFAULT_A);
   const [birdB, setBirdB] = useState<BirdId>(DEFAULT_B);
   const [data, setData] = useState<CompatibilityResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const requestId = useRef(0);
+  const [weddingDateTime, setWeddingDateTime] = useState<TargetDateTime>(() =>
+    defaultWeddingDateTime(),
+  );
+  const [weddingLocation, setWeddingLocation] = useState<LocationValue>(DEFAULT_LOCATION);
+  const [vivahaData, setVivahaData] = useState<VivahaChakraResponse | null>(null);
+  const [vivahaLoading, setVivahaLoading] = useState(true);
+  const [vivahaError, setVivahaError] = useState<string | null>(null);
+  const vivahaRequestId = useRef(0);
 
   const run = useCallback(
     async (nextA: BirdId, nextB: BirdId) => {
@@ -55,6 +104,36 @@ export function CompatibilityClient() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void run(DEFAULT_A, DEFAULT_B);
   }, [run]);
+
+  const runVivaha = useCallback(
+    async (nextDateTime: TargetDateTime, nextLocation: LocationValue) => {
+      const currentRequest = vivahaRequestId.current + 1;
+      vivahaRequestId.current = currentRequest;
+      setVivahaLoading(true);
+      setVivahaError(null);
+      try {
+        const result = await fetchVivahaChakra({
+          date: nextDateTime.date,
+          time: nextDateTime.time,
+          ...locationRequest(nextLocation),
+        });
+        if (vivahaRequestId.current === currentRequest) setVivahaData(result);
+      } catch {
+        if (vivahaRequestId.current === currentRequest) {
+          setVivahaError(dict.ui.errorTitle);
+        }
+      } finally {
+        if (vivahaRequestId.current === currentRequest) setVivahaLoading(false);
+      }
+    },
+    [dict.ui.errorTitle],
+  );
+
+  useEffect(() => {
+    // Zero-click wedding-date result with Sri Lanka defaults.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void runVivaha(weddingDateTime, weddingLocation);
+  }, [runVivaha, weddingDateTime, weddingLocation]);
 
   const selectA = useCallback(
     (next: BirdId) => {
@@ -85,7 +164,10 @@ export function CompatibilityClient() {
         </div>
       </header>
 
-      <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
+      <section
+        aria-label={dict.compatibility.birdToolTitle}
+        className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]"
+      >
         <div className="grid gap-4 md:grid-cols-2">
           <BirdSelector
             label={dict.compatibility.firstBird}
@@ -170,9 +252,118 @@ export function CompatibilityClient() {
         </section>
       </section>
 
+      <section
+        aria-label={dict.compatibility.vivahaTitle}
+        data-testid="vivaha-chakra-tool"
+        className="grid gap-4 lg:grid-cols-[minmax(280px,420px)_minmax(0,1fr)]"
+      >
+        <section className="rounded-lg border border-black/10 bg-white/30 p-4 dark:border-white/10 dark:bg-white/[.03]">
+          <h2 className="text-sm font-semibold uppercase">
+            {dict.compatibility.vivahaControlsTitle}
+          </h2>
+          <p className="mt-2 text-sm opacity-75">{dict.compatibility.vivahaDescription}</p>
+          <div className="mt-4 flex flex-col gap-4">
+            <TargetDateTimeFields
+              value={weddingDateTime}
+              onChange={setWeddingDateTime}
+            />
+            <LocationPicker
+              value={weddingLocation}
+              onChange={setWeddingLocation}
+            />
+          </div>
+        </section>
+
+        <section
+          data-testid="vivaha-chakra-result"
+          aria-busy={vivahaLoading}
+          className="rounded-lg border border-black/10 bg-white/35 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.03]"
+        >
+          <h2 className="text-sm font-semibold uppercase">{dict.compatibility.vivahaTitle}</h2>
+          <p className="mt-2 text-sm opacity-75">
+            {formatDate(vivahaData?.date ?? weddingDateTime.date, locale)} ·{" "}
+            {formatClock(vivahaData?.time ?? weddingDateTime.time)} ·{" "}
+            {(vivahaData?.location ?? weddingLocation).name}
+          </p>
+
+          {vivahaError && (
+            <div className="mt-4 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm">
+              <p>{dict.ui.errorTitle}</p>
+              <button
+                type="button"
+                onClick={() => runVivaha(weddingDateTime, weddingLocation)}
+                className="mt-2 rounded-lg border border-black/10 px-3 py-1.5 dark:border-white/20"
+              >
+                {dict.ui.retry}
+              </button>
+            </div>
+          )}
+
+          {vivahaLoading && !vivahaData && !vivahaError && (
+            <div
+              role="status"
+              className="mt-4 h-28 rounded-lg border border-black/10 motion-safe:animate-pulse dark:border-white/10"
+            >
+              <span className="sr-only">{dict.ui.loading}</span>
+            </div>
+          )}
+
+          {vivahaData && !vivahaError && (
+            <VivahaResult data={vivahaData} />
+          )}
+        </section>
+      </section>
+
       <p className="rounded-lg border border-black/10 bg-white/25 p-4 text-sm opacity-80 dark:border-white/10 dark:bg-white/[.03]">
         {dict.compatibility.note}
       </p>
+    </div>
+  );
+}
+
+function VivahaResult({ data }: { data: VivahaChakraResponse }) {
+  const { dict } = useLocale();
+  return (
+    <div className="mt-4">
+      <p
+        className={`inline-flex rounded-full border px-3 py-1 text-lg font-semibold ${VIVAHA_TONE[data.tone]}`}
+      >
+        {dict.compatibility.vivahaVerdicts[data.verdict_key]}
+      </p>
+      <p className="mt-3 text-sm opacity-80">
+        {dict.compatibility.vivahaIndex}: {data.verdict_index}/9
+      </p>
+      <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+        <NakshatraFact
+          label={dict.compatibility.sunNakshatra}
+          value={data.sun_nakshatra}
+        />
+        <NakshatraFact
+          label={dict.compatibility.moonNakshatra}
+          value={data.moon_nakshatra}
+        />
+      </dl>
+      <p className="mt-4 rounded-lg border border-sky-500/40 bg-sky-500/10 p-3 text-sm">
+        {dict.compatibility.vivahaNote}
+      </p>
+    </div>
+  );
+}
+
+function NakshatraFact({
+  label,
+  value,
+}: {
+  label: string;
+  value: { key: string; index: number; pada: number };
+}) {
+  const { dict, locale } = useLocale();
+  return (
+    <div className="rounded-lg border border-black/10 p-3 dark:border-white/10">
+      <dt className="text-xs font-semibold uppercase opacity-70">{label}</dt>
+      <dd className="mt-1 text-sm">
+        {nakshatraName(value.index, locale)} · {dict.panchanga.pada} {value.pada}
+      </dd>
     </div>
   );
 }

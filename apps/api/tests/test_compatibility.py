@@ -45,6 +45,43 @@ def test_compatibility_invalid_bird_rejected():
     assert res.status_code == 422
 
 
+def test_vivaha_chakra_colombo_fixture():
+    res = client.post(
+        "/api/v1/compatibility/vivaha-chakra",
+        json={
+            "date": "2026-07-17",
+            "time": "09:00:00",
+            "location_name": "Colombo, Sri Lanka",
+            "latitude": 6.9271,
+            "longitude": 79.8612,
+            "iana_tz": "Asia/Colombo",
+        },
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert data["verdict_index"] == 2
+    assert data["verdict_key"] == "wealthy_blessed"
+    assert data["tone"] == "supportive"
+    assert data["sun_nakshatra"] == {"key": "punarvasu", "index": 7, "pada": 4}
+    assert data["moon_nakshatra"] == {"key": "magha", "index": 10, "pada": 4}
+    assert data["location"]["utc_offset_minutes"] == 330
+
+
+def test_vivaha_chakra_invalid_payload_rejected():
+    res = client.post(
+        "/api/v1/compatibility/vivaha-chakra",
+        json={
+            "date": "2026-07-17",
+            "time": "09:00:00",
+            "location_name": "Bad",
+            "latitude": 999,
+            "longitude": 79.8612,
+            "iana_tz": "Asia/Colombo",
+        },
+    )
+    assert res.status_code == 422
+
+
 def test_platform_metadata_lists_compatibility():
     res = client.get("/api/v1/metadata")
     assert res.status_code == 200

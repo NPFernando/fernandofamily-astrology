@@ -38,6 +38,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/compatibility/vivaha-chakra": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Vivaha Chakra Endpoint */
+        post: operations["vivaha_chakra_endpoint_api_v1_compatibility_vivaha_chakra_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health/live": {
         parameters: {
             query?: never;
@@ -1533,6 +1550,65 @@ export interface components {
             /** Error Type */
             type: string;
         };
+        /** VivahaChakraNakshatra */
+        VivahaChakraNakshatra: {
+            /** Index */
+            index: number;
+            /** Key */
+            key: string;
+            /** Pada */
+            pada: number;
+        };
+        /** VivahaChakraRequest */
+        VivahaChakraRequest: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Iana Tz */
+            iana_tz: string;
+            /** Latitude */
+            latitude: number;
+            /** Location Name */
+            location_name: string;
+            /** Longitude */
+            longitude: number;
+            /**
+             * Time
+             * Format: time
+             */
+            time: string;
+        };
+        /** VivahaChakraResponse */
+        VivahaChakraResponse: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            engine: components["schemas"]["EngineMetadata"];
+            location: components["schemas"]["Location"];
+            moon_nakshatra: components["schemas"]["VivahaChakraNakshatra"];
+            sun_nakshatra: components["schemas"]["VivahaChakraNakshatra"];
+            /**
+             * Time
+             * Format: time
+             */
+            time: string;
+            /**
+             * Tone
+             * @enum {string}
+             */
+            tone: "supportive" | "caution";
+            /** Verdict Index */
+            verdict_index: number;
+            /**
+             * Verdict Key
+             * @enum {string}
+             */
+            verdict_key: "family_damage" | "wealthy_blessed" | "bride_family_damage" | "poverty_cursed" | "gainful_beneficial" | "reputation_loss" | "bride_devastating" | "successful" | "wonderful_blessed";
+        };
         /**
          * WeekdayId
          * @enum {string}
@@ -1617,6 +1693,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CompatibilityResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    vivaha_chakra_endpoint_api_v1_compatibility_vivaha_chakra_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VivahaChakraRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VivahaChakraResponse"];
                 };
             };
             /** @description Validation Error */

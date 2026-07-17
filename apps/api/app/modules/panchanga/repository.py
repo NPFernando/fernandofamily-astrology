@@ -73,21 +73,6 @@ SINHALA_MONTH_KEYS: list[str] = [
 ]
 
 
-# Gauri Choghadiya types 0..6 — transcribed verbatim from upstream's own
-# comment (vendor/jhora/const.py:1169): "0:Udveg (Bad), 1:Chara(Good),
-# 2:Laabha (Good), 3:Amrit(Good), 4:Kaala(Bad), 5:Shubha (Good), 6:Rog(Bad)".
-CHOGHADIYA_KEYS: list[str] = ["udveg", "chara", "laabha", "amrit", "kaala", "shubha", "rog"]
-CHOGHADIYA_AUSPICIOUS: list[bool] = [False, True, True, True, False, True, False]
-
-# Shubha Hora planet-hour rulers 0..6, in the same order as weekday index
-# 0..6 (Sunday=Sun .. Saturday=Saturn) — matches upstream's own quality
-# comment (const.py:1192-1193): Sun=Vigorous(Bad), Moon=Gentle(Good),
-# Mars=Aggressive(Bad), Mercury=Quick(Good), Jupiter=Fruitful(Good),
-# Venus=Beneficial(Good), Saturn=Sluggish(Bad) — "Moon, Mercury, Jupiter and
-# Venus are good" confirms this exact assignment.
-HORA_PLANET_KEYS: list[str] = ["sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn"]
-HORA_AUSPICIOUS: list[bool] = [False, True, False, True, True, True, False]
-
 # The 9 grahas, in upstream's own SUN_ID..KETU_ID order (const.py:126-137).
 GRAHA_KEYS: list[str] = [
     "sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn", "rahu", "ketu",

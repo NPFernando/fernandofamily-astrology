@@ -197,7 +197,6 @@ def _windows_for_day(
         panchanga.kalams.rahu,
         panchanga.kalams.yamaganda,
         panchanga.kalams.gulika,
-        *panchanga.durmuhurtam,
     ]
     results: list[MuhurtaWindow] = []
     for period in _candidate_periods(schedule, allowed_effects, allowed_activities):
@@ -205,7 +204,7 @@ def _windows_for_day(
             duration_seconds = int((ends_at - starts_at).total_seconds())
             if duration_seconds < request.min_duration_seconds:
                 continue
-            score, reasons, overlaps = _score_window(starts_at, ends_at, period, panchanga)
+            score, reasons, overlaps = _score_window(starts_at, ends_at, period)
             results.append(
                 MuhurtaWindow(
                     effective_date=day,
@@ -263,40 +262,19 @@ def _score_window(
     starts_at: datetime,
     ends_at: datetime,
     period: SubPeriod,
-    panchanga: DailyPanchanga,
 ) -> tuple[float, list[str], list[MuhurtaSourceOverlap]]:
-    # Duration bonus must reflect the actual (possibly kalam/durmuhurtam
-    # -clipped) window being scored, not the source Pancha Pakshi period's
-    # own unclipped span — otherwise a barely-usable sliver of a good period
-    # scores identically to the full, unclipped period (confirmed via direct
-    # reproduction: a 2-minute window and a 44-minute window carved from the
-    # same 45-minute period scored the same before this fix).
+    # Duration bonus must reflect the actual (possibly kalam-clipped) window
+    # being scored, not the source Pancha Pakshi period's own unclipped span
+    # — otherwise a barely-usable sliver of a good period scores identically
+    # to the full, unclipped period (confirmed via direct reproduction: a
+    # 2-minute window and a 44-minute window carved from the same 45-minute
+    # period scored the same before this fix).
     window_duration_seconds = (ends_at - starts_at).total_seconds()
     score = _EFFECT_SCORE[period.effect] + min(window_duration_seconds / 1800.0, 12.0)
     reasons: list[str] = ["pancha_pakshi"]
     overlaps = [
         MuhurtaSourceOverlap(source="pancha_pakshi", starts_at=starts_at, ends_at=ends_at),
     ]
-
-    positive_ranges: list[tuple[str, datetime, datetime, float]] = []
-    positive_ranges.extend(("amrit_kaalam", r.starts_at, r.ends_at, 12.0) for r in panchanga.amrit_kaalam)
-    positive_ranges.append(("abhijit_muhurta", panchanga.abhijit_muhurta.starts_at, panchanga.abhijit_muhurta.ends_at, 10.0))
-    positive_ranges.extend(
-        ("choghadiya", span.starts_at, span.ends_at, 5.0) for span in panchanga.choghadiya if span.is_auspicious
-    )
-    positive_ranges.extend(("hora", span.starts_at, span.ends_at, 4.0) for span in panchanga.hora if span.is_auspicious)
-
-    for source, source_start, source_end, bonus in positive_ranges:
-        overlap_start = max(starts_at, source_start)
-        overlap_end = min(ends_at, source_end)
-        if overlap_start >= overlap_end:
-            continue
-        if source not in reasons:
-            reasons.append(source)
-        overlaps.append(MuhurtaSourceOverlap(source=source, starts_at=overlap_start, ends_at=overlap_end))
-        coverage = (overlap_end - overlap_start).total_seconds() / max((ends_at - starts_at).total_seconds(), 1)
-        score += bonus * coverage
-
     return score, reasons, overlaps
 
 

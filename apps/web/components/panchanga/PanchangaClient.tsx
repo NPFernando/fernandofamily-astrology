@@ -12,7 +12,6 @@ import { FullMoonIcon } from "@/components/icons/moon";
 import { loadAccountPreferences } from "@/lib/account-preferences";
 import { SkyTodayPanel } from "@/components/panchanga/SkyTodayPanel";
 import { DailyTimingTimeline } from "@/components/panchanga/DailyTimingTimeline";
-import { EFFECT_COLORS } from "@fernandofamily/design-system";
 
 // Sinhala Poya-cycle month names (bak, vesak, ... madin) live under
 // enums.sinhalaMonths; the API's "adhi-" prefix (leap month) is not itself a
@@ -332,94 +331,6 @@ export function PanchangaClient() {
             <p className="mt-2 text-xs opacity-70">{dict.panchanga.kalamsNote}</p>
           </section>
 
-          <section
-            aria-label={dict.panchanga.amritKaalamTitle}
-            data-testid="panchanga-favourable-muhurtas"
-            className="rounded-xl border border-emerald-600/40 bg-emerald-500/10 p-4"
-          >
-            <h2 className="text-sm font-semibold uppercase">{dict.panchanga.amritKaalamTitle}</h2>
-            <div className="mt-2 grid gap-2 sm:grid-cols-3">
-              {data.amrit_kaalam.map((window, i) => (
-                <p key={i} className="tabular-nums text-sm opacity-90">
-                  {formatTime(window.starts_at, locale)} – {formatTime(window.ends_at, locale)}
-                </p>
-              ))}
-            </div>
-            <p className="mt-2 text-xs opacity-70">{dict.panchanga.amritKaalamNote}</p>
-
-            <h2 className="mt-4 text-sm font-semibold uppercase">{dict.panchanga.abhijitMuhurtaTitle}</h2>
-            <p className="mt-2 tabular-nums text-sm opacity-90">
-              {formatTime(data.abhijit_muhurta.starts_at, locale)} – {formatTime(data.abhijit_muhurta.ends_at, locale)}
-            </p>
-            <p className="mt-2 text-xs opacity-70">{dict.panchanga.abhijitMuhurtaNote}</p>
-          </section>
-
-          <section
-            aria-label={dict.panchanga.durmuhurtamTitle}
-            data-testid="panchanga-durmuhurtam"
-            className="rounded-xl border border-amber-600/40 bg-amber-500/10 p-4"
-          >
-            <h2 className="text-sm font-semibold uppercase">{dict.panchanga.durmuhurtamTitle}</h2>
-            <div className="mt-2 grid gap-2 sm:grid-cols-3">
-              {data.durmuhurtam.map((window, i) => (
-                <p key={i} className="tabular-nums text-sm opacity-90">
-                  {formatTime(window.starts_at, locale)} – {formatTime(window.ends_at, locale)}
-                </p>
-              ))}
-            </div>
-            <p className="mt-2 text-xs opacity-70">{dict.panchanga.durmuhurtamNote}</p>
-          </section>
-
-          <details
-            className="rounded-xl border border-black/10 bg-white/30 p-3 dark:border-white/10 dark:bg-white/[.03]"
-            data-testid="panchanga-choghadiya"
-          >
-            <summary className="cursor-pointer text-sm font-semibold uppercase text-accent">
-              {dict.panchanga.choghadiyaTitle}
-            </summary>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              {data.choghadiya.map((span, i) => (
-                <div key={i} className="rounded-lg bg-white/40 p-2 text-xs dark:bg-black/20">
-                  <p
-                    className="font-medium"
-                    style={{ color: span.is_auspicious ? EFFECT_COLORS.good : EFFECT_COLORS.bad }}
-                  >
-                    {translateEnum(dict, "choghadiya", span.key)}
-                  </p>
-                  <p className="tabular-nums opacity-80">
-                    {formatTime(span.starts_at, locale)} – {formatTime(span.ends_at, locale)}
-                  </p>
-                </div>
-              ))}
-            </div>
-            <p className="mt-2 text-xs opacity-70">{dict.panchanga.choghadiyaNote}</p>
-          </details>
-
-          <details
-            className="rounded-xl border border-black/10 bg-white/30 p-3 dark:border-white/10 dark:bg-white/[.03]"
-            data-testid="panchanga-hora"
-          >
-            <summary className="cursor-pointer text-sm font-semibold uppercase text-accent">
-              {dict.panchanga.horaTitle}
-            </summary>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              {data.hora.map((span, i) => (
-                <div key={i} className="rounded-lg bg-white/40 p-2 text-xs dark:bg-black/20">
-                  <p
-                    className="font-medium"
-                    style={{ color: span.is_auspicious ? EFFECT_COLORS.good : EFFECT_COLORS.bad }}
-                  >
-                    {translateEnum(dict, "horaPlanets", span.key)}
-                  </p>
-                  <p className="tabular-nums opacity-80">
-                    {formatTime(span.starts_at, locale)} – {formatTime(span.ends_at, locale)}
-                  </p>
-                </div>
-              ))}
-            </div>
-            <p className="mt-2 text-xs opacity-70">{dict.panchanga.horaNote}</p>
-          </details>
-
           {eclipses && (
             <details
               className="rounded-xl border border-black/10 bg-white/30 p-3 dark:border-white/10 dark:bg-white/[.03]"
@@ -444,8 +355,6 @@ export function PanchangaClient() {
                   magnitudeValue={eclipses.next_solar.magnitude}
                   extraLabel={dict.panchanga.eclipseObscuration}
                   extraValue={eclipses.next_solar.obscuration}
-                  sutakStart={eclipses.next_solar.sutak_starts_at}
-                  sutakEnd={eclipses.next_solar.sutak_ends_at}
                 />
                 <EclipseCard
                   dict={dict}
@@ -462,12 +371,9 @@ export function PanchangaClient() {
                   ]}
                   magnitudeLabel={dict.panchanga.eclipseMagnitude}
                   magnitudeValue={eclipses.next_lunar.umbral_magnitude}
-                  sutakStart={eclipses.next_lunar.sutak_starts_at}
-                  sutakEnd={eclipses.next_lunar.sutak_ends_at}
                 />
               </div>
               <p className="mt-2 text-xs opacity-70">{dict.panchanga.eclipseNote}</p>
-              <p className="mt-1 text-xs opacity-70">{dict.panchanga.sutakKaalTitle}: {dict.panchanga.sutakKaalNote}</p>
             </details>
           )}
 
@@ -556,8 +462,6 @@ function EclipseCard({
   magnitudeValue,
   extraLabel,
   extraValue,
-  sutakStart,
-  sutakEnd,
 }: {
   dict: ReturnType<typeof getDictionary>;
   locale: string;
@@ -570,8 +474,6 @@ function EclipseCard({
   magnitudeValue: number;
   extraLabel?: string;
   extraValue?: number;
-  sutakStart: string | null;
-  sutakEnd: string | null;
 }) {
   return (
     <div className="rounded-lg bg-white/40 p-3 text-sm dark:bg-black/20">
@@ -597,11 +499,6 @@ function EclipseCard({
       {extraLabel && extraValue !== undefined && (
         <p className="tabular-nums text-xs opacity-80">
           {extraLabel}: {extraValue.toFixed(3)}
-        </p>
-      )}
-      {sutakStart && sutakEnd && (
-        <p className="mt-1 tabular-nums text-xs opacity-70">
-          {dict.panchanga.sutakKaalTitle}: {formatDateTime(sutakStart, locale)} – {formatDateTime(sutakEnd, locale)}
         </p>
       )}
     </div>

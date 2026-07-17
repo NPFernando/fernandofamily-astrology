@@ -95,40 +95,6 @@ def trikalam(jd: float, p, option: str) -> list:
     return drik.trikalam(jd, p, option)
 
 
-def gauri_choghadiya(jd: float, p) -> list[tuple[int, str, str]]:
-    """16 (type_index 0..6, start 'HH:MM:SS', end 'HH:MM:SS') tuples in
-    chronological order: 8 day segments (sunrise-to-sunset, 1/8th each) then
-    8 night segments (sunset-to-next-sunrise, 1/8th each). Segment i's end
-    always equals segment i+1's start. Night segments crossing midnight
-    reset their HMS string to be relative to the new calendar day rather
-    than continuing past 24:00:00 — callers must detect this (see
-    calculator.py's cumulative-hours parsing), the same caveat trikalam()
-    doesn't have since kalams never cross midnight."""
-    return drik.gauri_choghadiya(jd, p)
-
-
-def shubha_hora(jd: float, p) -> list[tuple[int, str, str]]:
-    """24 (planet_index 0..6, start, end) tuples: 12 day + 12 night hora
-    segments, same chronological/midnight-crossing shape as
-    gauri_choghadiya but twelfths instead of eighths."""
-    return drik.shubha_hora(jd, p)
-
-
-def abhijit_muhurta(jd: float, p) -> list:
-    """['HH:MM:SS', 'HH:MM:SS'] start/end — the 8th of 15 daily muhurtas
-    (roughly midday), always exactly one window, well within daytime so
-    never crosses midnight."""
-    return drik.abhijit_muhurta(jd, p)
-
-
-def durmuhurtam(jd: float, p) -> list:
-    """['HH:MM:SS', 'HH:MM:SS'] or ['HH:MM:SS','HH:MM:SS','HH:MM:SS','HH:MM:SS']
-    — Sunday/Wednesday/Saturday have exactly one durmuhurtam window; every
-    other weekday has two. Never empty, never crosses midnight (offsets stay
-    within a single day/night duration)."""
-    return drik.durmuhurtam(jd, p)
-
-
 def graha_longitudes(jd: float, p) -> list[tuple[int, float]]:
     """[(planet_id 0..8, sidereal_longitude_degrees), ...] for the 9 grahas
     (Sun..Ketu, see repository.GRAHA_KEYS for the order).

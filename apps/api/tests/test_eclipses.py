@@ -49,9 +49,6 @@ def test_next_solar_eclipse_from_mid_2026_is_the_august_2027_total():
     assert solar["first_contact_at"] is not None
     assert solar["fourth_contact_at"] is not None
     assert solar["first_contact_at"] < solar["max_at"] < solar["fourth_contact_at"]
-    # Sutak starts 12h before first contact, ends at last contact.
-    assert solar["sutak_starts_at"] is not None
-    assert solar["sutak_ends_at"] == solar["fourth_contact_at"]
 
 
 def test_next_lunar_eclipse_from_mid_2026_is_the_feb_2027_penumbral():
@@ -88,8 +85,6 @@ def test_next_lunar_eclipse_from_early_2025_is_the_september_total():
         < lunar["partial_ends_at"]
         < lunar["ends_at"]
     )
-    assert lunar["sutak_starts_at"] < lunar["begins_at"]
-    assert lunar["sutak_ends_at"] == lunar["ends_at"]
 
 
 def test_solar_fourth_contact_none_when_not_visible_from_location():
@@ -104,9 +99,6 @@ def test_solar_fourth_contact_none_when_not_visible_from_location():
     assert solar["max_at"].startswith("2041-04-30")
     assert solar["first_contact_at"] is not None
     assert solar["fourth_contact_at"] is None
-    # Sutak still resolves (falls back to max_at for the missing end anchor).
-    assert solar["sutak_starts_at"] is not None
-    assert solar["sutak_ends_at"] == solar["max_at"]
 
 
 def test_search_start_is_local_midnight_not_noon():

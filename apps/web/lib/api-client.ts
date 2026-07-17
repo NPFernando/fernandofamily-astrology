@@ -340,8 +340,6 @@ export type NakshatraSpan = {
 export type YogaSpan = { key: string; index: number; starts_at: string; ends_at: string };
 export type KaranaSpan = { key: string; index_60: number; starts_at: string; ends_at: string };
 export type KalamRange = { starts_at: string; ends_at: string };
-export type ChoghadiyaSpan = { key: string; is_auspicious: boolean; starts_at: string; ends_at: string };
-export type HoraSpan = { key: string; is_auspicious: boolean; starts_at: string; ends_at: string };
 export type GrahaPosition = {
   key: string;
   longitude_degrees: number;
@@ -375,11 +373,6 @@ export type DailyPanchanga = {
   yoga: YogaSpan[];
   karana: KaranaSpan[];
   kalams: { rahu: KalamRange; yamaganda: KalamRange; gulika: KalamRange };
-  choghadiya: ChoghadiyaSpan[];
-  hora: HoraSpan[];
-  amrit_kaalam: KalamRange[];
-  abhijit_muhurta: KalamRange;
-  durmuhurtam: KalamRange[];
   graha_positions: GrahaPosition[];
 };
 
@@ -439,8 +432,6 @@ export type SolarEclipseEvent = {
   fourth_contact_at: string | null;
   magnitude: number;
   obscuration: number;
-  sutak_starts_at: string | null;
-  sutak_ends_at: string | null;
 };
 
 export type LunarEclipseEvent = {
@@ -455,8 +446,6 @@ export type LunarEclipseEvent = {
   totality_ends_at: string | null;
   umbral_magnitude: number;
   penumbral_magnitude: number;
-  sutak_starts_at: string | null;
-  sutak_ends_at: string | null;
 };
 
 export type EclipseForecast = {
@@ -477,7 +466,7 @@ export type MuhurtaPurpose =
   | "vehicle_purchase"
   | "wedding_engagement";
 export type MuhurtaGrade = "excellent" | "good" | "usable";
-export type MuhurtaSource = "pancha_pakshi" | "amrit_kaalam" | "abhijit_muhurta" | "choghadiya" | "hora";
+export type MuhurtaSource = "pancha_pakshi";
 export type MuhurtaCaution = "disha_shool" | "vivaha_chakra";
 
 type MuhurtaSearchBase = {

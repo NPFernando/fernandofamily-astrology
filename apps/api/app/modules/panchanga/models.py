@@ -61,20 +61,6 @@ class Kalams(BaseModel):
     gulika: KalamRange
 
 
-class ChoghadiyaSpan(BaseModel):
-    key: str  # repository.CHOGHADIYA_KEYS
-    is_auspicious: bool
-    starts_at: datetime
-    ends_at: datetime
-
-
-class HoraSpan(BaseModel):
-    key: str  # repository.HORA_PLANET_KEYS — the planet ruling this hour
-    is_auspicious: bool
-    starts_at: datetime
-    ends_at: datetime
-
-
 class GrahaPosition(BaseModel):
     key: str  # repository.GRAHA_KEYS
     longitude_degrees: float  # 0..360 sidereal, full precision
@@ -130,11 +116,6 @@ class SolarEclipseEvent(BaseModel):
     fourth_contact_at: datetime | None
     magnitude: float  # NASA convention
     obscuration: float  # fraction of solar disc covered by the Moon
-    # Traditional "sutak kaal" advisory window (~12h before first contact to
-    # last contact) — a named classical convention, not computed astronomy;
-    # None when the eclipse isn't visible from this location at all.
-    sutak_starts_at: datetime | None
-    sutak_ends_at: datetime | None
 
 
 class LunarEclipseEvent(BaseModel):
@@ -153,10 +134,6 @@ class LunarEclipseEvent(BaseModel):
     totality_ends_at: datetime | None
     umbral_magnitude: float
     penumbral_magnitude: float
-    # Traditional "sutak kaal" (~9h before the eclipse begins to its end) —
-    # a named classical convention, not computed astronomy.
-    sutak_starts_at: datetime | None
-    sutak_ends_at: datetime | None
 
 
 class EclipseForecast(BaseModel):
@@ -212,13 +189,4 @@ class DailyPanchanga(BaseModel):
     yoga: list[YogaSpan]
     karana: list[KaranaSpan]  # all half-tithi spans overlapping sunrise..next-sunrise
     kalams: Kalams
-    choghadiya: list[ChoghadiyaSpan]  # 16: 8 day + 8 night, chronological
-    hora: list[HoraSpan]  # 24: 12 day + 12 night, chronological
-    # Favourable window(s) within today's Choghadiya (key == "amrit") — a
-    # filtered view, not a separate engine call; never empty in practice but
-    # not guaranteed non-empty by upstream, so modeled as a list.
-    amrit_kaalam: list[KalamRange]
-    abhijit_muhurta: KalamRange  # always exactly one window, ~midday
-    # 1 window on Sunday/Wednesday/Saturday, 2 on every other weekday.
-    durmuhurtam: list[KalamRange]
     graha_positions: list[GrahaPosition]  # 9: Sun..Ketu, repository.GRAHA_KEYS order

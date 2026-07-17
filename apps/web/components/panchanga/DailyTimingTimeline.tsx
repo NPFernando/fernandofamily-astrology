@@ -8,7 +8,7 @@ import type { DailyPanchanga, EffectId, KalamRange, ScheduleResponse } from "@/l
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
-type TimelineTone = "avoid" | "support" | "personal";
+type TimelineTone = "avoid" | "personal";
 
 type TimelineItem = {
   id: string;
@@ -31,11 +31,6 @@ const ROW_STYLES: Record<TimelineTone, { border: string; bg: string; text: strin
     border: "border-amber-500/45",
     bg: "bg-amber-500/10",
     text: "text-amber-800 dark:text-amber-200",
-  },
-  support: {
-    border: "border-emerald-500/45",
-    bg: "bg-emerald-500/10",
-    text: "text-emerald-800 dark:text-emerald-200",
   },
   personal: {
     border: "border-sky-500/45",
@@ -108,26 +103,10 @@ export function DailyTimingTimeline({
       rangeItem("rahu", "avoid", dict.panchanga.rahuKala, panchanga.kalams.rahu),
       rangeItem("yamaganda", "avoid", dict.panchanga.yamaganda, panchanga.kalams.yamaganda),
       rangeItem("gulika", "avoid", dict.panchanga.gulika, panchanga.kalams.gulika),
-      ...panchanga.durmuhurtam.map((range, index) =>
-        rangeItem(
-          `durmuhurtam-${index}`,
-          "avoid",
-          `${dict.panchanga.durmuhurtamTitle}${panchanga.durmuhurtam.length > 1 ? ` ${index + 1}` : ""}`,
-          range,
-        ),
-      ),
-    ].sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
-
-    const support: TimelineItem[] = [
-      ...panchanga.amrit_kaalam.map((range, index) =>
-        rangeItem(`amrit-${index}`, "support", dict.panchanga.amritKaalamTitle, range),
-      ),
-      rangeItem("abhijit", "support", dict.panchanga.abhijitMuhurtaTitle, panchanga.abhijit_muhurta),
     ].sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
 
     return [
       { id: "avoid", label: timeline.avoidRow, items: avoid },
-      { id: "support", label: timeline.supportRow, items: support },
       {
         id: "personal",
         label: timeline.personalRow,
@@ -137,8 +116,8 @@ export function DailyTimingTimeline({
     ];
   }, [dict, panchanga, schedule, timeline]);
 
-  const dayStartMs = new Date(panchanga.hora[0]?.starts_at ?? panchanga.sunrise).getTime();
-  const dayEndMs = new Date(panchanga.hora[panchanga.hora.length - 1]?.ends_at ?? panchanga.sunset).getTime();
+  const dayStartMs = new Date(panchanga.sunrise).getTime();
+  const dayEndMs = new Date(panchanga.sunset).getTime();
   const referenceMs = new Date(referenceAt ?? new Date().toISOString()).getTime();
   const showNow = referenceMs >= dayStartMs && referenceMs <= dayEndMs;
   const nowLeft = percentBetween(referenceMs, dayStartMs, dayEndMs);
@@ -232,7 +211,6 @@ export function DailyTimingTimeline({
 
       <div className="mt-3 flex flex-wrap gap-2 text-[11px] opacity-70">
         <span>{timeline.legendAvoid}</span>
-        <span>{timeline.legendSupport}</span>
         {!compact && <span>{timeline.legendPersonal}</span>}
         {showNow && <span>{timeline.now}</span>}
       </div>

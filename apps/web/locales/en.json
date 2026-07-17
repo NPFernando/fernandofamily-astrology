@@ -234,15 +234,6 @@
       "west": "West",
       "north": "North"
     },
-    "choghadiya": {
-      "udveg": "Udveg",
-      "chara": "Chara",
-      "laabha": "Laabha",
-      "amrit": "Amrit",
-      "kaala": "Kaala",
-      "shubha": "Shubha",
-      "rog": "Rog"
-    },
     "horaPlanets": {
       "sun": "Sun",
       "moon": "Moon",
@@ -574,16 +565,6 @@
     "rahuKala": "Rahu Kala",
     "yamaganda": "Yamaganda",
     "gulika": "Gulika Kala",
-    "choghadiyaTitle": "Choghadiya",
-    "choghadiyaNote": "8 day and 8 night segments, each traditionally auspicious or inauspicious for starting new activities.",
-    "horaTitle": "Hora",
-    "horaNote": "Hour-by-hour planetary rulership across the day and night, a South Indian time-measure tradition.",
-    "amritKaalamTitle": "Amrit Kaalam",
-    "amritKaalamNote": "The most favourable window(s) within today's Choghadiya.",
-    "abhijitMuhurtaTitle": "Abhijit Muhurta",
-    "abhijitMuhurtaNote": "A generally auspicious window around midday, the 8th of 15 daily muhurtas.",
-    "durmuhurtamTitle": "Durmuhurtam",
-    "durmuhurtamNote": "Traditionally inauspicious window(s), one or two depending on the weekday.",
     "grahaPositionsTitle": "Graha Positions",
     "grahaPositionsNote": "Today's sidereal position for each of the 9 grahas, with retrograde (vakri) planets flagged.",
     "skyTodayTitle": "Sky Today",
@@ -610,8 +591,6 @@
     "eclipseMagnitude": "Magnitude",
     "eclipseObscuration": "Obscuration",
     "eclipseNotVisible": "Not visible from this location",
-    "sutakKaalTitle": "Sutak Kaal",
-    "sutakKaalNote": "A traditional advisory window observed before an eclipse — a named classical convention, not an astronomical prediction.",
     "sunMoonTitle": "Sun & Moon",
     "moonrise": "Moonrise",
     "moonset": "Moonset",
@@ -706,29 +685,21 @@
     "familyWeekIndividualFallback": "Best individual windows",
     "familyWeekNoWindows": "No family windows for this day.",
     "familyWeekUseDate": "Use this day",
-    "supportiveTimingTitle": "Supportive timing",
-    "supportiveTimingDescription": "Amrit, Abhijit, Choghadiya and Hora layers for choosing a stronger start time.",
-    "currentChoghadiya": "Current Choghadiya",
-    "nextChoghadiya": "Next Choghadiya",
-    "currentHora": "Current Hora",
-    "nextHora": "Next Hora",
     "timeline": {
       "title": "Daily timing timeline",
-      "description": "A quick day strip for avoid times, supportive Muhurta layers and personal Pancha Pakshi windows.",
+      "description": "A quick day strip for avoid times and personal Pancha Pakshi windows.",
       "avoidRow": "Avoid",
-      "supportRow": "Support",
       "personalRow": "Personal",
       "noPersonalWindows": "No favourable personal windows for the selected bird.",
       "personalUnavailable": "Select a bird or profile to see personal Pancha Pakshi windows.",
       "now": "Now",
-      "legendAvoid": "Avoid: Rahu, Yamaganda, Gulika, Durmuhurtham",
-      "legendSupport": "Support: Amrit and Abhijit",
+      "legendAvoid": "Avoid: Rahu, Yamaganda, Gulika",
       "legendPersonal": "Personal: favourable Pancha Pakshi"
     }
   },
   "muhurta": {
     "title": "Favourable Time Finder",
-    "description": "Find practical start windows for everyday Sri Lankan use. This combines Pancha Pakshi strength with Panchanga avoid periods and supportive Muhurta layers.",
+    "description": "Find practical start windows for everyday Sri Lankan use. This combines Pancha Pakshi strength with Panchanga avoid periods.",
     "controlsTitle": "Finder settings",
     "purpose": "Purpose",
     "purposes": {
@@ -791,11 +762,7 @@
       "usable": "Usable"
     },
     "sources": {
-      "pancha_pakshi": "Pancha Pakshi",
-      "amrit_kaalam": "Amrit Kaalam",
-      "abhijit_muhurta": "Abhijit Muhurta",
-      "choghadiya": "Choghadiya",
-      "hora": "Hora"
+      "pancha_pakshi": "Pancha Pakshi"
     },
     "cautions": {
       "disha_shool": "Travel-direction caution",

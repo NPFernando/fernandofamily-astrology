@@ -772,36 +772,6 @@
         "title": "ChandrashtamaWindow",
         "type": "object"
       },
-      "ChoghadiyaSpan": {
-        "properties": {
-          "ends_at": {
-            "format": "date-time",
-            "title": "Ends At",
-            "type": "string"
-          },
-          "is_auspicious": {
-            "title": "Is Auspicious",
-            "type": "boolean"
-          },
-          "key": {
-            "title": "Key",
-            "type": "string"
-          },
-          "starts_at": {
-            "format": "date-time",
-            "title": "Starts At",
-            "type": "string"
-          }
-        },
-        "required": [
-          "key",
-          "is_auspicious",
-          "starts_at",
-          "ends_at"
-        ],
-        "title": "ChoghadiyaSpan",
-        "type": "object"
-      },
       "CompatibilityRequest": {
         "properties": {
           "bird_a": {
@@ -858,34 +828,10 @@
       },
       "DailyPanchanga": {
         "properties": {
-          "abhijit_muhurta": {
-            "$ref": "#/components/schemas/KalamRange"
-          },
-          "amrit_kaalam": {
-            "items": {
-              "$ref": "#/components/schemas/KalamRange"
-            },
-            "title": "Amrit Kaalam",
-            "type": "array"
-          },
-          "choghadiya": {
-            "items": {
-              "$ref": "#/components/schemas/ChoghadiyaSpan"
-            },
-            "title": "Choghadiya",
-            "type": "array"
-          },
           "date": {
             "format": "date",
             "title": "Date",
             "type": "string"
-          },
-          "durmuhurtam": {
-            "items": {
-              "$ref": "#/components/schemas/KalamRange"
-            },
-            "title": "Durmuhurtam",
-            "type": "array"
           },
           "engine": {
             "$ref": "#/components/schemas/EngineMetadata"
@@ -895,13 +841,6 @@
               "$ref": "#/components/schemas/GrahaPosition"
             },
             "title": "Graha Positions",
-            "type": "array"
-          },
-          "hora": {
-            "items": {
-              "$ref": "#/components/schemas/HoraSpan"
-            },
-            "title": "Hora",
             "type": "array"
           },
           "is_poya_day": {
@@ -1030,11 +969,6 @@
           "yoga",
           "karana",
           "kalams",
-          "choghadiya",
-          "hora",
-          "amrit_kaalam",
-          "abhijit_muhurta",
-          "durmuhurtam",
           "graha_positions"
         ],
         "title": "DailyPanchanga",
@@ -1242,36 +1176,6 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
-      "HoraSpan": {
-        "properties": {
-          "ends_at": {
-            "format": "date-time",
-            "title": "Ends At",
-            "type": "string"
-          },
-          "is_auspicious": {
-            "title": "Is Auspicious",
-            "type": "boolean"
-          },
-          "key": {
-            "title": "Key",
-            "type": "string"
-          },
-          "starts_at": {
-            "format": "date-time",
-            "title": "Starts At",
-            "type": "string"
-          }
-        },
-        "required": [
-          "key",
-          "is_auspicious",
-          "starts_at",
-          "ends_at"
-        ],
-        "title": "HoraSpan",
-        "type": "object"
-      },
       "KalamRange": {
         "properties": {
           "ends_at": {
@@ -1438,30 +1342,6 @@
             "title": "Penumbral Magnitude",
             "type": "number"
           },
-          "sutak_ends_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Sutak Ends At"
-          },
-          "sutak_starts_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Sutak Starts At"
-          },
           "totality_ends_at": {
             "anyOf": [
               {
@@ -1506,9 +1386,7 @@
           "totality_starts_at",
           "totality_ends_at",
           "umbral_magnitude",
-          "penumbral_magnitude",
-          "sutak_starts_at",
-          "sutak_ends_at"
+          "penumbral_magnitude"
         ],
         "title": "LunarEclipseEvent",
         "type": "object"
@@ -2620,13 +2498,7 @@
             "type": "string"
           },
           "source": {
-            "enum": [
-              "pancha_pakshi",
-              "amrit_kaalam",
-              "abhijit_muhurta",
-              "choghadiya",
-              "hora"
-            ],
+            "const": "pancha_pakshi",
             "title": "Source",
             "type": "string"
           },
@@ -2684,13 +2556,7 @@
           },
           "reasons": {
             "items": {
-              "enum": [
-                "pancha_pakshi",
-                "amrit_kaalam",
-                "abhijit_muhurta",
-                "choghadiya",
-                "hora"
-              ],
+              "const": "pancha_pakshi",
               "type": "string"
             },
             "title": "Reasons",
@@ -3533,30 +3399,6 @@
             "title": "Obscuration",
             "type": "number"
           },
-          "sutak_ends_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Sutak Ends At"
-          },
-          "sutak_starts_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Sutak Starts At"
-          },
           "type": {
             "title": "Type",
             "type": "string"
@@ -3569,9 +3411,7 @@
           "first_contact_at",
           "fourth_contact_at",
           "magnitude",
-          "obscuration",
-          "sutak_starts_at",
-          "sutak_ends_at"
+          "obscuration"
         ],
         "title": "SolarEclipseEvent",
         "type": "object"

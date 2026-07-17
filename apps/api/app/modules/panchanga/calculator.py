@@ -11,11 +11,9 @@ from app.modules.pancha_pakshi.repository import WEEKDAY_ORDER
 from app.modules.panchanga import adapter, repository
 from app.modules.panchanga.errors import PanchangaInternalError, SunriseUnavailableError
 from app.modules.panchanga.models import (
-    ChoghadiyaSpan,
     DailyPanchanga,
     EclipseForecast,
     GrahaPosition,
-    HoraSpan,
     Kalams,
     KalamRange,
     KaranaSpan,
@@ -34,12 +32,6 @@ from app.modules.panchanga.models import (
     YogaSpan,
 )
 
-# Classical sutak-kaal advisory windows — a named traditional convention
-# layered on top of real contact times, not itself computed astronomy (see
-# docs/jyotishya-ideas.md's B1 cultural-grounding note).
-_SOLAR_SUTAK_HOURS = 12
-_LUNAR_SUTAK_HOURS = 9
-
 # A purnima beginning less than this long before sunset assigns the Poya to
 # the NEXT civil day. The gazette panel's tithi/sunset arithmetic differs
 # from Lahiri+swisseph by single minutes; across all 73 gazetted Poya days
@@ -57,8 +49,8 @@ def _hours_to_datetime(base_date: date_type, hours: float, offset_hours: float) 
     >= 24 into following days. Normalize to an aware datetime.
 
     Every element this module computes (tithi/nakshatra/yoga/karana/sunset/
-    choghadiya/hora/etc.) funnels through this one function, so it's the
-    single choke point for a defensive plausibility guard: confirmed via
+    etc.) funnels through this one function, so it's the single choke point
+    for a defensive plausibility guard: confirmed via
     direct reproduction that at extreme latitudes the vendored engine's
     search (e.g. `tithi()`) can numerically diverge and return garbage on
     the order of tens of millions of "hours" instead of raising or returning
@@ -104,59 +96,6 @@ def _optional_jd_ut_to_datetime(jd_ut: float, offset_hours: float) -> datetime |
     """0.0 is swisseph's sentinel for 'not applicable/not visible here' on
     the lunar eclipse tret slots — see adapter.next_lunar_eclipse_raw."""
     return _jd_ut_to_datetime(jd_ut, offset_hours) if jd_ut else None
-
-
-def _cumulative_hms_hours(hms_values: list[str]) -> list[float]:
-    """Converts a chronologically-ordered list of independent 'HH:MM:SS'
-    strings (each 0-24, no day information) into cumulative hours-since-
-    base-date-midnight, detecting midnight rollovers. Unlike the float-hours
-    convention this module's other elements use (where >=24 already signals
-    "next day"), gauri_choghadiya()/shubha_hora() reset their HMS strings to
-    be relative to whichever new calendar day a segment falls on once it
-    crosses midnight — so a value smaller than the previous one means a day
-    has passed; add 24 for every such rollover to make the sequence
-    monotonic, then feed straight into _hours_to_datetime as normal."""
-    cumulative: list[float] = []
-    day_offset = 0.0
-    previous: float | None = None
-    for hms in hms_values:
-        h, m, s = (int(part) for part in hms.split(":"))
-        hours = h + m / 60 + s / 3600 + day_offset
-        if previous is not None and hours < previous:
-            day_offset += 24
-            hours += 24
-        cumulative.append(hours)
-        previous = hours
-    return cumulative
-
-
-def _typed_hms_spans(
-    raw: list[tuple[int, str, str]],
-    keys: list[str],
-    auspicious: list[bool],
-    span_cls,
-    base_date: date_type,
-    offset_hours: float,
-):
-    """Shared parser for gauri_choghadiya()/shubha_hora()'s identical shape:
-    a chronological list of (type_index, start_hms, end_hms) tuples where
-    segment i's end equals segment i+1's start. Builds one combined
-    boundary-timestamp list (start of the first segment, then each
-    segment's end) so _cumulative_hms_hours only has to reason about
-    rollovers once, not separately per segment."""
-    boundaries = [raw[0][1]] + [end for _, _, end in raw]
-    cumulative_hours = _cumulative_hms_hours(boundaries)
-    spans = []
-    for i, (type_index, _, _) in enumerate(raw):
-        spans.append(
-            span_cls(
-                key=keys[type_index],
-                is_auspicious=auspicious[type_index],
-                starts_at=_hours_to_datetime(base_date, cumulative_hours[i], offset_hours),
-                ends_at=_hours_to_datetime(base_date, cumulative_hours[i + 1], offset_hours),
-            )
-        )
-    return spans
 
 
 def _plausible_rise_set(value: list, jd: float) -> bool:
@@ -312,41 +251,6 @@ def compute_daily_panchanga(
         gulika=_kalam_range(noon_jd, place, "gulikai", target_date, offset_hours),
     )
 
-    choghadiya = _typed_hms_spans(
-        adapter.gauri_choghadiya(noon_jd, place),
-        repository.CHOGHADIYA_KEYS,
-        repository.CHOGHADIYA_AUSPICIOUS,
-        ChoghadiyaSpan,
-        target_date,
-        offset_hours,
-    )
-    hora = _typed_hms_spans(
-        adapter.shubha_hora(noon_jd, place),
-        repository.HORA_PLANET_KEYS,
-        repository.HORA_AUSPICIOUS,
-        HoraSpan,
-        target_date,
-        offset_hours,
-    )
-    # A filtered view of choghadiya (key == "amrit"), not a separate engine
-    # call — this IS how upstream's own amrit_kaalam() derives it too.
-    amrit_kaalam = [
-        KalamRange(starts_at=span.starts_at, ends_at=span.ends_at) for span in choghadiya if span.key == "amrit"
-    ]
-    abhijit_start, abhijit_end = adapter.abhijit_muhurta(noon_jd, place)
-    abhijit_muhurta = KalamRange(
-        starts_at=_hms_string_to_datetime(target_date, abhijit_start, offset_hours),
-        ends_at=_hms_string_to_datetime(target_date, abhijit_end, offset_hours),
-    )
-    durmuhurtam_hms = adapter.durmuhurtam(noon_jd, place)
-    durmuhurtam = [
-        KalamRange(
-            starts_at=_hms_string_to_datetime(target_date, durmuhurtam_hms[i], offset_hours),
-            ends_at=_hms_string_to_datetime(target_date, durmuhurtam_hms[i + 1], offset_hours),
-        )
-        for i in range(0, len(durmuhurtam_hms), 2)
-    ]
-
     graha_positions = compute_graha_positions(noon_jd, place)
 
     is_poya, poya, next_poya, sinhala_month = compute_poya(target_date, place, offset_hours)
@@ -379,11 +283,6 @@ def compute_daily_panchanga(
         yoga=yoga_spans,
         karana=karana_spans,
         kalams=kalams,
-        choghadiya=choghadiya,
-        hora=hora,
-        amrit_kaalam=amrit_kaalam,
-        abhijit_muhurta=abhijit_muhurta,
-        durmuhurtam=durmuhurtam,
         graha_positions=graha_positions,
     )
 
@@ -586,10 +485,6 @@ def _compute_next_solar_eclipse(jd_ut: float, place, offset_hours: float) -> Sol
     fourth_contact_at = (
         _jd_ut_to_datetime(tret[4], offset_hours) if adapter.solar_contact_visible(retflag, "fourth") else None
     )
-    sutak_starts_at = sutak_ends_at = None
-    if is_visible:
-        sutak_starts_at = (first_contact_at or max_at) - timedelta(hours=_SOLAR_SUTAK_HOURS)
-        sutak_ends_at = fourth_contact_at or max_at
     return SolarEclipseEvent(
         type=adapter.solar_eclipse_type(retflag),
         is_visible=is_visible,
@@ -598,8 +493,6 @@ def _compute_next_solar_eclipse(jd_ut: float, place, offset_hours: float) -> Sol
         fourth_contact_at=fourth_contact_at,
         magnitude=attrs[8],
         obscuration=attrs[2],
-        sutak_starts_at=sutak_starts_at,
-        sutak_ends_at=sutak_ends_at,
     )
 
 
@@ -613,10 +506,6 @@ def _compute_next_lunar_eclipse(jd_ut: float, place, offset_hours: float) -> Lun
     partial_ends_at = _optional_jd_ut_to_datetime(tret[3], offset_hours)
     totality_starts_at = _optional_jd_ut_to_datetime(tret[4], offset_hours)
     totality_ends_at = _optional_jd_ut_to_datetime(tret[5], offset_hours)
-    sutak_starts_at = sutak_ends_at = None
-    if is_visible:
-        sutak_starts_at = (begins_at or partial_starts_at or max_at) - timedelta(hours=_LUNAR_SUTAK_HOURS)
-        sutak_ends_at = ends_at or partial_ends_at or max_at
     return LunarEclipseEvent(
         type=adapter.lunar_eclipse_type(retflag),
         is_visible=is_visible,
@@ -629,8 +518,6 @@ def _compute_next_lunar_eclipse(jd_ut: float, place, offset_hours: float) -> Lun
         totality_ends_at=totality_ends_at,
         umbral_magnitude=attrs[0],
         penumbral_magnitude=attrs[1],
-        sutak_starts_at=sutak_starts_at,
-        sutak_ends_at=sutak_ends_at,
     )
 
 

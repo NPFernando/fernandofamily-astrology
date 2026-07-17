@@ -20,13 +20,7 @@ MuhurtaPurpose = Literal[
     "wedding_engagement",
 ]
 MuhurtaGrade = Literal["excellent", "good", "usable"]
-MuhurtaSource = Literal[
-    "pancha_pakshi",
-    "amrit_kaalam",
-    "abhijit_muhurta",
-    "choghadiya",
-    "hora",
-]
+MuhurtaSource = Literal["pancha_pakshi"]
 MuhurtaCaution = Literal["disha_shool", "vivaha_chakra"]
 
 

@@ -115,7 +115,6 @@ def test_muhurta_windows_do_not_overlap_avoid_periods():
         panchanga["kalams"]["rahu"],
         panchanga["kalams"]["yamaganda"],
         panchanga["kalams"]["gulika"],
-        *panchanga["durmuhurtam"],
     ]
     for window in result["windows"]:
         for avoid in avoid_ranges:
@@ -178,14 +177,13 @@ def test_muhurta_accepts_nakshatra_paksha_without_birth_details():
 
 def test_score_window_duration_bonus_reflects_actual_clipped_window():
     # Regression test: _score_window's duration bonus must be based on the
-    # actual (possibly kalam/durmuhurtam-clipped) window it's scoring, not
-    # the source Pancha Pakshi period's own unclipped span — otherwise a
-    # 2-minute sliver of a good period scores identically to the full
-    # 44-minute period it was carved from (confirmed via direct reproduction
-    # before this fix).
+    # actual (possibly kalam-clipped) window it's scoring, not the source
+    # Pancha Pakshi period's own unclipped span — otherwise a 2-minute
+    # sliver of a good period scores identically to the full 44-minute
+    # period it was carved from (confirmed via direct reproduction before
+    # this fix).
     from datetime import datetime, timedelta, timezone
 
-    import app.modules.panchanga.models as panchanga_models
     from app.modules.muhurta.service import _score_window
     from app.modules.pancha_pakshi.enums import ActivityId, BirdId, EffectId, RelationId
     from app.modules.pancha_pakshi.models import SubPeriod
@@ -211,17 +209,9 @@ def test_score_window_duration_bonus_reflects_actual_clipped_window():
         rating=50,
         is_current=False,
     )
-    panchanga = panchanga_models.DailyPanchanga.model_construct(
-        amrit_kaalam=[],
-        abhijit_muhurta=panchanga_models.KalamRange(
-            starts_at=datetime(2000, 1, 1, tzinfo=tz), ends_at=datetime(2000, 1, 1, tzinfo=tz)
-        ),
-        choghadiya=[],
-        hora=[],
-    )
 
-    score_full, _, _ = _score_window(period_start, period_start + timedelta(minutes=44), period, panchanga)
-    score_clipped, _, _ = _score_window(period_end - timedelta(minutes=2), period_end, period, panchanga)
+    score_full, _, _ = _score_window(period_start, period_start + timedelta(minutes=44), period)
+    score_clipped, _, _ = _score_window(period_end - timedelta(minutes=2), period_end, period)
 
     assert score_clipped < score_full
 

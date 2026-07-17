@@ -36,6 +36,8 @@ import type {
   MuhurtaMonthBirdSelectionInput,
   MuhurtaMonthResponse,
   MuhurtaSearchResponse,
+  NavamsaChartRequest,
+  NavamsaChart,
 } from "@/lib/api-client";
 
 type Generated = components["schemas"];
@@ -114,4 +116,10 @@ export type _CheckMuhurtaMonthBirdSelectionInput = Expect<
 >;
 export type _CheckMuhurtaMonthResponse = Expect<
   Generated["MuhurtaMonthResponse"] extends MuhurtaMonthResponse ? true : false
+>;
+export type _CheckNavamsaChartRequest = Expect<
+  Equals<NavamsaChartRequest, Generated["NavamsaChartRequest"]>
+>;
+export type _CheckNavamsaChart = Expect<
+  Generated["NavamsaChart"] extends NavamsaChart ? true : false
 >;

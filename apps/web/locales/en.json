@@ -31,6 +31,10 @@
     "compatibility": {
       "title": "Compatibility Tools",
       "description": "Compare Pancha Pakshi birds and screen a candidate wedding start time with the Vivaha Chakra rule."
+    },
+    "divisionalCharts": {
+      "title": "Divisional Charts (Navamsa)",
+      "description": "See your D9 Navamsa chart — planet and Ascendant placements in the ninth-harmonic divisional chart, traditionally consulted alongside the birth chart for marriage and inner-strength analysis."
     }
   },
   "nav": {
@@ -46,7 +50,8 @@
     "panchanga": "Panchanga",
     "moonCalendar": "Moon Calendar",
     "dailyGuide": "Daily Guide",
-    "muhurta": "Muhurta"
+    "muhurta": "Muhurta",
+    "divisionalCharts": "Divisional Charts"
   },
   "enums": {
     "birds": {
@@ -543,6 +548,10 @@
     "compatibility": {
       "title": "Bird Compatibility",
       "description": "Compare two Pancha Pakshi birds with the pinned source-table relationship data."
+    },
+    "divisionalCharts": {
+      "title": "Divisional Charts (Navamsa)",
+      "description": "Calculate your D9 Navamsa chart from birth date, time and location — planet and Ascendant placements in the South Indian grid layout."
     }
   },
   "push": {
@@ -822,5 +831,14 @@
       "wonderful_blessed": "Wonderful pair and blessed"
     },
     "note": "These compatibility tools use named rules from the pinned calculation sources. They do not store birth details or replace expert judgement."
+  },
+  "divisionalCharts": {
+    "title": "Divisional Charts (Navamsa)",
+    "description": "The D9 Navamsa is the most-consulted divisional chart in Vedic astrology, traditionally read alongside the birth (D1) chart for marriage and inner-strength analysis.",
+    "birthDetailsTitle": "Birth details",
+    "calculate": "Calculate Navamsa chart",
+    "chartTitle": "D9 Navamsa Chart",
+    "ascendant": "Ascendant (Lagna)",
+    "layoutNote": "Shown in the South Indian fixed-grid style: each cell always represents the same rashi — only which planets and the Ascendant fall into it changes per chart."
   }
 }

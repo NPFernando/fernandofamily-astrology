@@ -21,6 +21,7 @@ export function Nav() {
     if (id === "moon-calendar") return dict.nav.moonCalendar;
     if (id === "daily-guide") return dict.nav.dailyGuide;
     if (id === "muhurta") return dict.nav.muhurta;
+    if (id === "divisional-charts") return dict.nav.divisionalCharts;
     return fallback;
   };
   const links = [

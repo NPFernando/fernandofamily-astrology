@@ -6,7 +6,16 @@ from app.core.config import settings
 from app.core.logging import access_log_middleware, configure_logging
 from app.core.metrics import metrics_middleware, router as metrics_router
 from app.modules.pancha_pakshi.errors import InvalidInputError, PanchaPakshiInternalError, SunriseUnavailableError
-from app.routes.v1 import birth_nakshatra, compatibility, health, metadata, muhurta, pancha_pakshi, panchanga
+from app.routes.v1 import (
+    birth_nakshatra,
+    compatibility,
+    divisional_charts,
+    health,
+    metadata,
+    muhurta,
+    pancha_pakshi,
+    panchanga,
+)
 
 configure_logging()
 
@@ -34,6 +43,7 @@ app.include_router(health.router)
 app.include_router(metadata.router)
 app.include_router(birth_nakshatra.router)
 app.include_router(compatibility.router)
+app.include_router(divisional_charts.router)
 app.include_router(muhurta.router)
 app.include_router(pancha_pakshi.router)
 app.include_router(panchanga.router)

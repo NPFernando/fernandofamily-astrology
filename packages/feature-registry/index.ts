@@ -93,6 +93,17 @@ export const features: FeatureEntry[] = [
     descriptionKey: "features.compatibility.description",
     icon: "cock",
   },
+  {
+    id: "divisional-charts",
+    enabled: true,
+    public: true,
+    order: 35,
+    route: "/divisional-charts",
+    apiNamespace: "/api/v1/divisional-charts",
+    titleKey: "features.divisionalCharts.title",
+    descriptionKey: "features.divisionalCharts.description",
+    icon: "sun",
+  },
 ];
 
 export function enabledFeatures(): FeatureEntry[] {

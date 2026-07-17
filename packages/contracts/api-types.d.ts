@@ -55,6 +55,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/divisional-charts/navamsa": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Navamsa */
+        post: operations["navamsa_api_v1_divisional_charts_navamsa_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health/live": {
         parameters: {
             query?: never;
@@ -1572,6 +1589,57 @@ export interface components {
             /** Starts At */
             starts_at: string | null;
         };
+        /** NavamsaChart */
+        NavamsaChart: {
+            /** Ascendant Rashi Index */
+            ascendant_rashi_index: number;
+            /** Ascendant Rashi Key */
+            ascendant_rashi_key: string;
+            /**
+             * Birth Date
+             * Format: date
+             */
+            birth_date: string;
+            /**
+             * Birth Time
+             * Format: time
+             */
+            birth_time: string;
+            engine: components["schemas"]["EngineMetadata"];
+            location: components["schemas"]["Location"];
+            /** Placements */
+            placements: components["schemas"]["NavamsaPlacement"][];
+        };
+        /** NavamsaChartRequest */
+        NavamsaChartRequest: {
+            /**
+             * Birth Date
+             * Format: date
+             */
+            birth_date: string;
+            /**
+             * Birth Time
+             * Format: time
+             */
+            birth_time: string;
+            /** Iana Tz */
+            iana_tz: string;
+            /** Latitude */
+            latitude: number;
+            /** Location Name */
+            location_name: string;
+            /** Longitude */
+            longitude: number;
+        };
+        /** NavamsaPlacement */
+        NavamsaPlacement: {
+            /** Key */
+            key: string;
+            /** Rashi Index */
+            rashi_index: number;
+            /** Rashi Key */
+            rashi_key: string;
+        };
         /** NextPoya */
         NextPoya: {
             /**
@@ -1944,6 +2012,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VivahaChakraResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    navamsa_api_v1_divisional_charts_navamsa_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NavamsaChartRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NavamsaChart"];
                 };
             };
             /** @description Validation Error */

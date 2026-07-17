@@ -240,6 +240,35 @@ export type VivahaChakraResponse = {
   moon_nakshatra: { key: string; index: number; pada: number };
 };
 
+// ---------------------------------------------------------------------------
+// Divisional Charts (/api/v1/divisional-charts) — D9 Navamsa. Shapes mirror
+// apps/api/app/modules/divisional_charts/models.py.
+
+export type NavamsaChartRequest = {
+  birth_date: string; // YYYY-MM-DD
+  birth_time: string; // HH:mm:ss
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  iana_tz: string;
+};
+
+export type NavamsaPlacement = {
+  key: string; // repository.GRAHA_KEYS entry, e.g. "sun"
+  rashi_index: number; // 1..12
+  rashi_key: string;
+};
+
+export type NavamsaChart = {
+  engine: EngineMetadata;
+  location: Location;
+  birth_date: string;
+  birth_time: string;
+  ascendant_rashi_index: number;
+  ascendant_rashi_key: string;
+  placements: NavamsaPlacement[]; // 9: Sun..Ketu, GRAHA_KEYS order
+};
+
 // Multi-day auspicious-window search (week view). The request reuses the
 // schedule request shape with target_date as the range start.
 export type WindowsRequest = ScheduleRequest & {
@@ -756,6 +785,19 @@ export function fetchVivahaChakra(
     const data = await r.json().catch(() => null);
     if (!r.ok) throw new ApiError(r.status, data);
     return data as VivahaChakraResponse;
+  });
+  return res;
+}
+
+export function fetchNavamsaChart(body: NavamsaChartRequest): Promise<NavamsaChart> {
+  const res = fetch(`/api/v1/divisional-charts/navamsa`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).then(async (r) => {
+    const data = await r.json().catch(() => null);
+    if (!r.ok) throw new ApiError(r.status, data);
+    return data as NavamsaChart;
   });
   return res;
 }

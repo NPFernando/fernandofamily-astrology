@@ -3120,6 +3120,117 @@
         "title": "NakshatraSpan",
         "type": "object"
       },
+      "NavamsaChart": {
+        "properties": {
+          "ascendant_rashi_index": {
+            "title": "Ascendant Rashi Index",
+            "type": "integer"
+          },
+          "ascendant_rashi_key": {
+            "title": "Ascendant Rashi Key",
+            "type": "string"
+          },
+          "birth_date": {
+            "format": "date",
+            "title": "Birth Date",
+            "type": "string"
+          },
+          "birth_time": {
+            "format": "time",
+            "title": "Birth Time",
+            "type": "string"
+          },
+          "engine": {
+            "$ref": "#/components/schemas/EngineMetadata"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "placements": {
+            "items": {
+              "$ref": "#/components/schemas/NavamsaPlacement"
+            },
+            "title": "Placements",
+            "type": "array"
+          }
+        },
+        "required": [
+          "engine",
+          "location",
+          "birth_date",
+          "birth_time",
+          "ascendant_rashi_index",
+          "ascendant_rashi_key",
+          "placements"
+        ],
+        "title": "NavamsaChart",
+        "type": "object"
+      },
+      "NavamsaChartRequest": {
+        "properties": {
+          "birth_date": {
+            "format": "date",
+            "title": "Birth Date",
+            "type": "string"
+          },
+          "birth_time": {
+            "format": "time",
+            "title": "Birth Time",
+            "type": "string"
+          },
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          }
+        },
+        "required": [
+          "birth_date",
+          "birth_time",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz"
+        ],
+        "title": "NavamsaChartRequest",
+        "type": "object"
+      },
+      "NavamsaPlacement": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "rashi_index": {
+            "title": "Rashi Index",
+            "type": "integer"
+          },
+          "rashi_key": {
+            "title": "Rashi Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "rashi_index",
+          "rashi_key"
+        ],
+        "title": "NavamsaPlacement",
+        "type": "object"
+      },
       "NextPoya": {
         "properties": {
           "date": {
@@ -3940,6 +4051,47 @@
         "summary": "Vivaha Chakra Endpoint",
         "tags": [
           "compatibility"
+        ]
+      }
+    },
+    "/api/v1/divisional-charts/navamsa": {
+      "post": {
+        "operationId": "navamsa_api_v1_divisional_charts_navamsa_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NavamsaChartRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NavamsaChart"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Navamsa",
+        "tags": [
+          "divisional-charts"
         ]
       }
     },

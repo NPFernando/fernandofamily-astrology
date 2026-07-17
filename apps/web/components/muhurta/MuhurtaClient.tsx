@@ -17,6 +17,7 @@ import {
   type MuhurtaSearchRequest,
   type MuhurtaSearchResponse,
   type MuhurtaSource,
+  type MuhurtaCautionInfo,
   type MuhurtaWindow,
   type ScheduleRequest,
 } from "@/lib/api-client";
@@ -36,7 +37,16 @@ import { BIRD_ICONS } from "@/components/icons/birds";
 
 const feature = features.find((f) => f.id === "muhurta")!;
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
-const PURPOSES: MuhurtaPurpose[] = ["general", "travel", "study_work", "purchase", "home_ritual"];
+const PURPOSES: MuhurtaPurpose[] = [
+  "general",
+  "travel",
+  "study_work",
+  "purchase",
+  "home_ritual",
+  "business_opening",
+  "vehicle_purchase",
+  "wedding_engagement",
+];
 const FAMILY_PROFILE_LIMIT = 4;
 const FAMILY_DAY_LIMIT = 7;
 const FAMILY_RESULT_LIMIT = 6;
@@ -224,6 +234,11 @@ function durationText(seconds: number, dict: ReturnType<typeof getDictionary>) {
 
 function sourceLabel(source: MuhurtaSource, dict: ReturnType<typeof getDictionary>) {
   return dict.muhurta.sources[source];
+}
+
+function cautionValue(caution: MuhurtaCautionInfo, dict: ReturnType<typeof getDictionary>): string {
+  if (caution.key === "disha_shool") return translateEnum(dict, "directions", caution.value);
+  return resolveKey(dict, `compatibility.vivahaVerdicts.${caution.value}`);
 }
 
 function sinhalaMonthName(dict: Dictionary, key: string): string {
@@ -1382,9 +1397,12 @@ export function MuhurtaClient() {
           <div className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs">
             {window.cautions.map((caution) => (
               <p key={caution.key}>
-                {dict.muhurta.cautions[caution.key]}: {translateEnum(dict, "directions", caution.value)}
+                {dict.muhurta.cautions[caution.key]}: {cautionValue(caution, dict)}
               </p>
             ))}
+            {window.cautions.some((caution) => caution.key === "vivaha_chakra") ? (
+              <p className="mt-1 opacity-75">{dict.muhurta.weddingAdvisoryNote}</p>
+            ) : null}
           </div>
         ) : null}
       </article>

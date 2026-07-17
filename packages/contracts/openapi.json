@@ -1868,7 +1868,10 @@
               "travel",
               "study_work",
               "purchase",
-              "home_ritual"
+              "home_ritual",
+              "business_opening",
+              "vehicle_purchase",
+              "wedding_engagement"
             ],
             "title": "Purpose",
             "type": "string"
@@ -1956,7 +1959,10 @@
               "travel",
               "study_work",
               "purchase",
-              "home_ritual"
+              "home_ritual",
+              "business_opening",
+              "vehicle_purchase",
+              "wedding_engagement"
             ],
             "title": "Purpose",
             "type": "string"
@@ -1978,7 +1984,10 @@
       "MuhurtaCautionInfo": {
         "properties": {
           "key": {
-            "const": "disha_shool",
+            "enum": [
+              "disha_shool",
+              "vivaha_chakra"
+            ],
             "title": "Key",
             "type": "string"
           },
@@ -2092,7 +2101,10 @@
               "travel",
               "study_work",
               "purchase",
-              "home_ritual"
+              "home_ritual",
+              "business_opening",
+              "vehicle_purchase",
+              "wedding_engagement"
             ],
             "title": "Purpose",
             "type": "string"
@@ -2181,7 +2193,10 @@
               "travel",
               "study_work",
               "purchase",
-              "home_ritual"
+              "home_ritual",
+              "business_opening",
+              "vehicle_purchase",
+              "wedding_engagement"
             ],
             "title": "Purpose",
             "type": "string"
@@ -2364,7 +2379,10 @@
               "travel",
               "study_work",
               "purchase",
-              "home_ritual"
+              "home_ritual",
+              "business_opening",
+              "vehicle_purchase",
+              "wedding_engagement"
             ],
             "title": "Purpose",
             "type": "string"
@@ -2418,7 +2436,10 @@
               "travel",
               "study_work",
               "purchase",
-              "home_ritual"
+              "home_ritual",
+              "business_opening",
+              "vehicle_purchase",
+              "wedding_engagement"
             ],
             "title": "Purpose",
             "type": "string"
@@ -2507,7 +2528,10 @@
               "travel",
               "study_work",
               "purchase",
-              "home_ritual"
+              "home_ritual",
+              "business_opening",
+              "vehicle_purchase",
+              "wedding_engagement"
             ],
             "title": "Purpose",
             "type": "string"
@@ -2559,7 +2583,10 @@
               "travel",
               "study_work",
               "purchase",
-              "home_ritual"
+              "home_ritual",
+              "business_opening",
+              "vehicle_purchase",
+              "wedding_engagement"
             ],
             "title": "Purpose",
             "type": "string"

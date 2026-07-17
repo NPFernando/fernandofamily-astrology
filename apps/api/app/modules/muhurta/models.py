@@ -9,7 +9,16 @@ from app.modules.pancha_pakshi.models import EngineMetadata, Location
 from app.modules.panchanga.models import MoonPhaseKey, PoyaInfo, SinhalaMonth
 
 
-MuhurtaPurpose = Literal["general", "travel", "study_work", "purchase", "home_ritual"]
+MuhurtaPurpose = Literal[
+    "general",
+    "travel",
+    "study_work",
+    "purchase",
+    "home_ritual",
+    "business_opening",
+    "vehicle_purchase",
+    "wedding_engagement",
+]
 MuhurtaGrade = Literal["excellent", "good", "usable"]
 MuhurtaSource = Literal[
     "pancha_pakshi",
@@ -18,7 +27,7 @@ MuhurtaSource = Literal[
     "choghadiya",
     "hora",
 ]
-MuhurtaCaution = Literal["disha_shool"]
+MuhurtaCaution = Literal["disha_shool", "vivaha_chakra"]
 
 
 class MuhurtaSourceOverlap(BaseModel):

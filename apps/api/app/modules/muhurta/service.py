@@ -17,6 +17,8 @@ from app.modules.muhurta.requests import MuhurtaMonthRequest, MuhurtaSearchReque
 from app.modules.pancha_pakshi.enums import ActivityId, EffectId
 from app.modules.pancha_pakshi.models import EngineMetadata, ScheduleResponse, SubPeriod
 from app.modules.pancha_pakshi import service as pancha_service
+from app.modules.pancha_pakshi import validation
+from app.modules.compatibility import service as compatibility_service
 from app.modules.panchanga import service as panchanga_service
 from app.modules.panchanga.models import DailyPanchanga, KalamRange
 from app.modules.panchanga.requests import DailyPanchangaRequest, MonthPanchangaRequest
@@ -33,6 +35,9 @@ _PURPOSE_ACTIVITIES: dict[str, set[ActivityId]] = {
     "study_work": {ActivityId.ruling, ActivityId.eating},
     "purchase": {ActivityId.eating, ActivityId.ruling},
     "home_ritual": {ActivityId.ruling, ActivityId.eating},
+    "business_opening": {ActivityId.ruling, ActivityId.eating},
+    "vehicle_purchase": {ActivityId.eating, ActivityId.ruling, ActivityId.walking},
+    "wedding_engagement": {ActivityId.ruling, ActivityId.eating},
 }
 
 
@@ -181,7 +186,7 @@ def _schedule_for_day(request: MuhurtaSearchRequest | MuhurtaMonthRequest, day: 
 
 
 def _windows_for_day(
-    request: MuhurtaSearchRequest,
+    request: MuhurtaSearchRequest | MuhurtaMonthRequest,
     day: date_type,
     schedule: ScheduleResponse,
     panchanga: DailyPanchanga,
@@ -212,7 +217,7 @@ def _windows_for_day(
                     pancha_pakshi_effect=period.effect,
                     pancha_pakshi_activity=period.sub_activity,
                     reasons=reasons,
-                    cautions=_cautions(request, schedule),
+                    cautions=_cautions(request, schedule, starts_at, engine=panchanga.engine),
                     source_overlaps=overlaps,
                 )
             )
@@ -309,7 +314,25 @@ def _best_grade(windows: list[MuhurtaWindow]) -> str | None:
     return min((w.grade for w in windows), key=lambda grade: _GRADE_RANK[grade])
 
 
-def _cautions(request: MuhurtaSearchRequest, schedule: ScheduleResponse) -> list[MuhurtaCautionInfo]:
-    if request.purpose != "travel":
-        return []
-    return [MuhurtaCautionInfo(key="disha_shool", value=schedule.disha_shool)]
+def _cautions(
+    request: MuhurtaSearchRequest | MuhurtaMonthRequest,
+    schedule: ScheduleResponse,
+    starts_at: datetime,
+    engine: EngineMetadata,
+) -> list[MuhurtaCautionInfo]:
+    cautions: list[MuhurtaCautionInfo] = []
+    if request.purpose in {"travel", "vehicle_purchase"}:
+        cautions.append(MuhurtaCautionInfo(key="disha_shool", value=schedule.disha_shool))
+    if request.purpose == "wedding_engagement":
+        tz = validation.validate_location(request.latitude, request.longitude, request.iana_tz)
+        verdict = compatibility_service.vivaha_chakra(
+            starts_at.date(),
+            starts_at.timetz().replace(tzinfo=None),
+            request.location_name,
+            request.latitude,
+            request.longitude,
+            tz,
+            engine,
+        )
+        cautions.append(MuhurtaCautionInfo(key="vivaha_chakra", value=verdict.verdict_key))
+    return cautions

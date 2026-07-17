@@ -716,7 +716,10 @@
       "travel": "ගමන ආරම්භය",
       "study_work": "ඉගෙනීම හෝ වැඩ",
       "purchase": "මිලදී ගැනීම හෝ අත්සන් කිරීම",
-      "home_ritual": "ගෘහ පූජා කටයුතු"
+      "home_ritual": "ගෘහ පූජා කටයුතු",
+      "business_opening": "ව්‍යාපාර ආරම්භය",
+      "vehicle_purchase": "වාහන මිලදී ගැනීම",
+      "wedding_engagement": "විවාහය හෝ නిశ్చිතාර්ථය"
     },
     "startDate": "ආරම්භ දිනය",
     "searchDays": "සොයන දින ගණන",
@@ -761,6 +764,7 @@
     "monthNoWindows": "මෙම දිනයට ගැළපෙන වේලාවන් නැත.",
     "monthNoWindowsShort": "වේලාවන් නැත",
     "monthUseDate": "මෙම දිනය භාවිත කරන්න",
+    "weddingAdvisoryNote": "මෙය දිනය සහ ආරම්භ වේලාව පමණක් පරීක්ෂා කරයි; දෙදෙනෙකුගේ ගැළපුම හෝ සම්පූර්ණ විවාහ මුහූර්තයක් නොවේ.",
     "grades": {
       "excellent": "ඉතා හොඳයි",
       "good": "හොඳයි",
@@ -774,7 +778,8 @@
       "hora": "හෝරා"
     },
     "cautions": {
-      "disha_shool": "ගමන් දිශා අවවාදය"
+      "disha_shool": "ගමන් දිශා අවවාදය",
+      "vivaha_chakra": "විවාහ චක්‍ර දිනය පරීක්ෂාව"
     }
   },
   "compatibility": {

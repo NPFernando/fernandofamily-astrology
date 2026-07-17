@@ -50,6 +50,9 @@ for (const locale of ["en", "si"] as const) {
     const watcher = watchForBirthDataInUrls(page);
     await openMuhurta(page, locale);
     await expect(page.locator('[data-testid="muhurta-controls"]')).toBeVisible();
+    await expect(page.getByRole("button", { name: DICTS[locale].muhurta.purposes.business_opening })).toBeVisible();
+    await expect(page.getByRole("button", { name: DICTS[locale].muhurta.purposes.vehicle_purchase })).toBeVisible();
+    await expect(page.getByRole("button", { name: DICTS[locale].muhurta.purposes.wedding_engagement })).toBeVisible();
     await expect(page.locator('[data-testid="muhurta-day-summary"]')).toBeVisible();
     await expect(page.locator('[data-testid="muhurta-windows"]')).toBeVisible();
     await expect(page.locator('[data-testid="muhurta-source-overlaps"]').first()).toBeVisible();
@@ -62,6 +65,16 @@ test("muhurta: travel purpose shows direction caution", async ({ page }) => {
   await openMuhurta(page, "en");
   await page.getByRole("button", { name: DICTS.en.muhurta.purposes.travel }).click();
   await expect(page.getByText(DICTS.en.muhurta.cautions.disha_shool).first()).toBeVisible({ timeout: 20_000 });
+});
+
+test("muhurta: event presets show purpose-specific advisories", async ({ page }) => {
+  await openMuhurta(page, "en");
+  await page.getByRole("button", { name: DICTS.en.muhurta.purposes.wedding_engagement }).click();
+  await expect(page.getByText(DICTS.en.muhurta.cautions.vivaha_chakra).first()).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText(DICTS.en.muhurta.weddingAdvisoryNote).first()).toBeVisible();
+
+  await page.getByRole("button", { name: DICTS.en.muhurta.purposes.vehicle_purchase }).click();
+  await expect(page.getByText(DICTS.en.muhurta.cautions.disha_shool).first()).toBeVisible({ timeout: 30_000 });
 });
 
 test("@mobile muhurta keeps layout within 360px", async ({ page }) => {
@@ -102,6 +115,7 @@ test("muhurta: family comparison shows an empty saved-profile state", async ({ p
 test("muhurta: month view highlights July 2026 Poya and opens the selected date", async ({ page }) => {
   const watcher = watchForBirthDataInUrls(page);
   await openMuhurta(page, "en");
+  await page.getByRole("button", { name: DICTS.en.muhurta.purposes.business_opening }).click();
   await page.getByRole("button", { name: DICTS.en.muhurta.viewMonth }).click();
   const panel = page.locator('[data-testid="muhurta-month-panel"]');
   await expect(panel).toBeVisible();

@@ -1054,7 +1054,7 @@ export interface components {
              * @default general
              * @enum {string}
              */
-            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual";
+            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual" | "business_opening" | "vehicle_purchase" | "wedding_engagement";
         };
         /** MuhurtaBirthDateTimeInput */
         MuhurtaBirthDateTimeInput: {
@@ -1107,15 +1107,15 @@ export interface components {
              * @default general
              * @enum {string}
              */
-            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual";
+            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual" | "business_opening" | "vehicle_purchase" | "wedding_engagement";
         };
         /** MuhurtaCautionInfo */
         MuhurtaCautionInfo: {
             /**
              * Key
-             * @constant
+             * @enum {string}
              */
-            key: "disha_shool";
+            key: "disha_shool" | "vivaha_chakra";
             /** Value */
             value: string;
         };
@@ -1167,7 +1167,7 @@ export interface components {
              * @default general
              * @enum {string}
              */
-            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual";
+            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual" | "business_opening" | "vehicle_purchase" | "wedding_engagement";
             /** Year */
             year: number;
         };
@@ -1214,7 +1214,7 @@ export interface components {
              * @default general
              * @enum {string}
              */
-            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual";
+            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual" | "business_opening" | "vehicle_purchase" | "wedding_engagement";
             /** Year */
             year: number;
         };
@@ -1281,7 +1281,7 @@ export interface components {
              * @default general
              * @enum {string}
              */
-            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual";
+            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual" | "business_opening" | "vehicle_purchase" | "wedding_engagement";
             /** Year */
             year: number;
         };
@@ -1298,7 +1298,7 @@ export interface components {
              * Purpose
              * @enum {string}
              */
-            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual";
+            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual" | "business_opening" | "vehicle_purchase" | "wedding_engagement";
             /** Year */
             year: number;
         };
@@ -1346,7 +1346,7 @@ export interface components {
              * @default general
              * @enum {string}
              */
-            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual";
+            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual" | "business_opening" | "vehicle_purchase" | "wedding_engagement";
         };
         /** MuhurtaSearchResponse */
         MuhurtaSearchResponse: {
@@ -1366,7 +1366,7 @@ export interface components {
              * Purpose
              * @enum {string}
              */
-            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual";
+            purpose: "general" | "travel" | "study_work" | "purchase" | "home_ritual" | "business_opening" | "vehicle_purchase" | "wedding_engagement";
             /** Windows */
             windows: components["schemas"]["MuhurtaWindow"][];
         };

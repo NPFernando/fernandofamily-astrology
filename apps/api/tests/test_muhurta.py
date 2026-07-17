@@ -128,6 +128,43 @@ def test_muhurta_purchase_purpose_filters_to_purchase_activities():
     assert {w["pancha_pakshi_activity"] for w in body["windows"]} <= {"eating", "ruling"}
 
 
+def test_muhurta_business_opening_filters_to_business_activities():
+    body = _search(purpose="business_opening", days=2)
+    assert body["windows"]
+    assert {w["pancha_pakshi_activity"] for w in body["windows"]} <= {"eating", "ruling"}
+
+
+def test_muhurta_vehicle_purchase_allows_travel_activity_and_direction_caution():
+    body = _search(purpose="vehicle_purchase", days=2)
+    assert body["windows"]
+    assert {w["pancha_pakshi_activity"] for w in body["windows"]} <= {"eating", "ruling", "walking"}
+    assert any(c["key"] == "disha_shool" and c["value"] for c in body["windows"][0]["cautions"])
+
+
+def test_muhurta_wedding_engagement_adds_vivaha_chakra_advisory():
+    body = _search(purpose="wedding_engagement", days=2)
+    assert body["windows"]
+    advisory = next(c for c in body["windows"][0]["cautions"] if c["key"] == "vivaha_chakra")
+    assert advisory["value"] in {
+        "family_damage",
+        "wealthy_blessed",
+        "bride_family_damage",
+        "poverty_cursed",
+        "gainful_beneficial",
+        "reputation_loss",
+        "bride_devastating",
+        "successful",
+        "wonderful_blessed",
+    }
+
+
+def test_muhurta_month_accepts_new_event_presets():
+    for purpose in ("business_opening", "vehicle_purchase", "wedding_engagement"):
+        body = _month(purpose=purpose)
+        assert body["purpose"] == purpose
+        assert len(body["days"]) == 31
+
+
 def test_muhurta_travel_adds_disha_shool_caution():
     body = _search(purpose="travel", days=1)
     assert body["windows"]

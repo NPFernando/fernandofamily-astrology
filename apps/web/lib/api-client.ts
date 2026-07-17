@@ -438,10 +438,18 @@ export type EclipseForecast = {
   next_lunar: LunarEclipseEvent;
 };
 
-export type MuhurtaPurpose = "general" | "travel" | "study_work" | "purchase" | "home_ritual";
+export type MuhurtaPurpose =
+  | "general"
+  | "travel"
+  | "study_work"
+  | "purchase"
+  | "home_ritual"
+  | "business_opening"
+  | "vehicle_purchase"
+  | "wedding_engagement";
 export type MuhurtaGrade = "excellent" | "good" | "usable";
 export type MuhurtaSource = "pancha_pakshi" | "amrit_kaalam" | "abhijit_muhurta" | "choghadiya" | "hora";
-export type MuhurtaCaution = "disha_shool";
+export type MuhurtaCaution = "disha_shool" | "vivaha_chakra";
 
 type MuhurtaSearchBase = {
   from_date: string;

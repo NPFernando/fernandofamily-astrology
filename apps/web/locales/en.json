@@ -716,7 +716,10 @@
       "travel": "Travel start",
       "study_work": "Study or work",
       "purchase": "Purchase or signing",
-      "home_ritual": "Home ritual"
+      "home_ritual": "Home ritual",
+      "business_opening": "Business opening",
+      "vehicle_purchase": "Vehicle purchase",
+      "wedding_engagement": "Wedding or engagement"
     },
     "startDate": "Start date",
     "searchDays": "Days to search",
@@ -761,6 +764,7 @@
     "monthNoWindows": "No matching windows for this day.",
     "monthNoWindowsShort": "No windows",
     "monthUseDate": "Use this date",
+    "weddingAdvisoryNote": "This is a date and start-time screen only, not two-person matching or a full marriage Muhurta.",
     "grades": {
       "excellent": "Excellent",
       "good": "Good",
@@ -774,7 +778,8 @@
       "hora": "Hora"
     },
     "cautions": {
-      "disha_shool": "Travel-direction caution"
+      "disha_shool": "Travel-direction caution",
+      "vivaha_chakra": "Vivaha Chakra date screen"
     }
   },
   "compatibility": {

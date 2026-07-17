@@ -28,6 +28,10 @@ import type {
   VivahaChakraResponse,
   MonthPanchangaRequest,
   MonthPanchanga,
+  MuhurtaBirthDateTimeInput,
+  MuhurtaNakshatraPakshaInput,
+  MuhurtaBirdSelectionInput,
+  MuhurtaSearchResponse,
 } from "@/lib/api-client";
 
 type Generated = components["schemas"];
@@ -82,4 +86,16 @@ export type _CheckMonthPanchangaRequest = Expect<
 >;
 export type _CheckMonthPanchanga = Expect<
   Generated["MonthPanchanga"] extends MonthPanchanga ? true : false
+>;
+export type _CheckMuhurtaBirthDateTimeInput = Expect<
+  Equals<MuhurtaBirthDateTimeInput, Generated["MuhurtaBirthDateTimeInput"]>
+>;
+export type _CheckMuhurtaNakshatraPakshaInput = Expect<
+  Equals<MuhurtaNakshatraPakshaInput, Generated["MuhurtaNakshatraPakshaInput"]>
+>;
+export type _CheckMuhurtaBirdSelectionInput = Expect<
+  Equals<MuhurtaBirdSelectionInput, Generated["MuhurtaBirdSelectionInput"]>
+>;
+export type _CheckMuhurtaSearchResponse = Expect<
+  Generated["MuhurtaSearchResponse"] extends MuhurtaSearchResponse ? true : false
 >;

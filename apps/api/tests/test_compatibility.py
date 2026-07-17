@@ -63,7 +63,13 @@ def test_vivaha_chakra_colombo_fixture():
     assert data["verdict_key"] == "wealthy_blessed"
     assert data["tone"] == "supportive"
     assert data["sun_nakshatra"] == {"key": "punarvasu", "index": 7, "pada": 4}
-    assert data["moon_nakshatra"] == {"key": "magha", "index": 10, "pada": 4}
+    # pada 3, not 4 — this fixture was captured against a since-fixed bug
+    # (vivaha_chakra() passed local-embedded jd straight into
+    # sidereal_longitude() instead of converting to UT first). Independently
+    # cross-checked via nakshatra-span arithmetic on the Moon's sidereal
+    # longitude at this exact moment: 127.755 degrees -> nakshatra 10 (magha),
+    # pada 3.
+    assert data["moon_nakshatra"] == {"key": "magha", "index": 10, "pada": 3}
     assert data["location"]["utc_offset_minutes"] == 330
 
 
@@ -80,6 +86,40 @@ def test_vivaha_chakra_invalid_payload_rejected():
         },
     )
     assert res.status_code == 422
+
+
+def test_vivaha_chakra_matches_ut_corrected_verdict_not_local_jd_bug():
+    # Regression test for the vendored-engine UT-conversion bug found during
+    # code review: drik.vivaha_chakra_palan() computes jd_utc but never uses
+    # it, passing local-embedded jd straight into sidereal_longitude()
+    # instead. Since Sri Lanka's offset is constant (+5:30) across every
+    # request this app makes, this was a systematic bias, not an edge case —
+    # confirmed via direct reproduction that ~10% of sampled dates produced a
+    # completely different (sometimes opposite-polarity) verdict. These two
+    # real dates flip between "family_damage"/caution and
+    # "wonderful_blessed"/supportive depending on whether the UT conversion
+    # is applied; assert the app returns the astronomically correct one.
+    colombo = {
+        "location_name": "Colombo",
+        "latitude": 6.9271,
+        "longitude": 79.8612,
+        "iana_tz": "Asia/Colombo",
+    }
+    res_a = client.post(
+        "/api/v1/compatibility/vivaha-chakra",
+        json={"date": "2026-01-20", "time": "12:00:00", **colombo},
+    )
+    assert res_a.status_code == 200
+    assert res_a.json()["verdict_key"] == "family_damage"
+    assert res_a.json()["tone"] == "caution"
+
+    res_b = client.post(
+        "/api/v1/compatibility/vivaha-chakra",
+        json={"date": "2026-04-16", "time": "12:00:00", **colombo},
+    )
+    assert res_b.status_code == 200
+    assert res_b.json()["verdict_key"] == "wonderful_blessed"
+    assert res_b.json()["tone"] == "supportive"
 
 
 def test_platform_metadata_lists_compatibility():

@@ -11,6 +11,7 @@ import { SunIcon } from "@/components/icons/sun";
 import { FullMoonIcon } from "@/components/icons/moon";
 import { loadAccountPreferences } from "@/lib/account-preferences";
 import { SkyTodayPanel } from "@/components/panchanga/SkyTodayPanel";
+import { DailyTimingTimeline } from "@/components/panchanga/DailyTimingTimeline";
 import { EFFECT_COLORS } from "@fernandofamily/design-system";
 
 // Sinhala Poya-cycle month names (bak, vesak, ... madin) live under
@@ -216,6 +217,8 @@ export function PanchangaClient() {
           </p>
 
           <SkyTodayPanel panchanga={data} testId="panchanga-sky-today" />
+
+          <DailyTimingTimeline panchanga={data} compact testId="panchanga-timing-timeline" />
 
           <section
             aria-label={dict.panchanga.title}

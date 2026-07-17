@@ -40,6 +40,7 @@ import { SunIcon } from "@/components/icons/sun";
 import { FullMoonIcon } from "@/components/icons/moon";
 import { activityGuidance } from "@/lib/pancha-guidance";
 import { SkyTodayPanel } from "@/components/panchanga/SkyTodayPanel";
+import { DailyTimingTimeline } from "@/components/panchanga/DailyTimingTimeline";
 import { EFFECT_COLORS } from "@fernandofamily/design-system";
 
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
@@ -529,6 +530,13 @@ export function DailyGuideClient() {
               </div>
             </div>
           </section>
+
+          <DailyTimingTimeline
+            panchanga={data.panchanga}
+            schedule={data.schedule}
+            referenceAt={data.referenceAt}
+            testId="daily-guide-timing-timeline"
+          />
 
           {location && (
             <FamilyDayBoard

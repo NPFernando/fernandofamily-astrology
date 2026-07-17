@@ -30,6 +30,8 @@ for (const locale of ["en", "si"] as const) {
     const dict = DICTS[locale];
 
     await expect(page.locator('[data-testid="daily-guide-summary"]')).toBeVisible();
+    await expect(page.locator('[data-testid="daily-guide-timing-timeline"]')).toBeVisible();
+    await expect(page.locator('[data-testid="daily-guide-timing-timeline-strip"]')).toBeVisible();
     await expect(page.locator('[data-testid="daily-guide-family-board"]')).toBeVisible();
     await expect(page.locator('[data-testid="daily-guide-current"]')).toBeVisible();
     await expect(page.locator('[data-testid="daily-guide-good-windows"]')).toBeVisible();
@@ -44,6 +46,7 @@ for (const locale of ["en", "si"] as const) {
     await expect(page.getByText(dict.panchanga.abhijitMuhurtaTitle)).toBeVisible();
     await expect(page.getByText(dict.panchanga.durmuhurtamTitle).first()).toBeVisible();
     await expect(page.getByText(dict.panchanga.nakshatra).first()).toBeVisible();
+    await expect(page.getByText(dict.dailyGuide.timeline.title)).toBeVisible();
     watcher.assertClean();
   });
 }
@@ -144,6 +147,7 @@ test("daily guide: changing bird refreshes the guide identity", async ({ page })
 test("@mobile daily guide keeps cards within 360px", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 740 });
   await openDailyGuide(page, "si");
+  await expect(page.locator('[data-testid="daily-guide-timing-timeline-cards"]')).toBeVisible();
   const hasHScroll = await page.evaluate(() => document.body.scrollWidth > window.innerWidth + 5);
   expect(hasHScroll).toBe(false);
 });

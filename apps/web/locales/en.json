@@ -685,7 +685,20 @@
     "currentChoghadiya": "Current Choghadiya",
     "nextChoghadiya": "Next Choghadiya",
     "currentHora": "Current Hora",
-    "nextHora": "Next Hora"
+    "nextHora": "Next Hora",
+    "timeline": {
+      "title": "Daily timing timeline",
+      "description": "A quick day strip for avoid times, supportive Muhurta layers and personal Pancha Pakshi windows.",
+      "avoidRow": "Avoid",
+      "supportRow": "Support",
+      "personalRow": "Personal",
+      "noPersonalWindows": "No favourable personal windows for the selected bird.",
+      "personalUnavailable": "Select a bird or profile to see personal Pancha Pakshi windows.",
+      "now": "Now",
+      "legendAvoid": "Avoid: Rahu, Yamaganda, Gulika, Durmuhurtham",
+      "legendSupport": "Support: Amrit and Abhijit",
+      "legendPersonal": "Personal: favourable Pancha Pakshi"
+    }
   },
   "muhurta": {
     "title": "Favourable Time Finder",

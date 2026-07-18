@@ -87,9 +87,15 @@
   case (Chitra's vedha partner is disputed across sources; resolved as
   "no partner") rather than a recall guess. Rajju was researched and found
   to have real cross-source disagreement on nakshatra groupings — deferred
-  pending a single pinned reference. Mahendra, Sthree-Dheerga and the
-  extended ~10 traditional categories are deliberately not built yet
-  either — each needs a specific, pinned reference first.
+  pending a single pinned reference. Mahendra and Sthree-Dheerga were also
+  researched and found blocked the same way: Mahendra's counting rule is
+  consistent across sources but no source supplies a reproducible worked
+  example; Sthree-Dheerga's sources disagree on the threshold itself
+  (15 / 13 / 7, depending on source). All three remaining core categories
+  now share one blocker — no pinnable source with a worked example —
+  so Porondam is paused at 7/10 until one turns up. The extended ~10
+  traditional categories are deliberately not built yet either — each
+  needs a specific, pinned reference first.
 
 - Sri Lankan layer for the Daily Panchanga: Poya (full-moon) day detection
   and Sinhala Poya-cycle month names (bak, vesak, poson, … madin, with

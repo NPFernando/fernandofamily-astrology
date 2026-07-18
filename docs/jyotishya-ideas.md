@@ -347,9 +347,17 @@ of this verdict still holds). Vedha's table needed a deliberate resolution
 of one disputed nakshatra (Chitra — see `repository.py`), not a recall
 guess. Rajju was specifically checked against 4 independent sources and
 found to have real, substantive disagreement on nakshatra groupings (not
-a formatting quirk) — still deferred. Mahendra and Sthree-Dheerga remain
-un-built for the same reason this verdict originally gave: no specific,
-pinned reference yet, not built from recall alone.
+a formatting quirk) — still deferred. Mahendra and Sthree-Dheerga were
+then researched too, and found blocked the same way: Mahendra's counting
+rule (bride's star to groom's star, match at position 4/7/10/13/16/19/
+22/25) is stated consistently across every source checked, but none
+supplies a reproducible worked example — a named nakshatra pair with a
+stated pass/fail — needed to confirm inclusive/exclusive counting and
+direction; Sthree-Dheerga's sources actively disagree on the threshold
+itself (variously "exceeds 15", "13", or "7" depending on source). All
+three remaining core categories (Rajju, Mahendra, Sthree-Dheerga) now
+share one blocker — no pinnable source with a worked example — so
+Porondam is paused at 7/10 core categories until one turns up.
 
 Real two-person nakshatra-matching (Gana, Tara, Yoni, Rasi, Rajju koota
 scoring) is a natural extension of Bird Compatibility, and `const.py` even

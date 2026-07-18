@@ -365,19 +365,34 @@ research, not a scheduled feature.
 ## E. Explicitly not recommended
 
 ### E1. Vimshottari/other Dasha calculators
-The project's own roadmap lists "Dasha calculations" as an unscheduled
-future module, and `const.py` does carry extensive dasha *constants*
-(`vimsottari_adhipati_list`, `human_life_span_for_vimsottari_dhasa`,
-Ashtottari/Narayana/Kalachakra duration tables, `const.py:274`–`586`). But
-the actual dasha **computation module** (`horoscope/dhasa/*.py` upstream) is
-not vendored at all — and critically, unlike the vratha/eclipse modules,
-it isn't even listed in `FUTURE_DATA_USES.md`'s "known, excluded, re-vendor
-when needed" table. It wasn't part of the deliberate trim decision; pulling
-it in means fresh upstream research beyond the documented safe process. Do
-not attempt to reimplement dasha period math from the constants alone —
-that's exactly the "inventing tradition without vendored ground truth" this
-project's honesty bar exists to prevent. Re-vendor the real module and
-golden-test it first, or don't ship it.
+
+**Status: the original blocker here is resolved.** This verdict was
+written when the dasha computation module wasn't vendored at all. As of
+commit `1fe849e`, the Vimshottari subset of `jhora/horoscope/` (9 files —
+`chart/{house,sphuta,charts}.py`, `dhasa/graha/{vimsottari,shastihayani}.py`,
+plus package `__init__.py`s) is vendored, checksummed, and golden-tested:
+`apps/api/tests/test_vendor_dasha_engine.py` reproduces an upstream
+textbook worked example exactly under this app's own pinned LAHIRI
+ayanamsa. **The application module itself (`app/modules/dasha/`, API
+route, feature-registry entry, frontend, locale strings) is still not
+built** — that's the roadmap's next step for this feature, not yet
+scheduled.
+
+The original caution below remains valid for whoever builds that module
+and is worth keeping: do not attempt to reimplement dasha period math
+from `const.py`'s standalone constants (`vimsottari_adhipati_list`,
+`human_life_span_for_vimsottari_dhasa`, etc.) instead of calling the
+now-vendored real module — that's exactly the "inventing tradition
+without vendored ground truth" this project's honesty bar exists to
+prevent. The real module is vendored and golden-tested now, so this
+caution should never actually bite in practice, but it explains why the
+constants were deliberately left unused for 3+ shipped modules until the
+real computation module was vendored.
+
+Other named dasha systems (Ashtottari, Yogini, Kalachakra, Narayana,
+Chara, ~25 more upstream) remain unvendored and out of scope until
+individually justified — this vendoring pass only pulled in the
+Vimshottari-specific closure, not the rest of `horoscope/dhasa/`.
 
 ### E2. Ashtakoot / Guna-Milan two-person marriage-score matching
 
@@ -459,7 +474,7 @@ that as a settled default.
 | D1 | Divisional charts (Navamsa + D1 Rasi birth chart) (shipped) | New module | Yes | L |
 | D2 | Fixed-star precision | New module (exploratory) | Data path unvendored; call proven | L (soft) |
 | D3 | Porondam — Sri Lankan wedding matching (shipped, 7/10 core) | New module | Yes, hand-transcribed classical tables | L |
-| E1 | Dasha calculators | Not recommended yet | No — module not vendored | — |
+| E1 | Dasha calculators | Engine vendored (`1fe849e`), module not yet built | Yes — Vimshottari subset golden-tested | M |
 | E2 | Ashtakoot marriage score (partially superseded by Porondam) | Not recommended | No — constants only, no algorithm | — |
 | E3 | Avurudu Nekath | Not recommended | No — no computable dataset | — |
 | E4 | Generic horoscope text | Not recommended | N/A — no rule to cite | — |

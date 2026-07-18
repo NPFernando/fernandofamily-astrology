@@ -96,3 +96,36 @@ def test_running_dhasa_for_birth_date_is_active_at_birth():
         jd, jd, place, dhasa_level_index=const.MAHA_DHASA_DEPTH.MAHA_DHASA_ONLY
     )
     assert running[0][0][0] == dashas[0][0][0]
+
+
+def test_antardasha_depth_nests_correctly_under_each_mahadasha():
+    """Smoke coverage at ANTARA depth (the function's own default, and the
+    sub-period nesting Phase 2's actual dasha-timeline feature depends on)
+    -- every other test here only exercises MAHA_DHASA_ONLY."""
+    configure_ayanamsa(drik)
+    jd, place = _textbook_birth()
+
+    _vim_balance, dashas = vimsottari.get_vimsottari_dhasa_bhukthi(
+        jd, place, dhasa_level_index=const.MAHA_DHASA_DEPTH.ANTARA
+    )
+    # 9 Mahadasha lords x 9 Antardasha lords each.
+    assert len(dashas) == 81
+
+    maha_lords_seen = []
+    for (maha_lord, _antara_lord), _start, _duration in dashas:
+        if not maha_lords_seen or maha_lords_seen[-1] != maha_lord:
+            maha_lords_seen.append(maha_lord)
+    assert len(maha_lords_seen) == 9
+    assert set(maha_lords_seen) == set(range(9))
+
+    def _to_jd(start_tuple):
+        y, m, d, fh = start_tuple
+        return utils.julian_day_number(drik.Date(y, m, d), (fh, 0, 0))
+
+    start_jds = [_to_jd(start) for _lords, start, _duration in dashas]
+    assert start_jds == sorted(start_jds)  # strictly chronological
+    # The birth moment falls inside the first Mahadasha's full span (9
+    # Antardashas' worth of duration) -- that lord's dasha started before
+    # birth ("balance") and runs past it.
+    first_maha_total_years = sum(duration for _lords, _start, duration in dashas[:9])
+    assert start_jds[0] <= jd < start_jds[0] + first_maha_total_years * 365.25

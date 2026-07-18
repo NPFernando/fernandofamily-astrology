@@ -153,7 +153,9 @@ they are actually built, registered in the feature registry
 **Larger future modules** (same registry pattern; unscheduled): birth chart
 extensions (asteroid + fixed-star overlays — retained data for these is in
 the repo, see `FUTURE_DATA_USES.md`; basic D1 Rasi chart itself has shipped),
-festival calendar, Dasha calculations, and historical/ancestor chart tools
+festival calendar, Dasha calculations (Vimshottari engine now vendored
+and golden-tested, application module itself still unbuilt — see
+`docs/jyotishya-ideas.md` E1), and historical/ancestor chart tools
 (the BCE–medieval ephemeris the image trims away remains available for
 exactly this).
 

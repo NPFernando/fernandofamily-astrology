@@ -31,14 +31,41 @@ From `src/jhora/` at the pinned commit:
   English-language files are vendored; the calculation code path used by
   this project never calls `set_language()` or reads translated strings —
   these two files exist purely to satisfy that import-time load.
+- `horoscope/__init__.py`, `horoscope/chart/__init__.py`,
+  `horoscope/chart/house.py`, `horoscope/chart/sphuta.py`,
+  `horoscope/chart/charts.py`, `horoscope/dhasa/__init__.py`,
+  `horoscope/dhasa/graha/__init__.py`,
+  `horoscope/dhasa/graha/shastihayani.py`,
+  `horoscope/dhasa/graha/vimsottari.py` — the trimmed subset of
+  `jhora/horoscope/` needed for Vimshottari Dasha
+  (`get_vimsottari_dhasa_bhukthi`, `get_running_dhasa_for_given_date`),
+  traced empirically by reconstructing the tree and calling both
+  functions under this project's venv, including a deliberate
+  `ImportError` boundary test. `house.py`/`sphuta.py`/`charts.py` are
+  pulled in as `charts.py`'s own unconditional dependencies, not by
+  choice — `sphuta` in particular is imported unconditionally inside
+  `charts.get_chart_element_longitude` even though its functions are
+  only called for non-default `dhasa_starting_planet` values.
+  `dhasa/graha/__init__.py` is vendored as the real upstream file
+  (not an empty stub, to preserve this project's byte-identical
+  checksummed-manifest discipline for every vendored file), which is
+  why `shastihayani.py` is present too — it's an eager import inside
+  that `__init__.py`, not a Vimshottari dependency itself. Confirmed
+  zero PyQt6/pyqtgraph/tkinter/matplotlib imports anywhere in this
+  closure; `jhora/horoscope/main.py` (PyQt UI, ~1800 lines) is never
+  transitively imported and stays fully excluded.
 
-Not vendored: `jhora/horoscope/`, `jhora/ui/` (PyQt-dependent, never imported
-by our call path), other `panchanga/*.py` siblings (`drik1.py`, `eclipse.py`,
-`hijri.py`, `khanda_khaadyaka.py`, `surya_sidhantha.py`, `vratha.py` — not
-imported by `drik.py`/`pancha_paksha.py`), the geonames place-lookup database
-and marriage-compatibility spreadsheet under `data/` (only used by
-`place_db.py`'s UI/horoscope features, not by sunrise/Pancha-Pakshi
-calculations), and all non-English `lang/` files.
+Not vendored: the rest of `jhora/horoscope/` (`main.py`,
+`chart/arudhas.py` — only needed for Arudha Lagna dhasa, which nothing
+calls yet — `dhasa/raasi/*`, `transit/`, `match/`, `prediction/`, etc.),
+`jhora/ui/` (PyQt-dependent, never imported by our call path), other
+`panchanga/*.py` siblings (`drik1.py`, `eclipse.py`, `hijri.py`,
+`khanda_khaadyaka.py`, `surya_sidhantha.py`, `vratha.py` — not imported
+by `drik.py`/`pancha_paksha.py`/the vendored `horoscope/` subset), the
+geonames place-lookup database and marriage-compatibility spreadsheet
+under `data/` (only used by `place_db.py`'s UI/horoscope features, not
+by sunrise/Pancha-Pakshi/Dasha calculations), and all non-English
+`lang/` files.
 
 ## Runtime dependencies
 

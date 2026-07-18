@@ -1,4 +1,4 @@
-"""Pure classification logic for the 6 shipped Porondama — no ephemeris
+"""Pure classification logic for the 7 shipped Porondama — no ephemeris
 calls here; all inputs are the birth nakshatra (1..27) and rashi (1..12)
 this app already resolves correctly elsewhere (birth_nakshatra module,
 Tara Bala, divisional charts)."""
@@ -69,6 +69,10 @@ def compute_vashya_porondam(rashi_a: int, rashi_b: int) -> PorondamMatch:
     return PorondamMatch(key="vashya", passed=repository.vashya_compatible(vashya_a, vashya_b))
 
 
+def compute_vedha_porondam(nakshatra_a: int, nakshatra_b: int) -> PorondamMatch:
+    return PorondamMatch(key="vedha", passed=repository.vedha_compatible(nakshatra_a, nakshatra_b))
+
+
 def resolve_party(
     birth_date: date_type,
     birth_time: time_type,
@@ -111,6 +115,7 @@ def compute_porondam(nakshatra_a: int, rashi_a: int, nakshatra_b: int, rashi_b: 
         compute_rashi_porondam(rashi_a, rashi_b),
         compute_rashyadpathi_porondam(rashi_a, rashi_b),
         compute_vashya_porondam(rashi_a, rashi_b),
+        compute_vedha_porondam(nakshatra_a, nakshatra_b),
     ]
     passed_count = sum(1 for m in matches if m.passed)
     return PorondamResult(matches=matches, passed_count=passed_count, checked_count=len(matches))

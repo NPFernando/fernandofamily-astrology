@@ -1,4 +1,4 @@
-"""Classification tables for the 6 Porondama this app ships.
+"""Classification tables for the 7 Porondama this app ships.
 
 These are the classical, cross-tradition Ashtakoot / Tamil Thirumana
 Porutham tables (widely published, not specific to any single vendored
@@ -126,3 +126,36 @@ def vashya_compatible(vashya_a: int, vashya_b: int) -> bool:
     specific conditions); this is a deliberate simplification, not a
     complete rendering of the traditional rule."""
     return vashya_a == vashya_b
+
+
+# --- Vedha Porondama: 27 nakshatras -> fixed obstruction pairs --------------
+# 12 pairs (24 nakshatras) independently confirmed identical across two
+# separate classical references; Mrigashirsha(5)-Dhanishtha(23) is also
+# confirmed by both as vedha to each other, bringing the count to 13 pairs
+# (26 nakshatras). Chitra(14) is the one documented edge case: one source
+# places it in a three-way mutual vedha with Mrigashirsha/Dhanishtha, the
+# other says Chitra has no vedha partner at all in traditions that don't
+# use the extra 28th nakshatra "Abhijit" (which this app's 27-nakshatra
+# system doesn't use anywhere else) — resolved here as no-partner, a
+# deliberate choice given the disagreement, not a recall guess.
+VEDHA_PAIRS: frozenset[frozenset[int]] = frozenset(
+    {
+        frozenset({1, 18}),   # Ashwini <-> Jyeshtha
+        frozenset({2, 17}),   # Bharani <-> Anuradha
+        frozenset({3, 16}),   # Krittika <-> Vishakha
+        frozenset({4, 15}),   # Rohini <-> Swati
+        frozenset({5, 23}),   # Mrigashirsha <-> Dhanishtha
+        frozenset({6, 22}),   # Ardra <-> Shravana
+        frozenset({7, 21}),   # Punarvasu <-> Uttara Ashadha
+        frozenset({8, 20}),   # Pushya <-> Purva Ashadha
+        frozenset({9, 19}),   # Ashlesha <-> Mula
+        frozenset({10, 27}),  # Magha <-> Revati
+        frozenset({11, 26}),  # Purva Phalguni <-> Uttara Bhadrapada
+        frozenset({12, 25}),  # Uttara Phalguni <-> Purva Bhadrapada
+        frozenset({13, 24}),  # Hasta <-> Shatabhisha
+    }
+)
+
+
+def vedha_compatible(nakshatra_a: int, nakshatra_b: int) -> bool:
+    return frozenset({nakshatra_a, nakshatra_b}) not in VEDHA_PAIRS

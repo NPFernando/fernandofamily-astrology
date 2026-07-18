@@ -78,14 +78,18 @@
   Calculation correctness is independently re-derived and verified; whether
   Sri Lankan practitioners specifically use D9 charts (vs. this being
   general cross-tradition Vedic astrology) is not separately established.
-- Porondam — Sri Lankan wedding horoscope matching. Ships 6 of the
+- Porondam — Sri Lankan wedding horoscope matching. Ships 7 of the
   traditional 10-12 core Porondama (Nakshatra, Gana, Yoni, Rashi,
-  Rashyadpathi, Vashya) using standard, cross-tradition (Ashtakoot / Tamil
-  Thirumana Porutham) tables — not independently verified against a
+  Rashyadpathi, Vashya, Vedha) using standard, cross-tradition (Ashtakoot /
+  Tamil Thirumana Porutham) tables — not independently verified against a
   specific Sri Lankan source the way Poya/ayanamsa are (`/porondam`,
-  `POST /api/v1/porondam/match`). Rajju, Vedha, Mahendra, Sthree-Dheerga and
-  the extended ~10 traditional categories are deliberately not built yet —
-  each needs a specific, pinned reference first.
+  `POST /api/v1/porondam/match`). Vedha's table has one documented edge
+  case (Chitra's vedha partner is disputed across sources; resolved as
+  "no partner") rather than a recall guess. Rajju was researched and found
+  to have real cross-source disagreement on nakshatra groupings — deferred
+  pending a single pinned reference. Mahendra, Sthree-Dheerga and the
+  extended ~10 traditional categories are deliberately not built yet
+  either — each needs a specific, pinned reference first.
 
 - Sri Lankan layer for the Daily Panchanga: Poya (full-moon) day detection
   and Sinhala Poya-cycle month names (bak, vesak, poson, … madin, with

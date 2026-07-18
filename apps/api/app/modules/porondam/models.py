@@ -12,14 +12,14 @@ class PartyDetails(BaseModel):
 
 
 class PorondamMatch(BaseModel):
-    key: str  # repository keys: nakshatra, gana, yoni, rashi, rashyadpathi, vashya
+    key: str  # repository keys: nakshatra, gana, yoni, rashi, rashyadpathi, vashya, vedha
     passed: bool
 
 
 class PorondamResult(BaseModel):
-    matches: list[PorondamMatch]  # 6 entries, this round
+    matches: list[PorondamMatch]  # 7 entries, this round
     passed_count: int
-    checked_count: int  # always 6 this round — the traditional core is 10-12
+    checked_count: int  # always 7 this round — the traditional core is 10-12
 
 
 class PorondamResponse(BaseModel):

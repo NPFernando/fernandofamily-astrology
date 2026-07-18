@@ -339,11 +339,15 @@ golden-test it first, or don't ship it.
 without knowing that Sri Lanka's actual wedding-matching standard
 ("Porondam"/"Visi Porondama") overlaps almost exactly with the classical
 Ashtakoot / Tamil Thirumana Porutham core 10 categories — a later research
-round found real, widely-published compatibility tables for 6 of them
-(Nakshatra, Gana, Yoni, Rashi, Rashyadpathi, Vashya), transcribed by hand
-into `apps/api/app/modules/porondam/repository.py` rather than vendored
-(the vendored engine still has no matching function — that part of this
-verdict still holds). Rajju, Vedha, Mahendra, and Sthree-Dheerga remain
+round found real, widely-published compatibility tables for 7 of them
+(Nakshatra, Gana, Yoni, Rashi, Rashyadpathi, Vashya, Vedha), transcribed
+by hand into `apps/api/app/modules/porondam/repository.py` rather than
+vendored (the vendored engine still has no matching function — that part
+of this verdict still holds). Vedha's table needed a deliberate resolution
+of one disputed nakshatra (Chitra — see `repository.py`), not a recall
+guess. Rajju was specifically checked against 4 independent sources and
+found to have real, substantive disagreement on nakshatra groupings (not
+a formatting quirk) — still deferred. Mahendra and Sthree-Dheerga remain
 un-built for the same reason this verdict originally gave: no specific,
 pinned reference yet, not built from recall alone.
 
@@ -400,7 +404,7 @@ that as a settled default.
 | C1 | Vivaha Chakra Palan (built, then removed — superseded by Porondam) | Deepen Compatibility | Yes | M |
 | D1 | Divisional charts (Navamsa) (shipped) | New module | Yes | L |
 | D2 | Fixed-star precision | New module (exploratory) | Data path unvendored; call proven | L (soft) |
-| D3 | Porondam — Sri Lankan wedding matching (shipped, 6/10 core) | New module | Yes, hand-transcribed classical tables | L |
+| D3 | Porondam — Sri Lankan wedding matching (shipped, 7/10 core) | New module | Yes, hand-transcribed classical tables | L |
 | E1 | Dasha calculators | Not recommended yet | No — module not vendored | — |
 | E2 | Ashtakoot marriage score (partially superseded by Porondam) | Not recommended | No — constants only, no algorithm | — |
 | E3 | Avurudu Nekath | Not recommended | No — no computable dataset | — |

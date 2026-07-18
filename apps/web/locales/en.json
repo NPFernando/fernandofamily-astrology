@@ -38,7 +38,7 @@
     },
     "porondam": {
       "title": "Porondam (Wedding Matching)",
-      "description": "Check 6 of the traditional core Porondama between two birth charts using Sri Lanka's Dasa/Visi Porondama wedding-matching system."
+      "description": "Check 7 of the traditional core Porondama between two birth charts using Sri Lanka's Dasa/Visi Porondama wedding-matching system."
     }
   },
   "nav": {
@@ -551,7 +551,7 @@
     },
     "porondam": {
       "title": "Porondam (Wedding Horoscope Matching)",
-      "description": "Check 6 of the traditional core Porondama between a bride and groom's birth charts using Sri Lanka's wedding-matching system."
+      "description": "Check 7 of the traditional core Porondama between a bride and groom's birth charts using Sri Lanka's wedding-matching system."
     }
   },
   "push": {
@@ -799,7 +799,7 @@
   },
   "porondam": {
     "title": "Porondam (Wedding Horoscope Matching)",
-    "description": "Sri Lanka's traditional wedding horoscope-matching system checks up to 20 named categories (Porondama). This tool checks 6 of the core 10 — Nakshatra, Gana, Yoni, Rashi, Rashyadpathi and Vashya — using the standard, widely-published compatibility tables.",
+    "description": "Sri Lanka's traditional wedding horoscope-matching system checks up to 20 named categories (Porondama). This tool checks 7 of the core 10 — Nakshatra, Gana, Yoni, Rashi, Rashyadpathi, Vashya and Vedha — using the standard, widely-published compatibility tables.",
     "brideTitle": "Bride's birth details",
     "groomTitle": "Groom's birth details",
     "calculate": "Check Porondam match",
@@ -833,8 +833,12 @@
       "vashya": {
         "name": "Vashya",
         "description": "Mutual attraction and influence, based on each Moon sign's temperament group."
+      },
+      "vedha": {
+        "name": "Vedha",
+        "description": "Whether the two birth stars form a classical \"obstruction\" pair — a blocking condition rather than a scored one."
       }
     },
-    "note": "This checks 6 of the traditional 10-12 core Porondama using standard, cross-tradition (Ashtakoot / Tamil Thirumana Porutham) tables — widely published, but not independently verified against a specific Sri Lankan source. Not yet a full traditional matching: Rajju, Vedha and the remaining categories are planned for a future round. It does not store birth details or replace a family astrologer's judgement."
+    "note": "This checks 7 of the traditional 10-12 core Porondama using standard, cross-tradition (Ashtakoot / Tamil Thirumana Porutham) tables — widely published, but not independently verified against a specific Sri Lankan source. Not yet a full traditional matching: Rajju and the remaining categories are planned for a future round. It does not store birth details or replace a family astrologer's judgement."
   }
 }

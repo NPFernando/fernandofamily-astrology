@@ -13,7 +13,15 @@ import {
 import { TargetDateTimeFields, type TargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
 
 // Fixed display order matching repository.py / calculator.compute_porondam.
-const PORONDAM_ORDER = ["nakshatra", "gana", "yoni", "rashi", "rashyadpathi", "vashya"] as const;
+const PORONDAM_ORDER = [
+  "nakshatra",
+  "gana",
+  "yoni",
+  "rashi",
+  "rashyadpathi",
+  "vashya",
+  "vedha",
+] as const;
 
 type PartyState = {
   dateTime: TargetDateTime;

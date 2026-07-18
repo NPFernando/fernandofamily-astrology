@@ -10,6 +10,21 @@ response, (2) a cross-module sanity check confirming D1 truly is
 dhasavarga call, and (3) a check that skipping the dasavarga_from_long
 re-projection for the Ascendant is provably equivalent to running it at
 factor 1, substantiating adapter.py's docstring claim directly.
+
+Degree-level comparisons use a loose (0.01 degree / ~36 arcsec) tolerance,
+not exact equality: going through an actual API request (vs. a same-thread
+direct call) reproducibly shifts the last few significant digits of a
+sidereal longitude by a few arcseconds, varying per planet (observed
+~0.18-4 arcsec across different grahas) -- confirmed via a direct
+ThreadPoolExecutor reproduction to be a same-process, cross-thread swisseph
+floating-point effect, in the same family core_vendor_path.configure_
+ayanamsa's docstring already documents for the (much larger, ~0.9 degree)
+ayanamsa-family leak. This is two-plus orders of magnitude below what this
+UI ever displays (arcminute precision) and far below what would mask a real
+bug (a wrong rashi/planet mismatch, or an ayanamsa-family error, would both
+be off by whole degrees), so it's tolerated here rather than chased down --
+root-causing swisseph's exact thread behavior is a separate, deeper
+investigation than this module's degree-display feature warrants.
 """
 from app.core.vendor_path import configure_ayanamsa, ensure_vendor_on_path
 
@@ -56,17 +71,20 @@ def test_birth_chart_matches_vendored_engine_directly():
 
     raw_placements = drik.dhasavarga(jd, place, divisional_chart_factor=1)
     expected_by_key = {
-        panchanga_repository.GRAHA_KEYS[planet_id]: constellation for planet_id, (constellation, _) in raw_placements
+        panchanga_repository.GRAHA_KEYS[planet_id]: (constellation, long_in_raasi)
+        for planet_id, (constellation, long_in_raasi) in raw_placements
     }
     assert len(data["placements"]) == 9
     for placement in data["placements"]:
-        expected_constellation = expected_by_key[placement["key"]]
+        expected_constellation, expected_degrees = expected_by_key[placement["key"]]
         assert placement["rashi_index"] == expected_constellation + 1
         assert placement["rashi_key"] == panchanga_repository.RASHI_KEYS[expected_constellation]
+        assert placement["degrees"] == pytest.approx(expected_degrees, abs=0.01)
 
-    asc_constellation, _asc_coordinates, _, _ = drik.ascendant(jd, place)
+    asc_constellation, asc_coordinates, _, _ = drik.ascendant(jd, place)
     assert data["ascendant_rashi_index"] == asc_constellation + 1
     assert data["ascendant_rashi_key"] == panchanga_repository.RASHI_KEYS[asc_constellation]
+    assert data["ascendant_degrees"] == pytest.approx(asc_coordinates, abs=0.01)
     assert data["location"]["utc_offset_minutes"] == 360
 
 

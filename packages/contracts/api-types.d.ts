@@ -470,6 +470,8 @@ export interface components {
         };
         /** BirthChart */
         BirthChart: {
+            /** Ascendant Degrees */
+            ascendant_degrees: number;
             /** Ascendant Rashi Index */
             ascendant_rashi_index: number;
             /** Ascendant Rashi Key */
@@ -491,6 +493,8 @@ export interface components {
         };
         /** BirthChartPlacement */
         BirthChartPlacement: {
+            /** Degrees */
+            degrees: number;
             /** Key */
             key: string;
             /** Rashi Index */

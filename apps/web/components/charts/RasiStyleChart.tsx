@@ -50,10 +50,24 @@ function rashiIndex0BasedForHouse(ascendantRashiIndex1Based: number, house: numb
   return (ascendantRashiIndex1Based - 1 + (house - 1)) % 12;
 }
 
+// Same degree/minute rounding-carry convention as
+// components/panchanga/SkyTodayPanel.tsx's inSignDegree() — the input here
+// is already the in-sign (0-30) value, not a raw longitude needing % 30.
+function formatDegreeMinutes(deg: number): string {
+  let degrees = Math.floor(deg);
+  let minutes = Math.round((deg - degrees) * 60);
+  if (minutes === 60) {
+    degrees += 1;
+    minutes = 0;
+  }
+  return `${degrees}°${String(minutes).padStart(2, "0")}′`;
+}
+
 export type RasiStyleChartData = {
   ascendant_rashi_index: number;
   ascendant_rashi_key: string;
-  placements: { key: string; rashi_key: string }[];
+  ascendant_degrees?: number;
+  placements: { key: string; rashi_key: string; degrees?: number }[];
 };
 
 export function RasiStyleChart({
@@ -61,11 +75,13 @@ export function RasiStyleChart({
   ascendantLabel,
   testIdPrefix,
   showHouseNumbers = false,
+  showDegrees = false,
 }: {
   chart: RasiStyleChartData;
   ascendantLabel: string;
   testIdPrefix: string;
   showHouseNumbers?: boolean;
+  showDegrees?: boolean;
 }) {
   const { dict } = useLocale();
 
@@ -93,11 +109,17 @@ export function RasiStyleChart({
             <span className="font-medium opacity-70">{translateEnum(dict, "rashis", rashiKey)}</span>
             <div className="flex flex-wrap justify-center gap-0.5">
               {isAscendant && (
-                <span className="rounded bg-accent/20 px-1 font-semibold text-accent">{ascendantLabel}</span>
+                <span className="rounded bg-accent/20 px-1 font-semibold text-accent">
+                  {ascendantLabel}
+                  {showDegrees && chart.ascendant_degrees !== undefined && (
+                    <> {formatDegreeMinutes(chart.ascendant_degrees)}</>
+                  )}
+                </span>
               )}
               {grahasHere.map((p) => (
                 <span key={p.key} className="rounded bg-black/5 px-1 dark:bg-white/10">
                   {translateEnum(dict, "horaPlanets", p.key)}
+                  {showDegrees && p.degrees !== undefined && <> {formatDegreeMinutes(p.degrees)}</>}
                 </span>
               ))}
             </div>

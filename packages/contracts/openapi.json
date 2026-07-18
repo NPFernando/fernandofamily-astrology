@@ -340,6 +340,10 @@
       },
       "BirthChart": {
         "properties": {
+          "ascendant_degrees": {
+            "title": "Ascendant Degrees",
+            "type": "number"
+          },
           "ascendant_rashi_index": {
             "title": "Ascendant Rashi Index",
             "type": "integer"
@@ -379,6 +383,7 @@
           "birth_time",
           "ascendant_rashi_index",
           "ascendant_rashi_key",
+          "ascendant_degrees",
           "placements"
         ],
         "title": "BirthChart",
@@ -386,6 +391,10 @@
       },
       "BirthChartPlacement": {
         "properties": {
+          "degrees": {
+            "title": "Degrees",
+            "type": "number"
+          },
           "key": {
             "title": "Key",
             "type": "string"
@@ -402,7 +411,8 @@
         "required": [
           "key",
           "rashi_index",
-          "rashi_key"
+          "rashi_key",
+          "degrees"
         ],
         "title": "BirthChartPlacement",
         "type": "object"

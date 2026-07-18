@@ -36,8 +36,9 @@ def graha_positions(jd: float, p) -> list:
     return drik.dhasavarga(jd, p, divisional_chart_factor=1)
 
 
-def ascendant_rashi(jd: float, p) -> int:
-    """0-based Rasi-chart constellation (0=Aries) of the Ascendant/Lagna at
-    the given birth moment, taken directly from drik.ascendant()."""
-    constellation, _coordinates, _nak_no, _paadha_no = drik.ascendant(jd, p)
-    return constellation
+def ascendant_rashi(jd: float, p) -> tuple[int, float]:
+    """(constellation 0..11, degrees within that rashi 0..30) of the
+    Ascendant/Lagna at the given birth moment, taken directly from
+    drik.ascendant()."""
+    constellation, coordinates, _nak_no, _paadha_no = drik.ascendant(jd, p)
+    return constellation, coordinates

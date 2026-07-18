@@ -302,6 +302,7 @@ export type BirthChartPlacement = {
   key: string; // repository.GRAHA_KEYS entry, e.g. "sun"
   rashi_index: number; // 1..12
   rashi_key: string;
+  degrees: number; // 0..30, degrees within the rashi
 };
 
 export type BirthChart = {
@@ -311,6 +312,7 @@ export type BirthChart = {
   birth_time: string;
   ascendant_rashi_index: number;
   ascendant_rashi_key: string;
+  ascendant_degrees: number; // 0..30, degrees within the ascendant_rashi
   placements: BirthChartPlacement[]; // 9: Sun..Ketu, GRAHA_KEYS order
 };
 

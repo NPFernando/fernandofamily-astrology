@@ -44,11 +44,12 @@ def compute_birth_chart(
             key=panchanga_repository.GRAHA_KEYS[planet_id],
             rashi_index=constellation + 1,
             rashi_key=panchanga_repository.RASHI_KEYS[constellation],
+            degrees=long_in_raasi,
         )
-        for planet_id, (constellation, _long_in_raasi) in raw_placements
+        for planet_id, (constellation, long_in_raasi) in raw_placements
     ]
 
-    ascendant_constellation = adapter.ascendant_rashi(jd, place)
+    ascendant_constellation, ascendant_degrees = adapter.ascendant_rashi(jd, place)
 
     return BirthChart(
         engine=engine,
@@ -63,5 +64,6 @@ def compute_birth_chart(
         birth_time=birth_time,
         ascendant_rashi_index=ascendant_constellation + 1,
         ascendant_rashi_key=panchanga_repository.RASHI_KEYS[ascendant_constellation],
+        ascendant_degrees=ascendant_degrees,
         placements=placements,
     )

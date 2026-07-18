@@ -10,6 +10,7 @@ class BirthChartPlacement(BaseModel):
     key: str  # repository.GRAHA_KEYS entry, e.g. "sun"
     rashi_index: int  # 1..12
     rashi_key: str  # panchanga.repository.RASHI_KEYS
+    degrees: float  # 0..30, degrees within the rashi
 
 
 class BirthChart(BaseModel):
@@ -21,4 +22,5 @@ class BirthChart(BaseModel):
     # BirthChartPlacement's graha-shaped `key` — it isn't a graha.
     ascendant_rashi_index: int  # 1..12
     ascendant_rashi_key: str
+    ascendant_degrees: float  # 0..30, degrees within the ascendant_rashi
     placements: list[BirthChartPlacement]  # 9: Sun..Ketu, GRAHA_KEYS order

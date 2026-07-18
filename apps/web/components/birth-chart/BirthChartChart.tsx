@@ -14,6 +14,7 @@ export function BirthChartChart({ chart }: { chart: BirthChartData }) {
         ascendantLabel={dict.birthChart.ascendant}
         testIdPrefix="rasi"
         showHouseNumbers
+        showDegrees
       />
       <p className="text-xs opacity-70">{dict.birthChart.layoutNote}</p>
     </div>

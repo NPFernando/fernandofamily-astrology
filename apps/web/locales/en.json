@@ -795,7 +795,7 @@
     "calculate": "Calculate Navamsa chart",
     "chartTitle": "D9 Navamsa Chart",
     "ascendant": "Ascendant (Lagna)",
-    "layoutNote": "Shown in the South Indian fixed-grid style: each cell always represents the same rashi — only which planets and the Ascendant fall into it changes per chart."
+    "layoutNote": "Shown in the North Indian diamond style, matching Sri Lankan kendaraya convention: house 1 (Lagna) always sits in the top diamond — which rashi falls in each house rotates with the Ascendant instead."
   },
   "porondam": {
     "title": "Porondam (Wedding Horoscope Matching)",

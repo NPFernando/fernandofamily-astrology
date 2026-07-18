@@ -49,6 +49,40 @@ sidereal calculations.
 
 ## A. Deepening Pancha Pakshi
 
+### A0. Pancha Pakshi's own provenance — researched, verdict: keep, upgrade framing
+
+**Status: researched, no change to the feature.** Pancha Pakshi is the
+platform's flagship feature and was built first, before this session's
+sourcing-confidence discipline existed, so unlike every later feature it
+never had its own provenance checked. Round-2 audit (`docs/roadmap.md`'s
+Vivaha Chakra removal) flagged this as explicitly deferred, not resolved.
+
+Origin: Pancha Pakshi Shastra comes from Tamil Siddha literature —
+sources agree it's "ancient Tamil Siddha" in origin and especially
+associated with Tamil Nadu. By origin alone this is the same category of
+import Vivaha Chakra was. The difference: independent evidence shows it's
+been *naturalized* into Sinhala practice, not kept only as an unverified
+stand-in —
+- A dedicated Sinhala-language book, *Panchapakshi Shasthraya ha
+  Yamakalaya* (පංචපක්ෂි ශාස්ත්‍රය හා යමකාලය) by O.A. Perera, sold through
+  M.D. Gunasena — Sri Lanka's oldest publisher/bookseller (est. 1885).
+  A dedicated title from a publisher of that stature is comparable in
+  kind to the litha-product evidence that confirmed Rahu Kalaya's
+  genuine Sri Lankan use in the round-2 audit.
+- Sinhala-language astrology sites (kaladasava.com, a self-described
+  Sri Lankan astrology portal; lankajhothisha.blogspot.com) present it
+  as ordinary local practice, with no framing as a foreign import.
+- The five birds carry naturalized Sinhala names (Bharunda/Raja Aliya,
+  Bakamuna, Kaka, Kukkuta, Mayura), not bare transliterations — matching
+  this app's existing `BirdId` enum (vulture/owl/crow/cock/peacock).
+
+This doesn't reach Poya/ayanamsa's gazette-tier proof (no government or
+almanac-committee source), but clears a meaningfully higher bar than "no
+evidence" — the same tier as Rahu Kalaya, not the tier Vivaha Chakra or
+Yamaganda/Gulika sit at. Verdict: keep the feature as-is; the roadmap
+sourcing note now cites this evidence directly instead of carrying no
+caveat at all.
+
 ### A1. Tara Bala — daily star-strength overlay
 **One-line:** For a user's birth Nakshatra, classify today (and any date) as
 Good/Not Good/Very Good/Bad/Totally Bad, per the classical 9-fold tārābala

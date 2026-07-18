@@ -6,7 +6,18 @@
 - Pancha Pakshi live calculator — all three input methods (birth details,
   known Nakshatra + Paksha, direct bird), live sunrise-to-next-sunrise
   timetable (timeline / table / week views), current-period tracking with
-  clock-skew-corrected countdown, proportional day-overview bar
+  clock-skew-corrected countdown, proportional day-overview bar. Pancha
+  Pakshi Shastra originates in Tamil Siddha literature (like Vivaha Chakra
+  did), but unlike Vivaha Chakra it's independently evidenced as
+  naturalized Sri Lankan Sinhala practice, not an unverified stand-in: a
+  dedicated Sinhala-language book, *Panchapakshi Shasthraya ha Yamakalaya*
+  by O.A. Perera, is sold through M.D. Gunasena (Sri Lanka's oldest
+  publisher/bookseller, est. 1885); Sinhala astrology sites (e.g.
+  kaladasava.com) present it as ordinary local practice with no
+  foreign-import framing; and the five birds carry naturalized Sinhala
+  names (Bharunda/Raja Aliya, Bakamuna, Kaka, Kukkuta, Mayura) rather than
+  bare transliterations. This doesn't reach Poya/ayanamsa's gazette-tier
+  proof, but clears a meaningfully higher bar than "no evidence."
 - Zero-click first result (auto-computes with defaults/last-used on landing),
   date navigation, "Best times today" card, activity/effect legend, sticky
   current-period bar
@@ -73,11 +84,15 @@
   tithi changes, tithi-derived moon phases and Sinhala Poya-cycle month
   context (`/moon-calendar`, `POST /api/v1/panchanga/month`).
 - Divisional Charts (D9 Navamsa) — planet and Ascendant placements in the
-  ninth-harmonic divisional chart, South Indian fixed-grid layout
+  ninth-harmonic divisional chart, North Indian diamond layout
   (`/divisional-charts`, `POST /api/v1/divisional-charts/navamsa`).
-  Calculation correctness is independently re-derived and verified; whether
-  Sri Lankan practitioners specifically use D9 charts (vs. this being
-  general cross-tradition Vedic astrology) is not separately established.
+  Calculation correctness is independently re-derived and verified.
+  Layout was researched and corrected: this chart originally rendered in
+  the South Indian fixed-square style, but Sri Lankan kendaraya (birth
+  charts) use the North Indian diamond convention instead (two
+  independent sources agree, including matching structural detail on
+  Lagna placement) — fixed to render house-fixed with the rashi rotating
+  per Ascendant, matching actual Sri Lankan practice.
 - Porondam — Sri Lankan wedding horoscope matching. Ships 7 of the
   traditional 10-12 core Porondama (Nakshatra, Gana, Yoni, Rashi,
   Rashyadpathi, Vashya, Vedha) using standard, cross-tradition (Ashtakoot /

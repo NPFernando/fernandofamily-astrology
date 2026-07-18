@@ -70,6 +70,16 @@ effect, or rating. Useful references for the traditional activity framing:
 - Pancha Pakshi Shastra overview:
   <https://en.wikipedia.org/wiki/Pancha_Pakshi_Shastra>
 
+These sources are all pan-Indian/general Vedic astrology references, not
+Sri Lanka-specific. A later research round (see `docs/jyotishya-ideas.md`
+section A0) specifically checked whether Pancha Pakshi is genuine, active
+Sinhala practice rather than a borrowed system with no local uptake, and
+found independent Sri Lankan evidence: a dedicated Sinhala-language book,
+*Panchapakshi Shasthraya ha Yamakalaya* by O.A. Perera (sold through
+M.D. Gunasena, Sri Lanka's oldest publisher/bookseller), and Sinhala
+astrology sites (e.g. kaladasava.com) presenting it as ordinary local
+practice rather than a foreign import.
+
 ## Current and next period
 
 Given a schedule and a point in time, the current sub-period is the one

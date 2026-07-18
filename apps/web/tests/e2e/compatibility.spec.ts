@@ -19,11 +19,6 @@ for (const locale of ["en", "si"] as const) {
       { timeout: 30_000 },
     );
     await expect(page.locator('[data-testid="compatibility-variants"]')).toContainText("280");
-    await expect(page.locator('[data-testid="vivaha-chakra-result"]')).toBeVisible();
-    await expect(page.locator('[data-testid="vivaha-chakra-result"]')).toContainText(
-      dict.compatibility.vivahaTitle,
-      { timeout: 30_000 },
-    );
     watcher.assertClean();
   });
 }
@@ -45,22 +40,6 @@ test("compatibility: selecting a context-dependent pair updates variants", async
   );
   await expect(page.locator('[data-testid="compatibility-variants"]')).toContainText("70");
   await expect(page.locator('[data-testid="compatibility-variants"]')).toContainText("210");
-});
-
-test("compatibility: wedding date screener updates after date and time changes", async ({
-  page,
-}) => {
-  await openCompatibility(page, "en");
-  const result = page.locator('[data-testid="vivaha-chakra-result"]');
-  await expect(result).toContainText(DICTS.en.compatibility.vivahaIndex, {
-    timeout: 30_000,
-  });
-  const tool = page.locator('[data-testid="vivaha-chakra-tool"]');
-  await tool.getByRole("textbox", { name: DICTS.en.ui.targetDate }).fill("2026-07-17");
-  await tool.getByRole("textbox", { name: DICTS.en.ui.targetTime }).fill("09:00:00");
-  await expect(result).toContainText("Jul 17, 2026", { timeout: 30_000 });
-  await expect(result).toContainText("2/9");
-  await expect(result).toContainText(DICTS.en.compatibility.vivahaVerdicts.wealthy_blessed);
 });
 
 test("compatibility: nav link, landing card, and sitemap are present", async ({
@@ -85,7 +64,7 @@ test("compatibility: nav link, landing card, and sitemap are present", async ({
 
 test("@mobile compatibility at 360px without horizontal scroll", async ({ page }) => {
   await openCompatibility(page, "en");
-  await expect(page.locator('[data-testid="vivaha-chakra-tool"]')).toBeVisible();
+  await expect(page.locator('[data-testid="compatibility-result"]')).toBeVisible();
   const hasHScroll = await page.evaluate(
     () => document.body.scrollWidth > window.innerWidth + 5,
   );

@@ -24,8 +24,6 @@ import type {
   CompatibilityRequest,
   RelationVariant,
   CompatibilityResponse,
-  VivahaChakraRequest,
-  VivahaChakraResponse,
   MonthPanchangaRequest,
   MonthPanchanga,
   MuhurtaBirthDateTimeInput,
@@ -86,12 +84,6 @@ export type _CheckCompatibilityRequest = Expect<
 export type _CheckRelationVariant = Expect<Equals<RelationVariant, Generated["RelationVariant"]>>;
 export type _CheckCompatibilityResponse = Expect<
   Equals<CompatibilityResponse, Generated["CompatibilityResponse"]>
->;
-export type _CheckVivahaChakraRequest = Expect<
-  Equals<VivahaChakraRequest, Generated["VivahaChakraRequest"]>
->;
-export type _CheckVivahaChakraResponse = Expect<
-  Generated["VivahaChakraResponse"] extends VivahaChakraResponse ? true : false
 >;
 export type _CheckMonthPanchangaRequest = Expect<
   Equals<MonthPanchangaRequest, Generated["MonthPanchangaRequest"]>

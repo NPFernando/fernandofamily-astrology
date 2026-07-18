@@ -245,6 +245,12 @@ def compute_daily_panchanga(
         ends_at=_hours_to_datetime(target_date, raw_moon_rashi[1], offset_hours),
     )
 
+    # Rahu Kalaya has good independent evidence of active Sri Lankan daily
+    # use (dedicated .lk litha sites/products, shown in Sinhala, computed
+    # for SL locations); Yamaganda/Gulika don't have the same independent
+    # confirmation — see docs/calculations/panchanga.md's "Kalam sourcing"
+    # note. Standard panchanga elements either way, just not gazette/litha-
+    # validated the way Poya/ayanamsa are.
     kalams = Kalams(
         rahu=_kalam_range(noon_jd, place, "raahu kaalam", target_date, offset_hours),
         yamaganda=_kalam_range(noon_jd, place, "yamagandam", target_date, offset_hours),

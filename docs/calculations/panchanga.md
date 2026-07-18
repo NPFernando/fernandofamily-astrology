@@ -15,6 +15,28 @@ nakshatra, yoga can each end and hand off to the next element before the
 following sunrise) return every entry that overlaps the day, each with its
 own end time, rather than only the value in effect at sunrise.
 
+**Kalam sourcing — an asymmetry worth being explicit about.** All three
+kalams are computed identically (via the vendored engine's `trikalam()`,
+under its Tamil-derived option strings `"raahu kaalam"`/`"yamagandam"`/
+`"gulikai"`), but they don't have equal independent evidence of Sri
+Lankan-specific use. **Rahu Kalaya** is well-supported: it's the
+headline daily item on multiple dedicated Sri Lankan (`.lk`) sites and
+litha products, shown in Sinhala (රාහු කාලය), computed for Sri Lankan
+locations, and appears unprompted in general Sri Lankan astrology
+overviews. **Yamaganda and Gulika Kalaya**, by contrast, could not be
+found with the same independent confirmation during this review — they
+appear bundled with Rahu Kalaya on generic (mostly Indian) astrology
+sites, but a search restricted to Sri Lankan sources, and a direct
+check of a 2026 Sri Lankan litha product page, surfaced Rahu Kalaya
+specifically while omitting Yamaganda/Gulika from the described daily
+contents. This doesn't mean they're wrong for Sri Lanka — they're
+standard panchanga elements a fuller litha may still include — but
+unlike Poya (73/73 gazetted dates) or ayanamsa (State Astrologers'
+Committee cross-check) below, this is not independently gazette- or
+litha-validated the way this project's stronger claims are, and should
+be read as a standard convention rather than a confirmed Sri Lankan-
+specific one.
+
 ## Ayanamsa
 
 Sidereal longitudes — which every element above ultimately derives from —

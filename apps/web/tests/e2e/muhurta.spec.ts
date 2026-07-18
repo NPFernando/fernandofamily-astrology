@@ -69,10 +69,6 @@ test("muhurta: travel purpose shows direction caution", async ({ page }) => {
 
 test("muhurta: event presets show purpose-specific advisories", async ({ page }) => {
   await openMuhurta(page, "en");
-  await page.getByRole("button", { name: DICTS.en.muhurta.purposes.wedding_engagement }).click();
-  await expect(page.getByText(DICTS.en.muhurta.cautions.vivaha_chakra).first()).toBeVisible({ timeout: 30_000 });
-  await expect(page.getByText(DICTS.en.muhurta.weddingAdvisoryNote).first()).toBeVisible();
-
   await page.getByRole("button", { name: DICTS.en.muhurta.purposes.vehicle_purchase }).click();
   await expect(page.getByText(DICTS.en.muhurta.cautions.disha_shool).first()).toBeVisible({ timeout: 30_000 });
 });

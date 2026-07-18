@@ -46,11 +46,11 @@
   sun and moon times, for any location and date, bilingual, zero-click on
   load (`/panchanga`, `POST /api/v1/panchanga/daily`)
 - Compatibility tools — direct two-bird friend/same/enemy comparison using
-  the pinned Pancha Pakshi source tables, plus a Vivaha Chakra wedding-date
-  screener for a candidate ceremony start date/time/place using the vendored
-  date rule, bilingual and zero-click on load (`/compatibility`,
-  `POST /api/v1/compatibility/birds`,
-  `POST /api/v1/compatibility/vivaha-chakra`)
+  the pinned Pancha Pakshi source tables, bilingual and zero-click on load
+  (`/compatibility`, `POST /api/v1/compatibility/birds`). Previously also
+  shipped a Vivaha Chakra Palan wedding-date screener; removed once Porondam
+  (below) shipped as the actual Sri Lankan wedding-matching standard —
+  Vivaha Chakra was a Tamil/pan-Indian method kept only as a stand-in.
 - Sinhala Daily Astrology Guide — a Sri Lanka-focused day view combining
   Daily Panchanga, Poya status, avoid times (rahu / yamaganda / gulika),
   sun/moon times, Disha Shool, Tara Bala for known Nakshatra/Paksha
@@ -72,6 +72,20 @@
 - Moon phase + Tithi calendar — month view focused on Sri Lankan Poya days,
   tithi changes, tithi-derived moon phases and Sinhala Poya-cycle month
   context (`/moon-calendar`, `POST /api/v1/panchanga/month`).
+- Divisional Charts (D9 Navamsa) — planet and Ascendant placements in the
+  ninth-harmonic divisional chart, South Indian fixed-grid layout
+  (`/divisional-charts`, `POST /api/v1/divisional-charts/navamsa`).
+  Calculation correctness is independently re-derived and verified; whether
+  Sri Lankan practitioners specifically use D9 charts (vs. this being
+  general cross-tradition Vedic astrology) is not separately established.
+- Porondam — Sri Lankan wedding horoscope matching. Ships 6 of the
+  traditional 10-12 core Porondama (Nakshatra, Gana, Yoni, Rashi,
+  Rashyadpathi, Vashya) using standard, cross-tradition (Ashtakoot / Tamil
+  Thirumana Porutham) tables — not independently verified against a
+  specific Sri Lankan source the way Poya/ayanamsa are (`/porondam`,
+  `POST /api/v1/porondam/match`). Rajju, Vedha, Mahendra, Sthree-Dheerga and
+  the extended ~10 traditional categories are deliberately not built yet —
+  each needs a specific, pinned reference first.
 
 - Sri Lankan layer for the Daily Panchanga: Poya (full-moon) day detection
   and Sinhala Poya-cycle month names (bak, vesak, poson, … madin, with

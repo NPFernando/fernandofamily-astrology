@@ -237,8 +237,7 @@ function sourceLabel(source: MuhurtaSource, dict: ReturnType<typeof getDictionar
 }
 
 function cautionValue(caution: MuhurtaCautionInfo, dict: ReturnType<typeof getDictionary>): string {
-  if (caution.key === "disha_shool") return translateEnum(dict, "directions", caution.value);
-  return resolveKey(dict, `compatibility.vivahaVerdicts.${caution.value}`);
+  return translateEnum(dict, "directions", caution.value);
 }
 
 function sinhalaMonthName(dict: Dictionary, key: string): string {
@@ -1400,9 +1399,6 @@ export function MuhurtaClient() {
                 {dict.muhurta.cautions[caution.key]}: {cautionValue(caution, dict)}
               </p>
             ))}
-            {window.cautions.some((caution) => caution.key === "vivaha_chakra") ? (
-              <p className="mt-1 opacity-75">{dict.muhurta.weddingAdvisoryNote}</p>
-            ) : null}
           </div>
         ) : null}
       </article>

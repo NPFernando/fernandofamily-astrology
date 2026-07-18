@@ -30,7 +30,7 @@
     },
     "compatibility": {
       "title": "Compatibility Tools",
-      "description": "Compare Pancha Pakshi birds and screen a candidate wedding start time with the Vivaha Chakra rule."
+      "description": "Compare Pancha Pakshi birds using the pinned source-table relationship data."
     },
     "divisionalCharts": {
       "title": "Divisional Charts (Navamsa)",
@@ -764,7 +764,6 @@
     "monthNoWindows": "No matching windows for this day.",
     "monthNoWindowsShort": "No windows",
     "monthUseDate": "Use this date",
-    "weddingAdvisoryNote": "This is a date and start-time screen only, not two-person matching or a full marriage Muhurta.",
     "grades": {
       "excellent": "Excellent",
       "good": "Good",
@@ -774,13 +773,12 @@
       "pancha_pakshi": "Pancha Pakshi"
     },
     "cautions": {
-      "disha_shool": "Travel-direction caution",
-      "vivaha_chakra": "Vivaha Chakra date screen"
+      "disha_shool": "Travel-direction caution"
     }
   },
   "compatibility": {
     "title": "Compatibility Tools",
-    "description": "Choose two Pancha Pakshi birds, or screen a candidate wedding start time using the Vivaha Chakra date rule.",
+    "description": "Compare Pancha Pakshi birds using the pinned source-table relationship data.",
     "birdToolTitle": "Bird-pair comparison",
     "firstBird": "First bird",
     "secondBird": "Second bird",
@@ -788,25 +786,7 @@
     "sampleSize": "Source rows checked",
     "sourceRows": "Rows",
     "contextDependent": "This pair appears with more than one relationship in the source tables. The headline uses the most common relationship.",
-    "vivahaTitle": "Wedding date screener",
-    "vivahaControlsTitle": "Candidate start",
-    "vivahaDescription": "Check the ceremony start date, time and place against the vendored Vivaha Chakra Palan method.",
-    "vivahaIndex": "Vivaha Chakra index",
-    "sunNakshatra": "Sun Nakshatra",
-    "moonNakshatra": "Moon Nakshatra",
-    "vivahaNote": "This screens the selected date and time only. It is not two-person Guna Milan, Ashtakoot matching, or a full marriage Muhurta.",
-    "vivahaVerdicts": {
-      "family_damage": "Collateral damage to the family",
-      "wealthy_blessed": "Wealthy and blessed",
-      "bride_family_damage": "Collateral damage to the bride's family",
-      "poverty_cursed": "Poverty and cursed",
-      "gainful_beneficial": "Gainful and beneficial",
-      "reputation_loss": "Loss of reputation and honour",
-      "bride_devastating": "Devastating results for the bride",
-      "successful": "Completely successful",
-      "wonderful_blessed": "Wonderful pair and blessed"
-    },
-    "note": "These compatibility tools use named rules from the pinned calculation sources. They do not store birth details or replace expert judgement."
+    "note": "This compatibility tool uses named rules from the pinned calculation sources. It does not store birth details or replace expert judgement."
   },
   "divisionalCharts": {
     "title": "Divisional Charts (Navamsa)",
@@ -855,6 +835,6 @@
         "description": "Mutual attraction and influence, based on each Moon sign's temperament group."
       }
     },
-    "note": "This checks 6 of the traditional 10-12 core Porondama using standard, cross-tradition documented tables — not yet a full traditional matching. Rajju, Vedha and the remaining categories are planned for a future round. It does not store birth details or replace a family astrologer's judgement."
+    "note": "This checks 6 of the traditional 10-12 core Porondama using standard, cross-tradition (Ashtakoot / Tamil Thirumana Porutham) tables — widely published, but not independently verified against a specific Sri Lankan source. Not yet a full traditional matching: Rajju, Vedha and the remaining categories are planned for a future round. It does not store birth details or replace a family astrologer's judgement."
   }
 }

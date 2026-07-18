@@ -207,39 +207,6 @@ export type CompatibilityResponse = {
   variants: RelationVariant[];
 };
 
-export type VivahaChakraRequest = {
-  date: string; // YYYY-MM-DD
-  time: string; // HH:mm:ss
-  location_name: string;
-  latitude: number;
-  longitude: number;
-  iana_tz: string;
-};
-
-export type VivahaChakraTone = "supportive" | "caution";
-export type VivahaChakraVerdictKey =
-  | "family_damage"
-  | "wealthy_blessed"
-  | "bride_family_damage"
-  | "poverty_cursed"
-  | "gainful_beneficial"
-  | "reputation_loss"
-  | "bride_devastating"
-  | "successful"
-  | "wonderful_blessed";
-
-export type VivahaChakraResponse = {
-  engine: EngineMetadata;
-  location: Location;
-  date: string;
-  time: string;
-  verdict_index: number;
-  verdict_key: VivahaChakraVerdictKey;
-  tone: VivahaChakraTone;
-  sun_nakshatra: { key: string; index: number; pada: number };
-  moon_nakshatra: { key: string; index: number; pada: number };
-};
-
 // ---------------------------------------------------------------------------
 // Porondam (/api/v1/porondam) — Sri Lankan wedding horoscope matching.
 // Ships 6 of the traditional 10-12 core Porondama this round. Shapes mirror
@@ -515,7 +482,7 @@ export type MuhurtaPurpose =
   | "wedding_engagement";
 export type MuhurtaGrade = "excellent" | "good" | "usable";
 export type MuhurtaSource = "pancha_pakshi";
-export type MuhurtaCaution = "disha_shool" | "vivaha_chakra";
+export type MuhurtaCaution = "disha_shool";
 
 type MuhurtaSearchBase = {
   from_date: string;
@@ -807,21 +774,6 @@ export function fetchCompatibility(
     const data = await r.json().catch(() => null);
     if (!r.ok) throw new ApiError(r.status, data);
     return data as CompatibilityResponse;
-  });
-  return res;
-}
-
-export function fetchVivahaChakra(
-  body: VivahaChakraRequest,
-): Promise<VivahaChakraResponse> {
-  const res = fetch(`${COMPATIBILITY_API_BASE}/vivaha-chakra`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  }).then(async (r) => {
-    const data = await r.json().catch(() => null);
-    if (!r.ok) throw new ApiError(r.status, data);
-    return data as VivahaChakraResponse;
   });
   return res;
 }

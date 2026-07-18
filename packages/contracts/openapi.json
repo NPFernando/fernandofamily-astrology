@@ -1862,10 +1862,7 @@
       "MuhurtaCautionInfo": {
         "properties": {
           "key": {
-            "enum": [
-              "disha_shool",
-              "vivaha_chakra"
-            ],
+            "const": "disha_shool",
             "title": "Key",
             "type": "string"
           },
@@ -3744,139 +3741,6 @@
         "title": "ValidationError",
         "type": "object"
       },
-      "VivahaChakraNakshatra": {
-        "properties": {
-          "index": {
-            "title": "Index",
-            "type": "integer"
-          },
-          "key": {
-            "title": "Key",
-            "type": "string"
-          },
-          "pada": {
-            "title": "Pada",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "key",
-          "index",
-          "pada"
-        ],
-        "title": "VivahaChakraNakshatra",
-        "type": "object"
-      },
-      "VivahaChakraRequest": {
-        "properties": {
-          "date": {
-            "format": "date",
-            "title": "Date",
-            "type": "string"
-          },
-          "iana_tz": {
-            "title": "Iana Tz",
-            "type": "string"
-          },
-          "latitude": {
-            "title": "Latitude",
-            "type": "number"
-          },
-          "location_name": {
-            "maxLength": 200,
-            "minLength": 1,
-            "title": "Location Name",
-            "type": "string"
-          },
-          "longitude": {
-            "title": "Longitude",
-            "type": "number"
-          },
-          "time": {
-            "format": "time",
-            "title": "Time",
-            "type": "string"
-          }
-        },
-        "required": [
-          "date",
-          "time",
-          "location_name",
-          "latitude",
-          "longitude",
-          "iana_tz"
-        ],
-        "title": "VivahaChakraRequest",
-        "type": "object"
-      },
-      "VivahaChakraResponse": {
-        "properties": {
-          "date": {
-            "format": "date",
-            "title": "Date",
-            "type": "string"
-          },
-          "engine": {
-            "$ref": "#/components/schemas/EngineMetadata"
-          },
-          "location": {
-            "$ref": "#/components/schemas/Location"
-          },
-          "moon_nakshatra": {
-            "$ref": "#/components/schemas/VivahaChakraNakshatra"
-          },
-          "sun_nakshatra": {
-            "$ref": "#/components/schemas/VivahaChakraNakshatra"
-          },
-          "time": {
-            "format": "time",
-            "title": "Time",
-            "type": "string"
-          },
-          "tone": {
-            "enum": [
-              "supportive",
-              "caution"
-            ],
-            "title": "Tone",
-            "type": "string"
-          },
-          "verdict_index": {
-            "maximum": 9.0,
-            "minimum": 1.0,
-            "title": "Verdict Index",
-            "type": "integer"
-          },
-          "verdict_key": {
-            "enum": [
-              "family_damage",
-              "wealthy_blessed",
-              "bride_family_damage",
-              "poverty_cursed",
-              "gainful_beneficial",
-              "reputation_loss",
-              "bride_devastating",
-              "successful",
-              "wonderful_blessed"
-            ],
-            "title": "Verdict Key",
-            "type": "string"
-          }
-        },
-        "required": [
-          "engine",
-          "location",
-          "date",
-          "time",
-          "verdict_index",
-          "verdict_key",
-          "tone",
-          "sun_nakshatra",
-          "moon_nakshatra"
-        ],
-        "title": "VivahaChakraResponse",
-        "type": "object"
-      },
       "WeekdayId": {
         "enum": [
           "sunday",
@@ -4006,47 +3870,6 @@
           }
         },
         "summary": "Birds",
-        "tags": [
-          "compatibility"
-        ]
-      }
-    },
-    "/api/v1/compatibility/vivaha-chakra": {
-      "post": {
-        "operationId": "vivaha_chakra_endpoint_api_v1_compatibility_vivaha_chakra_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/VivahaChakraRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VivahaChakraResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Vivaha Chakra Endpoint",
         "tags": [
           "compatibility"
         ]

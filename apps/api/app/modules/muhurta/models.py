@@ -21,7 +21,7 @@ MuhurtaPurpose = Literal[
 ]
 MuhurtaGrade = Literal["excellent", "good", "usable"]
 MuhurtaSource = Literal["pancha_pakshi"]
-MuhurtaCaution = Literal["disha_shool", "vivaha_chakra"]
+MuhurtaCaution = Literal["disha_shool"]
 
 
 class MuhurtaSourceOverlap(BaseModel):

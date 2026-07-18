@@ -115,6 +115,13 @@ check, though (like the kalams) not independently gazette-validated.
 ## B. Deepening Daily Panchanga
 
 ### B1. Eclipse & Grahan calendar — more feasible than the repo's own docs suggest
+
+**Status: shipped** — real contact times/magnitude only. A sutak-kaal
+advisory window (proposed below) was built alongside it initially, then
+removed: the later cultural-correctness audit (commit `4732cca`) found
+it's a Hindu ritual-purity concept that Theravada Buddhism doctrinally
+doesn't share, not something genuinely part of Sinhala practice.
+
 **One-line:** "Next solar/lunar eclipse visible from [place]", with contact
 times and magnitude.
 
@@ -145,6 +152,15 @@ care — `sol_eclipse_when_loc` is already location-aware, but partial/very
 low-magnitude events need a sensible visibility cutoff).
 
 ### B2. Choghadiya + Hora auspicious-time layer
+
+**Status: built, then removed.** All five were shipped and later cut in the
+cultural-correctness audit (`4732cca`) — research found Gauri Choghadiya is
+a North Indian/Gujarati system, Shubha Hora a South Indian/Tamil one, and
+Amrit Kaalam/Abhijit Muhurta/Durmuhurtam had no Sinhala litha source either
+— none genuinely part of Sinhala practice, just things the vendored engine
+happened to support. Left below for historical record so this doesn't get
+re-proposed without that context.
+
 **One-line:** Add Gauri Choghadiya (North Indian 8-part day/night auspicious
 segments), Shubha Hora (South Indian 12-part planetary hours), Amrit Kaalam,
 Abhijit Muhurta, and Durmuhurtam alongside the existing Rahu/Yamaganda/Gulika
@@ -214,6 +230,14 @@ divergence note already sets.
 ## C. Deepening Bird Compatibility
 
 ### C1. Vivaha Chakra Palan — wedding-date screener
+
+**Status: built, then removed.** Shipped, then cut once Porondam (see
+Section E2's update below) shipped as the actual Sri Lankan wedding-
+matching standard — Vivaha Chakra Palan is a Tamil/pan-Indian method that
+was only ever a stand-in for that gap, and this section's own cultural-
+grounding note (no independent dataset to validate the outcome table
+against) never stopped applying. Left below for historical record.
+
 **One-line:** For a candidate wedding date/place, return a 1–9 categorical
 verdict on the day's own Sun–Moon nakshatra relationship (e.g. "Wonderful
 pair and blessed" vs. "Devastating results for the girl") — a
@@ -310,6 +334,19 @@ project's honesty bar exists to prevent. Re-vendor the real module and
 golden-test it first, or don't ship it.
 
 ### E2. Ashtakoot / Guna-Milan two-person marriage-score matching
+
+**Status: partially superseded by Porondam.** This verdict was reached
+without knowing that Sri Lanka's actual wedding-matching standard
+("Porondam"/"Visi Porondama") overlaps almost exactly with the classical
+Ashtakoot / Tamil Thirumana Porutham core 10 categories — a later research
+round found real, widely-published compatibility tables for 6 of them
+(Nakshatra, Gana, Yoni, Rashi, Rashyadpathi, Vashya), transcribed by hand
+into `apps/api/app/modules/porondam/repository.py` rather than vendored
+(the vendored engine still has no matching function — that part of this
+verdict still holds). Rajju, Vedha, Mahendra, and Sthree-Dheerga remain
+un-built for the same reason this verdict originally gave: no specific,
+pinned reference yet, not built from recall alone.
+
 Real two-person nakshatra-matching (Gana, Tara, Yoni, Rasi, Rajju koota
 scoring) is a natural extension of Bird Compatibility, and `const.py` even
 carries the scoring thresholds (`compatibility_minimum_score_north/south`,
@@ -333,7 +370,7 @@ vendored engine changes it.
 No specific finding drives this — it's a category call. Any feature that
 generates personalized predictive or advice text not tied to a specific,
 named, citable classical rule (like Tara Bala's fixed 9-category table, or
-Vivaha Chakra Palan's fixed outcome table) would be fabricated content
+Porondam's per-category classification tables) would be fabricated content
 riding on top of real computation, which is precisely the pattern this
 platform's methodology pages exist to avoid. If a future idea in this space
 comes up, it needs the same treatment as everything above: cite the rule,
@@ -355,15 +392,16 @@ that as a settled default.
 | A1 | Tara Bala daily overlay | Deepen Pancha Pakshi | Yes (`thaaraabalam`) | M |
 | A2 | Chandrashtama alert | Deepen Pancha Pakshi | Yes (`chandrashtama`, `raasi`) | S–M |
 | A3 | Disha Shool travel caution | Deepen Pancha Pakshi | Yes (`disha_shool`) | S |
-| B1 | Eclipse & Grahan calendar | Deepen Panchanga | Yes, already vendored | M |
-| B2 | Choghadiya + Hora layer | Deepen Panchanga | Yes | S–M |
+| B1 | Eclipse & Grahan calendar (shipped, no sutak-kaal) | Deepen Panchanga | Yes, already vendored | M |
+| B2 | Choghadiya + Hora layer (built, then removed — not Sinhala) | Deepen Panchanga | Yes | S–M |
 | B3 | Graha positions + retrograde | Deepen Panchanga | Yes | S–M |
 | B4 | Moon Rashi of the day | Deepen Panchanga | Yes (`raasi`) | S |
 | B5 | Ritu / Samvatsara badges | Deepen Panchanga | Ritu yes; Samvatsara caveated | S |
-| C1 | Vivaha Chakra Palan | Deepen Compatibility | Yes | M |
-| D1 | Divisional charts (Navamsa+) | New module | Yes | L |
+| C1 | Vivaha Chakra Palan (built, then removed — superseded by Porondam) | Deepen Compatibility | Yes | M |
+| D1 | Divisional charts (Navamsa) (shipped) | New module | Yes | L |
 | D2 | Fixed-star precision | New module (exploratory) | Data path unvendored; call proven | L (soft) |
+| D3 | Porondam — Sri Lankan wedding matching (shipped, 6/10 core) | New module | Yes, hand-transcribed classical tables | L |
 | E1 | Dasha calculators | Not recommended yet | No — module not vendored | — |
-| E2 | Ashtakoot marriage score | Not recommended | No — constants only, no algorithm | — |
+| E2 | Ashtakoot marriage score (partially superseded by Porondam) | Not recommended | No — constants only, no algorithm | — |
 | E3 | Avurudu Nekath | Not recommended | No — no computable dataset | — |
 | E4 | Generic horoscope text | Not recommended | N/A — no rule to cite | — |

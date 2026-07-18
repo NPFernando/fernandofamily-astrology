@@ -140,21 +140,14 @@ def test_muhurta_vehicle_purchase_allows_travel_activity_and_direction_caution()
     assert any(c["key"] == "disha_shool" and c["value"] for c in body["windows"][0]["cautions"])
 
 
-def test_muhurta_wedding_engagement_adds_vivaha_chakra_advisory():
+def test_muhurta_wedding_engagement_filters_to_ruling_and_eating_activities():
+    # Vivaha Chakra Palan was removed (superseded by Porondam, the actual Sri
+    # Lankan wedding-matching standard) — this purpose still validly filters
+    # Pancha Pakshi activities, it just no longer adds an advisory caution.
     body = _search(purpose="wedding_engagement", days=2)
     assert body["windows"]
-    advisory = next(c for c in body["windows"][0]["cautions"] if c["key"] == "vivaha_chakra")
-    assert advisory["value"] in {
-        "family_damage",
-        "wealthy_blessed",
-        "bride_family_damage",
-        "poverty_cursed",
-        "gainful_beneficial",
-        "reputation_loss",
-        "bride_devastating",
-        "successful",
-        "wonderful_blessed",
-    }
+    assert {w["pancha_pakshi_activity"] for w in body["windows"]} <= {"eating", "ruling"}
+    assert all(c["key"] != "vivaha_chakra" for w in body["windows"] for c in w["cautions"])
 
 
 def test_muhurta_month_accepts_new_event_presets():

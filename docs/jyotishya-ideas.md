@@ -311,9 +311,10 @@ calls D9 already exercises, confirmed by a cross-module test tying the
 two together. The North Indian diamond rendering built for D9 (house-
 fixed cells, rashi rotating with the Ascendant) was extracted into a
 shared `RasiStyleChart` component and reused directly for D1, adding
-only house-number labels (a birth chart is read "by house" far more
-than a divisional chart is). Higher vargas (D10 Dasamsa, etc.) remain
-unbuilt.
+house-number labels and per-planet/Ascendant degrees-within-sign (a
+birth chart is read "by house" and by exact degree far more than a
+divisional chart is; Navamsa deliberately stays sign-only). Higher
+vargas (D10 Dasamsa, etc.) remain unbuilt.
 
 **One-line:** A Navamsa (D9) chart view, and more generally any of the D1–D60
 divisional charts, computed from the same birth date/time/place already

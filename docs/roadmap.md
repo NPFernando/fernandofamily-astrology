@@ -114,8 +114,8 @@
 - Birth Chart (D1 Rasi) — the main natal chart: planet and Ascendant
   placements by house, North Indian diamond layout matching Sri Lankan
   kendaraya convention (`/birth-chart`, `POST /api/v1/birth-chart/rasi`).
-  Whole-sign houses, sign-only display (no per-planet degrees yet) —
-  deliberately scoped to "basics." Needed zero new vendored-engine
+  Whole-sign houses, with per-planet and Ascendant degrees-within-sign
+  (e.g. "Sun 15°23′") shown alongside house numbers. Needed zero new vendored-engine
   integration: D1 is `divisional_chart_factor=1` on the same
   `dhasavarga`/`ascendant` calls Divisional Charts already exercises for
   D9. Dasha calculations, asteroid/fixed-star overlays, cusp-based house

@@ -146,6 +146,19 @@
   implemented — they're published annually as astrologer-panel PDFs with no
   structured dataset to compute or validate against; adding them would mean
   manually transcribing each year's schedule, which isn't done here.
+- Poya festival significance layer — each Poya day now carries a one-line
+  statement of what its festival commemorates (Vesak — birth, enlightenment
+  and parinirvana; Poson — Mahinda's arrival; Esala — the first sermon and
+  Perahera season; etc.), shown on the Daily Panchanga Poya badge and the
+  shared Poya detail card (moon calendar + daily guide), in both locales.
+  This satisfies the former "festival calendar" backlog item, deliberately
+  scoped to the 12 Poya-derived Buddhist festivals only: the festival
+  identity is exactly the already-gazette-validated `sinhala_month` key, so
+  it's a frontend labeling layer with zero new calculation or vendoring.
+  Hindu festivals (Thai Pongal, Deepavali, Shivaratri) via upstream
+  `vratha.py` were researched and deliberately not built — see
+  `docs/jyotishya-ideas.md` for the verdict and what building them would
+  actually require.
 
 ## Backlog (priority order)
 
@@ -165,8 +178,10 @@ they are actually built, registered in the feature registry
 **Larger future modules** (same registry pattern; unscheduled): birth chart
 extensions (asteroid + fixed-star overlays — retained data for these is in
 the repo, see `FUTURE_DATA_USES.md`; basic D1 Rasi chart itself has shipped),
-festival calendar, and historical/ancestor chart tools (the BCE–medieval
-ephemeris the image trims away remains available for exactly this).
+and historical/ancestor chart tools (the BCE–medieval ephemeris the image
+trims away remains available for exactly this). The former "festival
+calendar" item shipped as the Poya festival significance layer (Poya-only
+scope — see the Shipped section and `docs/jyotishya-ideas.md`).
 
 Adding any module should follow the Pancha Pakshi pattern: an isolated
 `apps/api/app/modules/<feature>/` backend module, its own feature-registry

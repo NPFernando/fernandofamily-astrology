@@ -24,6 +24,13 @@ function sinhalaMonthName(dict: ReturnType<typeof getDictionary>, key: string): 
   return isAdhi ? `${dict.panchanga.adhiPrefix} ${baseName}` : baseName;
 }
 
+// An adhi- leap month observes the same festival as its base month, so the
+// significance lookup always strips the prefix.
+function poyaSignificance(dict: ReturnType<typeof getDictionary>, key: string): string {
+  const baseKey = key.startsWith("adhi-") ? key.slice(5) : key;
+  return translateEnum(dict, "poyaSignificance", baseKey);
+}
+
 function todayIso(): string {
   const now = new Date();
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -198,11 +205,16 @@ export function PanchangaClient() {
           {data.is_poya_day && data.poya && (
             <div
               data-testid="panchanga-poya-badge"
-              className="flex items-center gap-2 rounded-xl border border-amber-500/50 bg-amber-500/15 px-4 py-2.5 text-sm font-semibold"
+              className="flex flex-col gap-1 rounded-xl border border-amber-500/50 bg-amber-500/15 px-4 py-2.5 text-sm"
             >
-              <FullMoonIcon className="shrink-0 text-lg text-amber-600 dark:text-amber-400" />
-              {dict.panchanga.poyaTodayLabel} · {sinhalaMonthName(dict, data.poya.month_key)}{" "}
-              {dict.panchanga.poyaFullMoonSuffix}
+              <span className="flex items-center gap-2 font-semibold">
+                <FullMoonIcon className="shrink-0 text-lg text-amber-600 dark:text-amber-400" />
+                {dict.panchanga.poyaTodayLabel} · {sinhalaMonthName(dict, data.poya.month_key)}{" "}
+                {dict.panchanga.poyaFullMoonSuffix}
+              </span>
+              <span className="text-xs leading-relaxed opacity-80">
+                {poyaSignificance(dict, data.poya.month_key)}
+              </span>
             </div>
           )}
 

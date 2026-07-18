@@ -33,6 +33,13 @@ function sinhalaMonthName(dict: ReturnType<typeof getDictionary>, key: string): 
   return isAdhi ? `${dict.panchanga.adhiPrefix} ${baseName}` : baseName;
 }
 
+// An adhi- leap month observes the same festival as its base month, so the
+// significance lookup always strips the prefix.
+function poyaSignificance(dict: ReturnType<typeof getDictionary>, key: string): string {
+  const baseKey = key.startsWith("adhi-") ? key.slice(5) : key;
+  return translateEnum(dict, "poyaSignificance", baseKey);
+}
+
 function formatDate(date: string, locale: string) {
   return new Date(`${date}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
     weekday: "long",
@@ -97,6 +104,9 @@ export function PoyaDetailCard({
             {monthName} {dict.panchanga.poyaFullMoonSuffix}
           </h2>
           <p className="mt-1 text-xs opacity-75">{formatDate(date, locale)}</p>
+          <p className="mt-1 text-xs leading-relaxed opacity-80" data-testid="poya-significance">
+            {poyaSignificance(dict, titleMonthKey)}
+          </p>
           {!isPoyaDay && <p className="mt-2 text-sm font-medium">{countdownText(dict, locale, date)}</p>}
         </div>
         <Link

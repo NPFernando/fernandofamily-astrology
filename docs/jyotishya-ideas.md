@@ -446,6 +446,37 @@ with no structured, computable dataset, and no calculation can be validated
 against them. This research reaffirms that decision — nothing found in the
 vendored engine changes it.
 
+### E3b. Festival calendar — shipped Poya-only; Hindu-festival path researched and deliberately not built
+
+A dedicated feasibility pass (2026-07-18) split the "festival calendar"
+backlog item into three categories:
+
+1. **Poya-derived Buddhist festivals — shipped.** All 12 (Vesak, Poson,
+   Esala, Duruthu, …) are exactly the full moons of the Sinhala months the
+   gazette-validated Poya layer already computes; the festival identity IS
+   `sinhala_month.key`. Shipped as a frontend-only significance layer
+   (`enums.poyaSignificance` in both locale files, surfaced on the Daily
+   Panchanga Poya badge and the shared `PoyaDetailCard` used by the moon
+   calendar and daily guide). Zero new calculation, vendoring, or API
+   change — a backend `festival_key` field would have literally duplicated
+   `poya.month_key`.
+2. **Hindu festivals from panchanga elements — feasible but deliberately
+   not built.** Upstream `jhora/panchanga/vratha.py` (unvendored) has a
+   CSV-driven festival matcher (`get_festivals_between_the_dates`,
+   `sankranti_dates`, etc.) whose dependency closure is already fully
+   vendored; only `vratha.py` itself plus
+   `data/hindu_festivals_multilingual_unicode_bom.csv` (355 rows) would
+   need re-vendoring. Not built because: the dataset is pan-Indian/Tamil
+   framed with **no Sinhala labels**, upstream has **zero test fixtures**
+   for the festival matcher (validation would be built from scratch), and
+   the culturally-central Sri Lankan set is already covered by (1). If a
+   curated SL Hindu-holiday subset (Thai Pongal, Deepavali, Maha
+   Shivaratri — all public holidays) is ever prioritized, that's the
+   documented path: re-vendor those two files, filter to the curated
+   subset, author Sinhala labels, and build own validation fixtures.
+   `FUTURE_DATA_USES.md`'s vratha re-vendor note remains accurate.
+3. **Astrologer-panel-published dates — ruled out**, unchanged (E3 above).
+
 ### E4. Generic "Horoscope of the Day" / predictive text
 No specific finding drives this — it's a category call. Any feature that
 generates personalized predictive or advice text not tied to a specific,
@@ -484,4 +515,5 @@ that as a settled default.
 | E1 | Dasha calculators (shipped, Mahadasha + Antardasha) | New module | Yes — Vimshottari subset golden-tested | M |
 | E2 | Ashtakoot marriage score (partially superseded by Porondam) | Not recommended | No — constants only, no algorithm | — |
 | E3 | Avurudu Nekath | Not recommended | No — no computable dataset | — |
+| E3b | Festival calendar (shipped, Poya-only significance layer) | Shipped | Yes — rides the gazette-validated Poya layer | S |
 | E4 | Generic horoscope text | Not recommended | N/A — no rule to cite | — |

@@ -232,6 +232,20 @@
       "nawam": "Nawam",
       "madin": "Madin"
     },
+    "poyaSignificance": {
+      "bak": "Commemorates the Buddha's second visit to Lanka, to Nagadipa.",
+      "vesak": "Commemorates the birth, enlightenment and parinirvana of the Buddha.",
+      "poson": "Commemorates Arahat Mahinda bringing Buddhism to Lanka.",
+      "esala": "Commemorates the Buddha's first sermon; season of the Kandy Esala Perahera.",
+      "nikini": "Commemorates the first Dhamma council after the Buddha's parinirvana.",
+      "binara": "Commemorates the founding of the Bhikkhuni (nuns') order.",
+      "vap": "Marks the end of the Vas rains retreat; the Kathina season begins.",
+      "il": "Commemorates the despatch of the first sixty disciples to spread the Dhamma.",
+      "unduvap": "Commemorates Sangamitta Theri's arrival with the Sri Maha Bodhi sapling.",
+      "duruthu": "Commemorates the Buddha's first visit to Lanka.",
+      "nawam": "Commemorates the appointment of Sariputta and Moggallana as chief disciples.",
+      "madin": "Commemorates the Buddha's first return visit to his family in Kapilavastu."
+    },
     "taraCategories": {
       "paramitra": "Paramitra",
       "janma": "Janma",

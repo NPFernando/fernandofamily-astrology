@@ -552,7 +552,7 @@
     },
     "divisionalCharts": {
       "title": "Divisional Charts (Navamsa)",
-      "description": "Calculate your D9 Navamsa chart from birth date, time and location — planet and Ascendant placements in the South Indian grid layout."
+      "description": "Calculate your D9 Navamsa chart from birth date, time and location — planet and Ascendant placements in the North Indian diamond layout."
     },
     "porondam": {
       "title": "Porondam (Wedding Horoscope Matching)",

@@ -304,6 +304,17 @@ things stand.)*
 ## D. Genuinely new modules (currently-unused vendored capability)
 
 ### D1. Divisional charts (Varga) explorer, built on birth details already collected
+**Status: both the D9 Navamsa view and the base D1 Rasi (birth chart)
+have shipped.** D1 needed zero new vendored-engine integration — it's
+`divisional_chart_factor=1` on the exact same `dhasavarga`/`ascendant`
+calls D9 already exercises, confirmed by a cross-module test tying the
+two together. The North Indian diamond rendering built for D9 (house-
+fixed cells, rashi rotating with the Ascendant) was extracted into a
+shared `RasiStyleChart` component and reused directly for D1, adding
+only house-number labels (a birth chart is read "by house" far more
+than a divisional chart is). Higher vargas (D10 Dasamsa, etc.) remain
+unbuilt.
+
 **One-line:** A Navamsa (D9) chart view, and more generally any of the D1–D60
 divisional charts, computed from the same birth date/time/place already
 captured by Pancha Pakshi's Method A.
@@ -444,7 +455,7 @@ that as a settled default.
 | B4 | Moon Rashi of the day | Deepen Panchanga | Yes (`raasi`) | S |
 | B5 | Ritu / Samvatsara badges | Deepen Panchanga | Ritu yes; Samvatsara caveated | S |
 | C1 | Vivaha Chakra Palan (built, then removed — superseded by Porondam) | Deepen Compatibility | Yes | M |
-| D1 | Divisional charts (Navamsa) (shipped) | New module | Yes | L |
+| D1 | Divisional charts (Navamsa + D1 Rasi birth chart) (shipped) | New module | Yes | L |
 | D2 | Fixed-star precision | New module (exploratory) | Data path unvendored; call proven | L (soft) |
 | D3 | Porondam — Sri Lankan wedding matching (shipped, 7/10 core) | New module | Yes, hand-transcribed classical tables | L |
 | E1 | Dasha calculators | Not recommended yet | No — module not vendored | — |

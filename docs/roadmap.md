@@ -111,6 +111,16 @@
   so Porondam is paused at 7/10 until one turns up. The extended ~10
   traditional categories are deliberately not built yet either — each
   needs a specific, pinned reference first.
+- Birth Chart (D1 Rasi) — the main natal chart: planet and Ascendant
+  placements by house, North Indian diamond layout matching Sri Lankan
+  kendaraya convention (`/birth-chart`, `POST /api/v1/birth-chart/rasi`).
+  Whole-sign houses, sign-only display (no per-planet degrees yet) —
+  deliberately scoped to "basics." Needed zero new vendored-engine
+  integration: D1 is `divisional_chart_factor=1` on the same
+  `dhasavarga`/`ascendant` calls Divisional Charts already exercises for
+  D9. Dasha calculations, asteroid/fixed-star overlays, cusp-based house
+  systems (Sripati/KP/Placidus) and divisional-chart cross-linking are
+  explicitly out of scope for this module.
 
 - Sri Lankan layer for the Daily Panchanga: Poya (full-moon) day detection
   and Sinhala Poya-cycle month names (bak, vesak, poson, … madin, with
@@ -140,11 +150,12 @@ they are actually built, registered in the feature registry
 - Public API keys / third-party developer access. This platform's API is for
   its own frontend only; it is not being opened up for external integrations.
 
-**Larger future modules** (same registry pattern; unscheduled): birth chart /
-Kundali basics (asteroid + fixed-star data for these is retained in the repo
-— see `FUTURE_DATA_USES.md`), festival calendar, Dasha calculations, and
-historical/ancestor chart tools (the BCE–medieval ephemeris the image trims
-away remains available for exactly this).
+**Larger future modules** (same registry pattern; unscheduled): birth chart
+extensions (asteroid + fixed-star overlays — retained data for these is in
+the repo, see `FUTURE_DATA_USES.md`; basic D1 Rasi chart itself has shipped),
+festival calendar, Dasha calculations, and historical/ancestor chart tools
+(the BCE–medieval ephemeris the image trims away remains available for
+exactly this).
 
 Adding any module should follow the Pancha Pakshi pattern: an isolated
 `apps/api/app/modules/<feature>/` backend module, its own feature-registry

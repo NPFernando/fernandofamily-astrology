@@ -121,6 +121,18 @@
   D9. Dasha calculations, asteroid/fixed-star overlays, cusp-based house
   systems (Sripati/KP/Placidus) and divisional-chart cross-linking are
   explicitly out of scope for this module.
+- Dasha (Vimshottari planetary periods) — Mahadasha timeline from birth
+  (`/dasha`, `POST /api/v1/dasha/mahadasha`): the 9 major planetary
+  periods spanning a full ~120-year cycle, with the currently-active
+  period highlighted. **v1 ships Mahadasha only** — Antardasha/Bhukti
+  sub-period nesting is deferred as an explicit fast-follow, same
+  "ship the base feature, add depth later" pattern as Birth Chart's
+  sign-only-then-degrees rollout (the engine already supports it,
+  golden-tested at `ANTARA` depth in `test_vendor_dasha_engine.py`, but
+  v1 doesn't expose it). Needed a real vendoring pass, not just a new
+  application module — see `docs/jyotishya-ideas.md` E1 for the full
+  history (engine wasn't vendored, then vendored and golden-tested,
+  then this module built on top).
 
 - Sri Lankan layer for the Daily Panchanga: Poya (full-moon) day detection
   and Sinhala Poya-cycle month names (bak, vesak, poson, … madin, with
@@ -153,11 +165,10 @@ they are actually built, registered in the feature registry
 **Larger future modules** (same registry pattern; unscheduled): birth chart
 extensions (asteroid + fixed-star overlays — retained data for these is in
 the repo, see `FUTURE_DATA_USES.md`; basic D1 Rasi chart itself has shipped),
-festival calendar, Dasha calculations (Vimshottari engine now vendored
-and golden-tested, application module itself still unbuilt — see
-`docs/jyotishya-ideas.md` E1), and historical/ancestor chart tools
-(the BCE–medieval ephemeris the image trims away remains available for
-exactly this).
+festival calendar, Antardasha/Bhukti sub-period depth for Dasha (Mahadasha-
+only v1 has shipped — see `docs/jyotishya-ideas.md` E1), and historical/
+ancestor chart tools (the BCE–medieval ephemeris the image trims away
+remains available for exactly this).
 
 Adding any module should follow the Pancha Pakshi pattern: an isolated
 `apps/api/app/modules/<feature>/` backend module, its own feature-registry

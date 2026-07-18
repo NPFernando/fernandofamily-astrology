@@ -43,6 +43,10 @@
     "birthChart": {
       "title": "Birth Chart (Rasi)",
       "description": "See your D1 Rasi chart — the main birth chart, showing planet and Ascendant placements by house, in the North Indian diamond layout used in Sri Lankan practice."
+    },
+    "dasha": {
+      "title": "Dasha (Planetary Periods)",
+      "description": "See your Vimshottari Mahadasha timeline — the 9 major planetary periods spanning your life from birth, and which one is active now."
     }
   },
   "nav": {
@@ -61,7 +65,8 @@
     "muhurta": "Muhurta",
     "divisionalCharts": "Divisional Charts",
     "porondam": "Porondam",
-    "birthChart": "Birth Chart"
+    "birthChart": "Birth Chart",
+    "dasha": "Dasha"
   },
   "enums": {
     "birds": {
@@ -561,6 +566,10 @@
     "birthChart": {
       "title": "Birth Chart (D1 Rasi)",
       "description": "Calculate your D1 Rasi birth chart from birth date, time and location — planet and Ascendant placements by house, in the North Indian diamond layout used in Sri Lankan practice."
+    },
+    "dasha": {
+      "title": "Dasha (Vimshottari Planetary Periods)",
+      "description": "Calculate your Vimshottari Mahadasha timeline from birth date, time and location — the 9 major planetary periods spanning your life, and which one is active now."
     }
   },
   "push": {
@@ -814,6 +823,15 @@
     "chartTitle": "D1 Rasi Chart",
     "ascendant": "Ascendant (Lagna)",
     "layoutNote": "Shown in the North Indian diamond style, matching Sri Lankan kendaraya convention: house 1 (Lagna) always sits in the top diamond — which rashi falls in each house rotates with the Ascendant instead. House numbers are shown alongside each rashi since a birth chart is read by house."
+  },
+  "dasha": {
+    "title": "Dasha (Vimshottari Planetary Periods)",
+    "description": "The Vimshottari Dasha divides a lifetime into 9 major planetary periods (Mahadasha), each ruled by one of the 9 grahas, spanning a full ~120-year cycle from birth.",
+    "birthDetailsTitle": "Birth details",
+    "calculate": "Calculate dasha timeline",
+    "resultTitle": "Mahadasha timeline",
+    "currentLabel": "Current",
+    "durationYears": "years"
   },
   "porondam": {
     "title": "Porondam (Wedding Horoscope Matching)",

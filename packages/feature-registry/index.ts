@@ -126,6 +126,17 @@ export const features: FeatureEntry[] = [
     descriptionKey: "features.birthChart.description",
     icon: "moon",
   },
+  {
+    id: "dasha",
+    enabled: true,
+    public: true,
+    order: 50,
+    route: "/dasha",
+    apiNamespace: "/api/v1/dasha",
+    titleKey: "features.dasha.title",
+    descriptionKey: "features.dasha.description",
+    icon: "moon",
+  },
 ];
 
 export function enabledFeatures(): FeatureEntry[] {

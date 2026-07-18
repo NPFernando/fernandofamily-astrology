@@ -10,6 +10,7 @@ from app.routes.v1 import (
     birth_chart,
     birth_nakshatra,
     compatibility,
+    dasha,
     divisional_charts,
     health,
     metadata,
@@ -46,6 +47,7 @@ app.include_router(metadata.router)
 app.include_router(birth_chart.router)
 app.include_router(birth_nakshatra.router)
 app.include_router(compatibility.router)
+app.include_router(dasha.router)
 app.include_router(divisional_charts.router)
 app.include_router(muhurta.router)
 app.include_router(pancha_pakshi.router)

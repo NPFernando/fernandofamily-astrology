@@ -38,6 +38,8 @@ import type {
   NavamsaChart,
   BirthChartRequest,
   BirthChart,
+  DashaRequest,
+  DashaTimeline,
   PartyBirthInput,
   PorondamRequest,
   PorondamPartyDetails,
@@ -128,6 +130,12 @@ export type _CheckBirthChartRequest = Expect<
 >;
 export type _CheckBirthChart = Expect<
   Generated["BirthChart"] extends BirthChart ? true : false
+>;
+export type _CheckDashaRequest = Expect<
+  Equals<DashaRequest, Generated["DashaRequest"]>
+>;
+export type _CheckDashaTimeline = Expect<
+  Generated["DashaTimeline"] extends DashaTimeline ? true : false
 >;
 export type _CheckPartyBirthInput = Expect<
   Equals<PartyBirthInput, Generated["PartyBirthInput"]>

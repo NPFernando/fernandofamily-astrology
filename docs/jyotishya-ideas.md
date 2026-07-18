@@ -366,17 +366,25 @@ research, not a scheduled feature.
 
 ### E1. Vimshottari/other Dasha calculators
 
-**Status: the original blocker here is resolved.** This verdict was
-written when the dasha computation module wasn't vendored at all. As of
-commit `1fe849e`, the Vimshottari subset of `jhora/horoscope/` (9 files —
-`chart/{house,sphuta,charts}.py`, `dhasa/graha/{vimsottari,shastihayani}.py`,
-plus package `__init__.py`s) is vendored, checksummed, and golden-tested:
-`apps/api/tests/test_vendor_dasha_engine.py` reproduces an upstream
-textbook worked example exactly under this app's own pinned LAHIRI
-ayanamsa. **The application module itself (`app/modules/dasha/`, API
-route, feature-registry entry, frontend, locale strings) is still not
-built** — that's the roadmap's next step for this feature, not yet
-scheduled.
+**Status: shipped (Mahadasha only).** This verdict was written when the
+dasha computation module wasn't vendored at all. Resolved in two steps:
+(1) commit `1fe849e` vendored the Vimshottari subset of `jhora/horoscope/`
+(9 files — `chart/{house,sphuta,charts}.py`,
+`dhasa/graha/{vimsottari,shastihayani}.py`, plus package `__init__.py`s),
+checksummed and golden-tested — `apps/api/tests/test_vendor_dasha_engine.py`
+reproduces an upstream textbook worked example exactly under this app's
+own pinned LAHIRI ayanamsa; (2) the application module
+(`app/modules/dasha/`, `POST /api/v1/dasha/mahadasha`, `/dasha` page,
+feature-registry entry, locale strings) is now built and shipped —
+the 9 Mahadasha periods spanning birth's full ~120-year cycle, with the
+currently-active period highlighted client-side.
+
+**Antardasha/Bhukti sub-period nesting is deliberately deferred as v2**,
+not bundled into v1 — same "ship the base feature, add depth as an
+explicit fast-follow" pattern as Birth Chart's sign-only-then-degrees
+rollout. The engine already supports it and is golden-tested at
+`ANTARA` depth (`test_vendor_dasha_engine.py`), but v1's API/UI only
+expose Mahadasha.
 
 The original caution below remains valid for whoever builds that module
 and is worth keeping: do not attempt to reimplement dasha period math
@@ -474,7 +482,7 @@ that as a settled default.
 | D1 | Divisional charts (Navamsa + D1 Rasi birth chart) (shipped) | New module | Yes | L |
 | D2 | Fixed-star precision | New module (exploratory) | Data path unvendored; call proven | L (soft) |
 | D3 | Porondam — Sri Lankan wedding matching (shipped, 7/10 core) | New module | Yes, hand-transcribed classical tables | L |
-| E1 | Dasha calculators | Engine vendored (`1fe849e`), module not yet built | Yes — Vimshottari subset golden-tested | M |
+| E1 | Dasha calculators (shipped, Mahadasha only) | New module | Yes — Vimshottari subset golden-tested | M |
 | E2 | Ashtakoot marriage score (partially superseded by Porondam) | Not recommended | No — constants only, no algorithm | — |
 | E3 | Avurudu Nekath | Not recommended | No — no computable dataset | — |
 | E4 | Generic horoscope text | Not recommended | N/A — no rule to cite | — |

@@ -316,6 +316,32 @@ export type BirthChart = {
   placements: BirthChartPlacement[]; // 9: Sun..Ketu, GRAHA_KEYS order
 };
 
+// apps/api/app/modules/dasha/models.py. v1: Mahadasha only, no Antardasha
+// nesting (see apps/api/app/modules/dasha/__init__.py for why).
+export type DashaRequest = {
+  birth_date: string; // YYYY-MM-DD
+  birth_time: string; // HH:mm:ss
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  iana_tz: string;
+};
+
+export type MahadashaPeriod = {
+  key: string; // repository.GRAHA_KEYS entry, e.g. "sun"
+  start_date: string;
+  end_date: string;
+  duration_years: number;
+};
+
+export type DashaTimeline = {
+  engine: EngineMetadata;
+  location: Location;
+  birth_date: string;
+  birth_time: string;
+  periods: MahadashaPeriod[]; // 9, chronological order (not Sun..Ketu order)
+};
+
 // Multi-day auspicious-window search (week view). The request reuses the
 // schedule request shape with target_date as the range start.
 export type WindowsRequest = ScheduleRequest & {
@@ -832,6 +858,19 @@ export function fetchBirthChart(body: BirthChartRequest): Promise<BirthChart> {
     const data = await r.json().catch(() => null);
     if (!r.ok) throw new ApiError(r.status, data);
     return data as BirthChart;
+  });
+  return res;
+}
+
+export function fetchDasha(body: DashaRequest): Promise<DashaTimeline> {
+  const res = fetch(`/api/v1/dasha/mahadasha`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).then(async (r) => {
+    const data = await r.json().catch(() => null);
+    if (!r.ok) throw new ApiError(r.status, data);
+    return data as DashaTimeline;
   });
   return res;
 }

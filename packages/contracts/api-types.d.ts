@@ -55,6 +55,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/dasha/mahadasha": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mahadasha */
+        post: operations["mahadasha_api_v1_dasha_mahadasha_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/divisional-charts/navamsa": {
         parameters: {
             query?: never;
@@ -801,6 +818,44 @@ export interface components {
             /** Longitude */
             longitude: number;
         };
+        /** DashaRequest */
+        DashaRequest: {
+            /**
+             * Birth Date
+             * Format: date
+             */
+            birth_date: string;
+            /**
+             * Birth Time
+             * Format: time
+             */
+            birth_time: string;
+            /** Iana Tz */
+            iana_tz: string;
+            /** Latitude */
+            latitude: number;
+            /** Location Name */
+            location_name: string;
+            /** Longitude */
+            longitude: number;
+        };
+        /** DashaTimeline */
+        DashaTimeline: {
+            /**
+             * Birth Date
+             * Format: date
+             */
+            birth_date: string;
+            /**
+             * Birth Time
+             * Format: time
+             */
+            birth_time: string;
+            engine: components["schemas"]["EngineMetadata"];
+            location: components["schemas"]["Location"];
+            /** Periods */
+            periods: components["schemas"]["MahadashaPeriod"][];
+        };
         /** EclipseForecast */
         EclipseForecast: {
             engine: components["schemas"]["EngineMetadata"];
@@ -957,6 +1012,23 @@ export interface components {
             is_leap: boolean;
             /** Key */
             key: string;
+        };
+        /** MahadashaPeriod */
+        MahadashaPeriod: {
+            /** Duration Years */
+            duration_years: number;
+            /**
+             * End Date
+             * Format: date
+             */
+            end_date: string;
+            /** Key */
+            key: string;
+            /**
+             * Start Date
+             * Format: date
+             */
+            start_date: string;
         };
         /** MajorPeriod */
         MajorPeriod: {
@@ -2035,6 +2107,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CompatibilityResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mahadasha_api_v1_dasha_mahadasha_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DashaRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashaTimeline"];
                 };
             };
             /** @description Validation Error */

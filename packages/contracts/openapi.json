@@ -1131,6 +1131,84 @@
         "title": "DailyPanchangaRequest",
         "type": "object"
       },
+      "DashaRequest": {
+        "properties": {
+          "birth_date": {
+            "format": "date",
+            "title": "Birth Date",
+            "type": "string"
+          },
+          "birth_time": {
+            "format": "time",
+            "title": "Birth Time",
+            "type": "string"
+          },
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          }
+        },
+        "required": [
+          "birth_date",
+          "birth_time",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz"
+        ],
+        "title": "DashaRequest",
+        "type": "object"
+      },
+      "DashaTimeline": {
+        "properties": {
+          "birth_date": {
+            "format": "date",
+            "title": "Birth Date",
+            "type": "string"
+          },
+          "birth_time": {
+            "format": "time",
+            "title": "Birth Time",
+            "type": "string"
+          },
+          "engine": {
+            "$ref": "#/components/schemas/EngineMetadata"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "periods": {
+            "items": {
+              "$ref": "#/components/schemas/MahadashaPeriod"
+            },
+            "title": "Periods",
+            "type": "array"
+          }
+        },
+        "required": [
+          "engine",
+          "location",
+          "birth_date",
+          "birth_time",
+          "periods"
+        ],
+        "title": "DashaTimeline",
+        "type": "object"
+      },
       "EclipseForecast": {
         "properties": {
           "engine": {
@@ -1533,6 +1611,36 @@
           "is_leap"
         ],
         "title": "LunarMonth",
+        "type": "object"
+      },
+      "MahadashaPeriod": {
+        "properties": {
+          "duration_years": {
+            "title": "Duration Years",
+            "type": "integer"
+          },
+          "end_date": {
+            "format": "date",
+            "title": "End Date",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "start_date": {
+            "format": "date",
+            "title": "Start Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "start_date",
+          "end_date",
+          "duration_years"
+        ],
+        "title": "MahadashaPeriod",
         "type": "object"
       },
       "MajorPeriod": {
@@ -4034,6 +4142,47 @@
         "summary": "Birds",
         "tags": [
           "compatibility"
+        ]
+      }
+    },
+    "/api/v1/dasha/mahadasha": {
+      "post": {
+        "operationId": "mahadasha_api_v1_dasha_mahadasha_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DashaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashaTimeline"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mahadasha",
+        "tags": [
+          "dasha"
         ]
       }
     },

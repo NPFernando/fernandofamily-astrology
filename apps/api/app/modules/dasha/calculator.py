@@ -1,8 +1,13 @@
-"""Vimshottari Mahadasha timeline from a birth moment.
+"""Vimshottari Dasha timeline from a birth moment: 9 Mahadashas spanning
+the full ~120-year cycle, each carrying its 9 nested Antardasha/Bhukti
+sub-periods (v2; v1 shipped Mahadasha-only).
 
-v1 scope: Mahadasha only (9 major periods spanning the full ~120-year
-Vimshottari cycle). See app/modules/dasha/__init__.py for why Antardasha
-nesting is deliberately deferred.
+Both levels are derived from a single ANTARA-depth engine call (81
+chronological rows grouped as 9 consecutive Antardashas per Mahadasha):
+a Mahadasha's start is its first Antardasha's start and its duration is
+the round(sum) of its 9 fractional Antardasha durations, which total
+exact whole years. Deeper levels (Pratyantara and below, engine depths
+3-6) are not exposed.
 
 Verification note: unlike Birth Chart/Divisional Charts (which had no
 vendored test fixture to compare against), this module's underlying engine
@@ -24,7 +29,7 @@ from datetime import time as time_type
 from zoneinfo import ZoneInfo
 
 from app.modules.dasha import adapter
-from app.modules.dasha.models import DashaTimeline, MahadashaPeriod
+from app.modules.dasha.models import AntardashaPeriod, DashaTimeline, MahadashaPeriod
 from app.modules.pancha_pakshi import adapter as pp_adapter
 from app.modules.pancha_pakshi.calculator import resolve_utc_offset_hours
 from app.modules.pancha_pakshi.models import EngineMetadata, Location
@@ -56,26 +61,55 @@ def compute_dasha_timeline(
         (birth_time.hour, birth_time.minute, birth_time.second),
     )
 
-    _vim_balance, raw_periods = adapter.mahadasha_periods(jd, place)
+    _vim_balance, raw_rows = adapter.antardasha_periods(jd, place)
 
-    start_dates = []
-    for lords, (year, month, day, _fractional_hour), _duration_years in raw_periods:
-        start_dates.append(date_type(year, month, day))
+    # Group the 81 chronological rows into 9 consecutive runs by maha lord.
+    groups: list[list] = []
+    previous_maha_lord = None
+    for (maha_lord, antara_lord), (year, month, day, _fh), duration_years in raw_rows:
+        start_date = date_type(year, month, day)
+        if maha_lord != previous_maha_lord:
+            groups.append([])
+            previous_maha_lord = maha_lord
+        groups[-1].append(((maha_lord, antara_lord), start_date, duration_years))
+
+    # Every antardasha's end is the next one's start (contiguous across
+    # mahadasha boundaries too); only the very last needs synthesizing,
+    # via the same whole-year arithmetic as the final mahadasha's end.
+    all_starts = [start for group in groups for _lords, start, _dur in group]
 
     periods = []
-    for i, (lords, _start, duration_years) in enumerate(raw_periods):
-        planet_id = lords[0]
-        start_date = start_dates[i]
-        if i + 1 < len(raw_periods):
-            end_date = start_dates[i + 1]
+    for gi, group in enumerate(groups):
+        maha_lord = group[0][0][0]
+        maha_start = group[0][1]
+        maha_duration = round(sum(duration for _lords, _start, duration in group))
+        if gi + 1 < len(groups):
+            maha_end = groups[gi + 1][0][1]
         else:
-            end_date = _add_years(start_date, round(duration_years))
+            maha_end = _add_years(maha_start, maha_duration)
+
+        antardashas = []
+        for ai, ((_maha, antara_lord), antara_start, _duration) in enumerate(group):
+            flat_index = sum(len(g) for g in groups[:gi]) + ai
+            if flat_index + 1 < len(all_starts):
+                antara_end = all_starts[flat_index + 1]
+            else:
+                antara_end = maha_end
+            antardashas.append(
+                AntardashaPeriod(
+                    key=panchanga_repository.GRAHA_KEYS[antara_lord],
+                    start_date=antara_start,
+                    end_date=antara_end,
+                )
+            )
+
         periods.append(
             MahadashaPeriod(
-                key=panchanga_repository.GRAHA_KEYS[planet_id],
-                start_date=start_date,
-                end_date=end_date,
-                duration_years=round(duration_years),
+                key=panchanga_repository.GRAHA_KEYS[maha_lord],
+                start_date=maha_start,
+                end_date=maha_end,
+                duration_years=maha_duration,
+                antardashas=antardashas,
             )
         )
 

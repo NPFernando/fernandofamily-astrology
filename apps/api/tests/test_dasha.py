@@ -1,4 +1,4 @@
-"""Vimshottari Mahadasha timeline (v1: Mahadasha only, no Antardasha nesting).
+"""Vimshottari Dasha timeline: 9 Mahadashas, each with 9 nested Antardashas.
 
 Golden-value comparisons split by sensitivity, same shape as
 test_birth_chart.py and for the same underlying reason (see
@@ -73,6 +73,18 @@ def test_dasha_matches_vendored_engine_directly():
         if i + 1 < 9:
             _assert_date_close(period["end_date"], expected_start_dates[i + 1])
 
+    # Antardasha level: same comparison against a direct ANTARA-depth engine
+    # call — lord sequence exact, start dates ±1 day (same arcsec rationale).
+    _vim_balance2, raw_antara_rows = dasha_adapter.antardasha_periods(jd, place)
+    assert len(raw_antara_rows) == 81
+    flat_antardashas = [a for p in data["periods"] for a in p["antardashas"]]
+    assert len(flat_antardashas) == 81
+    for antara, ((_maha_lord, antara_lord), (y, m, d, _fh), _dur) in zip(
+        flat_antardashas, raw_antara_rows
+    ):
+        assert antara["key"] == panchanga_repository.GRAHA_KEYS[antara_lord]
+        _assert_date_close(antara["start_date"], date(y, m, d))
+
 
 def test_dasha_periods_are_chronological_and_cover_full_cycle():
     response = client.post("/api/v1/dasha/mahadasha", json=COLOMBO_BIRTH)
@@ -92,6 +104,22 @@ def test_dasha_periods_are_chronological_and_cover_full_cycle():
     first_start = date.fromisoformat(periods[0]["start_date"])
     last_end = date.fromisoformat(periods[-1]["end_date"])
     assert abs((last_end - first_start).days - 120 * 365.2425) < 5
+
+    # Antardasha nesting invariants: 9 per mahadasha, first lord is the maha
+    # lord itself, all 9 planets appear exactly once, the sub-chain exactly
+    # tiles its mahadasha, and the flat chain is contiguous across
+    # mahadasha boundaries too.
+    for p in periods:
+        antaras = p["antardashas"]
+        assert len(antaras) == 9
+        assert antaras[0]["key"] == p["key"]
+        assert {a["key"] for a in antaras} == set(panchanga_repository.GRAHA_KEYS)
+        assert antaras[0]["start_date"] == p["start_date"]
+        assert antaras[-1]["end_date"] == p["end_date"]
+    flat = [a for p in periods for a in p["antardashas"]]
+    for i in range(len(flat) - 1):
+        assert flat[i]["end_date"] == flat[i + 1]["start_date"]
+        assert date.fromisoformat(flat[i]["start_date"]) < date.fromisoformat(flat[i]["end_date"])
 
 
 def test_dasha_rejects_invalid_timezone():

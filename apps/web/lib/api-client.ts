@@ -327,11 +327,18 @@ export type DashaRequest = {
   iana_tz: string;
 };
 
+export type AntardashaPeriod = {
+  key: string; // repository.GRAHA_KEYS entry — the Antardasha lord
+  start_date: string;
+  end_date: string;
+};
+
 export type MahadashaPeriod = {
   key: string; // repository.GRAHA_KEYS entry, e.g. "sun"
   start_date: string;
   end_date: string;
   duration_years: number;
+  antardashas: AntardashaPeriod[]; // 9, chronological, first lord = key
 };
 
 export type DashaTimeline = {

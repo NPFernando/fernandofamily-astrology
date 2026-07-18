@@ -831,7 +831,8 @@
     "calculate": "Calculate dasha timeline",
     "resultTitle": "Mahadasha timeline",
     "currentLabel": "Current",
-    "durationYears": "years"
+    "durationYears": "years",
+    "antardashaTitle": "Antardasha sub-periods"
   },
   "porondam": {
     "title": "Porondam (Wedding Horoscope Matching)",

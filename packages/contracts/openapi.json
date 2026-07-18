@@ -12,6 +12,31 @@
         "title": "ActivityId",
         "type": "string"
       },
+      "AntardashaPeriod": {
+        "properties": {
+          "end_date": {
+            "format": "date",
+            "title": "End Date",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "start_date": {
+            "format": "date",
+            "title": "Start Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "start_date",
+          "end_date"
+        ],
+        "title": "AntardashaPeriod",
+        "type": "object"
+      },
       "BirdId": {
         "enum": [
           "vulture",
@@ -1615,6 +1640,13 @@
       },
       "MahadashaPeriod": {
         "properties": {
+          "antardashas": {
+            "items": {
+              "$ref": "#/components/schemas/AntardashaPeriod"
+            },
+            "title": "Antardashas",
+            "type": "array"
+          },
           "duration_years": {
             "title": "Duration Years",
             "type": "integer"
@@ -1638,7 +1670,8 @@
           "key",
           "start_date",
           "end_date",
-          "duration_years"
+          "duration_years",
+          "antardashas"
         ],
         "title": "MahadashaPeriod",
         "type": "object"

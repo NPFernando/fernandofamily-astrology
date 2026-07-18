@@ -353,6 +353,21 @@ export interface components {
          * @enum {string}
          */
         ActivityId: "ruling" | "eating" | "walking" | "sleeping" | "dying";
+        /** AntardashaPeriod */
+        AntardashaPeriod: {
+            /**
+             * End Date
+             * Format: date
+             */
+            end_date: string;
+            /** Key */
+            key: string;
+            /**
+             * Start Date
+             * Format: date
+             */
+            start_date: string;
+        };
         /**
          * BirdId
          * @enum {string}
@@ -1015,6 +1030,8 @@ export interface components {
         };
         /** MahadashaPeriod */
         MahadashaPeriod: {
+            /** Antardashas */
+            antardashas: components["schemas"]["AntardashaPeriod"][];
             /** Duration Years */
             duration_years: number;
             /**

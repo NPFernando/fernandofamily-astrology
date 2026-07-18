@@ -23,8 +23,18 @@ def mahadasha_periods(jd: float, p) -> tuple[tuple, list]:
     """(vim_balance, periods) at MAHA_DHASA_ONLY depth -- 9 entries, one per
     planet, covering the full ~120-year Vimshottari cycle from birth. Each
     period entry is (lords_tuple, (Y, M, D, fractional_hour), duration_years).
-    v1 scope: no Antardasha/Bhukti nesting (see ANTARA-depth engine coverage
-    in tests/test_vendor_dasha_engine.py for that, not yet exposed here)."""
+    Kept alongside antardasha_periods for tests that cross-check the two
+    depths against each other; the calculator itself uses only the ANTARA
+    call and derives both levels from it."""
     return vimsottari.get_vimsottari_dhasa_bhukthi(
         jd, p, dhasa_level_index=const.MAHA_DHASA_DEPTH.MAHA_DHASA_ONLY,
+    )
+
+
+def antardasha_periods(jd: float, p) -> tuple[tuple, list]:
+    """(vim_balance, periods) at ANTARA depth -- 81 rows, chronological,
+    grouped as 9 consecutive Antardashas per Mahadasha. Each row is
+    ((maha_lord, antara_lord), (Y, M, D, fractional_hour), duration_years)."""
+    return vimsottari.get_vimsottari_dhasa_bhukthi(
+        jd, p, dhasa_level_index=const.MAHA_DHASA_DEPTH.ANTARA,
     )

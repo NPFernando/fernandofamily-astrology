@@ -1,9 +1,9 @@
 """Dasha (Vimshottari planetary period timeline) module.
 
-v1 ships Mahadasha only -- the 9 major periods spanning the full ~120-year
-Vimshottari cycle from birth. Antardasha/Bhukti sub-period nesting is
-deliberately deferred (the engine already supports it, golden-tested at
-ANTARA depth in tests/test_vendor_dasha_engine.py) -- same "ship the base
-feature, add depth as an explicit fast-follow" pattern as Birth Chart's
-sign-only-then-degrees rollout.
+Ships the 9 Mahadashas spanning the full ~120-year Vimshottari cycle from
+birth, each with its 9 nested Antardasha/Bhukti sub-periods (added in v2;
+v1 was Mahadasha-only, following the same "ship the base feature, add
+depth as an explicit fast-follow" pattern as Birth Chart's
+sign-only-then-degrees rollout). Deeper levels -- Pratyantara and below,
+engine depths 3-6 -- are supported by the vendored engine but not exposed.
 """

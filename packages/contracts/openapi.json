@@ -338,6 +338,117 @@
         "title": "BirthBirdResponse",
         "type": "object"
       },
+      "BirthChart": {
+        "properties": {
+          "ascendant_rashi_index": {
+            "title": "Ascendant Rashi Index",
+            "type": "integer"
+          },
+          "ascendant_rashi_key": {
+            "title": "Ascendant Rashi Key",
+            "type": "string"
+          },
+          "birth_date": {
+            "format": "date",
+            "title": "Birth Date",
+            "type": "string"
+          },
+          "birth_time": {
+            "format": "time",
+            "title": "Birth Time",
+            "type": "string"
+          },
+          "engine": {
+            "$ref": "#/components/schemas/EngineMetadata"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "placements": {
+            "items": {
+              "$ref": "#/components/schemas/BirthChartPlacement"
+            },
+            "title": "Placements",
+            "type": "array"
+          }
+        },
+        "required": [
+          "engine",
+          "location",
+          "birth_date",
+          "birth_time",
+          "ascendant_rashi_index",
+          "ascendant_rashi_key",
+          "placements"
+        ],
+        "title": "BirthChart",
+        "type": "object"
+      },
+      "BirthChartPlacement": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "rashi_index": {
+            "title": "Rashi Index",
+            "type": "integer"
+          },
+          "rashi_key": {
+            "title": "Rashi Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "rashi_index",
+          "rashi_key"
+        ],
+        "title": "BirthChartPlacement",
+        "type": "object"
+      },
+      "BirthChartRequest": {
+        "properties": {
+          "birth_date": {
+            "format": "date",
+            "title": "Birth Date",
+            "type": "string"
+          },
+          "birth_time": {
+            "format": "time",
+            "title": "Birth Time",
+            "type": "string"
+          },
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          }
+        },
+        "required": [
+          "birth_date",
+          "birth_time",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz"
+        ],
+        "title": "BirthChartRequest",
+        "type": "object"
+      },
       "BirthDateTimeInput": {
         "properties": {
           "as_of_date": {
@@ -3793,6 +3904,47 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/birth-chart/rasi": {
+      "post": {
+        "operationId": "rasi_api_v1_birth_chart_rasi_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BirthChartRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BirthChart"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rasi",
+        "tags": [
+          "birth-chart"
+        ]
+      }
+    },
     "/api/v1/birth-nakshatra/resolve": {
       "post": {
         "operationId": "resolve_api_v1_birth_nakshatra_resolve_post",

@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/api/v1/birth-chart/rasi": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rasi */
+        post: operations["rasi_api_v1_birth_chart_rasi_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/birth-nakshatra/resolve": {
         parameters: {
             query?: never;
@@ -450,6 +467,57 @@ export interface components {
             bharana_pakshi: components["schemas"]["BirdId"];
             birth_bird: components["schemas"]["BirdId"];
             padu_pakshi: components["schemas"]["BirdId"];
+        };
+        /** BirthChart */
+        BirthChart: {
+            /** Ascendant Rashi Index */
+            ascendant_rashi_index: number;
+            /** Ascendant Rashi Key */
+            ascendant_rashi_key: string;
+            /**
+             * Birth Date
+             * Format: date
+             */
+            birth_date: string;
+            /**
+             * Birth Time
+             * Format: time
+             */
+            birth_time: string;
+            engine: components["schemas"]["EngineMetadata"];
+            location: components["schemas"]["Location"];
+            /** Placements */
+            placements: components["schemas"]["BirthChartPlacement"][];
+        };
+        /** BirthChartPlacement */
+        BirthChartPlacement: {
+            /** Key */
+            key: string;
+            /** Rashi Index */
+            rashi_index: number;
+            /** Rashi Key */
+            rashi_key: string;
+        };
+        /** BirthChartRequest */
+        BirthChartRequest: {
+            /**
+             * Birth Date
+             * Format: date
+             */
+            birth_date: string;
+            /**
+             * Birth Time
+             * Format: time
+             */
+            birth_time: string;
+            /** Iana Tz */
+            iana_tz: string;
+            /** Latitude */
+            latitude: number;
+            /** Location Name */
+            location_name: string;
+            /** Longitude */
+            longitude: number;
         };
         /** BirthDateTimeInput */
         BirthDateTimeInput: {
@@ -1877,6 +1945,39 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    rasi_api_v1_birth_chart_rasi_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BirthChartRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BirthChart"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     resolve_api_v1_birth_nakshatra_resolve_post: {
         parameters: {
             query?: never;

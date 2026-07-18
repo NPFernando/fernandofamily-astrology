@@ -39,6 +39,10 @@
     "porondam": {
       "title": "Porondam (Wedding Matching)",
       "description": "Check 7 of the traditional core Porondama between two birth charts using Sri Lanka's Dasa/Visi Porondama wedding-matching system."
+    },
+    "birthChart": {
+      "title": "Birth Chart (Rasi)",
+      "description": "See your D1 Rasi chart — the main birth chart, showing planet and Ascendant placements by house, in the North Indian diamond layout used in Sri Lankan practice."
     }
   },
   "nav": {
@@ -56,7 +60,8 @@
     "dailyGuide": "Daily Guide",
     "muhurta": "Muhurta",
     "divisionalCharts": "Divisional Charts",
-    "porondam": "Porondam"
+    "porondam": "Porondam",
+    "birthChart": "Birth Chart"
   },
   "enums": {
     "birds": {
@@ -552,6 +557,10 @@
     "porondam": {
       "title": "Porondam (Wedding Horoscope Matching)",
       "description": "Check 7 of the traditional core Porondama between a bride and groom's birth charts using Sri Lanka's wedding-matching system."
+    },
+    "birthChart": {
+      "title": "Birth Chart (D1 Rasi)",
+      "description": "Calculate your D1 Rasi birth chart from birth date, time and location — planet and Ascendant placements by house, in the North Indian diamond layout used in Sri Lankan practice."
     }
   },
   "push": {
@@ -796,6 +805,15 @@
     "chartTitle": "D9 Navamsa Chart",
     "ascendant": "Ascendant (Lagna)",
     "layoutNote": "Shown in the North Indian diamond style, matching Sri Lankan kendaraya convention: house 1 (Lagna) always sits in the top diamond — which rashi falls in each house rotates with the Ascendant instead."
+  },
+  "birthChart": {
+    "title": "Birth Chart (Rasi)",
+    "description": "The D1 Rasi chart is the main birth chart — planet and Ascendant placements by house, read for self, relationships, career and every other area of life.",
+    "birthDetailsTitle": "Birth details",
+    "calculate": "Calculate birth chart",
+    "chartTitle": "D1 Rasi Chart",
+    "ascendant": "Ascendant (Lagna)",
+    "layoutNote": "Shown in the North Indian diamond style, matching Sri Lankan kendaraya convention: house 1 (Lagna) always sits in the top diamond — which rashi falls in each house rotates with the Ascendant instead. House numbers are shown alongside each rashi since a birth chart is read by house."
   },
   "porondam": {
     "title": "Porondam (Wedding Horoscope Matching)",

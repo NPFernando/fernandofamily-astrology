@@ -285,6 +285,35 @@ export type NavamsaChart = {
   placements: NavamsaPlacement[]; // 9: Sun..Ketu, GRAHA_KEYS order
 };
 
+// ---------------------------------------------------------------------------
+// Birth Chart (/api/v1/birth-chart) — D1 Rasi. Shapes mirror
+// apps/api/app/modules/birth_chart/models.py.
+
+export type BirthChartRequest = {
+  birth_date: string; // YYYY-MM-DD
+  birth_time: string; // HH:mm:ss
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  iana_tz: string;
+};
+
+export type BirthChartPlacement = {
+  key: string; // repository.GRAHA_KEYS entry, e.g. "sun"
+  rashi_index: number; // 1..12
+  rashi_key: string;
+};
+
+export type BirthChart = {
+  engine: EngineMetadata;
+  location: Location;
+  birth_date: string;
+  birth_time: string;
+  ascendant_rashi_index: number;
+  ascendant_rashi_key: string;
+  placements: BirthChartPlacement[]; // 9: Sun..Ketu, GRAHA_KEYS order
+};
+
 // Multi-day auspicious-window search (week view). The request reuses the
 // schedule request shape with target_date as the range start.
 export type WindowsRequest = ScheduleRequest & {
@@ -788,6 +817,19 @@ export function fetchNavamsaChart(body: NavamsaChartRequest): Promise<NavamsaCha
     const data = await r.json().catch(() => null);
     if (!r.ok) throw new ApiError(r.status, data);
     return data as NavamsaChart;
+  });
+  return res;
+}
+
+export function fetchBirthChart(body: BirthChartRequest): Promise<BirthChart> {
+  const res = fetch(`/api/v1/birth-chart/rasi`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).then(async (r) => {
+    const data = await r.json().catch(() => null);
+    if (!r.ok) throw new ApiError(r.status, data);
+    return data as BirthChart;
   });
   return res;
 }

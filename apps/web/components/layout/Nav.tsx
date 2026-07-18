@@ -23,6 +23,7 @@ export function Nav() {
     if (id === "muhurta") return dict.nav.muhurta;
     if (id === "divisional-charts") return dict.nav.divisionalCharts;
     if (id === "porondam") return dict.nav.porondam;
+    if (id === "birth-chart") return dict.nav.birthChart;
     return fallback;
   };
   const links = [

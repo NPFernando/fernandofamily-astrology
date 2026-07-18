@@ -115,6 +115,17 @@ export const features: FeatureEntry[] = [
     descriptionKey: "features.porondam.description",
     icon: "cock",
   },
+  {
+    id: "birth-chart",
+    enabled: true,
+    public: true,
+    order: 45,
+    route: "/birth-chart",
+    apiNamespace: "/api/v1/birth-chart",
+    titleKey: "features.birthChart.title",
+    descriptionKey: "features.birthChart.description",
+    icon: "moon",
+  },
 ];
 
 export function enabledFeatures(): FeatureEntry[] {

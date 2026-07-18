@@ -36,6 +36,8 @@ import type {
   MuhurtaSearchResponse,
   NavamsaChartRequest,
   NavamsaChart,
+  BirthChartRequest,
+  BirthChart,
   PartyBirthInput,
   PorondamRequest,
   PorondamPartyDetails,
@@ -120,6 +122,12 @@ export type _CheckNavamsaChartRequest = Expect<
 >;
 export type _CheckNavamsaChart = Expect<
   Generated["NavamsaChart"] extends NavamsaChart ? true : false
+>;
+export type _CheckBirthChartRequest = Expect<
+  Equals<BirthChartRequest, Generated["BirthChartRequest"]>
+>;
+export type _CheckBirthChart = Expect<
+  Generated["BirthChart"] extends BirthChart ? true : false
 >;
 export type _CheckPartyBirthInput = Expect<
   Equals<PartyBirthInput, Generated["PartyBirthInput"]>

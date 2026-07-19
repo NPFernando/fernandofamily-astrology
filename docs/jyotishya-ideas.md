@@ -385,6 +385,29 @@ with the current period highlighted at both levels.
 3–6) are supported by the vendored engine but not exposed**, and are
 not scheduled — no commitment until a concrete use case turns up.
 
+**Cultural grounding (round-4 audit, 2026-07-19):** Vimshottari Dasha
+clears the same naturalized-SL-practice bar Pancha Pakshi did in A0,
+and by a wider margin —
+- A Sri Lankan astrology source states directly that the Vimshottari
+  system is the maha-dasha method predominantly used in Sri Lanka
+  ("විංශෝත්තරී දශා ක්‍රමය ශ්‍රී ලංකාව ඉන්දියාව ආදී පෙරදිග රටවල වැඩි
+  වශයෙන් භාවිතා..."), citing the Parashara 120-year framework.
+- Mainstream Sinhala press astrology columns treat it as ordinary
+  practice: Lankadeepa ("රාහු මහ දශාවේ සහ අන්තර් දශාවල පලාපල") and
+  Divaina's nakatha section ("පලාඵල කථනයට මහෝපකාරී දශා ක්‍රම").
+- kaladasava.com (the same SL portal cited in A0) carries a dedicated
+  "විංශෝත්තරී මහා දශා හා අතුරු දශා පල විපාක" reference page.
+
+The same audit found and fixed a terminology defect in the shipped
+Sinhala strings: the transliteration "විම්ශෝත්තරී" was nonstandard —
+every SL source writes **විංශෝත්තරී** (with binduva) — and the
+unspaced "මහාදශා"/"අන්තර්දශා" compounds were replaced with the forms
+those sources actually use: **මහා දශා**, and **අතුරු දශා** for the
+sub-periods (the native Sinhala term used consistently by kaladasava
+and lankajhothisha; "අන්තර් දශා" is also attested, e.g. Lankadeepa,
+but අතුරු දශා is the practice-literature norm). English "Vimshottari
+/ Mahadasha / Antardasha" strings were already standard and unchanged.
+
 The original caution below remains valid for whoever builds that module
 and is worth keeping: do not attempt to reimplement dasha period math
 from `const.py`'s standalone constants (`vimsottari_adhipati_list`,
@@ -459,7 +482,21 @@ backlog item into three categories:
    Panchanga Poya badge and the shared `PoyaDetailCard` used by the moon
    calendar and daily guide). Zero new calculation, vendoring, or API
    change — a backend `festival_key` field would have literally duplicated
-   `poya.month_key`.
+   `poya.month_key`. **Round-4 audit (2026-07-19): all 12 significance
+   attributions verified against ≥2 independent sources** (Colombo
+   Dhamma Friends' full Poya-days reference, Kariyawasam's *Buddhist
+   Ceremonies and Rituals of Sri Lanka* (BPS Wheel 402), Daily Mirror /
+   News First feature articles, official SL consulate pages) — no
+   corrections needed. Two honesty footnotes from that pass: (a) Vap
+   and Il each carry several traditional attributions (Vap: also the
+   Buddha's return from Tavatimsa, and CDF leads with the meeting with
+   Maitri Bodhisatta; Il: also Maitreya's vivarana) — the shipped
+   strings use the most widely attested SL framing (end of Vas /
+   Kathina season; despatch of the first sixty), which is a selection
+   among valid attributions, not the only one; (b) Kariyawasam places
+   the Nagadipa visit on the Bak *new*-moon rather than the full moon —
+   mainstream SL sources (CDF, lakpura, press) attribute it to Bak
+   Poya, which the shipped string follows.
 2. **Hindu festivals from panchanga elements — feasible but deliberately
    not built.** Upstream `jhora/panchanga/vratha.py` (unvendored) has a
    CSV-driven festival matcher (`get_festivals_between_the_dates`,

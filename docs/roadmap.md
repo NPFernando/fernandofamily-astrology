@@ -115,7 +115,10 @@
   placements by house, North Indian diamond layout matching Sri Lankan
   kendaraya convention (`/birth-chart`, `POST /api/v1/birth-chart/rasi`).
   Whole-sign houses, with per-planet and Ascendant degrees-within-sign
-  (e.g. "Sun 15°23′") shown alongside house numbers. Needed zero new vendored-engine
+  (e.g. "Sun 15°23′") shown alongside house numbers. The round-4
+  cultural audit confirmed the numeric °/′ display is consistent with
+  Sinhala practice, which uses the identical degree/arc-minute system
+  (අංශක/කලා) with Western numerals — no localized degree wording needed. Needed zero new vendored-engine
   integration: D1 is `divisional_chart_factor=1` on the same
   `dhasavarga`/`ascendant` calls Divisional Charts already exercises for
   D9. Dasha calculations, asteroid/fixed-star overlays, cusp-based house

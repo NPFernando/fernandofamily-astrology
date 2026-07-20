@@ -209,9 +209,15 @@ def test_image_profile_date_range(monkeypatch):
     from app.modules.pancha_pakshi import validation
 
     monkeypatch.setattr(validation, "_IMAGE_PROFILE", True)
-    response = client.post("/api/v1/panchanga/daily", json={"date": "1750-06-15", **COLOMBO})
+    # 1750 sits INSIDE the image range since the 1200-CE widening; a
+    # pre-1200 date is what gets rejected now.
+    response = client.post("/api/v1/panchanga/daily", json={"date": "1150-06-15", **COLOMBO})
     assert response.status_code == 422
-    assert "1800" in response.json()["message"]
+    assert "1200" in response.json()["message"]
+
+    # A date the old 1800 bound would have rejected must now compute.
+    response = client.post("/api/v1/panchanga/daily", json={"date": "1750-06-15", **COLOMBO})
+    assert response.status_code == 200
 
 
 def test_metadata_lists_panchanga_feature():
@@ -277,9 +283,9 @@ def test_month_panchanga_image_profile_date_range(monkeypatch):
     from app.modules.pancha_pakshi import validation
 
     monkeypatch.setattr(validation, "_IMAGE_PROFILE", True)
-    response = client.post("/api/v1/panchanga/month", json={"year": 1750, "month": 6, **COLOMBO})
+    response = client.post("/api/v1/panchanga/month", json={"year": 1150, "month": 6, **COLOMBO})
     assert response.status_code == 422
-    assert "1800" in response.json()["message"]
+    assert "1200" in response.json()["message"]
 
 
 # Bodo, Norway (67.28N) — a real city right at the edge of the polar-day

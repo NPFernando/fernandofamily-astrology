@@ -397,6 +397,32 @@ upstream re-vendor plus net-new computation code — for a feature class
 rounds 1–3 removed features for. Verdict: not built, not scheduled;
 `FUTURE_DATA_USES.md`'s asteroid rows now carry the correction.
 
+### D4. Historical/ancestor charts — shipped as a range widening (2026-07-20)
+
+The roadmap's last named larger module dissolved under research: a 1750
+ancestor's chart is just a birth chart, so no new module was warranted —
+the production date gate (shared by all seven date-taking modules via
+`pancha_pakshi/validation.py`) widened from 1800 to **1200 CE**, and the
+`sepl_12`/`semo_12` ephemeris pair (1200–1799 CE, ~1.8 MB) now ships in
+the image. Frontend date inputs gained matching bounds (birth forms had
+none at all; moon calendar and muhurta had hardcoded 1800 minimums).
+
+Two correctness semantics were researched and documented (methodology
+page + validation.py docstring) rather than coded around, because both
+are already right: (1) **proleptic Gregorian input** — `swe.julday` runs
+with its Gregorian default everywhere; a Julian-calendar source date
+must be converted by the user, which is an acceptable, stated default
+for Sri Lankan genealogy since Ceylon's record-keeping eras
+(Portuguese/Dutch/British) were effectively Gregorian throughout the
+window where records exist; (2) **Local Mean Time offsets** — for
+pre-standard-time dates zoneinfo already returns the IANA tzdb's LMT
+(Colombo 1750 = +5:19:24), which is astronomically correct;
+`tests/test_historical_range.py` locks the 319-minute offset in.
+
+Deliberately NOT extended: 600 CE (+3.6 MB, history-novelty rather than
+ancestor need) and the BCE set (+44 MB, no records to chart). Both
+remain retained repo-only per `FUTURE_DATA_USES.md`.
+
 ---
 
 ## E. Explicitly not recommended
@@ -586,6 +612,7 @@ that as a settled default.
 | D1 | Divisional charts (Navamsa + D1 Rasi birth chart) (shipped) | New module | Yes | L |
 | D2 | Fixed-star precision (shipped as birth-chart yogatara layer) | Shipped | Yes — CRC 1955 Table 5 pinned; sefstars.txt now in image | M |
 | D2b | Asteroid overlays | Ruled out | No — seas_*.se1 never vendored; zero engine support; Western practice | — |
+| D4 | Historical/ancestor charts (shipped as 1200-CE range widening) | Shipped | Yes — sepl_12/semo_12 pair now in image | S |
 | D3 | Porondam — Sri Lankan wedding matching (shipped, 7/10 core) | New module | Yes, hand-transcribed classical tables | L |
 | E1 | Dasha calculators (shipped, Mahadasha + Antardasha) | New module | Yes — Vimshottari subset golden-tested | M |
 | E2 | Ashtakoot marriage score (partially superseded by Porondam) | Not recommended | No — constants only, no algorithm | — |

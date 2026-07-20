@@ -53,6 +53,8 @@ export function TargetDateTimeFields({
           type="date"
           value={value.date}
           onChange={(e) => onChange({ ...value, date: e.target.value })}
+          min="1200-01-01"
+          max="2399-12-31"
           className="rounded-lg border border-black/10 px-3 py-2 dark:border-white/20 dark:bg-transparent"
         />
       </label>

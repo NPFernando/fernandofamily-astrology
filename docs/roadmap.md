@@ -179,6 +179,21 @@
   image. Asteroid overlays — the other half of the old "birth chart
   extensions" idea — were researched and ruled out (no position ephemeris
   in the repo, no engine support, Western practice; D2b).
+- Historical/ancestor date range — every date-taking module (birth chart,
+  dasha, birth nakshatra, divisional charts, panchanga, porondam, pancha
+  pakshi) now supports dates back to 1200 CE in production: the
+  sepl_12/semo_12 ephemeris pair (1200–1799 CE, ~1.8 MB) ships in the
+  Docker image and the image-profile date gate widened accordingly. This
+  resolves the former "historical/ancestor chart tools" backlog item as a
+  range widening rather than a new module — a 1750 ancestor's birth chart
+  is just a birth chart. Two documented conventions for old dates
+  (methodology page): input is proleptic Gregorian (Julian-source dates
+  must be converted first — defensible default for Sri Lankan genealogy,
+  whose Portuguese/Dutch/British record eras were effectively Gregorian),
+  and pre-standard-time offsets use the IANA tzdb's Local Mean Time
+  (Colombo 1750 = +5:19:24), which zoneinfo already returned correctly.
+  The BCE-era ephemeris (~44 MB) stays repo-only for a possible future
+  research tool (`FUTURE_DATA_USES.md`).
 
 ## Backlog (priority order)
 
@@ -195,13 +210,13 @@ they are actually built, registered in the feature registry
 - Public API keys / third-party developer access. This platform's API is for
   its own frontend only; it is not being opened up for external integrations.
 
-**Larger future modules** (same registry pattern; unscheduled):
-historical/ancestor chart tools (the BCE–medieval ephemeris the image
-trims away remains available for exactly this). The former "festival
-calendar" item shipped as the Poya festival significance layer (Poya-only
-scope), and the former "birth chart extensions" item resolved as the
-shipped yogatara star layer plus a researched asteroid rule-out — see the
-Shipped section and `docs/jyotishya-ideas.md` (D2/D2b, E3b).
+**Larger future modules**: none currently named. The three former
+entries all resolved: "festival calendar" shipped as the Poya
+significance layer (E3b), "birth chart extensions" as the yogatara star
+layer plus an asteroid rule-out (D2/D2b), and "historical/ancestor chart
+tools" as the 1200-CE range widening (see Shipped). The BCE-era
+ephemeris remains retained repo-only if a deep-history research tool is
+ever wanted.
 
 Adding any module should follow the Pancha Pakshi pattern: an isolated
 `apps/api/app/modules/<feature>/` backend module, its own feature-registry

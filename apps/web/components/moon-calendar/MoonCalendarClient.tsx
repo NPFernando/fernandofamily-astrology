@@ -277,7 +277,7 @@ function MonthControls({
           <input
             type="month"
             value={monthInputValue(month.year, month.month)}
-            min="1800-01"
+            min="1200-01"
             max="2399-12"
             onChange={(e) => {
               if (!e.target.value) return;

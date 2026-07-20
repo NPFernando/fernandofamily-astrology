@@ -691,7 +691,7 @@ function MuhurtaMonthPanel({
       </section>
 
       {error && (
-        <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-4 text-sm">
+        <div role="alert" className="rounded-lg border border-red-500/40 bg-red-500/10 p-4 text-sm">
           <p>{error}</p>
           <button
             type="button"
@@ -1261,7 +1261,7 @@ export function MuhurtaClient() {
           )}
 
           {error && (
-            <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-4 text-sm">
+            <div role="alert" className="rounded-lg border border-red-500/40 bg-red-500/10 p-4 text-sm">
               <p>{error}</p>
               <button
                 type="button"

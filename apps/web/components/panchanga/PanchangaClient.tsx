@@ -169,7 +169,7 @@ export function PanchangaClient() {
       )}
 
       {error && (
-        <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm print:hidden">
+        <div role="alert" className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm print:hidden">
           <p>{error}</p>
           <button
             type="button"

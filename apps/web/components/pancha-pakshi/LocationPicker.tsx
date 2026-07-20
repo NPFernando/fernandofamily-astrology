@@ -295,7 +295,7 @@ export function LocationPicker({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap gap-2 text-sm">
+      <div role="tablist" aria-label={dict.ui.location} className="flex flex-wrap gap-2 text-sm">
         <TabButton active={tab === "device"} onClick={() => setTab("device")}>
           {dict.ui.useMyLocation}
         </TabButton>
@@ -322,7 +322,11 @@ export function LocationPicker({
 
       {tab === "search" && (
         <div className="flex flex-col gap-2">
+          <label className="sr-only" htmlFor="location-search-input">
+            {dict.ui.searchPlace}
+          </label>
           <input
+            id="location-search-input"
             type="text"
             value={searchTerm}
             onChange={(e) => runSearch(e.target.value)}
@@ -358,27 +362,42 @@ export function LocationPicker({
 
       {tab === "manual" && (
         <div className="flex flex-col gap-2 sm:flex-row">
+          <label className="sr-only" htmlFor="location-manual-lat">
+            {dict.ui.latitude}
+          </label>
           <input
+            id="location-manual-lat"
             type="number"
             step="any"
             value={manualLat}
             onChange={(e) => setManualLat(e.target.value)}
             placeholder={dict.ui.latitude}
+            aria-describedby={status ? "location-manual-status" : undefined}
             className="rounded-lg border border-black/10 px-3 py-2 text-sm dark:border-white/20 dark:bg-transparent"
           />
+          <label className="sr-only" htmlFor="location-manual-lon">
+            {dict.ui.longitude}
+          </label>
           <input
+            id="location-manual-lon"
             type="number"
             step="any"
             value={manualLon}
             onChange={(e) => setManualLon(e.target.value)}
             placeholder={dict.ui.longitude}
+            aria-describedby={status ? "location-manual-status" : undefined}
             className="rounded-lg border border-black/10 px-3 py-2 text-sm dark:border-white/20 dark:bg-transparent"
           />
+          <label className="sr-only" htmlFor="location-manual-tz">
+            {dict.ui.timezone}
+          </label>
           <input
+            id="location-manual-tz"
             type="text"
             value={manualTz}
             onChange={(e) => setManualTz(e.target.value)}
             placeholder={dict.ui.timezone}
+            aria-describedby={status ? "location-manual-status" : undefined}
             className="rounded-lg border border-black/10 px-3 py-2 text-sm dark:border-white/20 dark:bg-transparent"
           />
           <button
@@ -417,7 +436,11 @@ export function LocationPicker({
         </div>
       </div>
 
-      {status && tab !== "device" && <p className="text-sm text-red-600 dark:text-red-400">{status}</p>}
+      {status && tab !== "device" && (
+        <p id="location-manual-status" role="alert" className="text-sm text-red-600 dark:text-red-400">
+          {status}
+        </p>
+      )}
 
       {recent.length > 0 && (
         <div className="flex flex-col gap-1">
@@ -465,6 +488,8 @@ function TabButton({
   return (
     <button
       type="button"
+      role="tab"
+      aria-selected={active}
       onClick={onClick}
       className={`rounded-full border px-3 py-1 ${
         active

@@ -93,8 +93,22 @@ export function RasiStyleChart({
 }) {
   const { dict } = useLocale();
 
+  // Computed once per house and reused for both the visual cell and the
+  // sr-only table row below, so the two representations cannot drift apart.
+  const houseRows = HOUSE_CELLS.map(({ house, labelX, labelY }) => {
+    const rashiKey = RASHI_KEYS_0BASED[rashiIndex0BasedForHouse(chart.ascendant_rashi_index, house)];
+    const grahasHere = chart.placements.filter((p) => p.rashi_key === rashiKey);
+    const overlaysHere = overlays?.filter((o) => o.rashi_key === rashiKey) ?? [];
+    const isAscendant = chart.ascendant_rashi_key === rashiKey;
+    return { house, labelX, labelY, rashiKey, grahasHere, overlaysHere, isAscendant };
+  });
+
   return (
-    <div className="relative aspect-square max-w-md rounded-xl border border-black/10 bg-white/30 dark:border-white/10 dark:bg-white/[.03]">
+    <div
+      role="img"
+      aria-label={`${ascendantLabel}: ${translateEnum(dict, "rashis", chart.ascendant_rashi_key)}`}
+      className="relative aspect-square max-w-md rounded-xl border border-black/10 bg-white/30 dark:border-white/10 dark:bg-white/[.03]"
+    >
       <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full" aria-hidden="true">
         <g className="stroke-black/10 dark:stroke-white/10" fill="none" strokeWidth="0.5">
           <rect x="0" y="0" width="100" height="100" />
@@ -102,50 +116,70 @@ export function RasiStyleChart({
           <path d="M50,0 L100,50 L50,100 L0,50 Z" />
         </g>
       </svg>
-      {HOUSE_CELLS.map(({ house, labelX, labelY }) => {
-        const rashiKey = RASHI_KEYS_0BASED[rashiIndex0BasedForHouse(chart.ascendant_rashi_index, house)];
-        const grahasHere = chart.placements.filter((p) => p.rashi_key === rashiKey);
-        const isAscendant = chart.ascendant_rashi_key === rashiKey;
-        return (
-          <div
-            key={house}
-            data-testid={`${testIdPrefix}-cell-${rashiKey}`}
-            className="absolute flex max-w-[30%] -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5 text-center text-[10px] leading-tight sm:text-xs"
-            style={{ left: `${labelX}%`, top: `${labelY}%` }}
-          >
-            {showHouseNumbers && <span className="text-[9px] font-semibold opacity-40">{house}</span>}
-            <span className="font-medium opacity-70">{translateEnum(dict, "rashis", rashiKey)}</span>
-            <div className="flex flex-wrap justify-center gap-0.5">
-              {isAscendant && (
-                <span className="rounded bg-accent/20 px-1 font-semibold text-accent">
-                  {ascendantLabel}
-                  {showDegrees && chart.ascendant_degrees !== undefined && (
-                    <> {formatDegreeMinutes(chart.ascendant_degrees)}</>
-                  )}
-                </span>
-              )}
-              {grahasHere.map((p) => (
-                <span key={p.key} className="rounded bg-black/5 px-1 dark:bg-white/10">
-                  {translateEnum(dict, "horaPlanets", p.key)}
-                  {showDegrees && p.degrees !== undefined && <> {formatDegreeMinutes(p.degrees)}</>}
-                </span>
-              ))}
-              {overlays
-                ?.filter((o) => o.rashi_key === rashiKey)
-                .map((o) => (
-                  <span
-                    key={o.key}
-                    data-testid={`${testIdPrefix}-overlay-${o.key}`}
-                    className="rounded border border-accent/30 bg-transparent px-1 text-[9px] italic opacity-70 sm:text-[11px]"
-                  >
-                    {o.label}
-                    {showDegrees && o.degrees !== undefined && <> {formatDegreeMinutes(o.degrees)}</>}
-                  </span>
-                ))}
-            </div>
+      <table className="sr-only">
+        <caption>{ascendantLabel}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{dict.ui.house}</th>
+            <th scope="col">{dict.ui.rashi}</th>
+            <th scope="col">{dict.ui.occupants}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {houseRows.map(({ house, rashiKey, grahasHere, overlaysHere, isAscendant }) => {
+            const occupants = [
+              isAscendant ? ascendantLabel : null,
+              ...grahasHere.map((p) => translateEnum(dict, "horaPlanets", p.key)),
+              ...overlaysHere.map((o) => o.label),
+            ].filter((v): v is string => v !== null);
+            return (
+              <tr key={house}>
+                <th scope="row">{house}</th>
+                <td>{translateEnum(dict, "rashis", rashiKey)}</td>
+                <td>{occupants.length > 0 ? occupants.join(", ") : dict.ui.none}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      {houseRows.map(({ house, labelX, labelY, rashiKey, grahasHere, overlaysHere, isAscendant }) => (
+        <div
+          key={house}
+          aria-hidden="true"
+          data-testid={`${testIdPrefix}-cell-${rashiKey}`}
+          className="absolute flex max-w-[30%] -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5 text-center text-[10px] leading-tight sm:text-xs"
+          style={{ left: `${labelX}%`, top: `${labelY}%` }}
+        >
+          {showHouseNumbers && <span className="text-[9px] font-semibold opacity-40">{house}</span>}
+          <span className="font-medium opacity-70">{translateEnum(dict, "rashis", rashiKey)}</span>
+          <div className="flex flex-wrap justify-center gap-0.5">
+            {isAscendant && (
+              <span className="rounded bg-accent/20 px-1 font-semibold text-accent">
+                {ascendantLabel}
+                {showDegrees && chart.ascendant_degrees !== undefined && (
+                  <> {formatDegreeMinutes(chart.ascendant_degrees)}</>
+                )}
+              </span>
+            )}
+            {grahasHere.map((p) => (
+              <span key={p.key} className="rounded bg-black/5 px-1 dark:bg-white/10">
+                {translateEnum(dict, "horaPlanets", p.key)}
+                {showDegrees && p.degrees !== undefined && <> {formatDegreeMinutes(p.degrees)}</>}
+              </span>
+            ))}
+            {overlaysHere.map((o) => (
+              <span
+                key={o.key}
+                data-testid={`${testIdPrefix}-overlay-${o.key}`}
+                className="rounded border border-accent/30 bg-transparent px-1 text-[9px] italic opacity-70 sm:text-[11px]"
+              >
+                {o.label}
+                {showDegrees && o.degrees !== undefined && <> {formatDegreeMinutes(o.degrees)}</>}
+              </span>
+            ))}
           </div>
-        );
-      })}
+        </div>
+      ))}
     </div>
   );
 }

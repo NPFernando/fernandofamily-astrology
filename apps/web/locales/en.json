@@ -283,6 +283,10 @@
     }
   },
   "ui": {
+    "house": "House",
+    "rashi": "Rashi",
+    "occupants": "Occupants",
+    "none": "None",
     "liveNow": "Live now",
     "currentPeriod": "Current period",
     "nextPeriod": "Next period",

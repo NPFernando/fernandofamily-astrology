@@ -47,6 +47,7 @@ export function BirdSelector({ onSubmit }: { onSubmit: (input: BirdSelectionInpu
               <button
                 key={b}
                 type="button"
+                aria-pressed={bird === b}
                 onClick={() => setBird(b)}
                 className={`flex min-h-12 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm leading-tight sm:w-auto sm:justify-start sm:rounded-full sm:px-4 ${
                   bird === b

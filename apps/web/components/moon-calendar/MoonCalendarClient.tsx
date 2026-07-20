@@ -189,7 +189,7 @@ export function MoonCalendarClient() {
       )}
 
       {error && (
-        <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm">
+        <div role="alert" className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm">
           <p>{error}</p>
           <button
             type="button"
@@ -356,6 +356,7 @@ function DayCell({
       data-testid={day.is_poya_day ? "moon-calendar-poya" : "moon-calendar-day"}
       title={title}
       aria-label={title}
+      aria-current={selected ? "date" : undefined}
       onClick={() => onSelect(day.date)}
       className={`flex min-h-28 min-w-0 flex-col rounded-lg border p-2 text-left transition hover:border-accent/70 ${tone} ${
         selected ? "ring-2 ring-accent" : ""
@@ -393,6 +394,7 @@ function MobileDayList({
           key={day.date}
           type="button"
           data-testid={day.is_poya_day ? "moon-calendar-poya" : "moon-calendar-day"}
+          aria-current={day.date === selectedDate ? "date" : undefined}
           onClick={() => onSelect(day.date)}
           className={`rounded-lg border p-3 text-left ${phaseTone(day.moon_phase, day.is_poya_day)} ${
             day.date === selectedDate ? "ring-2 ring-accent" : ""

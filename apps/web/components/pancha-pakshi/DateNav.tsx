@@ -41,12 +41,7 @@ export function DateNav({
       >
         ←
       </button>
-      <button
-        type="button"
-        aria-label={dict.ui.pickDate}
-        onClick={() => inputRef.current?.showPicker?.()}
-        className="relative rounded-lg border border-black/10 px-3 py-1.5 text-sm font-medium dark:border-white/20"
-      >
+      <label className="relative rounded-lg border border-black/10 px-3 py-1.5 text-sm font-medium dark:border-white/20">
         {display}
         <input
           ref={inputRef}
@@ -55,11 +50,11 @@ export function DateNav({
           min={min}
           max={max}
           onChange={(e) => e.target.value && onChange(e.target.value)}
+          onClick={() => inputRef.current?.showPicker?.()}
           aria-label={dict.ui.pickDate}
           className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-          tabIndex={-1}
         />
-      </button>
+      </label>
       <button
         type="button"
         aria-label={dict.ui.nextDay}

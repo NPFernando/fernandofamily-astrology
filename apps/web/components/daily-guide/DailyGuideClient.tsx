@@ -500,6 +500,8 @@ export function DailyGuideClient() {
       </header>
 
       <div
+        role="tablist"
+        aria-label={dict.dailyGuide.title}
         className="flex w-fit rounded-lg border border-black/10 bg-white/30 p-1 text-sm dark:border-white/10 dark:bg-white/[.03]"
         data-testid="daily-guide-view-tabs"
       >
@@ -507,6 +509,8 @@ export function DailyGuideClient() {
           <button
             key={view}
             type="button"
+            role="tab"
+            aria-selected={activeView === view}
             onClick={() => setActiveView(view)}
             className={`rounded-md px-3 py-1.5 font-semibold transition ${
               activeView === view ? "bg-accent text-white" : "hover:bg-black/5 dark:hover:bg-white/10"

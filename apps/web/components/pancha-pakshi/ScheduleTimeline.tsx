@@ -70,7 +70,7 @@ export function ScheduleTimeline({
       <DayTimelineBar schedule={schedule} onSelectMajor={selectFromBar} skewMs={skewMs} />
 
       <div className="flex flex-wrap items-center justify-between gap-2 print:hidden">
-        <div className="flex flex-wrap gap-2 text-sm">
+        <div role="tablist" aria-label={dict.ui.schedule} className="flex flex-wrap gap-2 text-sm">
           <ViewButton active={view === "timeline"} onClick={() => setView("timeline")}>
             {dict.ui.timelineView}
           </ViewButton>
@@ -133,6 +133,8 @@ function ViewButton({
   return (
     <button
       type="button"
+      role="tab"
+      aria-selected={active}
       onClick={onClick}
       className={`rounded-full border px-3 py-1 ${
         active ? "border-accent bg-accent/10 font-semibold text-accent" : "border-black/10 opacity-70 dark:border-white/20"

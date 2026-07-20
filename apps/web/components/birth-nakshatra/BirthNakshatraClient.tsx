@@ -213,7 +213,7 @@ export function BirthNakshatraClient() {
 function ResultCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-black/10 bg-white/30 p-4 dark:border-white/10 dark:bg-white/[.03]">
-      <h2 className="text-xs font-semibold uppercase opacity-60">{title}</h2>
+      <h2 className="text-xs font-semibold uppercase opacity-70">{title}</h2>
       <div className="mt-2">{children}</div>
     </div>
   );

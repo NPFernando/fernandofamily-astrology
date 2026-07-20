@@ -303,7 +303,7 @@ export function PanchangaClient() {
                 {sinhalaMonthName(dict, data.sinhala_month.key)}
                 {locale === "en" && ` (${dict.panchanga.sinhalaMonth})`}
               </p>
-              <p className="text-xs opacity-60">
+              <p className="text-xs opacity-70">
                 {translateEnum(dict, "lunarMonths", data.lunar_month.key)}
                 {data.lunar_month.is_leap && (
                   <span className="ml-1.5 rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[10px]">
@@ -425,7 +425,7 @@ function ElementCard({
       data-testid={testId}
       className="print-avoid-break rounded-xl border border-black/10 p-4 dark:border-white/10"
     >
-      <h2 className="text-xs font-semibold uppercase opacity-60">{title}</h2>
+      <h2 className="text-xs font-semibold uppercase opacity-70">{title}</h2>
       <div className="mt-1 flex flex-col gap-1">{children}</div>
     </div>
   );
@@ -520,7 +520,7 @@ function EclipseCard({
 function TimeFact({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col">
-      <span className="text-xs uppercase opacity-60">{label}</span>
+      <span className="text-xs uppercase opacity-70">{label}</span>
       <span className="font-medium tabular-nums">{value}</span>
     </div>
   );

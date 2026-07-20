@@ -320,7 +320,7 @@ function CalendarGrid({
   const weekdayHeaders = Array.from({ length: 7 }, (_, i) => weekdayFormatter.format(new Date(2026, 1, 1 + i)));
   return (
     <div data-testid="moon-calendar-grid" className="hidden md:flex md:flex-col md:gap-2">
-      <div className="grid grid-cols-7 gap-1 text-center text-[11px] uppercase opacity-60">
+      <div className="grid grid-cols-7 gap-1 text-center text-[11px] uppercase opacity-70">
         {weekdayHeaders.map((h, i) => (
           <span key={i}>{h}</span>
         ))}
@@ -366,7 +366,7 @@ function DayCell({
       <span className="mt-1 text-xs font-medium leading-snug">{dict.moonCalendar.phaseLabels[day.moon_phase]}</span>
       <span className="mt-1 truncate text-[11px] opacity-70">{translateEnum(dict, "tithis", day.tithi[0].key)}</span>
       {day.is_poya_day && (
-        <span className="mt-auto rounded-full bg-amber-500/20 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-300">
+        <span className="mt-auto rounded-full bg-amber-500/20 px-2 py-0.5 text-[11px] font-semibold text-amber-800 dark:text-amber-300">
           {dict.moonCalendar.poyaShort}
         </span>
       )}
@@ -408,7 +408,7 @@ function MobileDayList({
               </p>
             </div>
             {day.is_poya_day && (
-              <span className="shrink-0 rounded-full bg-amber-500/20 px-2 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
+              <span className="shrink-0 rounded-full bg-amber-500/20 px-2 py-1 text-xs font-semibold text-amber-800 dark:text-amber-300">
                 {dict.moonCalendar.poyaShort}
               </span>
             )}
@@ -463,7 +463,7 @@ function SelectedDayPanel({
         <Fact label={dict.panchanga.moonset} value={formatTime(day.moonset, locale, dict.panchanga.notVisible)} />
       </dl>
       <div className="mt-4 rounded-lg border border-black/10 p-3 dark:border-white/10">
-        <p className="text-xs font-semibold uppercase opacity-60">{dict.panchanga.tithi}</p>
+        <p className="text-xs font-semibold uppercase opacity-70">{dict.panchanga.tithi}</p>
         <div className="mt-2 flex flex-col gap-2">
           {day.tithi.map((tithi) => (
             <p key={`${tithi.key}-${tithi.ends_at}`} className="text-sm">
@@ -492,7 +492,7 @@ function SelectedDayPanel({
 function Fact({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between gap-3 border-b border-black/10 pb-2 last:border-0 dark:border-white/10">
-      <dt className="text-xs uppercase opacity-60">{label}</dt>
+      <dt className="text-xs uppercase opacity-70">{label}</dt>
       <dd className="text-right font-medium">{value}</dd>
     </div>
   );

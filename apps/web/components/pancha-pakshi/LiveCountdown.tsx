@@ -116,29 +116,29 @@ export function LiveCountdown({
       className="animate-period-change flex flex-col gap-1 rounded-xl border border-accent/30 bg-accent/5 p-4"
     >
       {isStale && (
-        <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">{dict.ui.offlineCachedNotice}</p>
+        <p className="text-xs font-semibold text-amber-800 dark:text-amber-400">{dict.ui.offlineCachedNotice}</p>
       )}
-      <span className="text-xs uppercase opacity-60">{dict.ui.liveNow}</span>
+      <span className="text-xs uppercase opacity-70">{dict.ui.liveNow}</span>
       <div className="flex items-baseline gap-2">
         <span
           className={`text-3xl font-bold tabular-nums text-accent ${inFinalMinute ? "animate-final-minute" : ""}`}
         >
           {remaining > 0 ? formatDuration(remaining) : "00:00"}
         </span>
-        <span className="text-xs opacity-60">{dict.ui.timeRemaining}</span>
+        <span className="text-xs opacity-70">{dict.ui.timeRemaining}</span>
       </div>
       {/* The user's own (main) bird stays constant all day; the sub-bird
           rotates through all five birds every major period. Showing only the
           sub-bird read as "wrong bird" — label both lines explicitly. */}
       <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium">
-        <span className="text-xs uppercase opacity-60">{dict.ui.mainBird}:</span>
+        <span className="text-xs uppercase opacity-70">{dict.ui.mainBird}:</span>
         <MainBirdIcon className="shrink-0 text-lg opacity-90" />
         {translateEnum(dict, "birds", current.main_bird)} ·{" "}
         <MainActivityIcon className="shrink-0 text-lg" style={{ color: ACTIVITY_COLORS[current.main_activity] }} />
         {translateEnum(dict, "activities", current.main_activity)}
       </p>
       <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-        <span className="text-xs uppercase opacity-60">{dict.ui.subBird}:</span>
+        <span className="text-xs uppercase opacity-70">{dict.ui.subBird}:</span>
         <SubBirdIcon className="shrink-0 text-lg opacity-90" />
         {translateEnum(dict, "birds", current.sub_bird)} ·{" "}
         <SubActivityIcon className="shrink-0 text-lg" style={{ color: ACTIVITY_COLORS[current.sub_activity] }} />
@@ -154,7 +154,7 @@ export function LiveCountdown({
         <p className="font-semibold uppercase opacity-70">{guidance.title}</p>
         <p className="mt-1 opacity-85">{guidance.activity}</p>
         <p className="mt-1 opacity-70">{guidance.effect}</p>
-        <p className="mt-1 text-[0.68rem] leading-relaxed opacity-60">{guidance.disclaimer}</p>
+        <p className="mt-1 text-[0.68rem] leading-relaxed opacity-70">{guidance.disclaimer}</p>
       </div>
       {next && (
         <p className="mt-2 text-xs opacity-70">

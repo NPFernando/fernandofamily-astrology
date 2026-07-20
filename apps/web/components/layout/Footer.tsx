@@ -28,7 +28,7 @@ export function Footer() {
             {dict.nav.disclaimer}
           </Link>
         </nav>
-        <p className="text-xs opacity-60">
+        <p className="text-xs opacity-70">
           {dict.platform.name} &middot; AGPL-3.0 &middot; build {shortCommit}
         </p>
       </div>

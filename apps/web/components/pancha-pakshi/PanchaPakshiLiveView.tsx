@@ -388,7 +388,7 @@ function LiveMetric({
 }) {
   return (
     <div className="min-w-0 rounded-lg border border-black/10 bg-background/65 p-3 dark:border-white/10 dark:bg-white/[.04]">
-      <p className="text-xs font-semibold uppercase opacity-60">{label}</p>
+      <p className="text-xs font-semibold uppercase opacity-70">{label}</p>
       <div className="mt-2 flex min-w-0 items-center gap-2">
         <span className="shrink-0 text-accent">{icon}</span>
         <p className="min-w-0 text-xl font-semibold">{title}</p>
@@ -409,7 +409,7 @@ function LiveGuidancePanel({ current }: { current: SubPeriod }) {
       <h2 className="text-xs font-semibold uppercase text-accent">{guidance.title}</h2>
       <p className="mt-3 text-sm leading-relaxed opacity-90">{guidance.activity}</p>
       <p className="mt-3 text-sm leading-relaxed opacity-80">{guidance.effect}</p>
-      <p className="mt-4 text-xs leading-relaxed opacity-60">{guidance.disclaimer}</p>
+      <p className="mt-4 text-xs leading-relaxed opacity-70">{guidance.disclaimer}</p>
     </section>
   );
 }
@@ -489,7 +489,7 @@ function Fact({
 }) {
   return (
     <div data-testid={testId} className="min-w-0">
-      <dt className="text-xs uppercase opacity-60">{label}</dt>
+      <dt className="text-xs uppercase opacity-70">{label}</dt>
       <dd className="mt-1 break-words font-medium" style={color ? { color } : undefined}>
         {value}
       </dd>

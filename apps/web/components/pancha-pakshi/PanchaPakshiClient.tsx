@@ -510,7 +510,7 @@ function ScheduleSettings({
 function Fact({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
     <div className="flex flex-col">
-      <span className="text-xs uppercase opacity-60">{label}</span>
+      <span className="text-xs uppercase opacity-70">{label}</span>
       <span className="font-medium" style={color ? { color } : undefined}>
         {value}
       </span>

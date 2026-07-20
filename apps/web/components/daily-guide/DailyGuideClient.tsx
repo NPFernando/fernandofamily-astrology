@@ -543,7 +543,7 @@ export function DailyGuideClient() {
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-semibold uppercase opacity-60">
+                  <p className="text-xs font-semibold uppercase opacity-70">
                     {dict.dailyGuide.knownNakshatraTitle}
                   </p>
                   <p className="mt-1 text-xs leading-relaxed opacity-70">
@@ -559,7 +559,7 @@ export function DailyGuideClient() {
               </div>
               <div className="grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-1">
                 <label className="min-w-0 text-sm">
-                  <span className="mb-1 block text-xs uppercase opacity-60">{dict.ui.birthNakshatra}</span>
+                  <span className="mb-1 block text-xs uppercase opacity-70">{dict.ui.birthNakshatra}</span>
                   <select
                     value={knownNakshatraIndex}
                     onChange={(e) => setKnownNakshatraIndex(Number(e.target.value))}
@@ -573,7 +573,7 @@ export function DailyGuideClient() {
                   </select>
                 </label>
                 <label className="min-w-0 text-sm">
-                  <span className="mb-1 block text-xs uppercase opacity-60">{dict.ui.paksha}</span>
+                  <span className="mb-1 block text-xs uppercase opacity-70">{dict.ui.paksha}</span>
                   <select
                     value={knownPaksha}
                     onChange={(e) => setKnownPaksha(e.target.value as PakshaId)}
@@ -595,7 +595,7 @@ export function DailyGuideClient() {
                 {dict.dailyGuide.useKnownNakshatra}
               </button>
             </div>
-            <p className="border-t border-black/10 pt-3 text-xs font-semibold uppercase opacity-60 dark:border-white/10">
+            <p className="border-t border-black/10 pt-3 text-xs font-semibold uppercase opacity-70 dark:border-white/10">
               {dict.ui.birthBird}
             </p>
             <div className="grid grid-cols-2 gap-2">
@@ -1088,7 +1088,7 @@ function FamilyWeekDayCard({
       className="flex min-w-0 flex-col rounded-lg border border-black/10 bg-background p-3 text-sm dark:border-white/10"
     >
       <div>
-        <p className="text-xs font-semibold uppercase opacity-60">
+        <p className="text-xs font-semibold uppercase opacity-70">
           {new Date(`${date}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", { weekday: "short" })}
         </p>
         <h3 className="mt-1 font-semibold">{formatDate(date, locale)}</h3>
@@ -1396,7 +1396,7 @@ function FamilyFact({
 }) {
   return (
     <div className="min-w-0">
-      <dt className="text-xs uppercase opacity-60">{label}</dt>
+      <dt className="text-xs uppercase opacity-70">{label}</dt>
       <dd className="mt-0.5 break-words font-medium" style={color ? { color } : undefined}>
         {value}
       </dd>
@@ -1525,7 +1525,7 @@ function StrengthFact({
 }) {
   return (
     <div data-testid={testId} className="min-w-0">
-      <dt className="text-xs uppercase opacity-60">{label}</dt>
+      <dt className="text-xs uppercase opacity-70">{label}</dt>
       <dd className="mt-1 break-words font-medium" style={color ? { color } : undefined}>
         {value}
       </dd>
@@ -1536,7 +1536,7 @@ function StrengthFact({
 function GuideCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">
-      <h2 className="text-xs font-semibold uppercase opacity-60">{title}</h2>
+      <h2 className="text-xs font-semibold uppercase opacity-70">{title}</h2>
       <div className="mt-2 flex flex-col gap-1">{children}</div>
     </div>
   );
@@ -1545,7 +1545,7 @@ function GuideCard({ title, children }: { title: string; children: React.ReactNo
 function TimeRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col">
-      <span className="text-xs uppercase opacity-60">{label}</span>
+      <span className="text-xs uppercase opacity-70">{label}</span>
       <span className="font-medium tabular-nums">{value}</span>
     </div>
   );

@@ -177,7 +177,7 @@ test("daily guide: family week planner shows Poya context and opens selected day
   const watcher = watchForBirthDataInUrls(page);
   await openDailyGuide(page, "en");
   await gotoDate(page, "2026-07-23");
-  await page.getByRole("button", { name: DICTS.en.dailyGuide.viewWeek }).click();
+  await page.getByRole("tab", { name: DICTS.en.dailyGuide.viewWeek }).click();
 
   const planner = page.locator('[data-testid="daily-guide-family-week-planner"]');
   await expect(planner).toBeVisible();
@@ -215,7 +215,7 @@ test("@mobile daily guide keeps cards within 360px", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 740 });
   await openDailyGuide(page, "si");
   await expect(page.locator('[data-testid="daily-guide-timing-timeline-cards"]')).toBeVisible();
-  await page.getByRole("button", { name: DICTS.si.dailyGuide.viewWeek }).click();
+  await page.getByRole("tab", { name: DICTS.si.dailyGuide.viewWeek }).click();
   await expect(page.locator('[data-testid="daily-guide-family-week-planner"]')).toBeVisible();
   const hasHScroll = await page.evaluate(() => document.body.scrollWidth > window.innerWidth + 5);
   expect(hasHScroll).toBe(false);

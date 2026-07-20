@@ -96,7 +96,7 @@ export function PoyaDetailCard({
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase text-amber-700 dark:text-amber-300">
+          <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase text-amber-800 dark:text-amber-300">
             <FullMoonIcon className="text-lg" />
             {isPoyaDay ? todayLabel : upcomingLabel ?? dict.panchanga.nextPoyaLabel}
           </p>
@@ -142,7 +142,7 @@ export function PoyaDetailCard({
 function Fact({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-amber-700/15 bg-white/35 px-3 py-2 dark:bg-black/10">
-      <dt className="text-[11px] font-semibold uppercase opacity-60">{label}</dt>
+      <dt className="text-[11px] font-semibold uppercase opacity-70">{label}</dt>
       <dd className="mt-1 font-medium">{value}</dd>
     </div>
   );

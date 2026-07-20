@@ -84,7 +84,7 @@ export async function fillManualLocation(
   const panel = page.getByRole("tabpanel");
   const change = panel.getByRole("button", { name: dict.ui.changeLocation, exact: true });
   if (await change.isVisible().catch(() => false)) await change.click();
-  await panel.getByRole("button", { name: dict.ui.manualEntry, exact: true }).click();
+  await panel.getByRole("tab", { name: dict.ui.manualEntry, exact: true }).click();
   await panel.getByPlaceholder(dict.ui.latitude).fill(coords.lat);
   await panel.getByPlaceholder(dict.ui.longitude).fill(coords.lon);
   await panel.getByPlaceholder(dict.ui.timezone).fill(coords.tz);

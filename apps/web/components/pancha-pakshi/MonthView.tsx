@@ -85,7 +85,7 @@ export function MonthView({
 
   return (
     <div data-testid="month-grid" className="flex flex-col gap-2">
-      <div className="grid grid-cols-7 gap-1 text-center text-[11px] uppercase opacity-60">
+      <div className="grid grid-cols-7 gap-1 text-center text-[11px] uppercase opacity-70">
         {weekdayHeaders.map((h, i) => (
           <span key={i}>{h}</span>
         ))}
@@ -129,7 +129,7 @@ export function MonthView({
           );
         })}
       </div>
-      <p className="text-xs opacity-60">
+      <p className="text-xs opacity-70">
         {dict.ui.monthLegend}: {translateEnum(dict, "effects", "good")} /{" "}
         {translateEnum(dict, "effects", "very_good")}
       </p>

@@ -46,7 +46,7 @@ export function Nav() {
         <Link
           href={`/${locale}`}
           aria-current={pathname === `/${locale}` ? "page" : undefined}
-          className="text-lg font-semibold leading-snug text-amber-700 dark:text-amber-400"
+          className="text-lg font-semibold leading-snug text-amber-800 dark:text-amber-400"
         >
           {dict.platform.name}
         </Link>

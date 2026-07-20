@@ -163,7 +163,7 @@ function PeriodGroup({
   const { dict } = useLocale();
   return (
     <div className="flex flex-col gap-2">
-      <h3 className="text-sm font-semibold uppercase opacity-60">{title}</h3>
+      <h3 className="text-sm font-semibold uppercase opacity-70">{title}</h3>
       <div className="flex flex-col gap-2">
         {periods.map((period) => (
           <MajorPeriodCard
@@ -235,7 +235,7 @@ function MajorPeriodCard({
           </span>
         )}
         {view !== "table" && (
-          <span aria-hidden className="text-xs opacity-60">
+          <span aria-hidden className="text-xs opacity-70">
             {isExpanded ? dict.ui.collapse : dict.ui.expand}
           </span>
         )}
@@ -256,7 +256,7 @@ function SubPeriodTable({ subPeriods, locale }: { subPeriods: SubPeriod[]; local
   return (
     <div className="overflow-x-auto border-t border-black/10 dark:border-white/10">
       <table className="w-full min-w-[560px] text-left text-xs">
-        <thead className="opacity-60">
+        <thead className="opacity-70">
           <tr>
             <th className="px-3 py-2">{dict.ui.startsAt}</th>
             <th className="px-3 py-2">{dict.ui.endsAt}</th>

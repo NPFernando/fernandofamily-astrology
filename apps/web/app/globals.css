@@ -7,7 +7,13 @@
 :root {
   --background: #fffaf3;
   --foreground: #201a12;
-  --accent: #b45309; /* sunrise amber */
+  /* Sunrise amber, darkened one Tailwind amber step (700->800) from the
+     original #b45309: that value read as *text* (nav active state, section
+     headings, badges) failed WCAG AA 4.5:1 against several of the app's own
+     light tinted backgrounds (4.22-4.49:1, axe-caught 2026-07-20) — #b45309
+     itself is unchanged as a decorative/background color (hero gradient,
+     accent/NN backgrounds) and still reads fine there. */
+  --accent: #92400e;
 }
 
 .dark {

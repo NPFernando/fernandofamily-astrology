@@ -157,7 +157,7 @@ export function DailyTimingTimeline({
         <div className="mt-2 grid gap-3">
           {visibleRows.map((row) => (
             <div key={row.id} className="grid grid-cols-[8rem_minmax(0,1fr)] items-center gap-3">
-              <p className="text-xs font-semibold uppercase opacity-60">{row.label}</p>
+              <p className="text-xs font-semibold uppercase opacity-70">{row.label}</p>
               <div className="relative h-10 rounded-lg border border-black/10 bg-background dark:border-white/10">
                 {row.items.length > 0 ? (
                   row.items.map((item) => (
@@ -174,7 +174,7 @@ export function DailyTimingTimeline({
                     </span>
                   ))
                 ) : (
-                  <p className="flex h-full items-center px-3 text-xs opacity-60">{row.empty}</p>
+                  <p className="flex h-full items-center px-3 text-xs opacity-70">{row.empty}</p>
                 )}
               </div>
             </div>
@@ -185,7 +185,7 @@ export function DailyTimingTimeline({
       <div className="mt-4 grid gap-3 md:hidden" data-testid={`${testId}-cards`}>
         {visibleRows.map((row) => (
           <div key={row.id} className="rounded-lg border border-black/10 bg-background p-3 dark:border-white/10">
-            <h3 className="text-xs font-semibold uppercase opacity-60">{row.label}</h3>
+            <h3 className="text-xs font-semibold uppercase opacity-70">{row.label}</h3>
             {row.items.length > 0 ? (
               <div className="mt-2 grid gap-2">
                 {row.items.map((item) => (

@@ -17,7 +17,7 @@ export function Legend() {
       <summary className="cursor-pointer select-none font-medium opacity-80">{dict.ui.legend}</summary>
       <div data-testid="guidance-legend" className="mt-3 flex flex-col gap-4 sm:flex-row sm:gap-10">
         <div>
-          <p className="mb-1.5 text-xs uppercase opacity-60">{dict.ui.legendActivities}</p>
+          <p className="mb-1.5 text-xs uppercase opacity-70">{dict.ui.legendActivities}</p>
           <ul className="flex flex-col gap-1.5">
             {ACTIVITIES.map((a) => {
               const Icon = ACTIVITY_ICONS[a];
@@ -41,7 +41,7 @@ export function Legend() {
           </ul>
         </div>
         <div>
-          <p className="mb-1.5 text-xs uppercase opacity-60">{dict.ui.legendEffects}</p>
+          <p className="mb-1.5 text-xs uppercase opacity-70">{dict.ui.legendEffects}</p>
           <ul className="flex flex-col gap-1.5">
             {EFFECTS.map((e) => (
               <li key={e}>
@@ -52,7 +52,7 @@ export function Legend() {
           </ul>
         </div>
       </div>
-      <p className="mt-3 text-xs leading-relaxed opacity-60">{dict.guidance.disclaimer}</p>
+      <p className="mt-3 text-xs leading-relaxed opacity-70">{dict.guidance.disclaimer}</p>
     </details>
   );
 }

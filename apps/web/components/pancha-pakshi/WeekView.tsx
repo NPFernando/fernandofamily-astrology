@@ -278,7 +278,7 @@ export function WeekView({
                               buildIcs([toIcsEvent(w)]),
                             )
                           }
-                          className="shrink-0 rounded-md border border-black/5 px-1 py-1 text-xs opacity-60 hover:border-accent/50 hover:opacity-100 dark:border-white/10"
+                          className="shrink-0 rounded-md border border-black/5 px-1 py-1 text-xs opacity-70 hover:border-accent/50 hover:opacity-100 dark:border-white/10"
                         >
                           📅
                         </button>

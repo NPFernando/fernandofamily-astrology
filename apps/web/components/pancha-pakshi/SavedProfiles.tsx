@@ -101,7 +101,7 @@ export function SavedProfiles({
     <div className="flex flex-col gap-2">
       {profiles.length > 0 && (
         <>
-          <span className="text-xs uppercase opacity-60">
+          <span className="text-xs uppercase opacity-70">
             {dict.ui.savedProfiles}
             {signedIn && <span className="ml-2 normal-case opacity-70">({dict.ui.syncedToAccount})</span>}
           </span>

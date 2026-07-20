@@ -411,7 +411,7 @@ export function LocationPicker({
       )}
 
       <div className="flex flex-col gap-1">
-        <span className="text-xs uppercase opacity-60">{dict.ui.sriLankaLocations}</span>
+        <span className="text-xs uppercase opacity-70">{dict.ui.sriLankaLocations}</span>
         <div className="flex flex-wrap gap-2" data-testid="sri-lanka-location-picks">
           {SRI_LANKA_LOCATIONS.map((loc) => {
             const label = locale === "si" ? loc.si : loc.en;
@@ -445,14 +445,14 @@ export function LocationPicker({
       {recent.length > 0 && (
         <div className="flex flex-col gap-1">
           <div className="flex items-center justify-between">
-            <span className="text-xs uppercase opacity-60">{dict.ui.recentLocations}</span>
+            <span className="text-xs uppercase opacity-70">{dict.ui.recentLocations}</span>
             <button
               type="button"
               onClick={() => {
                 clearRecentLocations();
                 setRecent([]);
               }}
-              className="text-xs underline opacity-60 hover:opacity-100"
+              className="text-xs underline opacity-70 hover:opacity-100"
             >
               {dict.ui.clearSavedLocations}
             </button>

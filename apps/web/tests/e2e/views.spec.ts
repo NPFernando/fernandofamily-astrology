@@ -4,7 +4,7 @@ import { DICTS, openCalculator, waitForSchedule, watchForBirthDataInUrls } from 
 const dict = DICTS.en;
 
 async function openWeekView(page: import("@playwright/test").Page) {
-  await page.getByRole("button", { name: dict.ui.weekView, exact: true }).click();
+  await page.getByRole("tab", { name: dict.ui.weekView, exact: true }).click();
   const chips = page.locator('[data-testid="week-window-chip"]');
   const deadline = Date.now() + 75_000;
   while (Date.now() < deadline) {
@@ -22,7 +22,7 @@ test("table view shows all 10 tables / 50 rows without expanding; timeline unaff
   page,
 }) => {
   await openCalculator(page, "en");
-  await page.getByRole("button", { name: dict.ui.tableView, exact: true }).click();
+  await page.getByRole("tab", { name: dict.ui.tableView, exact: true }).click();
   // :not() scoping: the hidden PrintSheet mounts 2 more tables in the DOM.
   const visibleTables = page.locator("table:not(#print-sheet table)");
   await expect(visibleTables).toHaveCount(10);
@@ -30,7 +30,7 @@ test("table view shows all 10 tables / 50 rows without expanding; timeline unaff
   // Click a period header while in table view, then switch back — timeline
   // must not have inherited an expansion from that click.
   await page.locator('[id^="major-period-"] > button').first().click();
-  await page.getByRole("button", { name: dict.ui.timelineView, exact: true }).click();
+  await page.getByRole("tab", { name: dict.ui.timelineView, exact: true }).click();
   await expect(page.locator("table:not(#print-sheet table)")).toHaveCount(0);
   await expect(page.locator('[id^="major-period-"] ul')).toHaveCount(0);
 });
@@ -81,7 +81,7 @@ test("@mobile zero-click + timeline at 360px without horizontal scroll", async (
 for (const locale of ["en", "si"] as const) {
   test(`month view (${locale}): 7-column grid with a month of day cells`, async ({ page }) => {
     await openCalculator(page, locale);
-    await page.getByRole("button", { name: DICTS[locale].ui.monthView, exact: true }).click();
+    await page.getByRole("tab", { name: DICTS[locale].ui.monthView, exact: true }).click();
     const grid = page.locator('[data-testid="month-grid"]');
     await expect(grid).toBeVisible({ timeout: 60_000 });
     const cells = page.locator('[data-testid="month-day"]');

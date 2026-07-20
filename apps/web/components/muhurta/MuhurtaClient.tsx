@@ -55,7 +55,7 @@ const GRADE_RANK: Record<MuhurtaGrade, number> = { excellent: 0, good: 1, usable
 const GRADE_STYLE: Record<MuhurtaGrade, string> = {
   excellent: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
   good: "border-sky-500/40 bg-sky-500/10 text-sky-700 dark:text-sky-300",
-  usable: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  usable: "border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-300",
 };
 
 type Dictionary = ReturnType<typeof getDictionary>;
@@ -552,7 +552,7 @@ function FamilyMuhurtaPanel({
                             {dict.muhurta.grades[window.grade]}
                           </span>
                         </div>
-                        <p className="mt-3 text-xs font-semibold uppercase opacity-60">
+                        <p className="mt-3 text-xs font-semibold uppercase opacity-70">
                           {dict.muhurta.familyIncludedProfiles}
                         </p>
                         <p className="mt-1 text-xs opacity-80">{window.profiles.map((profile) => profile.label).join(", ")}</p>
@@ -580,7 +580,7 @@ function FamilyMuhurtaPanel({
                             <p className="mt-2 text-xs opacity-75">{dict.muhurta.familyLoadFailed}</p>
                           ) : (
                             <>
-                              <p className="mt-2 text-xs uppercase opacity-60">{dict.muhurta.familyBestIndividual}</p>
+                              <p className="mt-2 text-xs uppercase opacity-70">{dict.muhurta.familyBestIndividual}</p>
                               <p className="mt-1 font-semibold">{formatDate(window.effective_date, locale)}</p>
                               <p className="mt-1 text-lg font-bold tabular-nums">
                                 {formatTime(window.starts_at, locale)} - {formatTime(window.ends_at, locale)}
@@ -811,7 +811,7 @@ function MuhurtaMonthGrid({
   const weekdayHeaders = Array.from({ length: 7 }, (_, i) => weekdayFormatter.format(new Date(2026, 1, 1 + i)));
   return (
     <div data-testid="muhurta-month-grid" className="hidden md:flex md:flex-col md:gap-2">
-      <div className="grid grid-cols-7 gap-1 text-center text-[11px] uppercase opacity-60">
+      <div className="grid grid-cols-7 gap-1 text-center text-[11px] uppercase opacity-70">
         {weekdayHeaders.map((label, i) => (
           <span key={i}>{label}</span>
         ))}
@@ -837,7 +837,7 @@ function MuhurtaMonthGrid({
 
 function monthDayTone(day: MuhurtaMonthDay): string {
   if (day.best_grade) return GRADE_STYLE[day.best_grade];
-  if (day.is_poya_day) return "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300";
+  if (day.is_poya_day) return "border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-300";
   return "border-black/10 bg-white/20 dark:border-white/10 dark:bg-white/[.03]";
 }
 
@@ -1009,7 +1009,7 @@ function MuhurtaMonthSelectedDay({
 function Fact({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between gap-3 border-b border-black/10 pb-2 last:border-0 dark:border-white/10">
-      <dt className="text-xs uppercase opacity-60">{label}</dt>
+      <dt className="text-xs uppercase opacity-70">{label}</dt>
       <dd className="text-right font-medium">{value}</dd>
     </div>
   );
@@ -1152,7 +1152,7 @@ export function MuhurtaClient() {
           <h2 className="text-sm font-semibold uppercase text-accent">{dict.muhurta.controlsTitle}</h2>
           <div className="mt-4 flex flex-col gap-4">
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase opacity-60">{dict.muhurta.purpose}</p>
+              <p className="mb-2 text-xs font-semibold uppercase opacity-70">{dict.muhurta.purpose}</p>
               <div className="grid grid-cols-1 gap-2">
                 {PURPOSES.map((item) => (
                   <button
@@ -1175,7 +1175,7 @@ export function MuhurtaClient() {
             </div>
 
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase opacity-60">{dict.ui.birthBird}</p>
+              <p className="mb-2 text-xs font-semibold uppercase opacity-70">{dict.ui.birthBird}</p>
               <div className="grid grid-cols-5 gap-2">
                 {BIRDS.map((bird) => {
                   const Icon = BIRD_ICONS[bird];
@@ -1204,7 +1204,7 @@ export function MuhurtaClient() {
             </div>
 
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase opacity-60">{dict.muhurta.startDate}</p>
+              <p className="mb-2 text-xs font-semibold uppercase opacity-70">{dict.muhurta.startDate}</p>
               {date ? <DateNav date={date} onChange={(nextDate) => rerun({ date: nextDate })} /> : null}
             </div>
 
@@ -1278,7 +1278,7 @@ export function MuhurtaClient() {
               <section className="rounded-xl border border-black/10 bg-white/25 p-4 dark:border-white/10 dark:bg-white/[.03]">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs font-semibold uppercase opacity-60">{dict.muhurta.summaryTitle}</p>
+                    <p className="text-xs font-semibold uppercase opacity-70">{dict.muhurta.summaryTitle}</p>
                     <p className="mt-1 text-lg font-semibold">
                       {dict.muhurta.foundWindows.replace("{count}", String(data.windows.length))}
                     </p>
@@ -1379,7 +1379,7 @@ export function MuhurtaClient() {
           data-testid="muhurta-source-overlaps"
           className="mt-3 rounded-lg border border-black/10 bg-background p-3 text-xs dark:border-white/10"
         >
-          <p className="font-semibold uppercase opacity-60">{dict.muhurta.sourceOverlapsTitle}</p>
+          <p className="font-semibold uppercase opacity-70">{dict.muhurta.sourceOverlapsTitle}</p>
           <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
             {window.source_overlaps.map((overlap, i) => (
               <p key={`${overlap.source}-${overlap.starts_at}-${i}`} className="min-w-0">

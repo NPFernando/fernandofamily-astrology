@@ -143,7 +143,7 @@ export function NotificationOptIn({
         ) : (
           <>
             <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase opacity-60">{dict.ui.notifyEffectLabel}</span>
+              <span className="text-xs uppercase opacity-70">{dict.ui.notifyEffectLabel}</span>
               <select
                 value={minEffect}
                 onChange={(e) => setMinEffect(e.target.value as "good" | "very_good")}
@@ -154,7 +154,7 @@ export function NotificationOptIn({
               </select>
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase opacity-60">{dict.ui.notifyLeadLabel}</span>
+              <span className="text-xs uppercase opacity-70">{dict.ui.notifyLeadLabel}</span>
               <select
                 value={leadMinutes}
                 onChange={(e) => setLeadMinutes(Number(e.target.value))}

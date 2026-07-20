@@ -34,7 +34,7 @@ export function YogataraTable({ rows }: { rows: GrahaYogatara[] }) {
       <div className="mt-3 overflow-x-auto">
         <table className="w-full min-w-[28rem] text-left text-sm">
           <thead>
-            <tr className="border-b border-black/10 text-xs uppercase tracking-wide opacity-60 dark:border-white/10">
+            <tr className="border-b border-black/10 text-xs uppercase tracking-wide opacity-70 dark:border-white/10">
               <th className="py-1.5 pr-3 font-semibold">{dict.birthChart.yogataraGrahaHeader}</th>
               <th className="py-1.5 pr-3 font-semibold">{dict.birthChart.yogataraNakshatraHeader}</th>
               <th className="py-1.5 pr-3 font-semibold">{dict.birthChart.yogataraStarHeader}</th>

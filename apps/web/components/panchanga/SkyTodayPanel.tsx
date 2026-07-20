@@ -72,7 +72,7 @@ export function SkyTodayPanel({
       </div>
 
       <div className="mt-3 rounded-lg border border-black/10 bg-background/70 p-3 text-sm dark:border-white/10 dark:bg-black/15">
-        <p className="text-xs font-semibold uppercase opacity-60">{dict.panchanga.retrogradeSummary}</p>
+        <p className="text-xs font-semibold uppercase opacity-70">{dict.panchanga.retrogradeSummary}</p>
         <p className="mt-1 font-medium">
           {retrograde.length > 0
             ? retrograde.map((p) => translateEnum(dict, "horaPlanets", p.key)).join(", ")
@@ -90,7 +90,7 @@ export function SkyTodayPanel({
               <div className="flex min-w-0 items-start justify-between gap-2">
                 <p className="break-words font-semibold">{translateEnum(dict, "horaPlanets", position.key)}</p>
                 {position.is_retrograde && (
-                  <span className="shrink-0 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-300">
+                  <span className="shrink-0 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-800 dark:text-amber-300">
                     {dict.panchanga.retrograde}
                   </span>
                 )}
@@ -110,7 +110,7 @@ export function SkyTodayPanel({
 function SkyFact({ label, value, detail }: { label: string; value: string; detail: string }) {
   return (
     <div className="rounded-lg border border-black/10 bg-background/70 p-3 dark:border-white/10 dark:bg-black/15">
-      <p className="text-xs font-semibold uppercase opacity-60">{label}</p>
+      <p className="text-xs font-semibold uppercase opacity-70">{label}</p>
       <p className="mt-1 break-words font-semibold">{value}</p>
       <p className="mt-0.5 text-xs opacity-70">{detail}</p>
     </div>

@@ -150,7 +150,7 @@ export function RasiStyleChart({
           className="absolute flex max-w-[30%] -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5 text-center text-[10px] leading-tight sm:text-xs"
           style={{ left: `${labelX}%`, top: `${labelY}%` }}
         >
-          {showHouseNumbers && <span className="text-[9px] font-semibold opacity-40">{house}</span>}
+          {showHouseNumbers && <span className="text-[9px] font-semibold opacity-70">{house}</span>}
           <span className="font-medium opacity-70">{translateEnum(dict, "rashis", rashiKey)}</span>
           <div className="flex flex-wrap justify-center gap-0.5">
             {isAscendant && (

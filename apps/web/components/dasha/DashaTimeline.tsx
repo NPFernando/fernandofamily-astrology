@@ -63,7 +63,7 @@ export function DashaTimeline({ periods }: { periods: MahadashaPeriod[] }) {
               <span className="tabular-nums opacity-80">
                 {formatDate(period.start_date, locale)} – {formatDate(period.end_date, locale)}
               </span>
-              <span className="text-xs opacity-60">
+              <span className="text-xs opacity-70">
                 ({period.duration_years} {dict.dasha.durationYears})
               </span>
               {isCurrent && (
@@ -75,7 +75,7 @@ export function DashaTimeline({ periods }: { periods: MahadashaPeriod[] }) {
             </button>
             {isExpanded && (
               <div className="mt-1 ml-4 rounded-lg border border-black/10 bg-white/20 p-3 dark:border-white/10 dark:bg-white/[.02]">
-                <p className="mb-2 text-xs font-semibold uppercase opacity-60">{dict.dasha.antardashaTitle}</p>
+                <p className="mb-2 text-xs font-semibold uppercase opacity-70">{dict.dasha.antardashaTitle}</p>
                 <ul className="flex flex-col gap-1">
                   {period.antardashas.map((antara) => {
                     const antaraCurrent = isCurrentPeriod(antara.start_date, antara.end_date, clientToday);

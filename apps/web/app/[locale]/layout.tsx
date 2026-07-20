@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_Sinhala } from "next/font/google";
-import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import "../globals.css";
 import { SUPPORTED_LOCALES, isLocale, getDictionary, type Locale } from "@/lib/i18n";
@@ -13,6 +12,17 @@ import { PUBLIC_BASE_URL } from "@/lib/site-config";
 
 const bodyFont = Inter({ variable: "--font-body", subsets: ["latin"] });
 const sinhalaFont = Noto_Sans_Sinhala({ variable: "--font-sinhala", subsets: ["sinhala"] });
+// Sole source of truth for the initial dark/light class: a render-blocking
+// inline script (no async/defer), so it always runs before the browser
+// paints anything below it in <body>. This layout deliberately does NOT
+// also read the ff_theme cookie server-side to set the class on <html> —
+// removing that (2026-07-20) let every content-only route under this
+// layout (about/methodology/privacy/disclaimer/licensing) go back to being
+// statically prerendered instead of forced dynamic on every request, which
+// is what a per-request cookies() read does to the whole subtree in the App
+// Router. ThemeProvider's own client-side state (theme-context.tsx) is
+// already independently localStorage-first, so this script is redundant
+// with nothing else — it's the only thing that ever decided the class.
 const themeInitScript = `(function(){try{var k='ff_theme';var m=document.cookie.match(/(?:^|; )ff_theme=(dark|light)(?:;|$)/);var c=m&&m[1];var s=localStorage.getItem(k);var t=s||c||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.classList.toggle('dark',t==='dark');document.cookie=k+'='+t+'; path=/; max-age=31536000; SameSite=Lax';}catch(e){}})();`;
 
 export function generateStaticParams() {
@@ -70,13 +80,11 @@ export default async function LocaleLayout({
   const { locale: rawLocale } = await params;
   if (!isLocale(rawLocale)) notFound();
   const locale: Locale = rawLocale;
-  const theme = (await cookies()).get("ff_theme")?.value;
-  const themeClass = theme === "dark" ? " dark" : "";
 
   return (
     <html
       lang={locale}
-      className={`${bodyFont.variable} ${sinhalaFont.variable} h-full antialiased${themeClass}`}
+      className={`${bodyFont.variable} ${sinhalaFont.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col">

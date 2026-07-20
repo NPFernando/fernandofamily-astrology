@@ -118,12 +118,17 @@ per-page OG variants), web-push notifications, and everything in
    sheet since iOS has no install prompt event.
 5. **`/current` response model** (S) — the route returns a bare `dict`;
    give it a typed response model so OpenAPI documents it properly.
-6. **Request-ID propagation to clients** (S) — access logs have request IDs
-   but responses don't carry an `X-Request-ID` header; add it to make
-   user-reported issues traceable.
-7. **Prometheus-style metrics endpoint** (M) — request counts/durations are
-   only in logs; a `/metrics` endpoint (guarded to loopback via nginx) would
-   let the host's existing monitoring scrape it.
+6. ~~**Request-ID propagation to clients**~~ — **shipped.** Every response
+   carries `X-Request-ID` (`app/core/logging.py`'s `access_log_middleware`
+   generates it and sets the header, matching what's logged), making
+   user-reported issues traceable. Confirmed 2026-07-21 during a
+   performance/ops audit — this entry had gone stale.
+7. ~~**Prometheus-style metrics endpoint**~~ — **shipped.** `/metrics`
+   (`app/core/metrics.py`) exposes real Prometheus-format counters/histograms
+   (request counts and durations by method/path/status), CIDR-gated via
+   `metrics_allowed_cidrs`. What's still genuinely open: nothing in this repo
+   actually scrapes it — no Prometheus/Grafana config or compose service
+   exists anywhere. The endpoint is a foundation, not active monitoring.
 8. **Dev one-shot script** (S) — a `make dev` / root `package.json` script
    that starts API venv + web dev server together; today it's two manual
    terminals with an env var.
@@ -148,6 +153,16 @@ per-page OG variants), web-push notifications, and everything in
    very_good window" via Web Push; needs the windows endpoint plus a service
    worker push handler; no server storage of anything personal beyond a push
    subscription endpoint.
+6. **In-memory rate-limiter and metrics are per-process** (documented
+   limitation, not a bug) — `app/core/rate_limit.py`'s `_hits` dict and
+   `app/core/metrics.py`'s counters are plain module-level state, reset on
+   restart and not shared across workers. Today's deployment is single
+   `uvicorn` process, no `--workers`, no compose `replicas:` — so this is
+   inert right now. Before ever adding either, note that it would: multiply
+   the effective per-IP rate-limit budget by the worker/replica count, and
+   split `/metrics` counters per-process (a scrape only sees whichever
+   instance answered). If horizontal scaling is ever needed, this needs a
+   shared store (Redis, or similar) first. Recorded 2026-07-21.
 
 ## User accounts & data persistence
 

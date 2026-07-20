@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import tzlookup from "tz-lookup";
 import { useLocale } from "@/lib/locale-context";
 
 export type LocationValue = {
@@ -173,6 +172,10 @@ export function LocationPicker({
         const { latitude, longitude } = pos.coords;
         let tz: string;
         try {
+          // Lazy-loaded: tz-lookup's embedded geo-timezone dataset (~84KB)
+          // would otherwise ship in every calculator page's initial JS even
+          // though it's only needed on this explicit device-location click.
+          const { default: tzlookup } = await import("tz-lookup");
           tz = tzlookup(latitude, longitude);
         } catch {
           tz = Intl.DateTimeFormat().resolvedOptions().timeZone;

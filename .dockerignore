@@ -1,0 +1,17 @@
+# Neither Dockerfile.web nor Dockerfile.api needs any of this from the build
+# context — both install/build fresh inside their own stages. Without this
+# file, a local `docker build` from the repo root sends the full ~1.2GB
+# working tree (node_modules, .venv, .next, .git) to the Docker daemon on
+# every build. Production images are unaffected either way (CI builds from a
+# fresh checkout with none of this present).
+**/node_modules
+**/.venv
+**/.next
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+.git
+.claude
+graphify-out
+test-results
+playwright-report

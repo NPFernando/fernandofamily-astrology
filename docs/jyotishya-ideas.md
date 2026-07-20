@@ -214,50 +214,47 @@ Choghadiya/Hora table the same way the kalams already are.
 
 **Effort:** S–M (mechanically identical to the existing Kalams feature).
 
-### B3. Today's Graha positions + retrograde/stationary flags
-**One-line:** A "sky today" panel — sidereal longitude and rashi for all 9
-grahas, flagging any that are retrograde or stationary.
+### B3. Today's Graha positions + retrograde flags — shipped; stationary blocked
 
-**Engine feasibility:** Directly computable. `planetary_positions(jd, place)`
-(`drik.py:1529`) returns full planet positions; `planets_in_retrograde`
-(`drik.py:331`) and `planets_in_stationary` (`drik.py:358`) are pure
-`swe.calc_ut` speed-sign checks, no extra data needed.
+**Status: shipped (graha positions + retrograde), except stationary
+flags.** This section's original "directly computable" verdict predates
+the module actually being built — it now exists: `SkyTodayPanel.tsx`
+renders all 9 grahas' sidereal longitude, rashi, nakshatra and degrees,
+with retrograde badges, on both `/panchanga` and `/daily-guide` (compact
+mode); backed by `calculator.py`'s `compute_graha_positions()` and
+`adapter.py`'s `retrograde_planet_ids()`.
 
-**Correctness note:** Same as A2 — uses the app's validated Lahiri ayanamsa,
-no longer gated.
+**Stationary flags are deliberately not offered — an engine bug, not an
+oversight.** `adapter.py`'s `retrograde_planet_ids()` docstring records
+that upstream's natural complement, `planets_in_stationary()`, has its
+own confirmed crash on Ketu under this app's true-node Rahu/Ketu
+configuration (it calls `swe.calc_ut` with Ketu's sentinel constant
+directly, which isn't a real body swisseph can compute — confirmed
+empirically). `planets_in_retrograde()` correctly special-cases Ketu
+(checks Rahu's speed instead) and has no such bug, which is exactly why
+only retrograde is exposed. Revisit if a future upstream release fixes
+the stationary function.
 
-**Effort:** S–M.
+### B4. Moon Rashi of the day — shipped
+**Status: shipped.** `SkyTodayPanel.tsx` surfaces "Moon is in [Rashi]
+until [time]" via the `moon_rashi` field on the daily panchanga
+response — the same "until" treatment Nakshatra already gets.
 
-### B4. Moon Rashi of the day
-**One-line:** Surface "Moon is in [Rashi] until [time]" directly — the same
-treatment Nakshatra already gets.
+### B5. Ritu (season) — shipped; Samvatsara — still not built
+**Status: Ritu shipped; Samvatsara deliberately withheld.** The Vedic
+season badge ships in `SkyTodayPanel.tsx` via the `ritu` field.
 
-**Engine feasibility:** Trivial — `raasi(jd, place)` (`drik.py:765`) is
-already computed internally elsewhere in the engine but never exposed by
-`panchanga/adapter.py` today. Same call shape as the existing `nakshatra()`
-wiring.
-
-**Effort:** S.
-
-### B5. Ritu (season) and Samvatsara (60-year cycle name) badges
-**One-line:** Add the Vedic season name and the 60-year Jupiter-cycle year
-name (Prabhava…Akshaya) to the panchanga response.
-
-**Engine feasibility:** `ritu(maasa_index)` (`drik.py:1369`) is pure
-arithmetic on the lunar month index already computed
-(`(maasa_index-1)//2`). `samvatsara(panchanga_date, place)` (`drik.py:1349`)
-is also computable today.
-
-**Correctness caveat — take this seriously:** `samvatsara()`'s own
-docstring flags unresolved uncertainty: *"TODO: Chithirai always shows
-previous year… Is there an algorithm for lunar samvatsara?"* This is the
-vendored engine itself admitting an open question, not settled astronomy.
-Ritu is safe to ship as-is; Samvatsara should either be held back until that
-TODO is understood, or shipped with an explicit caveat rather than presented
-as authoritative — exactly the "don't gloss over it" standard the Poya
-divergence note already sets.
-
-**Effort:** S (Ritu), S but gated on a decision (Samvatsara).
+Samvatsara (the 60-year Jupiter-cycle year name, Prabhava…Akshaya) is
+still not built. The correctness caveat that originally gated it stands
+and was reconsidered, not just carried forward: the vendored engine's
+own `samvatsara()` docstring flags unresolved uncertainty — *"TODO:
+Chithirai always shows previous year… Is there an algorithm for lunar
+samvatsara?"* — the engine itself admitting an open question, not this
+app being cautious for no reason. Shipping it with an explicit caveat
+(the option considered as an alternative to leaving it out) was declined
+this round in favor of waiting until that TODO is actually understood,
+rather than presenting a name the engine's own author isn't sure is
+right, caveat or not.
 
 ---
 
@@ -620,9 +617,9 @@ that as a settled default.
 | A3 | Disha Shool travel caution | Deepen Pancha Pakshi | Yes (`disha_shool`) | S |
 | B1 | Eclipse & Grahan calendar (shipped, no sutak-kaal) | Deepen Panchanga | Yes, already vendored | M |
 | B2 | Choghadiya + Hora layer (built, then removed — not Sinhala) | Deepen Panchanga | Yes | S–M |
-| B3 | Graha positions + retrograde | Deepen Panchanga | Yes | S–M |
-| B4 | Moon Rashi of the day | Deepen Panchanga | Yes (`raasi`) | S |
-| B5 | Ritu / Samvatsara badges | Deepen Panchanga | Ritu yes; Samvatsara caveated | S |
+| B3 | Graha positions + retrograde (shipped); stationary blocked by upstream Ketu bug | Shipped (partial) | Yes, shipped — `SkyTodayPanel.tsx` | S–M |
+| B4 | Moon Rashi of the day (shipped) | Shipped | Yes, shipped | S |
+| B5 | Ritu (shipped) / Samvatsara (not built — engine's own TODO unresolved) | Shipped (partial) | Ritu yes, shipped; Samvatsara withheld | S |
 | C1 | Vivaha Chakra Palan (built, then removed — superseded by Porondam) | Deepen Compatibility | Yes | M |
 | D1 | Divisional charts (Navamsa + D1 Rasi birth chart) (shipped) | New module | Yes | L |
 | D2 | Fixed-star precision (shipped as birth-chart yogatara layer) | Shipped | Yes — CRC 1955 Table 5 pinned; sefstars.txt now in image | M |

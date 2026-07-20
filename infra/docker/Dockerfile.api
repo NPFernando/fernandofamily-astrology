@@ -26,7 +26,7 @@ RUN mkdir -p /trimmed-vendor/jhora/data/ephe \
     && rm -rf /trimmed-vendor/.jhora-tmp/data/ephe \
     && cp -r /trimmed-vendor/.jhora-tmp/. /trimmed-vendor/jhora/ \
     && rm -rf /trimmed-vendor/.jhora-tmp \
-    && cp vendor/jhora/data/ephe/sepl_18.se1 vendor/jhora/data/ephe/semo_18.se1 vendor/jhora/data/ephe/seleapsec.txt /trimmed-vendor/jhora/data/ephe/ \
+    && cp vendor/jhora/data/ephe/sepl_18.se1 vendor/jhora/data/ephe/semo_18.se1 vendor/jhora/data/ephe/seleapsec.txt vendor/jhora/data/ephe/sefstars.txt /trimmed-vendor/jhora/data/ephe/ \
     && cp vendor/MANIFEST.sha256 vendor/MANIFEST.image.sha256 vendor/pin.json /trimmed-vendor/
 RUN PYTHONPATH=/install/lib/python3.12/site-packages:/build FF_VENDOR_DIR=/trimmed-vendor python3 scripts/verify_vendor.py --mode full --profile image
 

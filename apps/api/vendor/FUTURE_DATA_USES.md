@@ -19,9 +19,9 @@ checksums, no upstream trips.
 |---|---|---|
 | `seplm*.se1` + `semom*.se1` (BCE-era ephemeris, ~13200 BCE onward) | ~44 MB | Historical/ancestral chart tools; long-range astronomical research features; "on this day in history" panchanga |
 | `sepl_00.se1`–`sepl_162.se1`, `semo_*.se1` beyond the 1800–2399 pair | ~52 MB | Extending supported birth/target dates in either direction (e.g. genealogy tools reaching before 1800, far-future muhurta research) |
-| `seasnam.txt` | 10 MB | Asteroid-name lookups for asteroid positions in future birth-chart (kundali) modules |
-| `ast_list.txt`, `seorbel.txt` | <20 KB | Asteroid/orbital-element support files for the same chart modules |
-| `sefstars.txt`, `fixstars.cat` | ~250 KB | Fixed-star calculations — star-based nakshatra precision features, star risings/settings |
+| `seasnam.txt` | 10 MB | Asteroid *name* lookups only. **Correction (2026-07-20):** these text files do NOT enable asteroid positions — the binary `seas_*.se1` position ephemeris was never vendored (it isn't in the repo at all), and the engine has no asteroid code paths. Asteroid features would need a fresh upstream re-vendor of `seas_*.se1` plus net-new computation code — and were ruled out on cultural grounds anyway (see `docs/jyotishya-ideas.md`) |
+| `ast_list.txt`, `seorbel.txt` | <20 KB | Asteroid/orbital-element support files — same correction as above |
+| `fixstars.cat` | ~118 KB | Legacy-format fixed-star catalog (unused; `swe.fixstar_ut` reads `sefstars.txt`, which **now ships in the image** for the birth chart's yogatara layer — no longer image-trimmed) |
 
 ## Upstream PyJHora data NOT currently vendored (re-vendor when needed)
 

@@ -70,18 +70,26 @@ export type RasiStyleChartData = {
   placements: { key: string; rashi_key: string; degrees?: number }[];
 };
 
+// An extra category of points rendered as visually-distinct chips in the
+// same house cells (e.g. the birth chart's yogatara star overlay). Labels
+// arrive pre-resolved: overlay points aren't grahas, so they don't go
+// through the horaPlanets enum group the way placements do.
+export type RasiChartOverlayPoint = { key: string; rashi_key: string; degrees?: number; label: string };
+
 export function RasiStyleChart({
   chart,
   ascendantLabel,
   testIdPrefix,
   showHouseNumbers = false,
   showDegrees = false,
+  overlays,
 }: {
   chart: RasiStyleChartData;
   ascendantLabel: string;
   testIdPrefix: string;
   showHouseNumbers?: boolean;
   showDegrees?: boolean;
+  overlays?: RasiChartOverlayPoint[];
 }) {
   const { dict } = useLocale();
 
@@ -122,6 +130,18 @@ export function RasiStyleChart({
                   {showDegrees && p.degrees !== undefined && <> {formatDegreeMinutes(p.degrees)}</>}
                 </span>
               ))}
+              {overlays
+                ?.filter((o) => o.rashi_key === rashiKey)
+                .map((o) => (
+                  <span
+                    key={o.key}
+                    data-testid={`${testIdPrefix}-overlay-${o.key}`}
+                    className="rounded border border-accent/30 bg-transparent px-1 text-[9px] italic opacity-70 sm:text-[11px]"
+                  >
+                    {o.label}
+                    {showDegrees && o.degrees !== undefined && <> {formatDegreeMinutes(o.degrees)}</>}
+                  </span>
+                ))}
             </div>
           </div>
         );

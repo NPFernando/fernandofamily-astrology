@@ -108,8 +108,10 @@ build, and readiness checks.
 The repository keeps the complete vendored dataset (see
 `FUTURE_DATA_USES.md` for why and what the retained data enables). The
 Docker image ships a trimmed copy — everything except `jhora/data/ephe/`,
-plus only `sepl_18.se1`, `semo_18.se1`, and `seleapsec.txt` (1800–2399 CE
-coverage; ~3 MB instead of ~105 MB).
+plus only `sepl_18.se1`, `semo_18.se1`, `seleapsec.txt` (1800–2399 CE
+coverage), and `sefstars.txt` (the fixed-star catalog the birth chart's
+yogatara layer resolves junction stars from; ~134 KB). ~3 MB total instead
+of ~105 MB.
 
 - `MANIFEST.sha256` — full repo tree (verified in CI and at the start of the
   Docker build; `--profile repo`).
@@ -123,7 +125,8 @@ in sync with the `cp` list in `infra/docker/Dockerfile.api`):
 ```bash
 cd apps/api
 python3 - <<'PY'
-keep = {"data/ephe/sepl_18.se1", "data/ephe/semo_18.se1", "data/ephe/seleapsec.txt"}
+keep = {"data/ephe/sepl_18.se1", "data/ephe/semo_18.se1", "data/ephe/seleapsec.txt",
+        "data/ephe/sefstars.txt"}
 lines = [l for l in open("vendor/MANIFEST.sha256").read().splitlines()
          if l.strip() and (not l.split("  ", 1)[1].startswith("data/ephe/")
                            or l.split("  ", 1)[1] in keep)]

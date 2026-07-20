@@ -836,7 +836,14 @@
     "calculate": "Calculate birth chart",
     "chartTitle": "D1 Rasi Chart",
     "ascendant": "Ascendant (Lagna)",
-    "layoutNote": "Shown in the North Indian diamond style, matching Sri Lankan kendaraya convention: house 1 (Lagna) always sits in the top diamond — which rashi falls in each house rotates with the Ascendant instead. House numbers are shown alongside each rashi since a birth chart is read by house."
+    "layoutNote": "Shown in the North Indian diamond style, matching Sri Lankan kendaraya convention: house 1 (Lagna) always sits in the top diamond — which rashi falls in each house rotates with the Ascendant instead. House numbers are shown alongside each rashi since a birth chart is read by house.",
+    "starsToggle": "Show junction stars",
+    "yogataraTitle": "Junction stars (Yogatara)",
+    "yogataraGrahaHeader": "Graha",
+    "yogataraNakshatraHeader": "Nakshatra",
+    "yogataraStarHeader": "Junction star",
+    "yogataraSeparationHeader": "Separation",
+    "yogataraNote": "Each graha's nakshatra and the angular distance to that nakshatra's junction star (yogatara) — the identified principal star classical astronomy anchors each nakshatra to. Star identifications follow the 1955 Calendar Reform Committee table, the same source whose Chitra (Spica) anchor defines this site's ayanamsa. A few junction stars lie outside their own equal 13°20′ nakshatra division — a documented property of the sky, shown as-is."
   },
   "dasha": {
     "title": "Dasha (Vimshottari Planetary Periods)",

@@ -12,6 +12,7 @@ import {
 import { TargetDateTimeFields } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import { FullMoonIcon } from "@/components/icons/moon";
 import { BirthChartChart } from "@/components/birth-chart/BirthChartChart";
+import { YogataraTable } from "@/components/birth-chart/YogataraTable";
 
 export function BirthChartClient() {
   const { dict } = useLocale();
@@ -19,6 +20,7 @@ export function BirthChartClient() {
   const [birthTime, setBirthTime] = useState("");
   const [location, setLocation] = useState<LocationValue | null>(null);
   const [result, setResult] = useState<BirthChartData | null>(null);
+  const [showStars, setShowStars] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -101,8 +103,24 @@ export function BirthChartClient() {
 
       {result && (
         <section data-testid="birth-chart-result" className="flex flex-col gap-3">
-          <h2 className="text-sm font-semibold uppercase text-accent">{dict.birthChart.chartTitle}</h2>
-          <BirthChartChart chart={result} />
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold uppercase text-accent">{dict.birthChart.chartTitle}</h2>
+            <button
+              type="button"
+              aria-pressed={showStars}
+              data-testid="yogatara-toggle"
+              onClick={() => setShowStars((v) => !v)}
+              className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                showStars
+                  ? "bg-accent text-white"
+                  : "border border-black/15 bg-white/40 opacity-70 dark:border-white/15 dark:bg-white/[.04]"
+              }`}
+            >
+              {dict.birthChart.starsToggle}
+            </button>
+          </div>
+          <BirthChartChart chart={result} showStars={showStars} />
+          <YogataraTable rows={result.graha_yogataras} />
         </section>
       )}
     </div>

@@ -519,9 +519,13 @@ export interface components {
              */
             birth_time: string;
             engine: components["schemas"]["EngineMetadata"];
+            /** Graha Yogataras */
+            graha_yogataras: components["schemas"]["GrahaYogatara"][];
             location: components["schemas"]["Location"];
             /** Placements */
             placements: components["schemas"]["BirthChartPlacement"][];
+            /** Yogataras */
+            yogataras: components["schemas"]["YogataraPosition"][];
         };
         /** BirthChartPlacement */
         BirthChartPlacement: {
@@ -936,6 +940,21 @@ export interface components {
             rashi_index: number;
             /** Rashi Key */
             rashi_key: string;
+        };
+        /**
+         * GrahaYogatara
+         * @description A graha's nakshatra and the angular distance to that nakshatra's
+         *     junction star. Note the star can sit outside its own 13deg20' division
+         *     (CRC documents seven such cases), so separation is not bounded by the
+         *     division width.
+         */
+        GrahaYogatara: {
+            /** Key */
+            key: string;
+            /** Nakshatra Key */
+            nakshatra_key: string;
+            /** Separation Degrees */
+            separation_degrees: number;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -2028,6 +2047,22 @@ export interface components {
              * Format: date-time
              */
             starts_at: string;
+        };
+        /**
+         * YogataraPosition
+         * @description One of the 27 CRC Table-5 junction stars, placed like a graha so the
+         *     chart can render it in its rashi house (see yogatara.py for the pinned
+         *     source and identification notes).
+         */
+        YogataraPosition: {
+            /** Degrees */
+            degrees: number;
+            /** Nakshatra Key */
+            nakshatra_key: string;
+            /** Rashi Index */
+            rashi_index: number;
+            /** Rashi Key */
+            rashi_key: string;
         };
     };
     responses: never;

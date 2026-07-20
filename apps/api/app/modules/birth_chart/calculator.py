@@ -14,7 +14,12 @@ from datetime import time as time_type
 from zoneinfo import ZoneInfo
 
 from app.modules.birth_chart import adapter
-from app.modules.birth_chart.models import BirthChart, BirthChartPlacement
+from app.modules.birth_chart.models import (
+    BirthChart,
+    BirthChartPlacement,
+    GrahaYogatara,
+    YogataraPosition,
+)
 from app.modules.pancha_pakshi import adapter as pp_adapter
 from app.modules.pancha_pakshi.calculator import resolve_utc_offset_hours
 from app.modules.pancha_pakshi.models import EngineMetadata, Location
@@ -51,6 +56,34 @@ def compute_birth_chart(
 
     ascendant_constellation, ascendant_degrees = adapter.ascendant_rashi(jd, place)
 
+    star_longitudes = adapter.yogatara_longitudes(jd, place)
+    yogataras = [
+        YogataraPosition(
+            nakshatra_key=nakshatra_key,
+            rashi_index=int(lon // 30) + 1,
+            rashi_key=panchanga_repository.RASHI_KEYS[int(lon // 30)],
+            degrees=lon % 30,
+        )
+        for nakshatra_key, lon in star_longitudes
+    ]
+    star_lon_by_nakshatra = dict(star_longitudes)
+
+    nakshatra_span = 360.0 / 27.0
+    graha_yogataras = []
+    for planet_id, (constellation, long_in_raasi) in raw_placements:
+        graha_lon = constellation * 30.0 + long_in_raasi
+        nakshatra_key = panchanga_repository.NAKSHATRA_KEYS[int(graha_lon // nakshatra_span)]
+        separation = abs(graha_lon - star_lon_by_nakshatra[nakshatra_key])
+        if separation > 180.0:
+            separation = 360.0 - separation
+        graha_yogataras.append(
+            GrahaYogatara(
+                key=panchanga_repository.GRAHA_KEYS[planet_id],
+                nakshatra_key=nakshatra_key,
+                separation_degrees=separation,
+            )
+        )
+
     return BirthChart(
         engine=engine,
         location=Location(
@@ -66,4 +99,6 @@ def compute_birth_chart(
         ascendant_rashi_key=panchanga_repository.RASHI_KEYS[ascendant_constellation],
         ascendant_degrees=ascendant_degrees,
         placements=placements,
+        yogataras=yogataras,
+        graha_yogataras=graha_yogataras,
     )

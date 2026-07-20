@@ -57,12 +57,23 @@ def configure_ayanamsa(drik_module) -> None:
     TestClient — a request handled after import still read swisseph's
     Fagan-Bradley default, confirmed by reading `swe.get_ayanamsa_ut()` at
     both points and seeing 25.11 degrees (Fagan) instead of the 24.23
-    degrees (Lahiri) set moments earlier at import. The exact mechanism
-    wasn't nailed down (Starlette runs sync `def` route handlers via a
-    threadpool, which is the leading suspect, but that specific causal
-    chain is not separately confirmed) — treat "site 2 is required" as
-    verified, and the threadpool explanation as the working theory, not
-    fact. Site 2 alone is also not enough, as test_poya.py's direct calls
-    prove. Keep both.
+    degrees (Lahiri) set moments earlier at import. The threadpool
+    mechanism, originally only the leading suspect, is now CONFIRMED (for
+    the ephemeris path at least): pyswisseph keeps per-thread state, so a
+    bare ThreadPoolExecutor worker that never called `set_ephe_path` fails
+    `swe.fixstar_ut` with "sefstars.txt not found" using swisseph's default
+    search path, while the same call succeeds after setting the path inside
+    that worker — reproduced minimally during the yogatara feature build.
+    Site 2 alone is also not enough, as test_poya.py's direct calls prove.
+    Keep both.
+
+    The same per-thread reset now covers the ephemeris path too: planetary
+    `swe.calc_ut` degrades gracefully to built-in Moshier positions when the
+    ephemeris files aren't visible (which is plausibly the root cause of the
+    documented cross-thread arcsecond drift in test_birth_chart.py), but
+    `swe.fixstar_ut` hard-fails without sefstars.txt, so worker threads must
+    re-set the path exactly like they re-set the ayanamsa.
     """
+    const = drik_module.const  # jhora.const, already imported by drik
+    const.swe.set_ephe_path(const._ephe_path)
     drik_module.set_ayanamsa_mode("LAHIRI")

@@ -390,6 +390,13 @@
           "engine": {
             "$ref": "#/components/schemas/EngineMetadata"
           },
+          "graha_yogataras": {
+            "items": {
+              "$ref": "#/components/schemas/GrahaYogatara"
+            },
+            "title": "Graha Yogataras",
+            "type": "array"
+          },
           "location": {
             "$ref": "#/components/schemas/Location"
           },
@@ -398,6 +405,13 @@
               "$ref": "#/components/schemas/BirthChartPlacement"
             },
             "title": "Placements",
+            "type": "array"
+          },
+          "yogataras": {
+            "items": {
+              "$ref": "#/components/schemas/YogataraPosition"
+            },
+            "title": "Yogataras",
             "type": "array"
           }
         },
@@ -409,7 +423,9 @@
           "ascendant_rashi_index",
           "ascendant_rashi_key",
           "ascendant_degrees",
-          "placements"
+          "placements",
+          "yogataras",
+          "graha_yogataras"
         ],
         "title": "BirthChart",
         "type": "object"
@@ -1385,6 +1401,30 @@
           "is_retrograde"
         ],
         "title": "GrahaPosition",
+        "type": "object"
+      },
+      "GrahaYogatara": {
+        "description": "A graha's nakshatra and the angular distance to that nakshatra's\njunction star. Note the star can sit outside its own 13deg20' division\n(CRC documents seven such cases), so separation is not bounded by the\ndivision width.",
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "nakshatra_key": {
+            "title": "Nakshatra Key",
+            "type": "string"
+          },
+          "separation_degrees": {
+            "title": "Separation Degrees",
+            "type": "number"
+          }
+        },
+        "required": [
+          "key",
+          "nakshatra_key",
+          "separation_degrees"
+        ],
+        "title": "GrahaYogatara",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -4044,6 +4084,35 @@
           "ends_at"
         ],
         "title": "YogaSpan",
+        "type": "object"
+      },
+      "YogataraPosition": {
+        "description": "One of the 27 CRC Table-5 junction stars, placed like a graha so the\nchart can render it in its rashi house (see yogatara.py for the pinned\nsource and identification notes).",
+        "properties": {
+          "degrees": {
+            "title": "Degrees",
+            "type": "number"
+          },
+          "nakshatra_key": {
+            "title": "Nakshatra Key",
+            "type": "string"
+          },
+          "rashi_index": {
+            "title": "Rashi Index",
+            "type": "integer"
+          },
+          "rashi_key": {
+            "title": "Rashi Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nakshatra_key",
+          "rashi_index",
+          "rashi_key",
+          "degrees"
+        ],
+        "title": "YogataraPosition",
         "type": "object"
       }
     }

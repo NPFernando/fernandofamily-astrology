@@ -16,9 +16,17 @@ from app.core.vendor_path import configure_ayanamsa, ensure_vendor_on_path
 
 ensure_vendor_on_path()
 
+import swisseph as swe  # noqa: E402
 from jhora.panchanga import drik  # noqa: E402
 
+from app.modules.birth_chart.yogatara import YOGATARA_STARS  # noqa: E402
+
 configure_ayanamsa(drik)
+
+# Same flag combination the vendored tree itself uses for its own fixed-star
+# call (jhora/utils.py's True-Chitra helper): Swiss Ephemeris files + the
+# currently configured sidereal mode (LAHIRI, via configure_ayanamsa).
+_FIXSTAR_FLAGS = swe.FLG_SWIEPH | swe.FLG_SIDEREAL
 
 
 def ensure_ayanamsa() -> None:
@@ -42,3 +50,19 @@ def ascendant_rashi(jd: float, p) -> tuple[int, float]:
     drik.ascendant()."""
     constellation, coordinates, _nak_no, _paadha_no = drik.ascendant(jd, p)
     return constellation, coordinates
+
+
+def yogatara_longitudes(jd: float, p) -> list[tuple[str, float]]:
+    """[(nakshatra_key, sidereal longitude 0..360), ...] for the 27 CRC
+    Table-5 junction stars at the given moment, NAKSHATRA_KEYS order.
+
+    Direct `swe` use in an adapter follows panchanga/adapter.py's eclipse
+    precedent. The local-JD -> UT conversion mirrors drik.dhasavarga's own
+    `jd_utc = jd - place.timezone / 24` line, so star and graha longitudes
+    are computed for the identical instant (the shift is ~1e-5 arcsec of
+    precession either way, but consistency keeps the comparison honest)."""
+    jd_utc = jd - p.timezone / 24.0
+    return [
+        (nakshatra_key, swe.fixstar_ut(search_key, jd_utc, _FIXSTAR_FLAGS)[0][0])
+        for nakshatra_key, search_key, _label in YOGATARA_STARS
+    ]

@@ -121,9 +121,12 @@
   (අංශක/කලා) with Western numerals — no localized degree wording needed. Needed zero new vendored-engine
   integration: D1 is `divisional_chart_factor=1` on the same
   `dhasavarga`/`ascendant` calls Divisional Charts already exercises for
-  D9. Dasha calculations, asteroid/fixed-star overlays, cusp-based house
-  systems (Sripati/KP/Placidus) and divisional-chart cross-linking are
-  explicitly out of scope for this module.
+  D9. Dasha calculations, cusp-based house systems (Sripati/KP/Placidus)
+  and divisional-chart cross-linking are explicitly out of scope for this
+  module. (The fixed-star yogatara layer, originally listed out of scope
+  here, later shipped as this module's extension — see below; asteroid
+  overlays were researched and ruled out — see
+  `docs/jyotishya-ideas.md` D2b.)
 - Dasha (Vimshottari planetary periods) — timeline from birth
   (`/dasha`, `POST /api/v1/dasha/mahadasha`): the 9 major planetary
   periods (Mahadasha) spanning a full ~120-year cycle, each expandable
@@ -162,6 +165,20 @@
   `vratha.py` were researched and deliberately not built — see
   `docs/jyotishya-ideas.md` for the verdict and what building them would
   actually require.
+- Birth Chart yogatara (junction star) layer — the birth chart now returns
+  all 27 nakshatra junction stars as chart-placeable positions plus each
+  graha's nakshatra and angular distance to its junction star, rendered as
+  a toggleable star overlay on the diamond chart and a per-graha table
+  with a sourcing note. Star identifications are pinned to the 1955
+  Calendar Reform Committee's Table 5 — the same document whose
+  Chitra (Spica) anchor defines this site's Lahiri ayanamsa — with each
+  identification latitude-verified against the vendored Swiss Ephemeris
+  star catalog in tests, and the known identification disputes (Ashlesha,
+  Vishakha, Shatabhisha) documented rather than glossed
+  (`docs/jyotishya-ideas.md` D2). `sefstars.txt` now ships in the Docker
+  image. Asteroid overlays — the other half of the old "birth chart
+  extensions" idea — were researched and ruled out (no position ephemeris
+  in the repo, no engine support, Western practice; D2b).
 
 ## Backlog (priority order)
 
@@ -178,13 +195,13 @@ they are actually built, registered in the feature registry
 - Public API keys / third-party developer access. This platform's API is for
   its own frontend only; it is not being opened up for external integrations.
 
-**Larger future modules** (same registry pattern; unscheduled): birth chart
-extensions (asteroid + fixed-star overlays — retained data for these is in
-the repo, see `FUTURE_DATA_USES.md`; basic D1 Rasi chart itself has shipped),
-and historical/ancestor chart tools (the BCE–medieval ephemeris the image
+**Larger future modules** (same registry pattern; unscheduled):
+historical/ancestor chart tools (the BCE–medieval ephemeris the image
 trims away remains available for exactly this). The former "festival
 calendar" item shipped as the Poya festival significance layer (Poya-only
-scope — see the Shipped section and `docs/jyotishya-ideas.md`).
+scope), and the former "birth chart extensions" item resolved as the
+shipped yogatara star layer plus a researched asteroid rule-out — see the
+Shipped section and `docs/jyotishya-ideas.md` (D2/D2b, E3b).
 
 Adding any module should follow the Pancha Pakshi pattern: an isolated
 `apps/api/app/modules/<feature>/` backend module, its own feature-registry

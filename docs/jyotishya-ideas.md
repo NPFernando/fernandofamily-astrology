@@ -338,27 +338,64 @@ compare it directly.
 rashi iconography from `packages/design-system`, and a decision on which
 vargas to expose first — D9 Navamsa is the highest-value single addition).
 
-### D2. Fixed-star precision research (exploratory, not yet a defined product)
-**One-line:** Use the retained-but-unshipped fixed-star catalogs for
-star-based precision features (e.g., which fixed star a planet or the Moon
-is conjunct tonight).
+### D2. Fixed-star precision — shipped as the birth chart's yogatara layer
 
-**Engine feasibility:** The data (`sefstars.txt`, `fixstars.cat`, ~250KB
-combined, retained per `FUTURE_DATA_USES.md`) is not in the shipped Docker
-image, but the underlying pyswisseph call is proven to work in this exact
-vendored tree already — `swe.fixstar_ut("Citra", ...)` is called today
-inside `vendor/jhora/utils.py:651` as part of the True Chitra ayanamsa
-calculation itself. So the technical path is verified; what's missing is a
-concrete, honest product surface (a "which star is the Moon near" widget is
-a novelty more than a jyotishya practice most Sri Lankan readers will
-recognize).
+**Status: shipped (2026-07-20).** This section's original gate — "don't
+build without a specific, named classical use" — was satisfied and the
+feature shipped as a birth-chart extension, not a generic star finder.
 
-**Recommendation:** Don't build this without first identifying a specific,
-named classical use for fixed stars (e.g. Chitra/Swati-based nakshatra
-boundary precision) rather than a generic "fixed star finder." Treat as
-research, not a scheduled feature.
+The named classical use found: **yogatara (junction stars)** — the
+principal star classical astronomy identifies each nakshatra with,
+tabulated in Surya Siddhanta ch. 8 ("On the Conjunction of Planets with
+the Stars", Burgess translation) and operationalized for the modern sky by
+the **Report of the Calendar Reform Committee (1955), Table 5 "Stars of
+the Naksatra divisions"** — the same document whose Chitra = Spica anchor
+defines this app's Lahiri ayanamsa. That lineage identity is what makes
+the source pinnable to this project's standard: one authoritative
+27-entry table, from the authority the app already rests on.
 
-**Effort:** L, and effort estimate is soft until a product use is defined.
+What shipped: `POST /api/v1/birth-chart/rasi` now returns `yogataras`
+(all 27 star positions, placed like grahas) and `graha_yogataras` (each
+graha's nakshatra + angular separation to its junction star); the birth
+chart page renders a toggleable star overlay on the diamond chart plus a
+per-graha table with a sourcing note. Mapping table + identification
+notes: `apps/api/app/modules/birth_chart/yogatara.py`; identity goldens:
+`tests/test_yogatara.py` (CRC's printed ecliptic latitudes, being nearly
+epoch-independent, discriminate star identity per search key).
+
+Documented divergences, resolved Chitra-vedha-style (pin + footnote):
+Ashlesha (CRC alpha Cancri vs. modern epsilon Hydrae lists — the vendored
+sefstars.txt's own "Ashlesha (Colebrook)" alias agrees with CRC);
+Vishakha (CRC alpha Librae — the bright alpha-2, latitude-verified — vs.
+sefstars.txt's own "Vishakha" alias pointing at iota-1 Librae, which was
+deliberately NOT used); Shatabhisha (CRC lambda Aquarii vs. Wikipedia's
+gamma Aquarii). CRC itself notes seven yogataras fall outside their own
+13°20' division — inherited honestly, shown as-is, stated in the UI note.
+
+Two infrastructure facts this build surfaced: (1) `sefstars.txt` now
+ships in the Docker image (curated cp list + MANIFEST.image.sha256
+regenerated — it was repo-only before); (2) pyswisseph keeps *per-thread*
+state — the ephemeris path set at import didn't exist in Starlette
+threadpool workers, which made `swe.fixstar_ut` hard-fail there and
+retroactively explains the documented cross-thread arcsecond drift
+(planetary calc_ut degrades silently to Moshier without the files).
+`configure_ayanamsa` now re-sets the ephe path per call alongside the
+ayanamsa — see its docstring in `app/core/vendor_path.py`.
+
+### D2b. Asteroid overlays — ruled out (research verdict, 2026-07-20)
+
+The roadmap's former "asteroid + fixed-star overlays" pairing was
+half-infeasible: the retained asteroid files (`seasnam.txt`,
+`ast_list.txt`, `seorbel.txt`) are name/orbital-element *text* files
+only — the binary `seas_*.se1` position ephemeris was never vendored and
+is absent from the repo entirely, and the engine has zero asteroid
+constants or live code paths (`dhasavarga`'s `include_western_planets`
+parameter is dead code in V4.8.7, and it only ever covered
+Uranus–Pluto anyway). Building asteroid positions would mean a fresh
+upstream re-vendor plus net-new computation code — for a feature class
+(Ceres/Chiron overlays) that is Western practice, the same category
+rounds 1–3 removed features for. Verdict: not built, not scheduled;
+`FUTURE_DATA_USES.md`'s asteroid rows now carry the correction.
 
 ---
 
@@ -547,7 +584,8 @@ that as a settled default.
 | B5 | Ritu / Samvatsara badges | Deepen Panchanga | Ritu yes; Samvatsara caveated | S |
 | C1 | Vivaha Chakra Palan (built, then removed — superseded by Porondam) | Deepen Compatibility | Yes | M |
 | D1 | Divisional charts (Navamsa + D1 Rasi birth chart) (shipped) | New module | Yes | L |
-| D2 | Fixed-star precision | New module (exploratory) | Data path unvendored; call proven | L (soft) |
+| D2 | Fixed-star precision (shipped as birth-chart yogatara layer) | Shipped | Yes — CRC 1955 Table 5 pinned; sefstars.txt now in image | M |
+| D2b | Asteroid overlays | Ruled out | No — seas_*.se1 never vendored; zero engine support; Western practice | — |
 | D3 | Porondam — Sri Lankan wedding matching (shipped, 7/10 core) | New module | Yes, hand-transcribed classical tables | L |
 | E1 | Dasha calculators (shipped, Mahadasha + Antardasha) | New module | Yes — Vimshottari subset golden-tested | M |
 | E2 | Ashtakoot marriage score (partially superseded by Porondam) | Not recommended | No — constants only, no algorithm | — |

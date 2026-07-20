@@ -305,6 +305,22 @@ export type BirthChartPlacement = {
   degrees: number; // 0..30, degrees within the rashi
 };
 
+// One of the 27 junction stars (yogatara), placed like a graha so the chart
+// can render it — identifications pinned to the 1955 Calendar Reform
+// Committee's Table 5 (apps/api/app/modules/birth_chart/yogatara.py).
+export type YogataraPosition = {
+  nakshatra_key: string; // panchanga NAKSHATRA_KEYS / locales/nakshatras.json key
+  rashi_index: number; // 1..12
+  rashi_key: string;
+  degrees: number; // 0..30, degrees within the rashi
+};
+
+export type GrahaYogatara = {
+  key: string; // repository.GRAHA_KEYS entry, e.g. "moon"
+  nakshatra_key: string; // the graha's nakshatra
+  separation_degrees: number; // 0..180, |graha - yogatara| along the ecliptic
+};
+
 export type BirthChart = {
   engine: EngineMetadata;
   location: Location;
@@ -314,6 +330,8 @@ export type BirthChart = {
   ascendant_rashi_key: string;
   ascendant_degrees: number; // 0..30, degrees within the ascendant_rashi
   placements: BirthChartPlacement[]; // 9: Sun..Ketu, GRAHA_KEYS order
+  yogataras: YogataraPosition[]; // 27, NAKSHATRA_KEYS order
+  graha_yogataras: GrahaYogatara[]; // 9, GRAHA_KEYS order
 };
 
 // apps/api/app/modules/dasha/models.py. v1: Mahadasha only, no Antardasha

@@ -372,6 +372,21 @@ deliberately NOT used); Shatabhisha (CRC lambda Aquarii vs. Wikipedia's
 gamma Aquarii). CRC itself notes seven yogataras fall outside their own
 13°20' division — inherited honestly, shown as-is, stated in the UI note.
 
+**Round-5 audit note (2026-07-20):** the term "යෝගතාරා" turned out to be
+unattested in Sinhala popular astrology writing (searched both spellings
+plus "යෝග තාරකාව" — zero usage on Sinhala astrology sites, which write
+about stars as තාරකා, e.g. the cataloged textbook "තාරකා ජ්‍යොතිෂ
+විද්‍යාව"). The Sinhala UI strings were flipped to lead with the
+transparent natural form — "නැකත් තාරකා (යෝගතාරා)" — with the Sanskrit
+technical term retained parenthetically; English keeps "Junction stars
+(Yogatara)". Checked and left unchanged in the same audit: "කෝණික දුර"
+(standard Sinhala science vocabulary for angular distance), untranslated
+IAU star names (the documented language-neutral choice), the methodology
+page's "ග්‍රෙගෝරියානු දින දර්ශනය"/"දේශීය මධ්‍යන්‍ය වේලාව" (both standard
+Sinhala technical terms), and the Ceylon-was-effectively-Gregorian claim
+(Portuguese from 1582, Dutch provinces by 1701, Britain's 1752 switch
+predates the 1796 takeover).
+
 Two infrastructure facts this build surfaced: (1) `sefstars.txt` now
 ships in the Docker image (curated cp list + MANIFEST.image.sha256
 regenerated — it was repo-only before); (2) pyswisseph keeps *per-thread*

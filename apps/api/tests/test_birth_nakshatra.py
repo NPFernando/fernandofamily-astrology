@@ -45,6 +45,14 @@ def test_birth_nakshatra_rejects_invalid_timezone():
     assert response.json()["error"] == "invalid_input"
 
 
+def test_birth_nakshatra_rejects_invalid_latitude():
+    response = client.post(
+        "/api/v1/birth-nakshatra/resolve",
+        json={**COLOMBO_BIRTH, "latitude": 999},
+    )
+    assert response.status_code == 422
+
+
 def test_birth_nakshatra_has_no_get_route_for_birth_fields():
     response = client.get(
         "/api/v1/birth-nakshatra/resolve?birth_date=2000-01-01&birth_time=12:00:00"

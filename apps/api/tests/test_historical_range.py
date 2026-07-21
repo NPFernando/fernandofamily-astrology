@@ -61,3 +61,29 @@ def test_dasha_accepts_historical_birth(monkeypatch):
     periods = response.json()["periods"]
     assert len(periods) == 9
     assert sum(p["duration_years"] for p in periods) == 120
+
+
+def test_divisional_charts_accepts_historical_birth(monkeypatch):
+    """A third module on the same shared gate: Navamsa still computes for a
+    pre-1800 birth."""
+    monkeypatch.setattr(validation, "_IMAGE_PROFILE", True)
+    response = client.post("/api/v1/divisional-charts/navamsa", json=ANCESTOR_BIRTH)
+    assert response.status_code == 200, response.text
+    assert len(response.json()["placements"]) == 9
+
+
+def test_image_profile_rejects_upper_boundary(monkeypatch):
+    """The lower bound (1200 CE) is well covered above; the upper bound
+    (2399/2400 CE) was the one asymmetry in this feature's test coverage —
+    2399-12-31 must still compute, and 2400-01-01 must still be rejected
+    with the documented "outside the shipped ephemeris range" message,
+    exactly as it was before the 1200 CE widening (only the lower bound
+    moved)."""
+    monkeypatch.setattr(validation, "_IMAGE_PROFILE", True)
+
+    response = client.post("/api/v1/birth-chart/rasi", json={**ANCESTOR_BIRTH, "birth_date": "2399-12-31"})
+    assert response.status_code == 200, response.text
+
+    response = client.post("/api/v1/birth-chart/rasi", json={**ANCESTOR_BIRTH, "birth_date": "2400-01-01"})
+    assert response.status_code == 422
+    assert "2399" in response.json()["message"]

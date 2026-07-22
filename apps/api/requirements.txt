@@ -6,7 +6,7 @@ numpy==2.5.1
 pytz==2026.2
 geopy==2.4.1
 requests==2.34.2
-timezonefinder==8.2.4
+timezonefinder==8.2.5
 python-dateutil==2.9.0.post0
 certifi==2026.6.17
 geocoder==1.38.1

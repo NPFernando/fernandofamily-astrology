@@ -149,7 +149,7 @@ export function DailyTimingTimeline({
             <span
               className="absolute top-0 h-28 border-l-2 border-accent"
               style={{ left: `${nowLeft}%` }}
-              aria-label={timeline.now}
+              aria-hidden="true"
               title={timeline.now}
             />
           )}

@@ -24,6 +24,7 @@ import { EFFECT_COLORS } from "@fernandofamily/design-system";
 import { PrintSheet, type ExportDetail } from "@/components/pancha-pakshi/PrintSheet";
 import { Legend } from "@/components/pancha-pakshi/Legend";
 import { StickyCurrentBar } from "@/components/pancha-pakshi/StickyCurrentBar";
+import { PanchaPakshiIcon } from "@/components/icons/features";
 import {
   fetchLiveSchedule,
   hasDerivedIdentitySeed,
@@ -260,7 +261,10 @@ export function PanchaPakshiClient() {
   return (
     <div className="flex flex-col gap-6">
       <header className="max-w-3xl">
-        <h1 className="text-2xl font-bold">{resolveKey(dict, feature.titleKey)}</h1>
+        <h1 className="flex items-center gap-2 text-2xl font-bold">
+          <PanchaPakshiIcon className="text-3xl text-accent" />
+          {resolveKey(dict, feature.titleKey)}
+        </h1>
         <p className="mt-1 text-sm opacity-80 sm:text-base">{resolveKey(dict, feature.descriptionKey)}</p>
       </header>
 

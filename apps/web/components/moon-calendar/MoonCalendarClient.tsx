@@ -20,7 +20,7 @@ import {
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
-import { FullMoonIcon } from "@/components/icons/moon";
+import { MoonCalendarIcon } from "@/components/icons/features";
 import { PoyaDetailCard } from "@/components/panchanga/PoyaDetailCard";
 
 function sinhalaMonthName(dict: ReturnType<typeof getDictionary>, key: string): string {
@@ -159,7 +159,7 @@ export function MoonCalendarClient() {
     <div className="flex flex-col gap-6">
       <header>
         <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <FullMoonIcon className="text-3xl text-accent" />
+          <MoonCalendarIcon className="text-3xl text-accent" />
           {dict.moonCalendar.title}
         </h1>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed opacity-75">{dict.moonCalendar.description}</p>

@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Fernando Family Astrology",
     short_name: "FF Astrology",
-    description: "Bilingual traditional astrology tools, starting with a live Pancha Pakshi timetable.",
+    description: "Bilingual Sri Lankan astrology tools for Panchanga, Poya, Pancha Pakshi, Muhurta and birth charts.",
     id: "/",
     start_url: "/",
     scope: "/",

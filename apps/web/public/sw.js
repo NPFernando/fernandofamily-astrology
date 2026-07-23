@@ -3,7 +3,7 @@
 // in localStorage by the app (see app/[locale]/pancha-pakshi/page.tsx) and
 // re-rendered there with an explicit "cached, not live" label — this worker
 // does not attempt any astronomical calculation of its own.
-const CACHE_NAME = "ff-astrology-shell-v4";
+const CACHE_NAME = "ff-astrology-shell-v5";
 // Locale data is bundled into the page JS (imported at build time, not
 // fetched from a public URL), so it's cached automatically once the page
 // itself is cached below — no separate /locales/*.json entries needed here.
@@ -16,12 +16,36 @@ const PRECACHE_URLS = [
   "/si/panchanga",
   "/en/moon-calendar",
   "/si/moon-calendar",
+  "/en/daily-guide",
+  "/si/daily-guide",
+  "/en/muhurta",
+  "/si/muhurta",
   "/en/compatibility",
   "/si/compatibility",
+  "/en/divisional-charts",
+  "/si/divisional-charts",
+  "/en/porondam",
+  "/si/porondam",
+  "/en/birth-chart",
+  "/si/birth-chart",
+  "/en/dasha",
+  "/si/dasha",
   "/icons/app/icon-192.png",
   "/icons/app/icon-512.png",
   "/icons/app/icon-maskable-512.png",
   "/icons/apple-touch-icon.png",
+  "/posters/landing-almanac.webp",
+  "/posters/features/birth-nakshatra.webp",
+  "/posters/features/pancha-pakshi.webp",
+  "/posters/features/panchanga.webp",
+  "/posters/features/moon-calendar.webp",
+  "/posters/features/daily-guide.webp",
+  "/posters/features/muhurta.webp",
+  "/posters/features/compatibility.webp",
+  "/posters/features/divisional-charts.webp",
+  "/posters/features/porondam.webp",
+  "/posters/features/birth-chart.webp",
+  "/posters/features/dasha.webp",
   "/icons/generated/birds/vulture-64.png",
   "/icons/generated/birds/owl-64.png",
   "/icons/generated/birds/crow-64.png",
@@ -32,6 +56,17 @@ const PRECACHE_URLS = [
   "/icons/generated/activities/walking-64.png",
   "/icons/generated/activities/sleeping-64.png",
   "/icons/generated/activities/dying-64.png",
+  "/icons/generated/features/birth-nakshatra-64.png",
+  "/icons/generated/features/pancha-pakshi-64.png",
+  "/icons/generated/features/panchanga-64.png",
+  "/icons/generated/features/moon-calendar-64.png",
+  "/icons/generated/features/daily-guide-64.png",
+  "/icons/generated/features/muhurta-64.png",
+  "/icons/generated/features/compatibility-64.png",
+  "/icons/generated/features/divisional-charts-64.png",
+  "/icons/generated/features/porondam-64.png",
+  "/icons/generated/features/birth-chart-64.png",
+  "/icons/generated/features/dasha-64.png",
   "/manifest.webmanifest",
 ];
 

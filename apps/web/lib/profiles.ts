@@ -19,7 +19,11 @@ export type SavedProfile = {
 
 const STORAGE_KEY = "ff_saved_profiles";
 
-function normalizeProfile(profile: SavedProfile): SavedProfile {
+// Exported (not otherwise needed outside this module) so
+// scripts/check-profiles.mjs can exercise the real identity/normalization
+// logic directly, matching the check-ics-generator.mjs /
+// check-account-location-rounding.mjs pattern for pure, dedup-relevant logic.
+export function normalizeProfile(profile: SavedProfile): SavedProfile {
   return {
     ...profile,
     moon_rashi_index: profile.moon_rashi_index ?? null,
@@ -40,7 +44,7 @@ function saveLocal(profiles: SavedProfile[]) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(profiles));
 }
 
-function sameIdentity(a: SavedProfile, b: SavedProfile): boolean {
+export function sameIdentity(a: SavedProfile, b: SavedProfile): boolean {
   return (
     a.label === b.label &&
     a.bird === b.bird &&

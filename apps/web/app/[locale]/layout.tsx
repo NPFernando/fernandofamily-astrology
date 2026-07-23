@@ -9,6 +9,7 @@ import { Nav } from "@/components/layout/Nav";
 import { Footer } from "@/components/layout/Footer";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { PUBLIC_BASE_URL } from "@/lib/site-config";
+import { DEFAULT_OG_IMAGE } from "@/lib/feature-assets";
 
 const bodyFont = Inter({ variable: "--font-body", subsets: ["latin"] });
 const sinhalaFont = Noto_Sans_Sinhala({ variable: "--font-sinhala", subsets: ["sinhala"] });
@@ -61,11 +62,11 @@ export async function generateMetadata({
       siteName: dict.platform.name,
       type: "website",
       locale: locale === "si" ? "si_LK" : "en_US",
-      images: [{ url: "/og/og-default.png", width: 1200, height: 630 }],
+      images: [{ url: DEFAULT_OG_IMAGE, width: 1200, height: 630 }],
     },
     twitter: {
       card: "summary_large_image",
-      images: ["/og/og-default.png"],
+      images: [DEFAULT_OG_IMAGE],
     },
   };
 }

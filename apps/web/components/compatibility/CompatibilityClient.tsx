@@ -10,6 +10,7 @@ import {
 import { translateEnum } from "@/lib/i18n";
 import { useLocale } from "@/lib/locale-context";
 import { BIRD_ICONS } from "@/components/icons/birds";
+import { CompatibilityIcon } from "@/components/icons/features";
 
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
 const DEFAULT_A: BirdId = "vulture";
@@ -80,7 +81,10 @@ export function CompatibilityClient() {
     <div className="flex flex-col gap-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">{dict.compatibility.title}</h1>
+          <h1 className="flex items-center gap-2 text-2xl font-bold">
+            <CompatibilityIcon className="text-3xl text-accent" />
+            {dict.compatibility.title}
+          </h1>
           <p className="mt-1 max-w-2xl text-sm opacity-80">{dict.compatibility.description}</p>
         </div>
       </header>

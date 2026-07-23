@@ -42,6 +42,10 @@ export function DailyGuideIcon(props: GeneratedIconProps) {
   return featureIcon("daily-guide", props);
 }
 
+export function FamilyAlmanacIcon(props: GeneratedIconProps) {
+  return featureIcon("family-almanac", props);
+}
+
 export function MuhurtaIcon(props: GeneratedIconProps) {
   return featureIcon("muhurta", props);
 }

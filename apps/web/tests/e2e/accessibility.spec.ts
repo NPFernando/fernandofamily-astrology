@@ -45,6 +45,13 @@ for (const locale of ["en", "si"] as const) {
     assertNoSevereViolations(results.violations);
   });
 
+  test(`a11y (${locale}): family almanac has no critical/serious violations`, async ({ page }) => {
+    await page.goto(`/${locale}/family-almanac`);
+    await expect(page.locator('[data-testid="family-almanac-result"]')).toBeVisible({ timeout: 30_000 });
+    const results = await new AxeBuilder({ page }).analyze();
+    assertNoSevereViolations(results.violations);
+  });
+
   test(`a11y (${locale}): moon calendar with a Poya day selected has no critical/serious violations`, async ({
     page,
   }) => {

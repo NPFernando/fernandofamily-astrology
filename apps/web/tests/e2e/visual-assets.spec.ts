@@ -7,6 +7,7 @@ const FEATURES = [
   "panchanga",
   "moon-calendar",
   "daily-guide",
+  "family-almanac",
   "muhurta",
   "compatibility",
   "divisional-charts",

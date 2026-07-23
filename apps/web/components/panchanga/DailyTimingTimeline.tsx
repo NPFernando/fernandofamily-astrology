@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { EFFECT_COLORS } from "@fernandofamily/design-system";
 import { useLocale } from "@/lib/locale-context";
 import { getDictionary, translateEnum } from "@/lib/i18n";
 import type { DailyPanchanga, EffectId, KalamRange, ScheduleResponse } from "@/lib/api-client";
@@ -167,7 +166,6 @@ export function DailyTimingTimeline({
                       className={`absolute top-1 flex h-8 items-center overflow-hidden rounded-md border px-2 text-[11px] font-semibold leading-none ${ROW_STYLES[item.row].border} ${ROW_STYLES[item.row].bg} ${ROW_STYLES[item.row].text}`}
                       style={{
                         ...itemRangeStyle(item, dayStartMs, dayEndMs),
-                        color: item.effect ? EFFECT_COLORS[item.effect] : undefined,
                       }}
                     >
                       <span className="truncate">{item.label}</span>
@@ -193,7 +191,7 @@ export function DailyTimingTimeline({
                     key={item.id}
                     className={`rounded-md border px-3 py-2 text-sm ${ROW_STYLES[item.row].border} ${ROW_STYLES[item.row].bg}`}
                   >
-                    <p className="break-words font-semibold" style={{ color: item.effect ? EFFECT_COLORS[item.effect] : undefined }}>
+                    <p className="break-words font-semibold">
                       {item.label}
                     </p>
                     <p className="mt-0.5 tabular-nums opacity-75">

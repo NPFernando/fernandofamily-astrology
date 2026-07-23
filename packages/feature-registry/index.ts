@@ -138,6 +138,17 @@ export const features: FeatureEntry[] = [
     icon: "birth-chart",
   },
   {
+    id: "horoscope-report",
+    enabled: true,
+    public: true,
+    order: 47,
+    route: "/horoscope-report",
+    apiNamespace: "/api/v1",
+    titleKey: "features.horoscopeReport.title",
+    descriptionKey: "features.horoscopeReport.description",
+    icon: "horoscope-report",
+  },
+  {
     id: "dasha",
     enabled: true,
     public: true,

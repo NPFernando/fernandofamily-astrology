@@ -10,6 +10,7 @@ export const FEATURE_VISUAL_IDS = [
   "divisional-charts",
   "porondam",
   "birth-chart",
+  "horoscope-report",
   "dasha",
 ] as const;
 
@@ -30,6 +31,7 @@ export const FEATURE_POSTERS: Record<FeatureVisualId, string> = {
   "divisional-charts": "/posters/features/divisional-charts.webp",
   porondam: "/posters/features/porondam.webp",
   "birth-chart": "/posters/features/birth-chart.webp",
+  "horoscope-report": "/posters/features/horoscope-report.webp",
   dasha: "/posters/features/dasha.webp",
 };
 
@@ -45,6 +47,7 @@ export const FEATURE_OG_IMAGES: Record<FeatureVisualId, string> = {
   "divisional-charts": "/og/divisional-charts.png",
   porondam: "/og/porondam.png",
   "birth-chart": "/og/birth-chart.png",
+  "horoscope-report": "/og/horoscope-report.png",
   dasha: "/og/dasha.png",
 };
 

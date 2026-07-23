@@ -12,14 +12,14 @@ class PartyDetails(BaseModel):
 
 
 class PorondamMatch(BaseModel):
-    key: str  # repository keys: nakshatra, gana, yoni, rashi, rashyadpathi, vashya, vedha
+    key: str  # repository keys: nakshatra, gana, yoni, rashi, rashyadpathi, vashya, vedha, sthree_deergha
     passed: bool
 
 
 class PorondamResult(BaseModel):
-    matches: list[PorondamMatch]  # 7 entries, this round
+    matches: list[PorondamMatch]  # 8 entries, this round
     passed_count: int
-    checked_count: int  # always 7 this round — the traditional core is 10-12
+    checked_count: int  # always 8 this round — Mahendra and Rajju (2 of the 10 classical dasa porondam) remain unshipped, see calculator.py's module docstring
 
 
 class PorondamResponse(BaseModel):

@@ -209,7 +209,7 @@ export type CompatibilityResponse = {
 
 // ---------------------------------------------------------------------------
 // Porondam (/api/v1/porondam) — Sri Lankan wedding horoscope matching.
-// Ships 7 of the traditional 10-12 core Porondama. Shapes mirror
+// Ships 8 of the traditional 10 core Porondama. Shapes mirror
 // apps/api/app/modules/porondam/{requests,models}.py.
 
 export type PartyBirthInput = {
@@ -235,18 +235,18 @@ export type PorondamPartyDetails = {
 };
 
 // repository.py keys, in this fixed order: nakshatra, gana, yoni, rashi,
-// rashyadpathi, vashya, vedha. Not a Literal on the API side (models.py
-// uses str), so kept as `string` here too to stay assignable from the
-// generated type.
+// rashyadpathi, vashya, vedha, sthree_deergha. Not a Literal on the API
+// side (models.py uses str), so kept as `string` here too to stay
+// assignable from the generated type.
 export type PorondamMatch = {
   key: string;
   passed: boolean;
 };
 
 export type PorondamResult = {
-  matches: PorondamMatch[]; // 7 entries, this round
+  matches: PorondamMatch[]; // 8 entries, this round
   passed_count: number;
-  checked_count: number; // always 7 this round — the traditional core is 10-12
+  checked_count: number; // always 8 this round — Mahendra and Rajju (2 of the 10 classical dasa porondam) remain unshipped
 };
 
 export type PorondamResponse = {

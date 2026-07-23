@@ -21,19 +21,21 @@ async function calculatePorondam(page: Page, locale: LocaleKey) {
 }
 
 for (const locale of ["en", "si"] as const) {
-  test(`porondam (${locale}): matches 7 core categories without URL leakage`, async ({ page }) => {
+  test(`porondam (${locale}): matches 8 core categories without URL leakage`, async ({ page }) => {
     const watcher = watchForBirthDataInUrls(page);
     const dict = DICTS[locale];
     await calculatePorondam(page, locale);
 
-    // All 7 shipped categories render as rows, each explicitly Matched or
+    // All 8 shipped categories render as rows, each explicitly Matched or
     // Not matched (never a silently-missing row).
     const matches = page.locator('[data-testid="porondam-matches"]');
-    for (const key of ["nakshatra", "gana", "yoni", "rashi", "rashyadpathi", "vashya", "vedha"] as const) {
+    for (const key of [
+      "nakshatra", "gana", "yoni", "rashi", "rashyadpathi", "vashya", "vedha", "sthree_deergha",
+    ] as const) {
       await expect(matches).toContainText(dict.porondam.categories[key].name);
     }
-    // The summary count must reflect exactly those 7 categories.
-    await expect(page.locator('[data-testid="porondam-result"]')).toContainText(`/ 7`);
+    // The summary count must reflect exactly those 8 categories.
+    await expect(page.locator('[data-testid="porondam-result"]')).toContainText(`/ 8`);
     watcher.assertClean();
   });
 }

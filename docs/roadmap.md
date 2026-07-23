@@ -93,23 +93,26 @@
   independent sources agree, including matching structural detail on
   Lagna placement) — fixed to render house-fixed with the rashi rotating
   per Ascendant, matching actual Sri Lankan practice.
-- Porondam — Sri Lankan wedding horoscope matching. Ships 7 of the
-  traditional 10-12 core Porondama (Nakshatra, Gana, Yoni, Rashi,
-  Rashyadpathi, Vashya, Vedha) using standard, cross-tradition (Ashtakoot /
-  Tamil Thirumana Porutham) tables — not independently verified against a
-  specific Sri Lankan source the way Poya/ayanamsa are (`/porondam`,
-  `POST /api/v1/porondam/match`). Vedha's table has one documented edge
-  case (Chitra's vedha partner is disputed across sources; resolved as
-  "no partner") rather than a recall guess. Rajju was researched and found
-  to have real cross-source disagreement on nakshatra groupings — deferred
-  pending a single pinned reference. Mahendra and Sthree-Dheerga were also
-  researched and found blocked the same way: Mahendra's counting rule is
-  consistent across sources but no source supplies a reproducible worked
-  example; Sthree-Dheerga's sources disagree on the threshold itself
-  (15 / 13 / 7, depending on source). All three remaining core categories
-  now share one blocker — no pinnable source with a worked example —
-  so Porondam is paused at 7/10 until one turns up. The extended ~10
-  traditional categories are deliberately not built yet either — each
+- Porondam — Sri Lankan wedding horoscope matching. Ships 8 of the
+  traditional 10 core Porondama (Nakshatra, Gana, Yoni, Rashi,
+  Rashyadpathi, Vashya, Vedha, Sthree Deergha) using standard,
+  cross-tradition (Ashtakoot / Tamil Thirumana Porutham) tables — not
+  independently verified against a specific Sri Lankan source the way
+  Poya/ayanamsa are (`/porondam`, `POST /api/v1/porondam/match`). Vedha's
+  table has one documented edge case (Chitra's vedha partner is disputed
+  across sources; resolved as "no partner") rather than a recall guess.
+  Sthree Deergha's threshold (13) is anchored to the vendored engine's own
+  `sthree_dheerga_threshold` constant, chosen deliberately over other
+  regional variants (Tamil >13, Kerala >16) the same way Vashya/Gana
+  already pick one convention rather than covering every region. Rajju
+  and Mahendra remain deferred (re-checked 2026-07-23): Rajju's
+  disagreement is categorical (Tamil vs. Kerala/Prashna Marga place some
+  nakshatras in different Rajju groups, flipping real pass/fail
+  outcomes) rather than a single numeric threshold to anchor a choice
+  against; Mahendra's published counting rules are outright mutually
+  inconsistent across sources. Porondam is paused at 8/10 until a
+  reliable, pinnable source turns up for either. The extended ~20-factor
+  "Visi Porondama" categories are deliberately not built yet either — each
   needs a specific, pinned reference first.
 - Birth Chart (D1 Rasi) — the main natal chart: planet and Ascendant
   placements by house, North Indian diamond layout matching Sri Lankan

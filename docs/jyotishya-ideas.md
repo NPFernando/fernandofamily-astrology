@@ -505,25 +505,36 @@ Vimshottari-specific closure, not the rest of `horoscope/dhasa/`.
 without knowing that Sri Lanka's actual wedding-matching standard
 ("Porondam"/"Visi Porondama") overlaps almost exactly with the classical
 Ashtakoot / Tamil Thirumana Porutham core 10 categories — a later research
-round found real, widely-published compatibility tables for 7 of them
-(Nakshatra, Gana, Yoni, Rashi, Rashyadpathi, Vashya, Vedha), transcribed
-by hand into `apps/api/app/modules/porondam/repository.py` rather than
-vendored (the vendored engine still has no matching function — that part
-of this verdict still holds). Vedha's table needed a deliberate resolution
-of one disputed nakshatra (Chitra — see `repository.py`), not a recall
-guess. Rajju was specifically checked against 4 independent sources and
-found to have real, substantive disagreement on nakshatra groupings (not
-a formatting quirk) — still deferred. Mahendra and Sthree-Dheerga were
-then researched too, and found blocked the same way: Mahendra's counting
-rule (bride's star to groom's star, match at position 4/7/10/13/16/19/
-22/25) is stated consistently across every source checked, but none
-supplies a reproducible worked example — a named nakshatra pair with a
-stated pass/fail — needed to confirm inclusive/exclusive counting and
-direction; Sthree-Dheerga's sources actively disagree on the threshold
-itself (variously "exceeds 15", "13", or "7" depending on source). All
-three remaining core categories (Rajju, Mahendra, Sthree-Dheerga) now
-share one blocker — no pinnable source with a worked example — so
-Porondam is paused at 7/10 core categories until one turns up.
+round found real, widely-published compatibility tables for 8 of them
+(Nakshatra, Gana, Yoni, Rashi, Rashyadpathi, Vashya, Vedha, Sthree
+Deergha), transcribed by hand into
+`apps/api/app/modules/porondam/repository.py` rather than vendored (the
+vendored engine still has no matching function — that part of this
+verdict still holds). Vedha's table needed a deliberate resolution of one
+disputed nakshatra (Chitra — see `repository.py`), not a recall guess.
+
+Sthree Deergha shipped 2026-07-23 on the same "one documented convention,
+not every regional variant" basis as Vashya/Gana's existing
+simplifications: the directional star-count threshold is set to 13,
+matching `vendor/jhora/const.py`'s own `sthree_dheerga_threshold` (the
+vendored engine's own chosen default) — even though sources disagree
+across traditions (Tamil: >13; Kerala/Prashna Marga: >16; the vendor's
+own alternate `sthree_dheerga_threshold_south = 7` is a third value
+again). Anchoring to the already-vendored engine's own constant, rather
+than picking arbitrarily among blog sources, is what unblocked this one.
+
+Rajju and Mahendra remain deferred, now on sharper, distinct grounds
+(re-researched 2026-07-23): Rajju's disagreement is categorical, not
+numeric — Tamil and Kerala/Prashna Marga traditions place at least some
+nakshatras (e.g. Bharani, Chitra) in different Rajju groups from each
+other, which flips real pass/fail verdicts for real nakshatra pairs, not
+just a citation-formatting quirk, and there's no vendored constant to
+anchor a choice the way Sthree Deergha had. Mahendra's published numeric
+rules are outright mutually inconsistent across sources (one source's own
+"good count" list and "bad count" list overlap at 19), so there's no
+single rule to even pick between. Porondam is paused at 8/10 core
+categories until a reliable, pinnable source turns up for either of these
+two.
 
 Real two-person nakshatra-matching (Gana, Tara, Yoni, Rasi, Rajju koota
 scoring) is a natural extension of Bird Compatibility, and `const.py` even
@@ -625,7 +636,7 @@ that as a settled default.
 | D2 | Fixed-star precision (shipped as birth-chart yogatara layer) | Shipped | Yes — CRC 1955 Table 5 pinned; sefstars.txt now in image | M |
 | D2b | Asteroid overlays | Ruled out | No — seas_*.se1 never vendored; zero engine support; Western practice | — |
 | D4 | Historical/ancestor charts (shipped as 1200-CE range widening) | Shipped | Yes — sepl_12/semo_12 pair now in image | S |
-| D3 | Porondam — Sri Lankan wedding matching (shipped, 7/10 core) | New module | Yes, hand-transcribed classical tables | L |
+| D3 | Porondam — Sri Lankan wedding matching (shipped, 8/10 core) | New module | Yes, hand-transcribed classical tables | L |
 | E1 | Dasha calculators (shipped, Mahadasha + Antardasha) | New module | Yes — Vimshottari subset golden-tested | M |
 | E2 | Ashtakoot marriage score (partially superseded by Porondam) | Not recommended | No — constants only, no algorithm | — |
 | E3 | Avurudu Nekath | Not recommended | No — no computable dataset | — |

@@ -159,3 +159,39 @@ VEDHA_PAIRS: frozenset[frozenset[int]] = frozenset(
 
 def vedha_compatible(nakshatra_a: int, nakshatra_b: int) -> bool:
     return frozenset({nakshatra_a, nakshatra_b}) not in VEDHA_PAIRS
+
+
+# --- Sthree Deergha Porondama: directional nakshatra-count threshold -------
+# From app/modules/porondam/calculator.py's _count_stars(bride, groom):
+# the traditional rule requires the groom's star to fall at least this many
+# positions ahead of the bride's, counted forward and inclusively (symbolic
+# of the wife's longevity). Threshold matches vendor/jhora/const.py's own
+# `sthree_dheerga_threshold = 13` — deliberately kept even after a
+# 2026-07-23 web check found this factor has real regional disagreement
+# (Tamil tradition: >13; Kerala/Prashna Marga tradition: >16; vendor's own
+# alternate constant, `sthree_dheerga_threshold_south = 7`, is a third
+# distinct value again) — because 13 is this app's already-vendored
+# engine's own chosen default, giving it a stronger anchor than picking
+# arbitrarily among blog sources. Same "one documented convention per
+# factor" bar as Vashya's and Gana's simplifications above, not a claim
+# that other regional conventions are wrong.
+STHREE_DEERGHA_THRESHOLD = 13
+
+
+def sthree_deergha_compatible(star_count_bride_to_groom: int) -> bool:
+    return star_count_bride_to_groom >= STHREE_DEERGHA_THRESHOLD
+
+
+# --- Rajju Porondama: NOT SHIPPED --------------------------------------------
+# Researched 2026-07-23: the classical 5-group (Pada/Kati/Nabhi/Kantha/Siro)
+# assignment is not a single stable table — Tamil and Kerala/Prashna Marga
+# traditions place at least some nakshatras (e.g. Bharani, Chitra) in
+# different groups from each other, which flips real pass/fail outcomes,
+# not just a citation-formatting difference. This is a stronger form of
+# disagreement than Sthree Deergha's threshold-only variance above, so
+# Rajju stays deferred rather than shipped against an arbitrarily chosen
+# table. Matches this module's own prior research note in
+# tests/test_porondam.py's header. Mahendra (the 10th classical dasa
+# porondam) is deferred for the same reason — 3 independent sources gave
+# mutually inconsistent (one internally self-contradictory) nakshatra-count
+# rules.

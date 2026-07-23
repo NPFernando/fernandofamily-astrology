@@ -1,19 +1,24 @@
 """Porondam (Sri Lankan wedding horoscope matching) coverage.
 
-Ships 7 of the traditional 10-12 core Porondama (Nakshatra/Tara, Gana,
-Yoni, Rashi, Rashyadpathi, Vashya, Vedha). Each sub-Porondama is tested
-against its own classical table, independently cross-checked by hand
-against the standard, widely-published Ashtakoot / Tamil Thirumana
-Porutham nakshatra/rashi assignments (not just internal self-consistency)
-— same bar as every other feature this session (ayanamsa, Poya, eclipses,
-Navamsa). Vedha's table was cross-checked against two independent sources
-that agree on 26 of 27 nakshatras; the one disputed nakshatra (Chitra) is
-deliberately resolved as "no vedha partner" (see repository.py). Rajju was
-researched too but found to have real, substantive disagreement across
-independent sources (not a single formatting quirk) — deferred, not built
-from conflicting recall. Nakshatra/rashi indices below use panchanga.
-repository's 1-based convention: nakshatra 1=Ashwini .. 27=Revati, rashi
-1=Mesha .. 12=Meena.
+Ships 8 of the traditional 10 core dasa Porondama (Nakshatra/Tara, Gana,
+Yoni, Rashi, Rashyadpathi, Vashya, Vedha, Sthree Deergha). Each
+sub-Porondama is tested against its own classical table, independently
+cross-checked by hand against the standard, widely-published Ashtakoot /
+Tamil Thirumana Porutham nakshatra/rashi assignments (not just internal
+self-consistency) — same bar as every other feature this session
+(ayanamsa, Poya, eclipses, Navamsa). Vedha's table was cross-checked
+against two independent sources that agree on 26 of 27 nakshatras; the
+one disputed nakshatra (Chitra) is deliberately resolved as "no vedha
+partner" (see repository.py). Rajju and Mahendra were researched too
+(most recently 2026-07-23) but found to have real, substantive
+disagreement across independent sources — Rajju's Tamil-vs-Kerala
+nakshatra grouping genuinely flips pass/fail outcomes for some pairs, not
+just a citation-formatting quirk; Mahendra's published numeric rules were
+mutually inconsistent across 3 sources. Both stay deferred rather than
+built from picking arbitrarily among conflicting sources — see
+repository.py's "NOT SHIPPED" section. Nakshatra/rashi indices below use
+panchanga.repository's 1-based convention: nakshatra 1=Ashwini ..
+27=Revati, rashi 1=Mesha .. 12=Meena.
 """
 import pytest
 from fastapi.testclient import TestClient
@@ -26,6 +31,7 @@ from app.modules.porondam.calculator import (
     compute_porondam,
     compute_rashi_porondam,
     compute_rashyadpathi_porondam,
+    compute_sthree_deergha_porondam,
     compute_vashya_porondam,
     compute_vedha_porondam,
     compute_yoni_porondam,
@@ -256,15 +262,45 @@ def test_vedha_porondam_chitra_has_no_partner():
     assert compute_vedha_porondam(14, 1).passed is True
 
 
+# --- Sthree Deergha Porondam --------------------------------------------------
+# Directional (bride -> groom only): forward count_stars(a, b) must be >= 13
+# (repository.STHREE_DEERGHA_THRESHOLD, matching vendor/jhora/const.py's
+# sthree_dheerga_threshold).
+
+
+def test_sthree_deergha_passes_at_exactly_the_threshold():
+    # count_stars(1, 13) = ((27 + 12) % 27) + 1 = 13 -- exactly the threshold.
+    assert compute_sthree_deergha_porondam(1, 13).passed is True
+
+
+def test_sthree_deergha_fails_just_below_the_threshold():
+    # count_stars(1, 12) = ((27 + 11) % 27) + 1 = 12 -- one short.
+    assert compute_sthree_deergha_porondam(1, 12).passed is False
+
+
+def test_sthree_deergha_is_directional_not_bidirectional():
+    # Same pair (1, 12), reversed: count_stars(12, 1) = 17 -- passes in this
+    # direction even though (1, 12) forward fails. Confirms the check is
+    # bride->groom only, unlike Nakshatra Porondam's bidirectional rule.
+    assert compute_sthree_deergha_porondam(1, 12).passed is False
+    assert compute_sthree_deergha_porondam(12, 1).passed is True
+
+
 # --- compute_porondam composition -------------------------------------------
 
 
-def test_compute_porondam_reports_all_seven_checked():
+def test_compute_porondam_reports_all_eight_checked():
+    # Same (5, 13) pair the prior 7-factor fixture used, where all 7 of the
+    # original checks pass -- but count_stars(5, 13) = 9, below the Sthree
+    # Deergha threshold (13), so the new 8th check fails here. checked_count
+    # grows to 8; passed_count is 7, not 8.
     result = compute_porondam(nakshatra_a=5, rashi_a=3, nakshatra_b=13, rashi_b=6)
-    assert result.checked_count == 7
-    assert len(result.matches) == 7
+    assert result.checked_count == 8
+    assert len(result.matches) == 8
     assert result.passed_count == 7
-    assert all(match.passed for match in result.matches)
+    by_key = {match.key: match.passed for match in result.matches}
+    assert by_key["sthree_deergha"] is False
+    assert all(passed for key, passed in by_key.items() if key != "sthree_deergha")
 
 
 # --- API level ---------------------------------------------------------------
@@ -274,12 +310,14 @@ def _party(birth_date: str, birth_time: str, location: dict) -> dict:
     return {"birth_date": birth_date, "birth_time": birth_time, **location}
 
 
-def test_porondam_match_endpoint_all_seven_pass():
+def test_porondam_match_endpoint_seven_of_eight_pass():
     # Golden fixture: bride 1995-03-10 06:30 Colombo -> nakshatra 5
     # (mrigashirsha, rashi 3 mithuna); groom 1992-11-20 18:15 Kandy ->
     # nakshatra 13 (hasta, rashi 6 kanya). Verified directly against
     # calculator.compute_porondam with the same inputs before being pinned
-    # here as a fixture. (5,13) is not a vedha pair, so all 7 still pass.
+    # here as a fixture. (5,13) is not a vedha pair, so the original 7 all
+    # pass; count_stars(5, 13) = 9 is below the Sthree Deergha threshold
+    # (13), so that 8th check fails here.
     res = client.post(
         "/api/v1/porondam/match",
         json={
@@ -293,11 +331,13 @@ def test_porondam_match_endpoint_all_seven_pass():
     assert data["bride"]["rashi_key"] == "mithuna"
     assert data["groom"]["nakshatra_key"] == "hasta"
     assert data["groom"]["rashi_key"] == "kanya"
-    assert data["result"]["checked_count"] == 7
+    assert data["result"]["checked_count"] == 8
     assert data["result"]["passed_count"] == 7
-    assert all(match["passed"] for match in data["result"]["matches"])
-    assert {match["key"] for match in data["result"]["matches"]} == {
-        "nakshatra", "gana", "yoni", "rashi", "rashyadpathi", "vashya", "vedha",
+    by_key = {match["key"]: match["passed"] for match in data["result"]["matches"]}
+    assert by_key["sthree_deergha"] is False
+    assert all(passed for key, passed in by_key.items() if key != "sthree_deergha")
+    assert set(by_key) == {
+        "nakshatra", "gana", "yoni", "rashi", "rashyadpathi", "vashya", "vedha", "sthree_deergha",
     }
 
 
@@ -306,10 +346,12 @@ def test_porondam_match_endpoint_mixed_result():
     # (hasta, rashi 6 kanya); groom 1994-01-15 21:45 Galle -> nakshatra 24
     # (shatabhisha, rashi 11 kumbha). Verified directly against
     # calculator.compute_porondam with the same inputs before being pinned
-    # here: 2 of 7 pass (rashyadpathi, vashya); nakshatra/gana/yoni/rashi/
+    # here: 2 of 8 pass (rashyadpathi, vashya); nakshatra/gana/yoni/rashi/
     # vedha fail -- Hasta(13)/Shatabhisha(24) is exactly the classical vedha
-    # pair. Also exercises the historical 1996-2006 Sri Lanka UTC+6 DST
-    # offset already covered by test_timezones_and_edge_cases.py.
+    # pair; count_stars(13, 24) = 12, one below the Sthree Deergha
+    # threshold, so that also fails. Also exercises the historical
+    # 1996-2006 Sri Lanka UTC+6 DST offset already covered by
+    # test_timezones_and_edge_cases.py.
     res = client.post(
         "/api/v1/porondam/match",
         json={
@@ -323,7 +365,7 @@ def test_porondam_match_endpoint_mixed_result():
     assert data["bride"]["rashi_key"] == "kanya"
     assert data["groom"]["nakshatra_key"] == "shatabhisha"
     assert data["groom"]["rashi_key"] == "kumbha"
-    assert data["result"]["checked_count"] == 7
+    assert data["result"]["checked_count"] == 8
     assert data["result"]["passed_count"] == 2
     by_key = {match["key"]: match["passed"] for match in data["result"]["matches"]}
     assert by_key == {
@@ -334,6 +376,7 @@ def test_porondam_match_endpoint_mixed_result():
         "rashyadpathi": True,
         "vashya": True,
         "vedha": False,
+        "sthree_deergha": False,
     }
 
 

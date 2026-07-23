@@ -1,7 +1,12 @@
-"""Pure classification logic for the 7 shipped Porondama — no ephemeris
+"""Pure classification logic for the 8 shipped Porondama — no ephemeris
 calls here; all inputs are the birth nakshatra (1..27) and rashi (1..12)
 this app already resolves correctly elsewhere (birth_nakshatra module,
-Tara Bala, divisional charts)."""
+Tara Bala, divisional charts). Mahendra and Rajju (2 of the 10 classical
+dasa porondam) remain unshipped — see repository.py's "NOT SHIPPED"
+section for the 2026-07-23 sourcing research behind each: Mahendra has
+mutually inconsistent (one self-contradictory) published numeric rules
+across sources; Rajju has genuine Tamil-vs-Kerala regional disagreement
+on the nakshatra grouping itself, not just a threshold number."""
 from datetime import date as date_type
 from datetime import time as time_type
 from zoneinfo import ZoneInfo
@@ -73,6 +78,14 @@ def compute_vedha_porondam(nakshatra_a: int, nakshatra_b: int) -> PorondamMatch:
     return PorondamMatch(key="vedha", passed=repository.vedha_compatible(nakshatra_a, nakshatra_b))
 
 
+def compute_sthree_deergha_porondam(nakshatra_a: int, nakshatra_b: int) -> PorondamMatch:
+    """Directional (bride -> groom only), unlike the bidirectional Tara/
+    Nakshatra check above — the tradition's own asymmetry (see
+    repository.sthree_deergha_compatible), not an oversight."""
+    count = _count_stars(nakshatra_a, nakshatra_b)
+    return PorondamMatch(key="sthree_deergha", passed=repository.sthree_deergha_compatible(count))
+
+
 def resolve_party(
     birth_date: date_type,
     birth_time: time_type,
@@ -116,6 +129,7 @@ def compute_porondam(nakshatra_a: int, rashi_a: int, nakshatra_b: int, rashi_b: 
         compute_rashyadpathi_porondam(rashi_a, rashi_b),
         compute_vashya_porondam(rashi_a, rashi_b),
         compute_vedha_porondam(nakshatra_a, nakshatra_b),
+        compute_sthree_deergha_porondam(nakshatra_a, nakshatra_b),
     ]
     passed_count = sum(1 for m in matches if m.passed)
     return PorondamResult(matches=matches, passed_count=passed_count, checked_count=len(matches))

@@ -1005,8 +1005,12 @@
       "vedha": {
         "name": "Vedha",
         "description": "Whether the two birth stars form a classical \"obstruction\" pair — a blocking condition rather than a scored one."
+      },
+      "sthree_deergha": {
+        "name": "Sthree Deergha",
+        "description": "Whether the groom's birth star falls far enough ahead of the bride's, traditionally read as a marker of the wife's long life and wellbeing."
       }
     },
-    "note": "This checks 7 of the traditional 10-12 core Porondama using standard, cross-tradition (Ashtakoot / Tamil Thirumana Porutham) tables — widely published, but not independently verified against a specific Sri Lankan source. Not yet a full traditional matching: Rajju and the remaining categories are planned for a future round. It does not store birth details or replace a family astrologer's judgement."
+    "note": "This checks 8 of the traditional 10 core Porondama using standard, cross-tradition (Ashtakoot / Tamil Thirumana Porutham) tables — widely published, but not independently verified against a specific Sri Lankan source. Not yet a full traditional matching: Rajju and Mahendra are planned for a future round, pending a reliable source for each. It does not store birth details or replace a family astrologer's judgement."
   }
 }

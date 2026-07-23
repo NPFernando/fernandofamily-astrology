@@ -23,6 +23,7 @@ const PORONDAM_ORDER = [
   "rashyadpathi",
   "vashya",
   "vedha",
+  "sthree_deergha",
 ] as const;
 
 type PartyState = {

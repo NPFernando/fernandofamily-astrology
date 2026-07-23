@@ -47,6 +47,13 @@ export const DEFAULT_LOCATION: LocationValue = {
   iana_tz: "Asia/Colombo",
 };
 
+// Original 6 (Colombo..Galle) were hand-picked for cultural/religious
+// significance to a Sri Lankan astrology audience, not just city size —
+// kept as-is. The rest (2026-07-23) fill out district/province coverage,
+// sourced from the HDX/OpenStreetMap "Sri Lanka Populated Places" export
+// (place=city/town, ranked by OSM population tag; ODbL-licensed — see the
+// attribution line rendered below this list) rather than picked from
+// memory, since a wrong lat/lon here would silently mis-locate a chart.
 const SRI_LANKA_LOCATIONS = [
   { en: "Colombo", si: "කොළඹ", latitude: 6.9271, longitude: 79.8612 },
   { en: "Kandy", si: "මහනුවර", latitude: 7.2906, longitude: 80.6337 },
@@ -54,6 +61,25 @@ const SRI_LANKA_LOCATIONS = [
   { en: "Kelaniya", si: "කැලණිය", latitude: 6.9553, longitude: 79.922 },
   { en: "Kataragama", si: "කතරගම", latitude: 6.4134, longitude: 81.3346 },
   { en: "Galle", si: "ගාල්ල", latitude: 6.0535, longitude: 80.221 },
+  { en: "Jaffna", si: "යාපනය", latitude: 9.665093, longitude: 80.0093029 },
+  { en: "Negombo", si: "මීගමුව", latitude: 7.2094282, longitude: 79.833117 },
+  { en: "Trincomalee", si: "තිරිකුණාමළය", latitude: 8.576425, longitude: 81.2344952 },
+  { en: "Batticaloa", si: "මඩකලපුව", latitude: 7.7356027, longitude: 81.6941956 },
+  { en: "Kurunegala", si: "කුරුණෑගල", latitude: 7.4870464, longitude: 80.364908 },
+  { en: "Ratnapura", si: "රත්නපුර", latitude: 6.6803691, longitude: 80.4022975 },
+  { en: "Badulla", si: "බදුල්ල", latitude: 6.9900353, longitude: 81.0570315 },
+  { en: "Nuwara Eliya", si: "නුවරඑළිය", latitude: 6.9739741, longitude: 80.7669855 },
+  { en: "Matara", si: "මාතර", latitude: 5.947822, longitude: 80.5482919 },
+  { en: "Polonnaruwa", si: "පොළොන්නරුව", latitude: 7.9395357, longitude: 81.0003387 },
+  { en: "Puttalam", si: "පුත්තලම", latitude: 8.030245, longitude: 79.8286545 },
+  { en: "Vavuniya", si: "වවුනියාව", latitude: 8.7593517, longitude: 80.5000778 },
+  { en: "Matale", si: "මාතලේ", latitude: 7.4720453, longitude: 80.6234307 },
+  { en: "Hambantota", si: "හම්බන්තොට", latitude: 6.1249126, longitude: 81.1242563 },
+  { en: "Ampara", si: "අම්පාර", latitude: 7.2978118, longitude: 81.6790194 },
+  { en: "Monaragala", si: "මොනරාගල", latitude: 6.8725497, longitude: 81.3507069 },
+  { en: "Kalutara", si: "කළුතර", latitude: 6.5852614, longitude: 79.963301 },
+  { en: "Mannar", si: "මන්නාරම", latitude: 8.9812896, longitude: 79.9043942 },
+  { en: "Kilinochchi", si: "කිළිනොච්චි", latitude: 9.3840068, longitude: 80.4087224 },
 ] as const;
 
 export function mostRecentLocation(): LocationValue | null {
@@ -68,6 +94,7 @@ type SearchResult = {
   longitude: number;
   timezone: string;
   country?: string;
+  countryCode?: string;
   admin1?: string;
 };
 
@@ -224,6 +251,7 @@ export function LocationPicker({
             longitude: number;
             timezone: string;
             country?: string;
+            country_code?: string;
             admin1?: string;
           };
           const mapped: SearchResult[] = (data.results ?? []).map((r: OpenMeteoResult) => ({
@@ -232,9 +260,22 @@ export function LocationPicker({
             longitude: r.longitude,
             timezone: r.timezone,
             country: r.country,
+            countryCode: r.country_code,
             admin1: r.admin1,
           }));
-          setResults(mapped);
+          // Open-Meteo's global geocoder returns results in its own relevance
+          // order, which can rank a same-named place in another country
+          // above the intended Sri Lankan one (e.g. "Matara" -> Indonesia's
+          // "Mataram" ranked first, ahead of Matara, Sri Lanka) -- confirmed
+          // directly against the live API, not assumed. A stable sort that
+          // moves Sri Lankan matches to the front (without dropping other
+          // countries, since this platform also supports birth locations
+          // abroad via manual entry) fixes the mis-ranking without losing
+          // any results.
+          const prioritized = [...mapped].sort(
+            (a, b) => Number(b.countryCode === "LK") - Number(a.countryCode === "LK"),
+          );
+          setResults(prioritized);
           setSearching(false);
         })
         .catch(() => {
@@ -437,6 +478,7 @@ export function LocationPicker({
             );
           })}
         </div>
+        <span className="text-[0.65rem] opacity-50">{dict.ui.sriLankaLocationsAttribution}</span>
       </div>
 
       {status && tab !== "device" && (

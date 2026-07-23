@@ -33,6 +33,22 @@ debounce/abort, skew-consistent timeline, sw.js cache hygiene, and more).
 per-page OG variants), web-push notifications, and everything in
 `docs/roadmap.md`'s backlog.
 
+**2026-07-23 correctness/data-validation pass:** a static regression guard
+against a future module silently forgetting `ensure_ayanamsa()`
+(`apps/api/tests/test_ayanamsa_guard.py`); the Poya sunset-buffer constant's
+2021-2026-only validity documented as an explicit caveat rather than
+silently trusted for historical dates (`docs/calculations/panchanga.md`);
+a historical-timezone regression test against the real Asia/Colombo tzdb
+transitions (`apps/api/tests/test_historical_timezone.py`); Porondam's
+Sthree Deergha factor shipped (7/10 -> 8/10 core categories, see
+`docs/jyotishya-ideas.md`); and a real bug found and fixed in
+`LocationPicker.tsx`'s free-text search — Open-Meteo's global geocoder was
+ranking same-named foreign cities above the intended Sri Lankan match
+(e.g. "Matara" search returned Indonesia's "Mataram" first), fixed by
+sorting Sri Lankan results to the front without dropping other countries
+(diaspora birth locations still work); the Sri Lankan quick-pick location
+list also grew from 6 to 25 entries using an HDX/OpenStreetMap dataset.
+
 ## P0 — quick wins / genuine defects
 
 1. **Rate limiter counts all users as one client** (S) —

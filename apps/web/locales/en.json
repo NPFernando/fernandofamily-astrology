@@ -343,6 +343,7 @@
     "error": "Something went wrong",
     "languageSwitch": "Choose language",
     "sriLankaLocations": "Popular Sri Lankan locations",
+    "sriLankaLocationsAttribution": "Location data © OpenStreetMap contributors, ODbL.",
     "countrySriLanka": "Sri Lanka",
     "switchToLightMode": "Switch to light mode",
     "switchToDarkMode": "Switch to dark mode",

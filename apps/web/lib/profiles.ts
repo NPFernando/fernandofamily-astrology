@@ -77,6 +77,19 @@ export function removeLocalProfile(id: string) {
   saveLocal(loadLocal().filter((p) => p.id !== id));
 }
 
+export function updateLocalProfile(
+  id: string,
+  input: Omit<SavedProfile, "id" | "created_at">,
+): SavedProfile | null {
+  const profiles = loadLocal();
+  const index = profiles.findIndex((profile) => profile.id === id);
+  if (index === -1) return null;
+  const next = normalizeProfile({ ...profiles[index], ...input });
+  profiles[index] = next;
+  saveLocal(profiles);
+  return next;
+}
+
 // ---------------------------------------------------------------------------
 // Server backend — used only while a session exists. All calls go through
 // /api/account/* which takes the owner from the session cookie.
@@ -104,6 +117,20 @@ async function addServerProfile(
 async function removeServerProfile(id: string): Promise<boolean> {
   const res = await fetch(`/api/account/profiles/${id}`, { method: "DELETE" });
   return res.ok;
+}
+
+async function updateServerProfile(
+  id: string,
+  input: Omit<SavedProfile, "id" | "created_at">,
+): Promise<SavedProfile | null> {
+  const res = await fetch(`/api/account/profiles/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) return null;
+  const data = await res.json();
+  return normalizeProfile(data.profile as SavedProfile);
 }
 
 // ---------------------------------------------------------------------------
@@ -139,6 +166,18 @@ export async function addProfile(
 export async function removeProfile(signedIn: boolean, id: string): Promise<void> {
   if (signedIn && (await removeServerProfile(id))) return;
   removeLocalProfile(id);
+}
+
+export async function updateProfile(
+  signedIn: boolean,
+  id: string,
+  input: Omit<SavedProfile, "id" | "created_at">,
+): Promise<SavedProfile | null> {
+  if (signedIn) {
+    const updated = await updateServerProfile(id, input);
+    if (updated) return updated;
+  }
+  return updateLocalProfile(id, input);
 }
 
 // One-time upload merge on session start: local profiles that don't match an

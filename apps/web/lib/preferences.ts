@@ -3,9 +3,9 @@
 // considered exception to this list's earlier "never birth date/time" rule,
 // added for the birth-data calculators' repeat-use convenience; same
 // device-local/never-sent-anywhere/user-clearable footing as everything
-// else here), and the last successfully cached schedule (for PWA offline
-// display). Precise coordinates are still never stored beyond what's needed
-// to redisplay a cached location shortcut.
+// else here), family almanac profile selection, and the last successfully
+// cached schedule (for PWA offline display). Precise coordinates are still
+// never stored beyond what's needed to redisplay a cached location shortcut.
 const PREFERENCE_KEYS = [
   "ff_locale",
   "ff_theme",
@@ -14,6 +14,7 @@ const PREFERENCE_KEYS = [
   "ff_recent_birth_details",
   "ff_last_schedule_cache",
   "ff_saved_profiles",
+  "ff_family_almanac_selected_profile_ids",
 ] as const;
 
 export function clearSavedPreferences() {

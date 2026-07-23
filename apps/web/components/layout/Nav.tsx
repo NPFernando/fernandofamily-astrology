@@ -20,6 +20,7 @@ export function Nav() {
     if (id === "panchanga") return dict.nav.panchanga;
     if (id === "moon-calendar") return dict.nav.moonCalendar;
     if (id === "daily-guide") return dict.nav.dailyGuide;
+    if (id === "family-almanac") return dict.nav.familyAlmanac;
     if (id === "muhurta") return dict.nav.muhurta;
     if (id === "divisional-charts") return dict.nav.divisionalCharts;
     if (id === "porondam") return dict.nav.porondam;

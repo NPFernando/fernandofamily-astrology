@@ -72,6 +72,17 @@ export const features: FeatureEntry[] = [
     icon: "daily-guide",
   },
   {
+    id: "family-almanac",
+    enabled: true,
+    public: true,
+    order: 26,
+    route: "/family-almanac",
+    apiNamespace: "/api/v1",
+    titleKey: "features.familyAlmanac.title",
+    descriptionKey: "features.familyAlmanac.description",
+    icon: "family-almanac",
+  },
+  {
     id: "muhurta",
     enabled: true,
     public: true,

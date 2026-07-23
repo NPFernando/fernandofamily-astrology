@@ -30,6 +30,7 @@ const FEATURES = [
   { id: "panchanga", titleKey: "features.panchanga.title", descriptionKey: "features.panchanga.description" },
   { id: "moon-calendar", titleKey: "features.moonCalendar.title", descriptionKey: "features.moonCalendar.description" },
   { id: "daily-guide", titleKey: "features.dailyGuide.title", descriptionKey: "features.dailyGuide.description" },
+  { id: "family-almanac", titleKey: "features.familyAlmanac.title", descriptionKey: "features.familyAlmanac.description" },
   { id: "muhurta", titleKey: "features.muhurta.title", descriptionKey: "features.muhurta.description" },
   { id: "compatibility", titleKey: "features.compatibility.title", descriptionKey: "features.compatibility.description" },
   { id: "divisional-charts", titleKey: "features.divisionalCharts.title", descriptionKey: "features.divisionalCharts.description" },

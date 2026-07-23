@@ -3,7 +3,7 @@
 // in localStorage by the app (see app/[locale]/pancha-pakshi/page.tsx) and
 // re-rendered there with an explicit "cached, not live" label — this worker
 // does not attempt any astronomical calculation of its own.
-const CACHE_NAME = "ff-astrology-shell-v5";
+const CACHE_NAME = "ff-astrology-shell-v6";
 // Locale data is bundled into the page JS (imported at build time, not
 // fetched from a public URL), so it's cached automatically once the page
 // itself is cached below — no separate /locales/*.json entries needed here.
@@ -18,6 +18,8 @@ const PRECACHE_URLS = [
   "/si/moon-calendar",
   "/en/daily-guide",
   "/si/daily-guide",
+  "/en/family-almanac",
+  "/si/family-almanac",
   "/en/muhurta",
   "/si/muhurta",
   "/en/compatibility",
@@ -40,6 +42,7 @@ const PRECACHE_URLS = [
   "/posters/features/panchanga.webp",
   "/posters/features/moon-calendar.webp",
   "/posters/features/daily-guide.webp",
+  "/posters/features/family-almanac.webp",
   "/posters/features/muhurta.webp",
   "/posters/features/compatibility.webp",
   "/posters/features/divisional-charts.webp",
@@ -61,6 +64,7 @@ const PRECACHE_URLS = [
   "/icons/generated/features/panchanga-64.png",
   "/icons/generated/features/moon-calendar-64.png",
   "/icons/generated/features/daily-guide-64.png",
+  "/icons/generated/features/family-almanac-64.png",
   "/icons/generated/features/muhurta-64.png",
   "/icons/generated/features/compatibility-64.png",
   "/icons/generated/features/divisional-charts-64.png",

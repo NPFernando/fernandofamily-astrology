@@ -24,6 +24,10 @@
       "title": "Sinhala Daily Guide",
       "description": "A practical daily view combining Panchanga, Poya, avoid times and Pancha Pakshi favourable windows for Sri Lanka."
     },
+    "familyAlmanac": {
+      "title": "Family Almanac",
+      "description": "A Sinhala-first family dashboard for Poya context, daily cautions, saved profiles and shared favourable windows."
+    },
     "muhurta": {
       "title": "Favourable Time Finder",
       "description": "Find practical Muhurta-style start windows by combining Pancha Pakshi strength with Panchanga avoid and support periods."
@@ -62,6 +66,7 @@
     "panchanga": "Panchanga",
     "moonCalendar": "Moon Calendar",
     "dailyGuide": "Daily Guide",
+    "familyAlmanac": "Family Almanac",
     "muhurta": "Muhurta",
     "divisionalCharts": "Divisional Charts",
     "porondam": "Porondam",
@@ -566,6 +571,10 @@
       "title": "Sinhala Daily Astrology Guide",
       "description": "A practical Sri Lankan day guide combining Panchanga, Poya, avoid times and Pancha Pakshi favourable windows."
     },
+    "familyAlmanac": {
+      "title": "Family Almanac",
+      "description": "Plan the Sri Lankan family day with Poya context, Panchanga cautions, saved derived profiles and shared favourable windows."
+    },
     "muhurta": {
       "title": "Favourable Time Finder",
       "description": "A Sri Lanka-focused Muhurta-style finder that filters favourable Pancha Pakshi windows against Panchanga avoid periods."
@@ -742,6 +751,40 @@
       "legendAvoid": "Avoid: Rahu, Yamaganda, Gulika",
       "legendPersonal": "Personal: favourable Pancha Pakshi"
     }
+  },
+  "familyAlmanac": {
+    "title": "Family Almanac",
+    "description": "A Sinhala-first family view for daily Poya context, Panchanga cautions, saved derived profiles and shared favourable times.",
+    "controlsTitle": "Family almanac settings",
+    "profileSelectorTitle": "Family profiles",
+    "profileSelectorDescription": "Select saved derived profiles. Birth date, time and birth location are not used here.",
+    "selectedCount": "{count} selected",
+    "profileLimit": "Showing up to {count} complete profiles.",
+    "profileIncomplete": "Incomplete profile",
+    "emptyTitle": "No saved family profiles yet",
+    "emptyBody": "Create Birth Nakshatra profiles first. Only derived Nakshatra, Paksha, Moon sign and bird are saved.",
+    "createProfile": "Create profile",
+    "defaultBird": "Guide bird: {bird}",
+    "currentPeriod": "Current Pancha Pakshi",
+    "dishaShool": "Disha Shool",
+    "profileCardsTitle": "Today for each person",
+    "profileCardsDescription": "Tara Bala, Chandrashtama and best Pancha Pakshi window for the selected family profiles.",
+    "refreshingFamily": "Refreshing family calculations",
+    "taraBala": "Tara Bala",
+    "taraUnavailable": "Needs saved Nakshatra and Paksha.",
+    "chandrashtama": "Chandrashtama",
+    "chandrashtamaUnavailable": "Needs saved Moon sign.",
+    "chandrashtamaClear": "Clear for this profile.",
+    "bestIndividualWindow": "Best individual window",
+    "loadFailed": "Could not load this profile.",
+    "weekTitle": "7-day family planner",
+    "weekDescription": "Find common Muhurta-style windows for selected profiles, with individual fallbacks when no shared overlap exists.",
+    "weekRange": "Next {count} days",
+    "sharedWindow": "Shared family window",
+    "individualFallback": "Best individual windows",
+    "noWindows": "No family windows for this day.",
+    "useDate": "Use this day",
+    "defaultWindowsTitle": "Default guide bird windows"
   },
   "muhurta": {
     "title": "Favourable Time Finder",

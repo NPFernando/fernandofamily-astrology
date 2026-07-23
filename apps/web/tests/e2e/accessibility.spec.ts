@@ -77,4 +77,15 @@ for (const locale of ["en", "si"] as const) {
     const results = await new AxeBuilder({ page }).analyze();
     assertNoSevereViolations(results.violations);
   });
+
+  test(`a11y (${locale}): horoscope report has no critical/serious violations`, async ({ page }) => {
+    const dict = DICTS[locale];
+    await page.goto(`/${locale}/horoscope-report`);
+    await page.locator('input[type="date"]').fill("2000-01-01");
+    await page.locator('input[type="time"]').fill("12:00");
+    await page.getByRole("button", { name: dict.horoscopeReport.calculate }).click();
+    await expect(page.locator('[data-testid="horoscope-report-result"]')).toBeVisible({ timeout: 30_000 });
+    const results = await new AxeBuilder({ page }).analyze();
+    assertNoSevereViolations(results.violations);
+  });
 }

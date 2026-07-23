@@ -25,6 +25,7 @@ export function Nav() {
     if (id === "divisional-charts") return dict.nav.divisionalCharts;
     if (id === "porondam") return dict.nav.porondam;
     if (id === "birth-chart") return dict.nav.birthChart;
+    if (id === "horoscope-report") return dict.nav.horoscopeReport;
     if (id === "dasha") return dict.nav.dasha;
     return fallback;
   };

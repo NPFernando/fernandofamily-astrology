@@ -13,6 +13,7 @@ const FEATURES = [
   "divisional-charts",
   "porondam",
   "birth-chart",
+  "horoscope-report",
   "dasha",
 ] as const;
 

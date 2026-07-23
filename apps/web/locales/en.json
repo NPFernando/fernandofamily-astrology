@@ -48,6 +48,10 @@
       "title": "Birth Chart (Rasi)",
       "description": "See your D1 Rasi chart — the main birth chart, showing planet and Ascendant placements by house, in the North Indian diamond layout used in Sri Lankan practice."
     },
+    "horoscopeReport": {
+      "title": "Horoscope Report",
+      "description": "One private report combining birth Nakshatra, D1 Rasi chart, Pancha Pakshi birth bird and current Vimshottari Dasha."
+    },
     "dasha": {
       "title": "Dasha (Planetary Periods)",
       "description": "See your Vimshottari Mahadasha timeline — the 9 major planetary periods spanning your life from birth, and which one is active now."
@@ -71,6 +75,7 @@
     "divisionalCharts": "Divisional Charts",
     "porondam": "Porondam",
     "birthChart": "Birth Chart",
+    "horoscopeReport": "Horoscope Report",
     "dasha": "Dasha"
   },
   "enums": {
@@ -595,6 +600,10 @@
       "title": "Birth Chart (D1 Rasi)",
       "description": "Calculate your D1 Rasi birth chart from birth date, time and location — planet and Ascendant placements by house, in the North Indian diamond layout used in Sri Lankan practice."
     },
+    "horoscopeReport": {
+      "title": "Horoscope Report",
+      "description": "Create a private Sri Lankan horoscope report from birth date, time and location — Nakshatra, Rasi chart, Pancha Pakshi birth bird and current Vimshottari Dasha together."
+    },
     "dasha": {
       "title": "Dasha (Vimshottari Planetary Periods)",
       "description": "Calculate your Vimshottari Mahadasha timeline from birth date, time and location — the 9 major planetary periods spanning your life, and which one is active now."
@@ -917,6 +926,34 @@
     "yogataraStarHeader": "Junction star",
     "yogataraSeparationHeader": "Separation",
     "yogataraNote": "Each graha's nakshatra and the angular distance to that nakshatra's junction star (yogatara) — the identified principal star classical astronomy anchors each nakshatra to. Star identifications follow the 1955 Calendar Reform Committee table, the same source whose Chitra (Spica) anchor defines this site's ayanamsa. A few junction stars lie outside their own equal 13°20′ nakshatra division — a documented property of the sky, shown as-is."
+  },
+  "horoscopeReport": {
+    "title": "Horoscope Report",
+    "description": "Create one practical Sri Lankan horoscope report from birth details, combining birth identity, D1 Rasi chart and Vimshottari Dasha without putting raw birth data in URLs.",
+    "birthDetailsTitle": "Report birth details",
+    "calculate": "Create report",
+    "resultTitle": "Horoscope report",
+    "derivedIdentityTitle": "Birth identity",
+    "summaryTitle": "Report summary",
+    "currentDashaTitle": "Current Dasha",
+    "currentMahadasha": "Mahadasha",
+    "currentAntardasha": "Antardasha",
+    "noCurrentDasha": "No active Dasha period found for today.",
+    "chartTitle": "D1 Rasi chart",
+    "dashaTitle": "Full Dasha timeline",
+    "actionsTitle": "Report actions",
+    "printReport": "Print report",
+    "shareReportImage": "Share report image",
+    "sharingReportImage": "Creating report image...",
+    "shareFailed": "Could not create the report image.",
+    "saveProfile": "Save derived profile",
+    "profileSaved": "Derived profile saved.",
+    "openBirthChart": "Open Birth Chart",
+    "openDasha": "Open Dasha",
+    "openDailyGuide": "Open Daily Guide",
+    "openPanchaPakshi": "Open Pancha Pakshi",
+    "privacyNote": "Birth date, time and exact birth location are sent only in POST request bodies for calculation. Saved profiles and share images use only derived astrology fields.",
+    "identityLine": "{nakshatra} Pada {pada} · {paksha} · Moon sign {moonRashi} · Birth bird {bird}"
   },
   "dasha": {
     "title": "Dasha (Vimshottari Planetary Periods)",

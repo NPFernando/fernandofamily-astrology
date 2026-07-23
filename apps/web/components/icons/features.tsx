@@ -66,6 +66,10 @@ export function BirthChartIcon(props: GeneratedIconProps) {
   return featureIcon("birth-chart", props);
 }
 
+export function HoroscopeReportIcon(props: GeneratedIconProps) {
+  return featureIcon("horoscope-report", props);
+}
+
 export function DashaIcon(props: GeneratedIconProps) {
   return featureIcon("dasha", props);
 }

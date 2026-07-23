@@ -47,3 +47,12 @@ def ascendant_varga_sign(jd: float, p, divisional_chart_factor: int) -> int:
     lagna_longitude = constellation * 30 + coordinates
     varga_constellation, _long_in_raasi = drik.dasavarga_from_long(lagna_longitude, divisional_chart_factor)
     return varga_constellation
+
+
+def ascendant_rashi_raw(jd: float, p) -> tuple[int, float]:
+    """(constellation 0..11, degrees within that rashi 0..30) of the
+    Ascendant/Lagna, D1/Rasi — for calculator.py's Dasamsa transform, which
+    needs the raw D1 placement rather than a pre-projected varga sign (see
+    calculator._dasamsa_constellation)."""
+    constellation, coordinates, _nak_no, _paadha_no = drik.ascendant(jd, p)
+    return constellation, coordinates

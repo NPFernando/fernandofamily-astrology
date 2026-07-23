@@ -257,8 +257,8 @@ export type PorondamResponse = {
 };
 
 // ---------------------------------------------------------------------------
-// Divisional Charts (/api/v1/divisional-charts) — D9 Navamsa. Shapes mirror
-// apps/api/app/modules/divisional_charts/models.py.
+// Divisional Charts (/api/v1/divisional-charts) — D9 Navamsa, D10 Dasamsa.
+// Shapes mirror apps/api/app/modules/divisional_charts/models.py.
 
 export type NavamsaChartRequest = {
   birth_date: string; // YYYY-MM-DD
@@ -283,6 +283,35 @@ export type NavamsaChart = {
   ascendant_rashi_index: number;
   ascendant_rashi_key: string;
   placements: NavamsaPlacement[]; // 9: Sun..Ketu, GRAHA_KEYS order
+};
+
+// D10's request/response shapes are identical to D9's, but kept as separate
+// types (not aliases) matching this file's existing per-endpoint convention
+// (e.g. BirthChartPlacement vs. NavamsaPlacement are also separately
+// declared despite similar shape).
+export type DasamsaChartRequest = {
+  birth_date: string; // YYYY-MM-DD
+  birth_time: string; // HH:mm:ss
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  iana_tz: string;
+};
+
+export type DasamsaPlacement = {
+  key: string; // repository.GRAHA_KEYS entry, e.g. "sun"
+  rashi_index: number; // 1..12
+  rashi_key: string;
+};
+
+export type DasamsaChart = {
+  engine: EngineMetadata;
+  location: Location;
+  birth_date: string;
+  birth_time: string;
+  ascendant_rashi_index: number;
+  ascendant_rashi_key: string;
+  placements: DasamsaPlacement[]; // 9: Sun..Ketu, GRAHA_KEYS order
 };
 
 // ---------------------------------------------------------------------------
@@ -870,6 +899,19 @@ export function fetchNavamsaChart(body: NavamsaChartRequest): Promise<NavamsaCha
     const data = await r.json().catch(() => null);
     if (!r.ok) throw new ApiError(r.status, data);
     return data as NavamsaChart;
+  });
+  return res;
+}
+
+export function fetchDasamsaChart(body: DasamsaChartRequest): Promise<DasamsaChart> {
+  const res = fetch(`/api/v1/divisional-charts/dasamsa`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).then(async (r) => {
+    const data = await r.json().catch(() => null);
+    if (!r.ok) throw new ApiError(r.status, data);
+    return data as DasamsaChart;
   });
   return res;
 }

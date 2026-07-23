@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
-import { ApiError, fetchNavamsaChart, type NavamsaChart as NavamsaChartData } from "@/lib/api-client";
+import {
+  ApiError,
+  fetchDasamsaChart,
+  fetchNavamsaChart,
+  type DasamsaChart as DasamsaChartData,
+  type NavamsaChart as NavamsaChartData,
+} from "@/lib/api-client";
 import {
   DEFAULT_LOCATION,
   LocationPicker,
@@ -12,16 +18,22 @@ import {
 import { TargetDateTimeFields } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import { DivisionalChartsIcon } from "@/components/icons/features";
 import { NavamsaChart } from "@/components/divisional-charts/NavamsaChart";
+import { DasamsaChart } from "@/components/divisional-charts/DasamsaChart";
 import { mostRecentBirthDetails, saveRecentBirthDetails } from "@/lib/recent-birth-details";
+
+type ChartType = "navamsa" | "dasamsa";
 
 export function DivisionalChartsClient() {
   const { dict } = useLocale();
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
   const [location, setLocation] = useState<LocationValue | null>(null);
-  const [result, setResult] = useState<NavamsaChartData | null>(null);
+  const [navamsaResult, setNavamsaResult] = useState<NavamsaChartData | null>(null);
+  const [dasamsaResult, setDasamsaResult] = useState<DasamsaChartData | null>(null);
+  const [chartType, setChartType] = useState<ChartType>("navamsa");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const result = chartType === "navamsa" ? navamsaResult : dasamsaResult;
 
   useEffect(() => {
     // Hydrate after mount because recent locations/birth details live in
@@ -45,15 +57,23 @@ export function DivisionalChartsClient() {
     setError(null);
     try {
       const normalizedTime = birthTime.length === 5 ? `${birthTime}:00` : birthTime;
-      const data = await fetchNavamsaChart({
+      const requestBody = {
         birth_date: birthDate,
         birth_time: normalizedTime,
         location_name: location!.name,
         latitude: location!.latitude,
         longitude: location!.longitude,
         iana_tz: location!.iana_tz,
-      });
-      setResult(data);
+      };
+      // Both charts share identical birth-data input, so compute both from
+      // a single "Calculate" press -- switching tabs afterwards is then
+      // instant, not a second network round-trip.
+      const [navamsa, dasamsa] = await Promise.all([
+        fetchNavamsaChart(requestBody),
+        fetchDasamsaChart(requestBody),
+      ]);
+      setNavamsaResult(navamsa);
+      setDasamsaResult(dasamsa);
       saveRecentBirthDetails({ birth_date: birthDate, birth_time: normalizedTime });
     } catch (e) {
       setError(e instanceof ApiError ? dict.ui.error : dict.ui.error);
@@ -123,8 +143,41 @@ export function DivisionalChartsClient() {
 
       {result && (
         <section data-testid="divisional-charts-result" className="flex flex-col gap-3">
-          <h2 className="text-sm font-semibold uppercase text-accent">{dict.divisionalCharts.chartTitle}</h2>
-          <NavamsaChart chart={result} />
+          <div role="tablist" aria-label={dict.divisionalCharts.title} className="flex gap-2 border-b border-black/10 dark:border-white/10">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={chartType === "navamsa"}
+              data-testid="divisional-charts-tab-navamsa"
+              onClick={() => setChartType("navamsa")}
+              className={`px-3 py-2 text-sm ${
+                chartType === "navamsa"
+                  ? "border-b-2 border-accent font-semibold text-accent"
+                  : "opacity-70 hover:opacity-100"
+              }`}
+            >
+              {dict.divisionalCharts.navamsaTab}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={chartType === "dasamsa"}
+              data-testid="divisional-charts-tab-dasamsa"
+              onClick={() => setChartType("dasamsa")}
+              className={`px-3 py-2 text-sm ${
+                chartType === "dasamsa"
+                  ? "border-b-2 border-accent font-semibold text-accent"
+                  : "opacity-70 hover:opacity-100"
+              }`}
+            >
+              {dict.divisionalCharts.dasamsaTab}
+            </button>
+          </div>
+          <h2 className="text-sm font-semibold uppercase text-accent">
+            {chartType === "navamsa" ? dict.divisionalCharts.chartTitle : dict.divisionalCharts.dasamsaChartTitle}
+          </h2>
+          {chartType === "navamsa" && navamsaResult && <NavamsaChart chart={navamsaResult} />}
+          {chartType === "dasamsa" && dasamsaResult && <DasamsaChart chart={dasamsaResult} />}
         </section>
       )}
     </div>

@@ -301,29 +301,50 @@ things stand.)*
 ## D. Genuinely new modules (currently-unused vendored capability)
 
 ### D1. Divisional charts (Varga) explorer, built on birth details already collected
-**Status: both the D9 Navamsa view and the base D1 Rasi (birth chart)
+**Status: D9 Navamsa, D10 Dasamsa, and the base D1 Rasi (birth chart)
 have shipped.** D1 needed zero new vendored-engine integration — it's
 `divisional_chart_factor=1` on the exact same `dhasavarga`/`ascendant`
 calls D9 already exercises, confirmed by a cross-module test tying the
 two together. The North Indian diamond rendering built for D9 (house-
 fixed cells, rashi rotating with the Ascendant) was extracted into a
-shared `RasiStyleChart` component and reused directly for D1, adding
-house-number labels and per-planet/Ascendant degrees-within-sign (a
-birth chart is read "by house" and by exact degree far more than a
-divisional chart is; Navamsa deliberately stays sign-only). Higher
-vargas (D10 Dasamsa, etc.) remain unbuilt.
+shared `RasiStyleChart` component and reused directly for D1 and D10,
+adding house-number labels and per-planet/Ascendant degrees-within-sign
+for D1 (a birth chart is read "by house" and by exact degree far more
+than a divisional chart is; Navamsa/Dasamsa deliberately stay sign-only).
 
-**One-line:** A Navamsa (D9) chart view, and more generally any of the D1–D60
-divisional charts, computed from the same birth date/time/place already
-captured by Pancha Pakshi's Method A.
+**IMPORTANT correctness finding (2026-07-23), corrects the "engine
+feasibility" claim below:** `dasavarga_from_long(lon, N)` is a *single*
+generic formula (a pure repeating 12-sign cycle across the whole zodiac)
+— it is NOT a correct general implementation of every classical varga's
+placement rule, despite computing a result for any N. It was numerically
+swept against the actual classical rules for D9, D10, D12: it matches D9
+(Navamsa, movable/fixed/dual symmetry) and D7 (Saptamsa, odd/even) by
+mathematical coincidence, but disagrees with the classical odd/even D10
+(Dasamsa) rule for 9 of 12 signs, and with the classical D12 (Dwadasamsa)
+rule for 11 of 12 signs. **Before adding any further varga (D12, D16,
+D20, D24, D30, D60, etc.), re-derive and verify that specific varga's
+classical placement rule independently — do not assume the generic
+vendor path is correct just because it returns *a* value.** D10's own
+correct implementation (`app/modules/divisional_charts/calculator.py`'s
+`_dasamsa_constellation`) hand-codes the classical odd/even rule instead
+of reusing `dasavarga_from_long`, verified against a real cited worked
+example ("2 deg Taurus → Capricorn in the D10") — that's the pattern to
+repeat for the next one, not the generic call.
 
-**Engine feasibility:** The full varga system is already vendored and
-working, just unused by the app. `dhasavarga(jd, place,
-divisional_chart_factor=N)` (`drik.py:1806`) and `dasavarga_from_long`
-(`drik.py:1740`) implement all of Hora(2), Drekkana(3), Chaturthamsa(4)...
-Navamsa(9), Dasamsa(10), ... up to Shastyamsa(60), per the function's own
-documented `divisional_chart_factor` table. This is the mathematical core of
-a birth-chart/Kundali module, sitting fully implemented and unused.
+**One-line:** A Navamsa (D9)/Dasamsa (D10) chart view, and more generally
+any of the D1–D60 divisional charts, computed from the same birth
+date/time/place already captured by Pancha Pakshi's Method A — but each
+additional varga needs its own independently-verified classical rule, per
+the correctness finding above, not just a factor-N call.
+
+**Engine feasibility:** `dhasavarga(jd, place, divisional_chart_factor=N)`
+(`drik.py:1806`) and `dasavarga_from_long` (`drik.py:1740`) are already
+vendored and *computable* for any of Hora(2), Drekkana(3),
+Chaturthamsa(4)... up to Shastyamsa(60) — but, per the correctness finding
+above, computable is not the same as correct for most of these factors.
+Treat this as "the raw-longitude math is free; the classical placement
+rule per factor still needs independent verification," not as "the whole
+varga system is done."
 
 **Correctness caveat:** No longer gated — the app now explicitly runs
 validated Lahiri (see top-of-file note), the same convention most other

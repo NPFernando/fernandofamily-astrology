@@ -27,6 +27,22 @@ for (const locale of ["en", "si"] as const) {
     );
     watcher.assertClean();
   });
+
+  test(`divisional charts (${locale}): Dasamsa tab shows the D10 chart without recalculating`, async ({
+    page,
+  }) => {
+    const dict = DICTS[locale];
+    await calculateNavamsa(page, locale);
+    await page.locator('[data-testid="divisional-charts-tab-dasamsa"]').click();
+
+    // Dasamsa ascendant for the same fixture birth is Makara -- confirmed
+    // against the live API before writing this spec. Not the same rashi as
+    // Navamsa's Simha above, confirming this is a genuinely different
+    // chart and not a stale re-render of the Navamsa result.
+    await expect(page.locator('[data-testid="dasamsa-cell-makara"]')).toContainText(
+      dict.divisionalCharts.ascendant,
+    );
+  });
 }
 
 test("divisional charts: invalid birth date shows a validation error, not a crash", async ({ page }) => {

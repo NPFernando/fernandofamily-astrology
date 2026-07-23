@@ -83,16 +83,26 @@
 - Moon phase + Tithi calendar — month view focused on Sri Lankan Poya days,
   tithi changes, tithi-derived moon phases and Sinhala Poya-cycle month
   context (`/moon-calendar`, `POST /api/v1/panchanga/month`).
-- Divisional Charts (D9 Navamsa) — planet and Ascendant placements in the
-  ninth-harmonic divisional chart, North Indian diamond layout
-  (`/divisional-charts`, `POST /api/v1/divisional-charts/navamsa`).
-  Calculation correctness is independently re-derived and verified.
-  Layout was researched and corrected: this chart originally rendered in
-  the South Indian fixed-square style, but Sri Lankan kendaraya (birth
-  charts) use the North Indian diamond convention instead (two
-  independent sources agree, including matching structural detail on
-  Lagna placement) — fixed to render house-fixed with the rashi rotating
-  per Ascendant, matching actual Sri Lankan practice.
+- Divisional Charts (D9 Navamsa, D10 Dasamsa) — planet and Ascendant
+  placements in the ninth-harmonic (marriage/inner-strength) and
+  tenth-harmonic (career/profession) divisional charts, North Indian
+  diamond layout, tab-switchable from one calculation
+  (`/divisional-charts`, `POST /api/v1/divisional-charts/navamsa`,
+  `POST /api/v1/divisional-charts/dasamsa`). Navamsa's calculation
+  correctness is independently re-derived and verified. Layout was
+  researched and corrected: this chart originally rendered in the South
+  Indian fixed-square style, but Sri Lankan kendaraya (birth charts) use
+  the North Indian diamond convention instead (two independent sources
+  agree, including matching structural detail on Lagna placement) —
+  fixed to render house-fixed with the rashi rotating per Ascendant,
+  matching actual Sri Lankan practice. Dasamsa (2026-07-23) deliberately
+  does NOT reuse the vendored engine's generic `dasavarga_from_long`
+  varga path — a numeric sweep found that generic formula disagrees with
+  the classical Dasamsa odd/even placement rule for 9 of 12 signs (it
+  only coincidentally matches Navamsa's specific symmetry); Dasamsa's own
+  hand-coded classical rule is used instead, verified against a real
+  cited worked example. See `docs/jyotishya-ideas.md` section D1 before
+  adding any further varga (D7, D12, D16, etc.) using the generic path.
 - Porondam — Sri Lankan wedding horoscope matching. Ships 8 of the
   traditional 10 core Porondama (Nakshatra, Gana, Yoni, Rashi,
   Rashyadpathi, Vashya, Vedha, Sthree Deergha) using standard,

@@ -38,3 +38,19 @@ class DasamsaChart(BaseModel):
     ascendant_rashi_index: int  # 1..12
     ascendant_rashi_key: str
     placements: list[DasamsaPlacement]  # 9: Sun..Ketu, GRAHA_KEYS order
+
+
+class SaptamsaPlacement(BaseModel):
+    key: str  # repository.GRAHA_KEYS entry, e.g. "sun"
+    rashi_index: int  # 1..12
+    rashi_key: str  # panchanga.repository.RASHI_KEYS
+
+
+class SaptamsaChart(BaseModel):
+    engine: EngineMetadata
+    location: Location
+    birth_date: date_type
+    birth_time: time_type
+    ascendant_rashi_index: int  # 1..12
+    ascendant_rashi_key: str
+    placements: list[SaptamsaPlacement]  # 9: Sun..Ketu, GRAHA_KEYS order

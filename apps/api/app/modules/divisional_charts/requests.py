@@ -20,3 +20,12 @@ class DasamsaChartRequest(BaseModel):
     latitude: float
     longitude: float
     iana_tz: str
+
+
+class SaptamsaChartRequest(BaseModel):
+    birth_date: date_type
+    birth_time: time_type
+    location_name: str = Field(min_length=1, max_length=200)
+    latitude: float
+    longitude: float
+    iana_tz: str

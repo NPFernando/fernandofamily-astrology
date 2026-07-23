@@ -1,4 +1,4 @@
-"""D9 (Navamsa) and D10 (Dasamsa) divisional chart coverage.
+"""D9 (Navamsa), D10 (Dasamsa), and D7 (Saptamsa) divisional chart coverage.
 
 No test fixture exists anywhere in the vendored engine for divisional
 charts (unlike every other feature this session — ayanamsa validated
@@ -18,6 +18,11 @@ Dasamsa rule for 9 of 12 signs (it only coincidentally matches Navamsa's
 and Saptamsa's specific sign-quality symmetry). Ground truth here is an
 independent hand-derivation of the classical rule, checked against a real
 cited worked example, not the engine's own formula.
+
+Saptamsa's ground truth IS drik.dasavarga_from_long() (factor 7) — unlike
+Dasamsa, its classical odd/even rule was independently verified
+(2026-07-23) to coincide with the generic formula across all 12 signs,
+so it safely reuses the same vendored path Navamsa does.
 """
 from app.core.vendor_path import configure_ayanamsa, ensure_vendor_on_path
 
@@ -243,6 +248,87 @@ def test_dasamsa_chart_rejects_invalid_timezone():
 def test_dasamsa_chart_rejects_invalid_latitude():
     response = client.post(
         "/api/v1/divisional-charts/dasamsa",
+        json={**COLOMBO_BIRTH, "latitude": 999},
+    )
+    assert response.status_code == 422
+
+
+# --- D7 (Saptamsa) ------------------------------------------------------------
+# Unlike Dasamsa, this DOES trust dasavarga_from_long() as ground truth --
+# independently verified below to coincide with the classical odd/even
+# Saptamsa rule (odd signs count from themselves; even signs count from the
+# 7th sign counted inclusively from themselves).
+
+
+def _classical_saptamsa(rashi_0based: int, division_1based: int) -> int:
+    is_odd_sign = (rashi_0based + 1) % 2 == 1
+    start = rashi_0based if is_odd_sign else (rashi_0based + 6) % 12
+    return (start + division_1based - 1) % 12
+
+
+def test_saptamsa_rule_matches_the_cited_worked_example():
+    # jagannathhora.com: "a planet at 10 degrees of Taurus, which is an
+    # even sign, the counting for Saptamsha begins from Scorpio, the
+    # seventh sign from Taurus."
+    taurus = 1
+    scorpio = 7
+    assert _classical_saptamsa(taurus, 1) == scorpio
+
+
+def test_dasavarga_from_long_matches_classical_saptamsa_rule():
+    configure_ayanamsa(drik)
+    mismatches = []
+    for rashi in range(12):
+        base = rashi * 30
+        one_pada = 30.0 / 7
+        for division in range(1, 8):
+            longitude = base + (division - 1) * one_pada + one_pada / 2
+            engine_result = drik.dasavarga_from_long(longitude, 7)[0]
+            expected = _classical_saptamsa(rashi, division)
+            if engine_result != expected:
+                mismatches.append((longitude, engine_result, expected))
+    assert mismatches == []
+
+
+def test_saptamsa_chart_matches_vendored_engine_directly():
+    response = client.post("/api/v1/divisional-charts/saptamsa", json=COLOMBO_BIRTH)
+    assert response.status_code == 200, response.text
+    data = response.json()
+
+    configure_ayanamsa(drik)
+    place = pp_adapter.place("Colombo, Sri Lanka", 6.9271, 79.8612, 6.0)
+    jd = pp_adapter.julian_day_number(pp_adapter.date(2000, 1, 1), (12, 0, 0))
+
+    raw_placements = drik.dhasavarga(jd, place, divisional_chart_factor=7)
+    expected_by_key = {
+        panchanga_repository.GRAHA_KEYS[planet_id]: constellation for planet_id, (constellation, _) in raw_placements
+    }
+    assert len(data["placements"]) == 9
+    for placement in data["placements"]:
+        expected_constellation = expected_by_key[placement["key"]]
+        assert placement["rashi_index"] == expected_constellation + 1
+        assert placement["rashi_key"] == panchanga_repository.RASHI_KEYS[expected_constellation]
+
+    asc_constellation, asc_coordinates, _, _ = drik.ascendant(jd, place)
+    asc_longitude = asc_constellation * 30 + asc_coordinates
+    expected_asc_constellation = drik.dasavarga_from_long(asc_longitude, 7)[0]
+    assert data["ascendant_rashi_index"] == expected_asc_constellation + 1
+    assert data["ascendant_rashi_key"] == panchanga_repository.RASHI_KEYS[expected_asc_constellation]
+    assert data["location"]["utc_offset_minutes"] == 360
+
+
+def test_saptamsa_chart_rejects_invalid_timezone():
+    response = client.post(
+        "/api/v1/divisional-charts/saptamsa",
+        json={**COLOMBO_BIRTH, "iana_tz": "Not/AZone"},
+    )
+    assert response.status_code == 422
+    assert response.json()["error"] == "invalid_input"
+
+
+def test_saptamsa_chart_rejects_invalid_latitude():
+    response = client.post(
+        "/api/v1/divisional-charts/saptamsa",
         json={**COLOMBO_BIRTH, "latitude": 999},
     )
     assert response.status_code == 422

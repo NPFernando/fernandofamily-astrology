@@ -37,8 +37,8 @@
       "description": "Compare Pancha Pakshi birds using the pinned source-table relationship data."
     },
     "divisionalCharts": {
-      "title": "Divisional Charts (Navamsa, Dasamsa)",
-      "description": "See your D9 Navamsa and D10 Dasamsa charts — planet and Ascendant placements in these divisional charts, traditionally consulted alongside the birth chart for marriage/inner-strength (D9) and career (D10) analysis."
+      "title": "Divisional Charts (Navamsa, Dasamsa, Saptamsa)",
+      "description": "See your D9 Navamsa, D10 Dasamsa and D7 Saptamsa charts — planet and Ascendant placements in these divisional charts, traditionally consulted alongside the birth chart for marriage/inner-strength (D9), career (D10) and children (D7) analysis."
     },
     "porondam": {
       "title": "Porondam (Wedding Matching)",
@@ -590,8 +590,8 @@
       "description": "Compare two Pancha Pakshi birds with the pinned source-table relationship data."
     },
     "divisionalCharts": {
-      "title": "Divisional Charts (Navamsa, Dasamsa)",
-      "description": "Calculate your D9 Navamsa and D10 Dasamsa charts from birth date, time and location — planet and Ascendant placements in the North Indian diamond layout."
+      "title": "Divisional Charts (Navamsa, Dasamsa, Saptamsa)",
+      "description": "Calculate your D9 Navamsa, D10 Dasamsa and D7 Saptamsa charts from birth date, time and location — planet and Ascendant placements in the North Indian diamond layout."
     },
     "porondam": {
       "title": "Porondam (Wedding Horoscope Matching)",
@@ -904,14 +904,16 @@
     "note": "This compatibility tool uses named rules from the pinned calculation sources. It does not store birth details or replace expert judgement."
   },
   "divisionalCharts": {
-    "title": "Divisional Charts (Navamsa, Dasamsa)",
-    "description": "The D9 Navamsa (marriage and inner strength) and D10 Dasamsa (career and profession) are two of the most-consulted divisional charts in Vedic astrology, traditionally read alongside the birth (D1) chart.",
+    "title": "Divisional Charts (Navamsa, Dasamsa, Saptamsa)",
+    "description": "The D9 Navamsa (marriage and inner strength), D10 Dasamsa (career and profession) and D7 Saptamsa (children) are among the most-consulted divisional charts in Vedic astrology, traditionally read alongside the birth (D1) chart.",
     "birthDetailsTitle": "Birth details",
     "calculate": "Calculate charts",
     "navamsaTab": "Navamsa (D9)",
     "dasamsaTab": "Dasamsa (D10)",
+    "saptamsaTab": "Saptamsa (D7)",
     "chartTitle": "D9 Navamsa Chart",
     "dasamsaChartTitle": "D10 Dasamsa Chart",
+    "saptamsaChartTitle": "D7 Saptamsa Chart",
     "ascendant": "Ascendant (Lagna)",
     "layoutNote": "Shown in the North Indian diamond style, matching Sri Lankan kendaraya convention: house 1 (Lagna) always sits in the top diamond — which rashi falls in each house rotates with the Ascendant instead."
   },

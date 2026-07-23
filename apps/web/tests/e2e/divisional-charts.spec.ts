@@ -43,6 +43,20 @@ for (const locale of ["en", "si"] as const) {
       dict.divisionalCharts.ascendant,
     );
   });
+
+  test(`divisional charts (${locale}): Saptamsa tab shows the D7 chart without recalculating`, async ({
+    page,
+  }) => {
+    const dict = DICTS[locale];
+    await calculateNavamsa(page, locale);
+    await page.locator('[data-testid="divisional-charts-tab-saptamsa"]').click();
+
+    // Saptamsa ascendant for the same fixture birth is Tula -- confirmed
+    // against the live API before writing this spec.
+    await expect(page.locator('[data-testid="saptamsa-cell-tula"]')).toContainText(
+      dict.divisionalCharts.ascendant,
+    );
+  });
 }
 
 test("divisional charts: invalid birth date shows a validation error, not a crash", async ({ page }) => {

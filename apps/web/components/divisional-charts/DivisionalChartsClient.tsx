@@ -6,8 +6,10 @@ import {
   ApiError,
   fetchDasamsaChart,
   fetchNavamsaChart,
+  fetchSaptamsaChart,
   type DasamsaChart as DasamsaChartData,
   type NavamsaChart as NavamsaChartData,
+  type SaptamsaChart as SaptamsaChartData,
 } from "@/lib/api-client";
 import {
   DEFAULT_LOCATION,
@@ -19,9 +21,10 @@ import { TargetDateTimeFields } from "@/components/pancha-pakshi/TargetDateTimeF
 import { DivisionalChartsIcon } from "@/components/icons/features";
 import { NavamsaChart } from "@/components/divisional-charts/NavamsaChart";
 import { DasamsaChart } from "@/components/divisional-charts/DasamsaChart";
+import { SaptamsaChart } from "@/components/divisional-charts/SaptamsaChart";
 import { mostRecentBirthDetails, saveRecentBirthDetails } from "@/lib/recent-birth-details";
 
-type ChartType = "navamsa" | "dasamsa";
+type ChartType = "navamsa" | "dasamsa" | "saptamsa";
 
 export function DivisionalChartsClient() {
   const { dict } = useLocale();
@@ -30,10 +33,18 @@ export function DivisionalChartsClient() {
   const [location, setLocation] = useState<LocationValue | null>(null);
   const [navamsaResult, setNavamsaResult] = useState<NavamsaChartData | null>(null);
   const [dasamsaResult, setDasamsaResult] = useState<DasamsaChartData | null>(null);
+  const [saptamsaResult, setSaptamsaResult] = useState<SaptamsaChartData | null>(null);
   const [chartType, setChartType] = useState<ChartType>("navamsa");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const result = chartType === "navamsa" ? navamsaResult : dasamsaResult;
+  const result =
+    chartType === "navamsa" ? navamsaResult : chartType === "dasamsa" ? dasamsaResult : saptamsaResult;
+
+  const tabs: { id: ChartType; label: string }[] = [
+    { id: "navamsa", label: dict.divisionalCharts.navamsaTab },
+    { id: "dasamsa", label: dict.divisionalCharts.dasamsaTab },
+    { id: "saptamsa", label: dict.divisionalCharts.saptamsaTab },
+  ];
 
   useEffect(() => {
     // Hydrate after mount because recent locations/birth details live in
@@ -65,15 +76,17 @@ export function DivisionalChartsClient() {
         longitude: location!.longitude,
         iana_tz: location!.iana_tz,
       };
-      // Both charts share identical birth-data input, so compute both from
-      // a single "Calculate" press -- switching tabs afterwards is then
-      // instant, not a second network round-trip.
-      const [navamsa, dasamsa] = await Promise.all([
+      // All three charts share identical birth-data input, so compute all
+      // of them from a single "Calculate" press -- switching tabs
+      // afterwards is then instant, not a second network round-trip.
+      const [navamsa, dasamsa, saptamsa] = await Promise.all([
         fetchNavamsaChart(requestBody),
         fetchDasamsaChart(requestBody),
+        fetchSaptamsaChart(requestBody),
       ]);
       setNavamsaResult(navamsa);
       setDasamsaResult(dasamsa);
+      setSaptamsaResult(saptamsa);
       saveRecentBirthDetails({ birth_date: birthDate, birth_time: normalizedTime });
     } catch (e) {
       setError(e instanceof ApiError ? dict.ui.error : dict.ui.error);
@@ -143,41 +156,39 @@ export function DivisionalChartsClient() {
 
       {result && (
         <section data-testid="divisional-charts-result" className="flex flex-col gap-3">
-          <div role="tablist" aria-label={dict.divisionalCharts.title} className="flex gap-2 border-b border-black/10 dark:border-white/10">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={chartType === "navamsa"}
-              data-testid="divisional-charts-tab-navamsa"
-              onClick={() => setChartType("navamsa")}
-              className={`px-3 py-2 text-sm ${
-                chartType === "navamsa"
-                  ? "border-b-2 border-accent font-semibold text-accent"
-                  : "opacity-70 hover:opacity-100"
-              }`}
-            >
-              {dict.divisionalCharts.navamsaTab}
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={chartType === "dasamsa"}
-              data-testid="divisional-charts-tab-dasamsa"
-              onClick={() => setChartType("dasamsa")}
-              className={`px-3 py-2 text-sm ${
-                chartType === "dasamsa"
-                  ? "border-b-2 border-accent font-semibold text-accent"
-                  : "opacity-70 hover:opacity-100"
-              }`}
-            >
-              {dict.divisionalCharts.dasamsaTab}
-            </button>
+          <div
+            role="tablist"
+            aria-label={dict.divisionalCharts.title}
+            className="flex gap-2 border-b border-black/10 dark:border-white/10"
+          >
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={chartType === tab.id}
+                data-testid={`divisional-charts-tab-${tab.id}`}
+                onClick={() => setChartType(tab.id)}
+                className={`px-3 py-2 text-sm ${
+                  chartType === tab.id
+                    ? "border-b-2 border-accent font-semibold text-accent"
+                    : "opacity-70 hover:opacity-100"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
           <h2 className="text-sm font-semibold uppercase text-accent">
-            {chartType === "navamsa" ? dict.divisionalCharts.chartTitle : dict.divisionalCharts.dasamsaChartTitle}
+            {chartType === "navamsa"
+              ? dict.divisionalCharts.chartTitle
+              : chartType === "dasamsa"
+                ? dict.divisionalCharts.dasamsaChartTitle
+                : dict.divisionalCharts.saptamsaChartTitle}
           </h2>
           {chartType === "navamsa" && navamsaResult && <NavamsaChart chart={navamsaResult} />}
           {chartType === "dasamsa" && dasamsaResult && <DasamsaChart chart={dasamsaResult} />}
+          {chartType === "saptamsa" && saptamsaResult && <SaptamsaChart chart={saptamsaResult} />}
         </section>
       )}
     </div>

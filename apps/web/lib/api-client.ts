@@ -314,6 +314,31 @@ export type DasamsaChart = {
   placements: DasamsaPlacement[]; // 9: Sun..Ketu, GRAHA_KEYS order
 };
 
+export type SaptamsaChartRequest = {
+  birth_date: string; // YYYY-MM-DD
+  birth_time: string; // HH:mm:ss
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  iana_tz: string;
+};
+
+export type SaptamsaPlacement = {
+  key: string; // repository.GRAHA_KEYS entry, e.g. "sun"
+  rashi_index: number; // 1..12
+  rashi_key: string;
+};
+
+export type SaptamsaChart = {
+  engine: EngineMetadata;
+  location: Location;
+  birth_date: string;
+  birth_time: string;
+  ascendant_rashi_index: number;
+  ascendant_rashi_key: string;
+  placements: SaptamsaPlacement[]; // 9: Sun..Ketu, GRAHA_KEYS order
+};
+
 // ---------------------------------------------------------------------------
 // Birth Chart (/api/v1/birth-chart) — D1 Rasi. Shapes mirror
 // apps/api/app/modules/birth_chart/models.py.
@@ -912,6 +937,19 @@ export function fetchDasamsaChart(body: DasamsaChartRequest): Promise<DasamsaCha
     const data = await r.json().catch(() => null);
     if (!r.ok) throw new ApiError(r.status, data);
     return data as DasamsaChart;
+  });
+  return res;
+}
+
+export function fetchSaptamsaChart(body: SaptamsaChartRequest): Promise<SaptamsaChart> {
+  const res = fetch(`/api/v1/divisional-charts/saptamsa`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).then(async (r) => {
+    const data = await r.json().catch(() => null);
+    if (!r.ok) throw new ApiError(r.status, data);
+    return data as SaptamsaChart;
   });
   return res;
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { EFFECT_COLORS } from "@fernandofamily/design-system";
 import {
   ApiError,
@@ -10,8 +10,10 @@ import {
   fetchPanchanga,
   fetchSchedule,
   fetchScheduleWithServerTime,
+  type BirdId,
   type DailyPanchanga,
   type MuhurtaGrade,
+  type MuhurtaWindow,
   type ScheduleRequest,
   type ScheduleResponse,
   type SubPeriod,
@@ -32,9 +34,10 @@ import {
   withDateLocation,
   type FamilyMuhurtaResult,
 } from "@/lib/family-almanac";
+import { buildIcs, downloadIcs, type IcsEvent } from "@/lib/ics";
 import { getDictionary, nakshatraName, translateEnum } from "@/lib/i18n";
 import { useLocale } from "@/lib/locale-context";
-import { listProfiles, mergeLocalToServerOnce, type SavedProfile } from "@/lib/profiles";
+import { addProfile, listProfiles, mergeLocalToServerOnce, removeProfile, updateProfile, type SavedProfile } from "@/lib/profiles";
 import { useSessionProbe } from "@/lib/use-session-probe";
 import { DateNav } from "@/components/pancha-pakshi/DateNav";
 import {
@@ -77,6 +80,9 @@ const GRADE_STYLE: Record<MuhurtaGrade, string> = {
   good: "border-sky-500/40 bg-sky-500/10 text-sky-700 dark:text-sky-300",
   usable: "border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-300",
 };
+
+const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
+const FAMILY_SELECTED_STORAGE_KEY = "ff_family_almanac_selected_profile_ids";
 
 function formatDate(isoDate: string, locale: string) {
   return new Date(`${isoDate}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
@@ -138,6 +144,20 @@ function defaultRequest(date: string, location: LocationValue): ScheduleRequest 
   };
 }
 
+function loadSelectedProfileIds(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(FAMILY_SELECTED_STORAGE_KEY) ?? "[]");
+    return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveSelectedProfileIds(ids: string[]) {
+  window.localStorage.setItem(FAMILY_SELECTED_STORAGE_KEY, JSON.stringify(ids));
+}
+
 function profileIdentityText(profile: SavedProfile, dict: Dictionary, locale: "en" | "si") {
   if (profile.bird) return translateEnum(dict, "birds", profile.bird);
   if (profile.nakshatra_index != null && profile.paksha) {
@@ -146,8 +166,74 @@ function profileIdentityText(profile: SavedProfile, dict: Dictionary, locale: "e
   return dict.familyAlmanac.profileIncomplete;
 }
 
+function profileCompletenessText(profile: SavedProfile, dict: Dictionary) {
+  if (profile.nakshatra_index != null && profile.paksha && profile.moon_rashi_index != null) {
+    return dict.familyAlmanac.profileComplete;
+  }
+  if (profile.nakshatra_index != null && profile.paksha) return dict.familyAlmanac.profileNakshatraOnly;
+  if (profile.bird) return dict.familyAlmanac.profileBirdOnly;
+  return dict.familyAlmanac.profileIncomplete;
+}
+
 function currentPeriodLabel(period: SubPeriod, dict: Dictionary) {
   return `${translateEnum(dict, "birds", period.main_bird)} · ${translateEnum(dict, "activities", period.main_activity)}`;
+}
+
+function shareFileName(date: string) {
+  return `family-almanac-${date}.png`;
+}
+
+function eventDescriptionForWindow(window: MuhurtaWindow, dict: Dictionary) {
+  return `${dict.muhurta.grades[window.grade]} · ${translateEnum(
+    dict,
+    "effects",
+    window.pancha_pakshi_effect,
+  )} · ${translateEnum(dict, "activities", window.pancha_pakshi_activity)}`;
+}
+
+function plannerEvents(data: FamilyData, startDate: string, dict: Dictionary): IcsEvent[] {
+  return Array.from({ length: FAMILY_ALMANAC_DAYS }, (_, index) => {
+    const day = addDays(startDate, index);
+    const shared = sharedWindowsForDay(data.muhurtaRows, day).slice(0, 1);
+    if (shared.length) {
+      const window = shared[0];
+      return [
+        {
+          uid: `family-almanac-shared-${day}-${new Date(window.starts_at).getTime()}`,
+          start: new Date(window.starts_at),
+          end: new Date(window.ends_at),
+          summary: dict.familyAlmanac.sharedWindow,
+          description: `${dict.familyAlmanac.selectedCount.replace(
+            "{count}",
+            String(window.windows.length),
+          )} · ${dict.muhurta.grades[window.grade]}`,
+        },
+      ];
+    }
+    return individualWindowsForDay(data.muhurtaRows, day).map((item) => ({
+      uid: `family-almanac-${item.profile.id}-${day}-${new Date(item.window.starts_at).getTime()}`,
+      start: new Date(item.window.starts_at),
+      end: new Date(item.window.ends_at),
+      summary: `${dict.familyAlmanac.bestIndividualWindow}: ${item.profile.label}`,
+      description: eventDescriptionForWindow(item.window, dict),
+    }));
+  }).flat();
+}
+
+async function shareOrDownloadPng(blob: Blob, filename: string) {
+  const file = new File([blob], filename, { type: "image/png" });
+  if (navigator.canShare?.({ files: [file] })) {
+    await navigator.share({ files: [file], title: filename });
+    return;
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 export function FamilyAlmanacClient() {
@@ -167,6 +253,8 @@ export function FamilyAlmanacClient() {
   const [loadingProfiles, setLoadingProfiles] = useState(true);
   const [familyLoading, setFamilyLoading] = useState(false);
   const [familyData, setFamilyData] = useState<FamilyData | null>(null);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const signedIn = Boolean(session.user);
 
   const run = useCallback(
     async (nextRequest: ScheduleRequest) => {
@@ -218,7 +306,6 @@ export function FamilyAlmanacClient() {
     if (!session.loaded) return;
     let cancelled = false;
     (async () => {
-      const signedIn = Boolean(session.user);
       if (signedIn) await mergeLocalToServerOnce();
       const nextProfiles = await listProfiles(signedIn);
       if (cancelled) return;
@@ -227,8 +314,12 @@ export function FamilyAlmanacClient() {
         const validIds = nextProfiles
           .filter((profile) => profile.bird || (profile.nakshatra_index != null && profile.paksha))
           .map((profile) => profile.id);
-        const kept = current.filter((id) => validIds.includes(id)).slice(0, FAMILY_ALMANAC_PROFILE_LIMIT);
-        return kept.length ? kept : validIds.slice(0, FAMILY_ALMANAC_PROFILE_LIMIT);
+        const stored = loadSelectedProfileIds();
+        const seed = current.length ? current : stored;
+        const kept = seed.filter((id) => validIds.includes(id)).slice(0, FAMILY_ALMANAC_PROFILE_LIMIT);
+        const next = kept.length ? kept : validIds.slice(0, FAMILY_ALMANAC_PROFILE_LIMIT);
+        saveSelectedProfileIds(next);
+        return next;
       });
       setLoadingProfiles(false);
     })().catch(() => {
@@ -241,7 +332,26 @@ export function FamilyAlmanacClient() {
     return () => {
       cancelled = true;
     };
-  }, [session.loaded, session.user]);
+  }, [session.loaded, signedIn]);
+
+  const refreshProfiles = useCallback(
+    async (preferredSelectedIds?: string[]) => {
+      const nextProfiles = await listProfiles(signedIn);
+      setProfiles(nextProfiles);
+      setSelectedIds((current) => {
+        const validIds = nextProfiles
+          .filter((profile) => profile.bird || (profile.nakshatra_index != null && profile.paksha))
+          .map((profile) => profile.id);
+        const seed = preferredSelectedIds ?? current;
+        const kept = seed.filter((id) => validIds.includes(id)).slice(0, FAMILY_ALMANAC_PROFILE_LIMIT);
+        const next = kept.length ? kept : validIds.slice(0, FAMILY_ALMANAC_PROFILE_LIMIT);
+        saveSelectedProfileIds(next);
+        return next;
+      });
+      return nextProfiles;
+    },
+    [signedIn],
+  );
 
   const validProfiles = useMemo(
     () => profiles.filter((profile) => Boolean(location && date && scheduleRequestFromProfile(profile, date, location))),
@@ -347,10 +457,94 @@ export function FamilyAlmanacClient() {
 
   function toggleProfile(profileId: string) {
     setSelectedIds((current) => {
-      if (current.includes(profileId)) return current.filter((id) => id !== profileId);
-      if (current.length >= FAMILY_ALMANAC_PROFILE_LIMIT) return current;
-      return [...current, profileId];
+      let next: string[];
+      if (current.includes(profileId)) next = current.filter((id) => id !== profileId);
+      else if (current.length >= FAMILY_ALMANAC_PROFILE_LIMIT) return current;
+      else next = [...current, profileId];
+      saveSelectedProfileIds(next);
+      return next;
     });
+  }
+
+  async function createDirectBirdProfile(label: string, bird: BirdId) {
+    const trimmed = label.trim();
+    if (!trimmed) return;
+    const profile = await addProfile(signedIn, {
+      label: trimmed,
+      bird,
+      nakshatra_index: null,
+      paksha: null,
+      moon_rashi_index: null,
+    });
+    await refreshProfiles(
+      selectedIds.includes(profile.id) || selectedIds.length >= FAMILY_ALMANAC_PROFILE_LIMIT
+        ? selectedIds
+        : [...selectedIds, profile.id],
+    );
+    setActionMessage(dict.familyAlmanac.profileSaved);
+  }
+
+  async function renameSavedProfile(profile: SavedProfile) {
+    const nextLabel = window.prompt(dict.familyAlmanac.renameProfilePrompt, profile.label)?.trim();
+    if (!nextLabel || nextLabel === profile.label) return;
+    await updateProfile(signedIn, profile.id, {
+      label: nextLabel,
+      bird: profile.bird,
+      nakshatra_index: profile.nakshatra_index,
+      paksha: profile.paksha,
+      moon_rashi_index: profile.moon_rashi_index,
+    });
+    await refreshProfiles(selectedIds);
+    setActionMessage(dict.familyAlmanac.profileRenamed);
+  }
+
+  async function deleteSavedProfile(profile: SavedProfile) {
+    await removeProfile(signedIn, profile.id);
+    const nextSelected = selectedIds.filter((id) => id !== profile.id);
+    await refreshProfiles(nextSelected);
+    setActionMessage(dict.familyAlmanac.profileDeleted);
+  }
+
+  function downloadFamilyPlanner() {
+    if (!activeFamilyData) return;
+    const events = plannerEvents(activeFamilyData, date, dict);
+    if (events.length === 0) {
+      setActionMessage(dict.familyAlmanac.icsNoWindows);
+      return;
+    }
+    downloadIcs(`family-almanac-${date}.ics`, buildIcs(events));
+  }
+
+  async function shareFamilyImage() {
+    if (!date || !location || selectedProfiles.length === 0) return;
+    setActionMessage(dict.familyAlmanac.sharingFamilyImage);
+    const response = await fetch("/api/share-family-card", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        locale,
+        date,
+        location: {
+          name: location.name,
+          latitude: location.latitude,
+          longitude: location.longitude,
+          iana_tz: location.iana_tz,
+        },
+        profiles: selectedProfiles.slice(0, FAMILY_ALMANAC_PROFILE_LIMIT).map((profile) => ({
+          label: profile.label,
+          bird: profile.bird,
+          nakshatra_index: profile.nakshatra_index,
+          paksha: profile.paksha,
+          moon_rashi_index: profile.moon_rashi_index,
+        })),
+      }),
+    });
+    if (!response.ok) {
+      setActionMessage(dict.familyAlmanac.shareFailed);
+      return;
+    }
+    await shareOrDownloadPng(await response.blob(), shareFileName(date));
+    setActionMessage(null);
   }
 
   const viewingToday = Boolean(location && date === todayFor(location).date);
@@ -391,6 +585,9 @@ export function FamilyAlmanacClient() {
             selectedIds={selectedIds}
             loading={loadingProfiles}
             onToggle={toggleProfile}
+            onCreateDirectBird={createDirectBirdProfile}
+            onRename={renameSavedProfile}
+            onDelete={deleteSavedProfile}
           />
         </div>
       </section>
@@ -506,6 +703,17 @@ export function FamilyAlmanacClient() {
             testId="family-almanac-timing-timeline"
           />
 
+          <FamilyActions
+            dict={dict}
+            disabled={!activeFamilyData || selectedProfiles.length === 0 || familyLoading}
+            message={actionMessage}
+            onPrint={() => window.print()}
+            onDownloadIcs={downloadFamilyPlanner}
+            onShareImage={() => {
+              void shareFamilyImage().catch(() => setActionMessage(dict.familyAlmanac.shareFailed));
+            }}
+          />
+
           <section
             data-testid="family-almanac-profile-cards"
             className="rounded-xl border border-black/10 bg-white/25 p-4 dark:border-white/10 dark:bg-white/[.03]"
@@ -601,6 +809,9 @@ function ProfileSelector({
   selectedIds,
   loading,
   onToggle,
+  onCreateDirectBird,
+  onRename,
+  onDelete,
 }: {
   dict: Dictionary;
   locale: "en" | "si";
@@ -609,7 +820,26 @@ function ProfileSelector({
   selectedIds: string[];
   loading: boolean;
   onToggle: (profileId: string) => void;
+  onCreateDirectBird: (label: string, bird: BirdId) => Promise<void>;
+  onRename: (profile: SavedProfile) => Promise<void>;
+  onDelete: (profile: SavedProfile) => Promise<void>;
 }) {
+  const [quickLabel, setQuickLabel] = useState("");
+  const [quickBird, setQuickBird] = useState<BirdId>("peacock");
+  const [savingQuick, setSavingQuick] = useState(false);
+
+  async function submitQuickProfile(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!quickLabel.trim()) return;
+    setSavingQuick(true);
+    try {
+      await onCreateDirectBird(quickLabel, quickBird);
+      setQuickLabel("");
+    } finally {
+      setSavingQuick(false);
+    }
+  }
+
   return (
     <div className="rounded-lg border border-black/10 p-3 dark:border-white/10">
       <div className="flex items-start justify-between gap-3">
@@ -621,6 +851,48 @@ function ProfileSelector({
           {dict.familyAlmanac.selectedCount.replace("{count}", String(selectedIds.length))}
         </span>
       </div>
+
+      <form
+        data-testid="family-almanac-quick-profile"
+        onSubmit={submitQuickProfile}
+        className="mt-3 rounded-lg border border-black/10 bg-background/70 p-3 dark:border-white/10"
+      >
+        <p className="text-xs font-semibold uppercase opacity-70">{dict.familyAlmanac.quickProfileTitle}</p>
+        <p className="mt-1 text-xs leading-relaxed opacity-70">{dict.familyAlmanac.quickProfileDescription}</p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_8.5rem] lg:grid-cols-1 xl:grid-cols-[minmax(0,1fr)_8.5rem]">
+          <label className="min-w-0">
+            <span className="sr-only">{dict.familyAlmanac.quickProfileLabel}</span>
+            <input
+              value={quickLabel}
+              onChange={(event) => setQuickLabel(event.target.value)}
+              placeholder={dict.familyAlmanac.quickProfileLabel}
+              maxLength={100}
+              className="w-full rounded-md border border-black/10 bg-background px-3 py-2 text-sm dark:border-white/15"
+            />
+          </label>
+          <label>
+            <span className="sr-only">{dict.familyAlmanac.quickProfileBird}</span>
+            <select
+              value={quickBird}
+              onChange={(event) => setQuickBird(event.target.value as BirdId)}
+              className="w-full rounded-md border border-black/10 bg-background px-3 py-2 text-sm dark:border-white/15"
+            >
+              {BIRDS.map((bird) => (
+                <option key={bird} value={bird}>
+                  {translateEnum(dict, "birds", bird)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <button
+          type="submit"
+          disabled={savingQuick || !quickLabel.trim()}
+          className="mt-2 w-full rounded-md bg-accent px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {savingQuick ? dict.ui.loading : dict.familyAlmanac.addDirectBirdProfile}
+        </button>
+      </form>
 
       {loading ? (
         <p className="mt-3 text-sm opacity-70">{dict.ui.loading}</p>
@@ -634,27 +906,56 @@ function ProfileSelector({
               const disabled = !selected && selectedIds.length >= FAMILY_ALMANAC_PROFILE_LIMIT;
               const Icon = profile.bird ? BIRD_ICONS[profile.bird] : null;
               return (
-                <button
+                <div
                   key={profile.id}
-                  type="button"
                   data-testid="family-almanac-profile"
-                  aria-pressed={selected}
-                  disabled={disabled}
-                  onClick={() => onToggle(profile.id)}
-                  className={`flex min-w-0 items-center gap-3 rounded-lg border px-3 py-2 text-left transition ${
+                  className={`rounded-lg border p-2 transition ${
                     selected
                       ? "border-accent bg-accent/10 text-accent"
-                      : "border-black/10 hover:border-accent/40 disabled:cursor-not-allowed disabled:opacity-45 dark:border-white/10"
+                      : "border-black/10 hover:border-accent/40 dark:border-white/10"
                   }`}
                 >
-                  {Icon && <Icon className="shrink-0 text-2xl" />}
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm font-semibold">{profile.label}</span>
-                    <span className="mt-0.5 block truncate text-xs opacity-70">
-                      {profileIdentityText(profile, dict, locale)}
+                  <button
+                    type="button"
+                    aria-pressed={selected}
+                    disabled={disabled}
+                    onClick={() => onToggle(profile.id)}
+                    className="flex w-full min-w-0 items-center gap-3 text-left disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    {Icon && <Icon className="shrink-0 text-2xl" />}
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold">{profile.label}</span>
+                      <span className="mt-0.5 block truncate text-xs opacity-70">
+                        {profileIdentityText(profile, dict, locale)}
+                      </span>
                     </span>
-                  </span>
-                </button>
+                  </button>
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                    <span className="rounded-full border border-current/20 px-2 py-0.5 text-[11px] font-semibold opacity-80">
+                      {profileCompletenessText(profile, dict)}
+                    </span>
+                    <span className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void onRename(profile);
+                        }}
+                        className="rounded-md border border-black/10 px-2 py-1 text-[11px] font-semibold hover:border-accent dark:border-white/15"
+                      >
+                        {dict.familyAlmanac.renameProfile}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void onDelete(profile);
+                        }}
+                        className="rounded-md border border-red-500/40 px-2 py-1 text-[11px] font-semibold text-red-700 hover:bg-red-500/10 dark:text-red-300"
+                      >
+                        {dict.familyAlmanac.deleteProfile}
+                      </button>
+                    </span>
+                  </div>
+                </div>
               );
             })}
           </div>
@@ -666,6 +967,68 @@ function ProfileSelector({
         </>
       )}
     </div>
+  );
+}
+
+function FamilyActions({
+  dict,
+  disabled,
+  message,
+  onPrint,
+  onDownloadIcs,
+  onShareImage,
+}: {
+  dict: Dictionary;
+  disabled: boolean;
+  message: string | null;
+  onPrint: () => void;
+  onDownloadIcs: () => void;
+  onShareImage: () => void;
+}) {
+  return (
+    <section
+      data-testid="family-almanac-actions"
+      className="print:hidden rounded-xl border border-black/10 bg-white/25 p-4 dark:border-white/10 dark:bg-white/[.03]"
+    >
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h2 className="text-sm font-semibold uppercase text-accent">{dict.familyAlmanac.plannerActionsTitle}</h2>
+          <p className="mt-1 text-sm opacity-75">{dict.familyAlmanac.plannerActionsDescription}</p>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-3 md:min-w-[28rem]">
+          <button
+            type="button"
+            onClick={onPrint}
+            className="rounded-lg border border-black/10 px-3 py-2 text-sm font-semibold hover:border-accent hover:text-accent dark:border-white/20"
+          >
+            {dict.familyAlmanac.printSummary}
+          </button>
+          <button
+            type="button"
+            data-testid="family-almanac-download-ics"
+            disabled={disabled}
+            onClick={onDownloadIcs}
+            className="rounded-lg border border-black/10 px-3 py-2 text-sm font-semibold hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/20"
+          >
+            {dict.familyAlmanac.downloadFamilyIcs}
+          </button>
+          <button
+            type="button"
+            data-testid="family-almanac-share-image"
+            disabled={disabled}
+            onClick={onShareImage}
+            className="rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {dict.familyAlmanac.shareFamilyImage}
+          </button>
+        </div>
+      </div>
+      {message && (
+        <p data-testid="family-almanac-action-message" className="mt-3 text-xs font-semibold opacity-75">
+          {message}
+        </p>
+      )}
+    </section>
   );
 }
 
@@ -790,10 +1153,15 @@ function WeekDayCard({
 }) {
   const shared = sharedWindowsForDay(results, date).slice(0, 1);
   const individual = shared.length ? [] : individualWindowsForDay(results, date).slice(0, 2);
+  const statusLabel = shared.length
+    ? dict.familyAlmanac.sharedStatus
+    : individual.length
+      ? dict.familyAlmanac.individualStatus
+      : dict.familyAlmanac.noWindowStatus;
   return (
     <article
       data-testid="family-almanac-week-day"
-      className="min-h-[16rem] rounded-lg border border-black/10 bg-background p-3 text-sm dark:border-white/10"
+      className="min-h-[13.5rem] rounded-lg border border-black/10 bg-background p-3 text-sm dark:border-white/10"
     >
       <div className="flex items-start justify-between gap-2">
         <div>
@@ -810,8 +1178,11 @@ function WeekDayCard({
           </span>
         )}
       </div>
+      <p className="mt-2 inline-flex rounded-full border border-black/10 px-2 py-0.5 text-[11px] font-semibold opacity-75 dark:border-white/10">
+        {statusLabel}
+      </p>
 
-      <div className="mt-3 min-h-32">
+      <div className="mt-2 min-h-24">
         {loading ? (
           <p className="text-xs opacity-70">{dict.familyAlmanac.refreshingFamily}</p>
         ) : shared.length ? (

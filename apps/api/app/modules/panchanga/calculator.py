@@ -40,6 +40,16 @@ from app.modules.panchanga.models import (
 # buffer inside that gap reproduces the gazette exactly; 15 is the round
 # midpoint. Derivation: scripts/dev/poya_rule_discovery.py (rule f);
 # enforcement: tests/test_poya.py.
+#
+# VALIDITY CAVEAT (2026-07-23): this constant is fit AND tested against the
+# same 73-day 2021-2026 gazette fixture — there is no independent evidence
+# it holds outside that window. The upstream source (Dilshan-H/srilanka-
+# holidays) has no data before 2021, so the fixture can't currently be
+# widened to check this. Do not trust Poya-day output from this rule for
+# years outside 2021-2026 (this includes every historical/ancestor-chart
+# request, which can go back to 1200 CE) without first re-deriving the
+# buffer against an independent historical source — see
+# docs/calculations/panchanga.md.
 _POYA_SUNSET_BUFFER = timedelta(minutes=15)
 
 

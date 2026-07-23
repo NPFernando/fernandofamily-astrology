@@ -142,6 +142,16 @@ than silently forced to match.
 ephemeris-driven date range as the rest of the engine — see the image's
 trimmed range in [`../../apps/api/vendor/README.md`](../../apps/api/vendor/README.md).
 
+**Validity caveat on the 15-minute sunset buffer (2026-07-23).** The
+buffer is both fit and tested against the same 73-day 2021-2026 gazette
+fixture above — there's no independent evidence it holds outside that
+window. The upstream dataset has no data before 2021 (confirmed directly
+against the source repo), so the fixture can't currently be widened to
+check further back. Treat computed Poya days as unverified for any
+request outside 2021-2026 — including historical/ancestor birth-chart
+requests, which the engine otherwise allows back to 1200 CE — until the
+buffer can be re-derived against an independent historical source.
+
 **Not implemented.** The full Avurudu Nekath Seettuwa (the New Year's other
 astrologer-panel auspicious times — meal preparation, commencing work, oil
 anointing, etc.) are published annually as PDFs by a government-convened

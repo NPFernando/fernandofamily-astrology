@@ -16,7 +16,7 @@ import {
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
 import { TargetDateTimeFields } from "@/components/pancha-pakshi/TargetDateTimeFields";
-import { FullMoonIcon } from "@/components/icons/moon";
+import { BirthNakshatraIcon } from "@/components/icons/features";
 import { BIRD_ICONS } from "@/components/icons/birds";
 import { addProfile } from "@/lib/profiles";
 import { useSessionProbe } from "@/lib/use-session-probe";
@@ -104,7 +104,7 @@ export function BirthNakshatraClient() {
     <div className="flex flex-col gap-6">
       <header className="max-w-3xl">
         <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <FullMoonIcon className="text-3xl text-accent" />
+          <BirthNakshatraIcon className="text-3xl text-accent" />
           {dict.birthNakshatra.title}
         </h1>
         <p className="mt-1 text-sm leading-relaxed opacity-80 sm:text-base">
@@ -147,6 +147,19 @@ export function BirthNakshatraClient() {
       {error && (
         <div role="alert" className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm">
           <p>{error}</p>
+        </div>
+      )}
+
+      {loading && !result && (
+        <div role="status" className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+          <span className="sr-only">{dict.ui.loading}</span>
+          {Array.from({ length: 4 }, (_, i) => (
+            <div
+              key={i}
+              aria-hidden
+              className="h-20 rounded-lg border border-black/10 bg-black/[.04] motion-safe:animate-pulse dark:border-white/10 dark:bg-white/[.06]"
+            />
+          ))}
         </div>
       )}
 

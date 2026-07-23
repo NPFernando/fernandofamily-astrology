@@ -25,7 +25,7 @@ export const features: FeatureEntry[] = [
     apiNamespace: "/api/v1/birth-nakshatra",
     titleKey: "features.birthNakshatra.title",
     descriptionKey: "features.birthNakshatra.description",
-    icon: "moon",
+    icon: "birth-nakshatra",
   },
   {
     id: "pancha-pakshi",
@@ -36,7 +36,7 @@ export const features: FeatureEntry[] = [
     apiNamespace: "/api/v1/pancha-pakshi",
     titleKey: "features.panchaPakshi.title",
     descriptionKey: "features.panchaPakshi.description",
-    icon: "peacock",
+    icon: "pancha-pakshi",
   },
   {
     id: "panchanga",
@@ -47,7 +47,7 @@ export const features: FeatureEntry[] = [
     apiNamespace: "/api/v1/panchanga",
     titleKey: "features.panchanga.title",
     descriptionKey: "features.panchanga.description",
-    icon: "sun",
+    icon: "panchanga",
   },
   {
     id: "moon-calendar",
@@ -58,7 +58,7 @@ export const features: FeatureEntry[] = [
     apiNamespace: "/api/v1/panchanga",
     titleKey: "features.moonCalendar.title",
     descriptionKey: "features.moonCalendar.description",
-    icon: "moon",
+    icon: "moon-calendar",
   },
   {
     id: "daily-guide",
@@ -69,7 +69,7 @@ export const features: FeatureEntry[] = [
     apiNamespace: "/api/v1",
     titleKey: "features.dailyGuide.title",
     descriptionKey: "features.dailyGuide.description",
-    icon: "sun",
+    icon: "daily-guide",
   },
   {
     id: "muhurta",
@@ -80,7 +80,7 @@ export const features: FeatureEntry[] = [
     apiNamespace: "/api/v1/muhurta",
     titleKey: "features.muhurta.title",
     descriptionKey: "features.muhurta.description",
-    icon: "sun",
+    icon: "muhurta",
   },
   {
     id: "compatibility",
@@ -91,7 +91,7 @@ export const features: FeatureEntry[] = [
     apiNamespace: "/api/v1/compatibility",
     titleKey: "features.compatibility.title",
     descriptionKey: "features.compatibility.description",
-    icon: "cock",
+    icon: "compatibility",
   },
   {
     id: "divisional-charts",
@@ -102,7 +102,7 @@ export const features: FeatureEntry[] = [
     apiNamespace: "/api/v1/divisional-charts",
     titleKey: "features.divisionalCharts.title",
     descriptionKey: "features.divisionalCharts.description",
-    icon: "sun",
+    icon: "divisional-charts",
   },
   {
     id: "porondam",
@@ -113,7 +113,7 @@ export const features: FeatureEntry[] = [
     apiNamespace: "/api/v1/porondam",
     titleKey: "features.porondam.title",
     descriptionKey: "features.porondam.description",
-    icon: "cock",
+    icon: "porondam",
   },
   {
     id: "birth-chart",
@@ -124,7 +124,7 @@ export const features: FeatureEntry[] = [
     apiNamespace: "/api/v1/birth-chart",
     titleKey: "features.birthChart.title",
     descriptionKey: "features.birthChart.description",
-    icon: "moon",
+    icon: "birth-chart",
   },
   {
     id: "dasha",
@@ -135,7 +135,7 @@ export const features: FeatureEntry[] = [
     apiNamespace: "/api/v1/dasha",
     titleKey: "features.dasha.title",
     descriptionKey: "features.dasha.description",
-    icon: "moon",
+    icon: "dasha",
   },
 ];
 

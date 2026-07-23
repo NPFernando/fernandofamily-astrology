@@ -10,8 +10,9 @@ import {
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
 import { TargetDateTimeFields } from "@/components/pancha-pakshi/TargetDateTimeFields";
-import { SunIcon } from "@/components/icons/sun";
+import { DivisionalChartsIcon } from "@/components/icons/features";
 import { NavamsaChart } from "@/components/divisional-charts/NavamsaChart";
+import { mostRecentBirthDetails, saveRecentBirthDetails } from "@/lib/recent-birth-details";
 
 export function DivisionalChartsClient() {
   const { dict } = useLocale();
@@ -23,9 +24,17 @@ export function DivisionalChartsClient() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Hydrate after mount because recent locations live in localStorage.
+    // Hydrate after mount because recent locations/birth details live in
+    // localStorage.
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
     setLocation(mostRecentLocation() ?? DEFAULT_LOCATION);
+    const recent = mostRecentBirthDetails();
+    if (recent) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
+      setBirthDate(recent.birth_date);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
+      setBirthTime(recent.birth_time);
+    }
   }, []);
 
   const canCalculate = birthDate !== "" && birthTime !== "" && location !== null;
@@ -35,15 +44,17 @@ export function DivisionalChartsClient() {
     setLoading(true);
     setError(null);
     try {
+      const normalizedTime = birthTime.length === 5 ? `${birthTime}:00` : birthTime;
       const data = await fetchNavamsaChart({
         birth_date: birthDate,
-        birth_time: birthTime.length === 5 ? `${birthTime}:00` : birthTime,
+        birth_time: normalizedTime,
         location_name: location!.name,
         latitude: location!.latitude,
         longitude: location!.longitude,
         iana_tz: location!.iana_tz,
       });
       setResult(data);
+      saveRecentBirthDetails({ birth_date: birthDate, birth_time: normalizedTime });
     } catch (e) {
       setError(e instanceof ApiError ? dict.ui.error : dict.ui.error);
     } finally {
@@ -55,7 +66,7 @@ export function DivisionalChartsClient() {
     <div className="flex flex-col gap-6">
       <header className="max-w-3xl">
         <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <SunIcon className="text-3xl text-accent" />
+          <DivisionalChartsIcon className="text-3xl text-accent" />
           {dict.divisionalCharts.title}
         </h1>
         <p className="mt-1 text-sm leading-relaxed opacity-80 sm:text-base">
@@ -98,6 +109,15 @@ export function DivisionalChartsClient() {
       {error && (
         <div role="alert" className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm">
           <p>{error}</p>
+        </div>
+      )}
+
+      {loading && !result && (
+        <div role="status" className="flex flex-col gap-3">
+          <span className="sr-only">{dict.ui.loading}</span>
+          <div aria-hidden className="motion-safe:animate-pulse">
+            <div className="aspect-square max-w-md rounded-xl border border-black/10 bg-black/[.04] dark:border-white/10 dark:bg-white/[.06]" />
+          </div>
         </div>
       )}
 

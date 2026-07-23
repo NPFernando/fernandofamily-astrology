@@ -38,7 +38,7 @@ import { useSessionProbe } from "@/lib/use-session-probe";
 import { BIRD_ICONS } from "@/components/icons/birds";
 import { ACTIVITY_ICONS } from "@/components/icons/activities";
 import { ACTIVITY_COLORS } from "@/components/pancha-pakshi/activityColors";
-import { SunIcon } from "@/components/icons/sun";
+import { DailyGuideIcon } from "@/components/icons/features";
 import { FullMoonIcon } from "@/components/icons/moon";
 import { activityGuidance } from "@/lib/pancha-guidance";
 import { SkyTodayPanel } from "@/components/panchanga/SkyTodayPanel";
@@ -491,7 +491,7 @@ export function DailyGuideClient() {
     <div className="flex flex-col gap-6">
       <header className="max-w-3xl">
         <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <SunIcon className="text-3xl text-accent" />
+          <DailyGuideIcon className="text-3xl text-accent" />
           {dict.dailyGuide.title}
         </h1>
         <p className="mt-1 text-sm leading-relaxed opacity-80 sm:text-base">

@@ -7,7 +7,7 @@ import { ApiError, fetchPanchanga, fetchEclipseForecast, type DailyPanchanga, ty
 import { LocationPicker, DEFAULT_LOCATION, mostRecentLocation, type LocationValue } from "@/components/pancha-pakshi/LocationPicker";
 import { DateNav } from "@/components/pancha-pakshi/DateNav";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
-import { SunIcon } from "@/components/icons/sun";
+import { PanchangaIcon } from "@/components/icons/features";
 import { FullMoonIcon } from "@/components/icons/moon";
 import { loadAccountPreferences } from "@/lib/account-preferences";
 import { SkyTodayPanel } from "@/components/panchanga/SkyTodayPanel";
@@ -142,7 +142,7 @@ export function PanchangaClient() {
     <div className="flex flex-col gap-6">
       <header className="print:block">
         <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <SunIcon className="text-3xl text-accent print:hidden" />
+          <PanchangaIcon className="text-3xl text-accent print:hidden" />
           {dict.panchanga.title}
         </h1>
       </header>

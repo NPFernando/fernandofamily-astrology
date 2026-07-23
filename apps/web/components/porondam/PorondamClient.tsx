@@ -11,6 +11,8 @@ import {
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
 import { TargetDateTimeFields, type TargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
+import { saveRecentBirthDetails } from "@/lib/recent-birth-details";
+import { PorondamIcon } from "@/components/icons/features";
 
 // Fixed display order matching repository.py / calculator.compute_porondam.
 const PORONDAM_ORDER = [
@@ -66,6 +68,13 @@ export function PorondamClient() {
         groom: partyToInput(groom),
       });
       setResult(data);
+      // Contributes to the shared recent-birth-details list (birth-chart/
+      // dasha/divisional-charts benefit from it too) — but Porondam itself
+      // deliberately does NOT auto-fill from it on mount, since bride and
+      // groom are two different people and there's no way to know which
+      // saved entry maps to which role.
+      saveRecentBirthDetails({ birth_date: bride.dateTime.date, birth_time: partyToInput(bride).birth_time });
+      saveRecentBirthDetails({ birth_date: groom.dateTime.date, birth_time: partyToInput(groom).birth_time });
     } catch (e) {
       setError(e instanceof ApiError ? dict.ui.error : dict.ui.error);
     } finally {
@@ -87,7 +96,10 @@ export function PorondamClient() {
   return (
     <div className="flex flex-col gap-6">
       <header className="max-w-3xl">
-        <h1 className="text-2xl font-bold">{dict.porondam.title}</h1>
+        <h1 className="flex items-center gap-2 text-2xl font-bold">
+          <PorondamIcon className="text-3xl text-accent" />
+          {dict.porondam.title}
+        </h1>
         <p className="mt-1 text-sm leading-relaxed opacity-80 sm:text-base">
           {dict.porondam.description}
         </p>
@@ -110,6 +122,24 @@ export function PorondamClient() {
       {error && (
         <div role="alert" className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm">
           <p>{error}</p>
+        </div>
+      )}
+
+      {loading && !result && (
+        <div role="status" className="flex flex-col gap-3">
+          <span className="sr-only">{dict.ui.loading}</span>
+          <div aria-hidden className="flex flex-col gap-3 motion-safe:animate-pulse">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="h-16 rounded-lg border border-black/10 bg-black/[.04] dark:border-white/10 dark:bg-white/[.06]" />
+              <div className="h-16 rounded-lg border border-black/10 bg-black/[.04] dark:border-white/10 dark:bg-white/[.06]" />
+            </div>
+            {Array.from({ length: 7 }, (_, i) => (
+              <div
+                key={i}
+                className="h-12 rounded-lg bg-black/[.04] dark:bg-white/[.06]"
+              />
+            ))}
+          </div>
         </div>
       )}
 

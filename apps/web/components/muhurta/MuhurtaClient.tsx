@@ -34,6 +34,7 @@ import { DateNav } from "@/components/pancha-pakshi/DateNav";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import { resolveDefaultScheduleRequest } from "@/lib/pancha-schedule-state";
 import { BIRD_ICONS } from "@/components/icons/birds";
+import { MuhurtaIcon } from "@/components/icons/features";
 
 const feature = features.find((f) => f.id === "muhurta")!;
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
@@ -1124,7 +1125,10 @@ export function MuhurtaClient() {
   return (
     <div className="flex flex-col gap-6">
       <header className="max-w-3xl">
-        <h1 className="text-2xl font-bold">{resolveKey(dict, feature.titleKey)}</h1>
+        <h1 className="flex items-center gap-2 text-2xl font-bold">
+          <MuhurtaIcon className="text-3xl text-accent" />
+          {resolveKey(dict, feature.titleKey)}
+        </h1>
         <p className="mt-1 text-sm opacity-80 sm:text-base">{resolveKey(dict, feature.descriptionKey)}</p>
       </header>
 

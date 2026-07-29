@@ -25,7 +25,11 @@ for (const locale of ["en", "si"] as const) {
     await expect(page.locator('[data-testid="moon-calendar-grid"]')).toBeVisible();
     const selected = page.locator('[data-testid="moon-calendar-selected-day"]');
     await expect(selected).toBeVisible();
-    await expect(selected.locator("dl").getByText(DICTS[locale].moonCalendar.moonPhase)).toBeVisible();
+    await expect(
+      page
+        .getByTestId("moon-calendar-selected-day-facts")
+        .getByText(DICTS[locale].moonCalendar.moonPhase, { exact: true }),
+    ).toBeVisible();
     watcher.assertClean();
   });
 }

@@ -40,6 +40,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v6
         with:
@@ -64,9 +66,28 @@ jobs:
         working-directory: apps/web
         run: pnpm build
 
+      - name: Enforce initial JavaScript budget
+        working-directory: apps/web
+        run: pnpm report:initial-bundle
+
+      - name: Standalone runtime smoke test
+        working-directory: apps/web
+        run: pnpm test:standalone
+
       - name: Test (i18n hygiene, no-birth-fields-in-URL)
         working-directory: apps/web
         run: pnpm test
+
+      - name: Report poster format payloads
+        working-directory: apps/web
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ -n "$PR_BASE_SHA" ]; then
+            pnpm report:poster-payloads -- --base "$PR_BASE_SHA"
+          else
+            pnpm report:poster-payloads
+          fi
 
   contracts-drift:
     runs-on: ubuntu-latest
@@ -138,3 +159,40 @@ jobs:
       - name: Run E2E suite (builds web, launches API + web via playwright webServer)
         working-directory: apps/web
         run: pnpm e2e
+
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Enable Corepack (pnpm)
+        run: corepack enable
+
+      - name: Install web dependencies
+        working-directory: apps/web
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium for Lighthouse
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+
+      - name: Build production web app
+        working-directory: apps/web
+        run: pnpm build
+
+      - name: Enforce mobile Lighthouse budgets
+        working-directory: apps/web
+        run: |
+          export CHROME_PATH="$(node -e "console.log(require('@playwright/test').chromium.executablePath())")"
+          pnpm lighthouse:ci
+
+      - name: Upload Lighthouse report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: lighthouse-report
+          path: apps/web/.lighthouseci

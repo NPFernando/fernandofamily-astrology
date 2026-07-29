@@ -138,7 +138,7 @@ function buildSvg(schedule: Schedule, detail: Detail, locale: Locale): string {
             <text x="${x + 18}" y="${436 + i * 34}" font-family="${FONT}" font-size="21" fill="#ffffff">${label}</text>`;
         })
         .join("\n");
-      return `<text x="${x}" y="${400}" font-family="${FONT}" font-size="19" font-weight="700" fill="rgba(255,255,255,0.7)">${esc(title)}</text>${rows}`;
+      return `<text x="${x}" y="${400}" font-family="${FONT}" font-size="19" font-weight="700" fill="rgba(255,255,255,0.76)">${esc(title)}</text>${rows}`;
     };
     detailBlock = col(dayList, barX, dict.ui.daytime) + col(nightList, W / 2 + 40, dict.ui.nighttime);
   } else {
@@ -156,7 +156,7 @@ function buildSvg(schedule: Schedule, detail: Detail, locale: Locale): string {
         return `<text x="${barX}" y="${436 + i * 36}" font-family="${FONT}" font-size="22" fill="#ffffff">${star} ${label}</text>`;
       })
       .join("\n");
-    detailBlock = `<text x="${barX}" y="400" font-family="${FONT_SI}" font-size="19" font-weight="700" fill="rgba(255,255,255,0.7)">${esc(
+    detailBlock = `<text x="${barX}" y="400" font-family="${FONT_SI}" font-size="19" font-weight="700" fill="rgba(255,255,255,0.76)">${esc(
       dict.ui.bestWindowsToday,
     )}</text>${rows}`;
   }
@@ -167,7 +167,7 @@ function buildSvg(schedule: Schedule, detail: Detail, locale: Locale): string {
       <stop offset="0" stop-color="#1e1b4b"/>
       <stop offset="0.4" stop-color="#4c1d95"/>
       <stop offset="0.78" stop-color="#b45309"/>
-      <stop offset="1" stop-color="#f5b942"/>
+      <stop offset="1" stop-color="#92400e"/>
     </linearGradient>
   </defs>
   <rect width="${W}" height="${H}" fill="url(#dawn)"/>
@@ -175,11 +175,11 @@ function buildSvg(schedule: Schedule, detail: Detail, locale: Locale): string {
   <text x="${barX}" y="80" font-family="${FONT}" font-size="30" font-weight="700" fill="rgba(255,255,255,0.92)">Fernando Family Astrology · <tspan font-family="${FONT_SI}">ජ්‍යෝතිෂ</tspan></text>
   <text x="${barX}" y="150" font-family="${FONT_SI}" font-size="44" font-weight="700" fill="#ffffff">${esc(birdLine)} — ${esc(dateLine)}</text>
   <text x="${barX}" y="195" font-family="${FONT_SI}" font-size="26" fill="rgba(255,255,255,0.85)">${esc(locationLine)}</text>
-  <text x="${barX}" y="252" font-family="${FONT_SI}" font-size="22" fill="rgba(255,255,255,0.7)">${esc(dict.features.panchaPakshi.title)}</text>
+  <text x="${barX}" y="252" font-family="${FONT_SI}" font-size="22" fill="rgba(255,255,255,0.76)">${esc(dict.features.panchaPakshi.title)}</text>
   ${segments}
   ${markers}
   ${detailBlock}
-  <text x="${W - 80}" y="${H - 30}" text-anchor="end" font-family="${FONT}" font-size="18" fill="rgba(255,255,255,0.6)">astrology.fernandofamily.com</text>
+  <text x="${W - 80}" y="${H - 30}" text-anchor="end" font-family="${FONT}" font-size="18" fill="rgba(255,255,255,0.76)">astrology.fernandofamily.com</text>
 </svg>`;
 }
 

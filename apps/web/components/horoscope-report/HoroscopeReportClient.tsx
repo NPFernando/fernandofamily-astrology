@@ -24,6 +24,7 @@ import {
 } from "@/components/pancha-pakshi/LocationPicker";
 import { TargetDateTimeFields } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import { HoroscopeReportIcon } from "@/components/icons/features";
+import { ToolPageHero } from "@/components/layout/ToolPageHero";
 import { BIRD_ICONS } from "@/components/icons/birds";
 import { BirthChartChart } from "@/components/birth-chart/BirthChartChart";
 import { DashaTimeline } from "@/components/dasha/DashaTimeline";
@@ -31,6 +32,8 @@ import { addProfile } from "@/lib/profiles";
 import { useSessionProbe } from "@/lib/use-session-probe";
 import { saveDerivedIdentitySeed } from "@/lib/pancha-schedule-state";
 import { mostRecentBirthDetails, saveRecentBirthDetails } from "@/lib/recent-birth-details";
+import { clearBirthCalculationHandoff, loadBirthCalculationHandoff, saveBirthCalculationHandoff } from "@/lib/birth-calculation-handoff";
+import { BirthCalculationHandoffNotice } from "@/components/BirthCalculationHandoffNotice";
 
 type ReportResult = {
   request: BirthNakshatraRequest;
@@ -90,9 +93,32 @@ export function HoroscopeReportClient() {
   const [justSaved, setJustSaved] = useState(false);
   const [shareError, setShareError] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [usingHandoff, setUsingHandoff] = useState(false);
 
   useEffect(() => {
-    // Hydrate after mount because recent locations/birth details live in localStorage.
+    const handoff = loadBirthCalculationHandoff();
+    if (handoff) {
+      setUsingHandoff(true);
+      setLocation(handoff.input.location);
+      setBirthDate(handoff.input.birthDate);
+      setBirthTime(handoff.input.birthTime);
+      if (handoff.identity && handoff.chart && handoff.dasha) {
+        setResult({
+          request: {
+            birth_date: handoff.input.birthDate,
+            birth_time: handoff.input.birthTime,
+            location_name: handoff.input.location.name,
+            latitude: handoff.input.location.latitude,
+            longitude: handoff.input.location.longitude,
+            iana_tz: handoff.input.location.iana_tz,
+          },
+          identity: handoff.identity,
+          chart: handoff.chart,
+          dasha: handoff.dasha,
+        });
+      }
+      return;
+    }
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
     setLocation(mostRecentLocation() ?? DEFAULT_LOCATION);
     const recent = mostRecentBirthDetails();
@@ -127,6 +153,7 @@ export function HoroscopeReportClient() {
       ]);
       setResult({ request, identity, chart, dasha });
       saveRecentBirthDetails({ birth_date: birthDate, birth_time: normalizedTime });
+      saveBirthCalculationHandoff({ birthDate, birthTime: normalizedTime, location: location! }, { identity, chart, dasha });
     } catch (e) {
       setError(e instanceof ApiError ? dict.ui.error : dict.ui.error);
     } finally {
@@ -193,17 +220,27 @@ export function HoroscopeReportClient() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="max-w-3xl">
-        <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <HoroscopeReportIcon className="text-3xl text-accent" />
-          {dict.horoscopeReport.title}
-        </h1>
-        <p className="mt-1 text-sm leading-relaxed opacity-80 sm:text-base">{dict.horoscopeReport.description}</p>
-      </header>
+      <ToolPageHero
+        icon={<HoroscopeReportIcon />}
+        title={dict.horoscopeReport.title}
+        description={dict.horoscopeReport.description}
+        eyebrow={dict.ui.heritageDescriptor}
+      />
+
+      {usingHandoff && <BirthCalculationHandoffNotice onStartFresh={() => {
+        clearBirthCalculationHandoff();
+        setUsingHandoff(false);
+        setBirthDate("");
+        setBirthTime("");
+        setLocation(DEFAULT_LOCATION);
+        setResult(null);
+        setError(null);
+        setShareError(false);
+      }} />}
 
       <section
         data-testid="horoscope-report-controls"
-        className="print:hidden rounded-xl border border-black/10 bg-white/40 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.04]"
+        className="print:hidden heritage-card rounded-2xl border p-4 shadow-sm sm:p-5"
       >
         <h2 className="text-sm font-semibold uppercase tracking-wide text-accent">
           {dict.horoscopeReport.birthDetailsTitle}

@@ -23,6 +23,8 @@ import { NavamsaChart } from "@/components/divisional-charts/NavamsaChart";
 import { DasamsaChart } from "@/components/divisional-charts/DasamsaChart";
 import { SaptamsaChart } from "@/components/divisional-charts/SaptamsaChart";
 import { mostRecentBirthDetails, saveRecentBirthDetails } from "@/lib/recent-birth-details";
+import { clearBirthCalculationHandoff, loadBirthCalculationHandoff, saveBirthCalculationHandoff } from "@/lib/birth-calculation-handoff";
+import { BirthCalculationHandoffNotice } from "@/components/BirthCalculationHandoffNotice";
 
 type ChartType = "navamsa" | "dasamsa" | "saptamsa";
 
@@ -37,6 +39,7 @@ export function DivisionalChartsClient() {
   const [chartType, setChartType] = useState<ChartType>("navamsa");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [usingHandoff, setUsingHandoff] = useState(false);
   const result =
     chartType === "navamsa" ? navamsaResult : chartType === "dasamsa" ? dasamsaResult : saptamsaResult;
 
@@ -47,8 +50,17 @@ export function DivisionalChartsClient() {
   ];
 
   useEffect(() => {
-    // Hydrate after mount because recent locations/birth details live in
-    // localStorage.
+    const handoff = loadBirthCalculationHandoff();
+    if (handoff) {
+      setUsingHandoff(true);
+      setLocation(handoff.input.location);
+      setBirthDate(handoff.input.birthDate);
+      setBirthTime(handoff.input.birthTime);
+      setNavamsaResult(handoff.divisional?.navamsa ?? null);
+      setDasamsaResult(handoff.divisional?.dasamsa ?? null);
+      setSaptamsaResult(handoff.divisional?.saptamsa ?? null);
+      return;
+    }
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
     setLocation(mostRecentLocation() ?? DEFAULT_LOCATION);
     const recent = mostRecentBirthDetails();
@@ -88,6 +100,10 @@ export function DivisionalChartsClient() {
       setDasamsaResult(dasamsa);
       setSaptamsaResult(saptamsa);
       saveRecentBirthDetails({ birth_date: birthDate, birth_time: normalizedTime });
+      saveBirthCalculationHandoff(
+        { birthDate, birthTime: normalizedTime, location: location! },
+        { divisional: { navamsa, dasamsa, saptamsa } },
+      );
     } catch (e) {
       setError(e instanceof ApiError ? dict.ui.error : dict.ui.error);
     } finally {
@@ -106,6 +122,18 @@ export function DivisionalChartsClient() {
           {dict.divisionalCharts.description}
         </p>
       </header>
+
+      {usingHandoff && <BirthCalculationHandoffNotice onStartFresh={() => {
+        clearBirthCalculationHandoff();
+        setUsingHandoff(false);
+        setBirthDate("");
+        setBirthTime("");
+        setLocation(DEFAULT_LOCATION);
+        setNavamsaResult(null);
+        setDasamsaResult(null);
+        setSaptamsaResult(null);
+        setError(null);
+      }} />}
 
       <section
         data-testid="divisional-charts-controls"

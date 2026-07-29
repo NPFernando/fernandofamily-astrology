@@ -35,6 +35,7 @@ import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFi
 import { resolveDefaultScheduleRequest } from "@/lib/pancha-schedule-state";
 import { BIRD_ICONS } from "@/components/icons/birds";
 import { MuhurtaIcon } from "@/components/icons/features";
+import { ToolPageHero } from "@/components/layout/ToolPageHero";
 
 const feature = features.find((f) => f.id === "muhurta")!;
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
@@ -1124,13 +1125,12 @@ export function MuhurtaClient() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="max-w-3xl">
-        <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <MuhurtaIcon className="text-3xl text-accent" />
-          {resolveKey(dict, feature.titleKey)}
-        </h1>
-        <p className="mt-1 text-sm opacity-80 sm:text-base">{resolveKey(dict, feature.descriptionKey)}</p>
-      </header>
+      <ToolPageHero
+        icon={<MuhurtaIcon />}
+        title={resolveKey(dict, feature.titleKey)}
+        description={resolveKey(dict, feature.descriptionKey)}
+        eyebrow={dict.ui.heritageDescriptor}
+      />
 
       <div className="flex w-fit rounded-lg border border-black/10 bg-white/30 p-1 text-sm dark:border-white/10 dark:bg-white/[.03]" data-testid="muhurta-view-tabs">
         {(["recommendations", "month"] as const).map((view) => (
@@ -1150,7 +1150,7 @@ export function MuhurtaClient() {
 
       <div className="grid gap-6 lg:grid-cols-[22rem_minmax(0,1fr)] lg:items-start">
         <aside
-          className="rounded-xl border border-black/10 bg-white/35 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.03]"
+          className="heritage-card rounded-2xl border p-4 shadow-sm sm:p-5"
           data-testid="muhurta-controls"
         >
           <h2 className="text-sm font-semibold uppercase text-accent">{dict.muhurta.controlsTitle}</h2>

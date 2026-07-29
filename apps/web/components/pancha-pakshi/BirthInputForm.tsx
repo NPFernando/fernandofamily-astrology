@@ -5,6 +5,8 @@ import { useLocale } from "@/lib/locale-context";
 import { fetchBirthBird, ApiError, type BirdSelectionInput, type BirthBirdResponse } from "@/lib/api-client";
 import { LocationPicker, mostRecentLocation, type LocationValue } from "./LocationPicker";
 import { TargetDateTimeFields, nowAsTargetDateTime, type TargetDateTime } from "./TargetDateTimeFields";
+import { loadBirthCalculationHandoff } from "@/lib/birth-calculation-handoff";
+import { mostRecentBirthDetails, saveRecentBirthDetails } from "@/lib/recent-birth-details";
 
 export function BirthInputForm({ onSubmit }: { onSubmit: (input: BirdSelectionInput) => void }) {
   const { dict } = useLocale();
@@ -23,11 +25,17 @@ export function BirthInputForm({ onSubmit }: { onSubmit: (input: BirdSelectionIn
     // post-mount (not a lazy initializer) since mostRecentLocation() reads
     // localStorage — matching the hydration-safe pattern LocationPicker
     // itself and PanchangaClient already use.
-    const recent = mostRecentLocation();
+    const handoff = loadBirthCalculationHandoff();
+    const recent = handoff?.input.location ?? mostRecentLocation();
     if (recent) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
       setLocation(recent);
       setTarget(nowAsTargetDateTime(recent.iana_tz));
+    }
+    const birth = handoff?.input ?? mostRecentBirthDetails();
+    if (birth) {
+      setBirthDate("birthDate" in birth ? birth.birthDate : birth.birth_date);
+      setBirthTime("birthTime" in birth ? birth.birthTime : birth.birth_time);
     }
   }, []);
 
@@ -54,6 +62,7 @@ export function BirthInputForm({ onSubmit }: { onSubmit: (input: BirdSelectionIn
         iana_tz: location!.iana_tz,
       });
       setConfirmed(result);
+      saveRecentBirthDetails({ birth_date: birthDate, birth_time: birthTime.length === 5 ? `${birthTime}:00` : birthTime });
     } catch (e) {
       setError(e instanceof ApiError ? dict.ui.error : dict.ui.error);
     } finally {

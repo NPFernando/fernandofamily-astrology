@@ -48,6 +48,7 @@ import {
 } from "@/components/pancha-pakshi/LocationPicker";
 import { DailyTimingTimeline } from "@/components/panchanga/DailyTimingTimeline";
 import { PoyaDetailCard } from "@/components/panchanga/PoyaDetailCard";
+import { ToolPageHero } from "@/components/layout/ToolPageHero";
 import { FamilyAlmanacIcon, MoonCalendarIcon } from "@/components/icons/features";
 import { BIRD_ICONS } from "@/components/icons/birds";
 import { FullMoonIcon } from "@/components/icons/moon";
@@ -79,6 +80,17 @@ const GRADE_STYLE: Record<MuhurtaGrade, string> = {
   excellent: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
   good: "border-sky-500/40 bg-sky-500/10 text-sky-700 dark:text-sky-300",
   usable: "border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-300",
+};
+
+// Inline token colors are useful for charts, but small text needs theme-aware
+// AA contrast against the app surface. Keep the localized effect label as the
+// semantic cue; these classes merely make that cue readable in both themes.
+const EFFECT_TEXT_STYLE: Record<keyof typeof EFFECT_COLORS, string> = {
+  very_bad: "text-red-800 dark:text-red-300",
+  bad: "text-orange-800 dark:text-orange-300",
+  average: "text-amber-800 dark:text-amber-300",
+  good: "text-lime-800 dark:text-lime-300",
+  very_good: "text-green-800 dark:text-green-300",
 };
 
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
@@ -554,17 +566,16 @@ export function FamilyAlmanacClient() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="max-w-3xl">
-        <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <FamilyAlmanacIcon className="text-3xl text-accent" />
-          {dict.familyAlmanac.title}
-        </h1>
-        <p className="mt-1 text-sm leading-relaxed opacity-80 sm:text-base">{dict.familyAlmanac.description}</p>
-      </header>
+      <ToolPageHero
+        icon={<FamilyAlmanacIcon />}
+        title={dict.familyAlmanac.title}
+        description={dict.familyAlmanac.description}
+        eyebrow={dict.ui.heritageDescriptor}
+      />
 
       <section
         data-testid="family-almanac-controls"
-        className="rounded-xl border border-black/10 bg-white/40 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.04]"
+        className="heritage-card rounded-2xl border p-4 shadow-sm sm:p-5"
       >
         <h2 className="text-sm font-semibold uppercase tracking-wide text-accent">
           {dict.familyAlmanac.controlsTitle}
@@ -620,7 +631,7 @@ export function FamilyAlmanacClient() {
         <div data-testid="family-almanac-result" className="flex flex-col gap-5">
           <section
             data-testid="family-almanac-summary"
-            className="rounded-xl border border-black/10 bg-white/35 p-4 dark:border-white/10 dark:bg-white/[.03]"
+            className="heritage-card rounded-2xl border p-4 sm:p-5"
           >
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div>
@@ -716,7 +727,7 @@ export function FamilyAlmanacClient() {
 
           <section
             data-testid="family-almanac-profile-cards"
-            className="rounded-xl border border-black/10 bg-white/25 p-4 dark:border-white/10 dark:bg-white/[.03]"
+            className="heritage-card rounded-2xl border p-4 sm:p-5"
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -745,7 +756,7 @@ export function FamilyAlmanacClient() {
 
           <section
             data-testid="family-almanac-week"
-            className="rounded-xl border border-black/10 bg-white/25 p-4 dark:border-white/10 dark:bg-white/[.03]"
+            className="heritage-card rounded-2xl border p-4 sm:p-5"
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -782,7 +793,7 @@ export function FamilyAlmanacClient() {
 
           <section
             data-testid="family-almanac-best-windows"
-            className="rounded-xl border border-emerald-600/25 bg-emerald-600/5 p-4"
+            className="heritage-card rounded-2xl border border-emerald-600/25 bg-emerald-600/5 p-4 sm:p-5"
           >
             <h2 className="text-sm font-semibold uppercase">{dict.familyAlmanac.defaultWindowsTitle}</h2>
             {bestWindows.length === 0 ? (
@@ -841,7 +852,7 @@ function ProfileSelector({
   }
 
   return (
-    <div className="rounded-lg border border-black/10 p-3 dark:border-white/10">
+    <div className="rounded-xl border border-black/10 bg-background/35 p-3 dark:border-white/10">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase opacity-70">{dict.familyAlmanac.profileSelectorTitle}</p>
@@ -855,7 +866,7 @@ function ProfileSelector({
       <form
         data-testid="family-almanac-quick-profile"
         onSubmit={submitQuickProfile}
-        className="mt-3 rounded-lg border border-black/10 bg-background/70 p-3 dark:border-white/10"
+        className="mt-3 rounded-xl border border-black/10 bg-background/70 p-3 dark:border-white/10"
       >
         <p className="text-xs font-semibold uppercase opacity-70">{dict.familyAlmanac.quickProfileTitle}</p>
         <p className="mt-1 text-xs leading-relaxed opacity-70">{dict.familyAlmanac.quickProfileDescription}</p>
@@ -988,7 +999,7 @@ function FamilyActions({
   return (
     <section
       data-testid="family-almanac-actions"
-      className="print:hidden rounded-xl border border-black/10 bg-white/25 p-4 dark:border-white/10 dark:bg-white/[.03]"
+      className="print:hidden heritage-card rounded-2xl border p-4 sm:p-5"
     >
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
@@ -1052,7 +1063,7 @@ function EmptyProfiles({ dict, locale }: { dict: Dictionary; locale: "en" | "si"
 
 function Fact({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-black/10 bg-background p-3 dark:border-white/10">
+    <div className="rounded-xl border border-black/10 bg-background/70 p-3 dark:border-white/10">
       <p className="text-xs font-semibold uppercase opacity-70">{label}</p>
       <p className="mt-1 break-words text-sm font-semibold">{value}</p>
     </div>
@@ -1074,7 +1085,7 @@ function ProfileCard({
   return (
     <article
       data-testid="family-almanac-person-card"
-      className="min-w-0 rounded-lg border border-black/10 bg-background p-3 text-sm dark:border-white/10"
+      className="min-w-0 rounded-xl border border-black/10 bg-background/70 p-3 text-sm dark:border-white/10"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -1233,7 +1244,7 @@ function WeekDayCard({
 function PeriodPill({ period, dict, locale }: { period: SubPeriod; dict: Dictionary; locale: "en" | "si" }) {
   return (
     <div className="rounded-lg border border-black/10 bg-background p-3 text-sm dark:border-white/10">
-      <p className="font-semibold" style={{ color: EFFECT_COLORS[period.effect] }}>
+      <p className={`font-semibold ${EFFECT_TEXT_STYLE[period.effect]}`}>
         {translateEnum(dict, "effects", period.effect)}
       </p>
       <p className="mt-1 text-xs opacity-75">

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { DICTS, watchForBirthDataInUrls, type LocaleKey } from "./helpers";
+import { DICTS, expectMainBird, waitForSchedule, watchForBirthDataInUrls, type LocaleKey } from "./helpers";
 
 const SAMPLE = { date: "2000-01-01", time: "12:00" } as const;
 
@@ -49,6 +49,50 @@ test("horoscope report: saves only derived profile fields", async ({ page }) => 
   expect(raw).not.toContain("birth_time");
   expect(raw).not.toContain("latitude");
   expect(raw).not.toContain("longitude");
+});
+
+test("horoscope report: reuses the same-tab calculated chart and Dasha in their dedicated reports", async ({ page }) => {
+  const watcher = watchForBirthDataInUrls(page);
+  await calculateReport(page, "en");
+
+  let chartRequests = 0;
+  let dashaRequests = 0;
+  await page.route("**/api/v1/birth-chart", async (route) => {
+    chartRequests += 1;
+    await route.continue();
+  });
+  await page.route("**/api/v1/dasha", async (route) => {
+    dashaRequests += 1;
+    await route.continue();
+  });
+
+  await page.goto("/en/birth-chart");
+  await expect(page.locator('[data-testid="birth-chart-result"]')).toBeVisible();
+  await page.goto("/en/dasha");
+  await expect(page.locator('[data-testid="dasha-result"]')).toBeVisible();
+  expect(chartRequests).toBe(0);
+  expect(dashaRequests).toBe(0);
+  watcher.assertClean();
+});
+
+test("horoscope report: reuses its derived identity for Pancha Pakshi without another birth form", async ({ page }) => {
+  const watcher = watchForBirthDataInUrls(page);
+  await calculateReport(page, "en");
+
+  await page.goto("/en/pancha-pakshi");
+  await waitForSchedule(page, "en");
+  await expectMainBird(page, "en", "crow");
+  watcher.assertClean();
+});
+
+test("birth-chart: can clear the same-tab calculation and start again", async ({ page }) => {
+  await calculateReport(page, "en");
+  await page.goto("/en/birth-chart");
+  await expect(page.getByTestId("birth-calculation-handoff")).toBeVisible();
+  await page.getByRole("button", { name: DICTS.en.ui.startFresh }).click();
+  await expect(page.getByTestId("birth-calculation-handoff")).toBeHidden();
+  await expect(page.locator('[data-testid="birth-chart-result"]')).toBeHidden();
+  await expect(page.locator('input[type="date"]')).toHaveValue("");
 });
 
 test("horoscope report: share action keeps birth data in POST body only", async ({ page }) => {

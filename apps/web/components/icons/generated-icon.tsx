@@ -9,6 +9,7 @@ export function GeneratedIcon({
   srcSet,
   className,
   style,
+  loading = "lazy",
   ...props
 }: GeneratedIconProps & {
   name: string;
@@ -32,7 +33,7 @@ export function GeneratedIcon({
       className={["inline-block", className].filter(Boolean).join(" ")}
       decoding="async"
       height={64}
-      loading="eager"
+      loading={loading}
       src={src}
       srcSet={srcSet}
       style={mergedStyle}

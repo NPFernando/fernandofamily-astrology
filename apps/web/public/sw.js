@@ -1,76 +1,23 @@
-// Minimal app-shell service worker. Caches the shell, locale data, and icons
-// so the site is reachable offline; the schedule itself is cached separately
+// Minimal app-shell service worker. Precache only the locale fallback shells
+// and install metadata so activation stays fast on mobile connections. Pages,
+// posters, and generated badges are cached at runtime as users visit them.
+// The schedule itself is cached separately
 // in localStorage by the app (see app/[locale]/pancha-pakshi/page.tsx) and
 // re-rendered there with an explicit "cached, not live" label — this worker
 // does not attempt any astronomical calculation of its own.
-const CACHE_NAME = "ff-astrology-shell-v6";
+const CACHE_NAME = "ff-astrology-shell-v10";
+const POSTER_CACHE_NAME = "ff-astrology-posters-v1";
+const MAX_POSTER_ENTRIES = 96;
 // Locale data is bundled into the page JS (imported at build time, not
 // fetched from a public URL), so it's cached automatically once the page
 // itself is cached below — no separate /locales/*.json entries needed here.
 const PRECACHE_URLS = [
   "/en",
   "/si",
-  "/en/pancha-pakshi",
-  "/si/pancha-pakshi",
-  "/en/panchanga",
-  "/si/panchanga",
-  "/en/moon-calendar",
-  "/si/moon-calendar",
-  "/en/daily-guide",
-  "/si/daily-guide",
-  "/en/family-almanac",
-  "/si/family-almanac",
-  "/en/muhurta",
-  "/si/muhurta",
-  "/en/compatibility",
-  "/si/compatibility",
-  "/en/divisional-charts",
-  "/si/divisional-charts",
-  "/en/porondam",
-  "/si/porondam",
-  "/en/birth-chart",
-  "/si/birth-chart",
-  "/en/dasha",
-  "/si/dasha",
   "/icons/app/icon-192.png",
   "/icons/app/icon-512.png",
   "/icons/app/icon-maskable-512.png",
   "/icons/apple-touch-icon.png",
-  "/posters/landing-almanac.webp",
-  "/posters/features/birth-nakshatra.webp",
-  "/posters/features/pancha-pakshi.webp",
-  "/posters/features/panchanga.webp",
-  "/posters/features/moon-calendar.webp",
-  "/posters/features/daily-guide.webp",
-  "/posters/features/family-almanac.webp",
-  "/posters/features/muhurta.webp",
-  "/posters/features/compatibility.webp",
-  "/posters/features/divisional-charts.webp",
-  "/posters/features/porondam.webp",
-  "/posters/features/birth-chart.webp",
-  "/posters/features/dasha.webp",
-  "/icons/generated/birds/vulture-64.png",
-  "/icons/generated/birds/owl-64.png",
-  "/icons/generated/birds/crow-64.png",
-  "/icons/generated/birds/cock-64.png",
-  "/icons/generated/birds/peacock-64.png",
-  "/icons/generated/activities/ruling-64.png",
-  "/icons/generated/activities/eating-64.png",
-  "/icons/generated/activities/walking-64.png",
-  "/icons/generated/activities/sleeping-64.png",
-  "/icons/generated/activities/dying-64.png",
-  "/icons/generated/features/birth-nakshatra-64.png",
-  "/icons/generated/features/pancha-pakshi-64.png",
-  "/icons/generated/features/panchanga-64.png",
-  "/icons/generated/features/moon-calendar-64.png",
-  "/icons/generated/features/daily-guide-64.png",
-  "/icons/generated/features/family-almanac-64.png",
-  "/icons/generated/features/muhurta-64.png",
-  "/icons/generated/features/compatibility-64.png",
-  "/icons/generated/features/divisional-charts-64.png",
-  "/icons/generated/features/porondam-64.png",
-  "/icons/generated/features/birth-chart-64.png",
-  "/icons/generated/features/dasha-64.png",
   "/manifest.webmanifest",
 ];
 
@@ -88,7 +35,7 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
+      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME && key !== POSTER_CACHE_NAME).map((key) => caches.delete(key))))
       .then(() => self.clients.claim()),
   );
 });
@@ -101,6 +48,23 @@ self.addEventListener("fetch", (event) => {
   // Never intercept API calls — the app itself handles online/offline
   // fallback for calculation requests explicitly and labels cached data.
   if (url.pathname.startsWith("/api/")) return;
+
+  if (url.origin === self.location.origin && url.pathname.startsWith("/posters/")) {
+    event.respondWith(
+      caches.open(POSTER_CACHE_NAME).then(async (cache) => {
+        const cached = await cache.match(request);
+        if (cached) return cached;
+        const response = await fetch(request);
+        if (response.ok && response.type === "basic") {
+          await cache.put(request, response.clone());
+          const keys = await cache.keys();
+          await Promise.all(keys.slice(0, Math.max(0, keys.length - MAX_POSTER_ENTRIES)).map((key) => cache.delete(key)));
+        }
+        return response;
+      }),
+    );
+    return;
+  }
 
   event.respondWith(
     fetch(request)

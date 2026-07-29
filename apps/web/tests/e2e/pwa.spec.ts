@@ -15,6 +15,79 @@ async function dispatchInstallPrompt(page: import("@playwright/test").Page) {
   });
 }
 
+test("manifest advertises installable PNG and maskable app icons", async ({ request }) => {
+  const manifestResponse = await request.get("/manifest.webmanifest");
+  expect(manifestResponse.ok()).toBe(true);
+  const manifest = await manifestResponse.json();
+
+  expect(manifest).toMatchObject({
+    display: "standalone",
+    start_url: "/",
+    scope: "/",
+    theme_color: "#b45309",
+  });
+  expect(manifest.icons).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ src: "/icons/app/icon-192.png", sizes: "192x192", purpose: "any" }),
+      expect.objectContaining({ src: "/icons/app/icon-512.png", sizes: "512x512", purpose: "any" }),
+      expect.objectContaining({ src: "/icons/app/icon-maskable-512.png", sizes: "512x512", purpose: "maskable" }),
+    ]),
+  );
+
+  for (const icon of manifest.icons) {
+    const response = await request.get(icon.src);
+    expect(response.ok(), `${icon.src} should be served`).toBe(true);
+    expect(response.headers()["content-type"]).toContain("image/png");
+  }
+});
+
+test("service worker precaches only the fast offline shell", async ({ request }) => {
+  const response = await request.get("/sw.js");
+  expect(response.ok()).toBe(true);
+  const worker = await response.text();
+
+  for (const asset of ["/en", "/si", "/icons/app/icon-192.png", "/icons/apple-touch-icon.png", "/manifest.webmanifest"]) {
+    expect(worker).toContain(asset);
+  }
+  const precacheSection = worker.slice(worker.indexOf("const PRECACHE_URLS"), worker.indexOf('self.addEventListener("install"'));
+  expect(precacheSection).not.toContain('"/posters/');
+  expect(precacheSection).not.toContain('"/icons/generated/');
+  expect(worker).toContain("POSTER_CACHE_NAME");
+  expect(worker).toContain("MAX_POSTER_ENTRIES = 96");
+});
+
+test("responsive posters advertise a cache-friendly HTTP policy", async ({ request }) => {
+  const poster = await request.get("/posters/landing-heritage-v2-480.avif");
+  expect(poster.ok()).toBe(true);
+  expect(poster.headers()["cache-control"]).toContain("max-age=86400");
+  expect(poster.headers()["cache-control"]).toContain("stale-while-revalidate=604800");
+});
+
+test("service worker provides the matching locale shell while offline", async ({ page, context }) => {
+  await page.goto("/en");
+  await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
+  await page.reload();
+  await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
+
+  await context.setOffline(true);
+  try {
+    const [english, sinhala] = await page.evaluate(async () => {
+      const offlinePage = async (path: string) => {
+        const response = await fetch(path);
+        return { status: response.status, body: await response.text() };
+      };
+      return Promise.all([offlinePage("/en/offline-check"), offlinePage("/si/offline-check")]);
+    });
+
+    expect(english.status).toBe(200);
+    expect(english.body).toContain('<html lang="en"');
+    expect(sinhala.status).toBe(200);
+    expect(sinhala.body).toContain('<html lang="si"');
+  } finally {
+    await context.setOffline(false);
+  }
+});
+
 test("install prompt button calls the deferred browser prompt", async ({ page }) => {
   await page.goto("/en");
 

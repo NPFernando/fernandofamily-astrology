@@ -25,6 +25,7 @@ import { PrintSheet, type ExportDetail } from "@/components/pancha-pakshi/PrintS
 import { Legend } from "@/components/pancha-pakshi/Legend";
 import { StickyCurrentBar } from "@/components/pancha-pakshi/StickyCurrentBar";
 import { PanchaPakshiIcon } from "@/components/icons/features";
+import { ToolPageHero } from "@/components/layout/ToolPageHero";
 import {
   fetchLiveSchedule,
   hasDerivedIdentitySeed,
@@ -260,13 +261,12 @@ export function PanchaPakshiClient() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="max-w-3xl">
-        <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <PanchaPakshiIcon className="text-3xl text-accent" />
-          {resolveKey(dict, feature.titleKey)}
-        </h1>
-        <p className="mt-1 text-sm opacity-80 sm:text-base">{resolveKey(dict, feature.descriptionKey)}</p>
-      </header>
+      <ToolPageHero
+        icon={<PanchaPakshiIcon />}
+        title={resolveKey(dict, feature.titleKey)}
+        description={resolveKey(dict, feature.descriptionKey)}
+        eyebrow={dict.ui.heritageDescriptor}
+      />
 
       {!isOnline && (
         <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm">
@@ -300,7 +300,7 @@ export function PanchaPakshiClient() {
                 </p>
               )}
 
-              <section className="rounded-xl border border-black/10 bg-white/35 p-3 shadow-sm dark:border-white/10 dark:bg-white/[.03] sm:p-4">
+              <section className="heritage-card rounded-xl border p-3 sm:p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <DateNav date={displayedDate} onChange={changeDate} />
                   <div className="flex flex-wrap items-center gap-2">
@@ -349,7 +349,7 @@ export function PanchaPakshiClient() {
               />
 
               <details
-                className="rounded-xl border border-black/10 bg-white/30 p-3 dark:border-white/10 dark:bg-white/[.03] lg:hidden"
+                className="heritage-card rounded-xl border p-3 lg:hidden"
                 data-testid="change-details-panel"
               >
                 <summary className="cursor-pointer text-sm font-semibold text-accent">{dict.ui.changeDetails}</summary>
@@ -365,7 +365,7 @@ export function PanchaPakshiClient() {
               />
 
               <details
-                className="rounded-xl border border-black/10 bg-white/30 p-4 dark:border-white/10 dark:bg-white/[.03]"
+                className="heritage-card rounded-xl border p-4"
                 data-testid="tools-context-panel"
               >
                 <summary className="cursor-pointer text-sm font-semibold text-accent">{dict.ui.toolsAndContext}</summary>
@@ -452,7 +452,7 @@ function ScheduleSettings({
   const { dict } = useLocale();
 
   return (
-    <section className="flex flex-col gap-4 rounded-xl border border-black/10 bg-white/45 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.04]">
+    <section className="heritage-card flex flex-col gap-4 rounded-xl border p-4">
       <h2 className="text-sm font-semibold uppercase tracking-wide text-accent">{dict.ui.scheduleSettings}</h2>
       <SavedProfiles onPick={scheduleFromProfile} saveCandidate={saveCandidate} />
 

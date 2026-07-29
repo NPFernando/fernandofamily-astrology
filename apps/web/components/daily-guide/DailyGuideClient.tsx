@@ -39,6 +39,7 @@ import { BIRD_ICONS } from "@/components/icons/birds";
 import { ACTIVITY_ICONS } from "@/components/icons/activities";
 import { ACTIVITY_COLORS } from "@/components/pancha-pakshi/activityColors";
 import { DailyGuideIcon } from "@/components/icons/features";
+import { ToolPageHero } from "@/components/layout/ToolPageHero";
 import { FullMoonIcon } from "@/components/icons/moon";
 import { activityGuidance } from "@/lib/pancha-guidance";
 import { SkyTodayPanel } from "@/components/panchanga/SkyTodayPanel";
@@ -138,6 +139,14 @@ function addDays(date: string, days: number): string {
   const d = new Date(`${date}T12:00:00`);
   d.setDate(d.getDate() + days);
   return d.toISOString().slice(0, 10);
+}
+
+async function retryOnce<T>(request: () => Promise<T>): Promise<T> {
+  try {
+    return await request();
+  } catch {
+    return request();
+  }
 }
 
 function locationFromRequest(request: ScheduleRequest): LocationValue {
@@ -489,15 +498,7 @@ export function DailyGuideClient() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="max-w-3xl">
-        <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <DailyGuideIcon className="text-3xl text-accent" />
-          {dict.dailyGuide.title}
-        </h1>
-        <p className="mt-1 text-sm leading-relaxed opacity-80 sm:text-base">
-          {dict.dailyGuide.description}
-        </p>
-      </header>
+      <ToolPageHero icon={<DailyGuideIcon />} title={dict.dailyGuide.title} description={dict.dailyGuide.description} eyebrow={dict.ui.heritageDescriptor} />
 
       <div
         role="tablist"
@@ -523,7 +524,7 @@ export function DailyGuideClient() {
 
       <section
         data-testid="daily-guide-controls"
-        className="rounded-xl border border-black/10 bg-white/40 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.04]"
+        className="heritage-card rounded-xl border p-4"
       >
         <h2 className="text-sm font-semibold uppercase tracking-wide text-accent">
           {dict.dailyGuide.controlsTitle}
@@ -661,7 +662,7 @@ export function DailyGuideClient() {
         <div data-testid="daily-guide-result" className="flex flex-col gap-5">
           <section
             data-testid="daily-guide-summary"
-            className="rounded-xl border border-black/10 bg-white/35 p-4 dark:border-white/10 dark:bg-white/[.03]"
+            className="heritage-card rounded-xl border p-4"
           >
             <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
               <div>
@@ -890,6 +891,7 @@ function FamilyWeekPlanner({
   const [profileResults, setProfileResults] = useState<FamilyWeekProfileResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     if (!probe.loaded) return;
@@ -946,8 +948,9 @@ function FamilyWeekPlanner({
           const request = muhurtaRequestFromProfile(profile, startDate, location);
           return request ? [{ profile, request }] : [];
         });
-        const settled = await Promise.allSettled(requests.map(({ request }) => fetchMuhurta(request)));
+        const settled = await Promise.allSettled(requests.map(({ request }) => retryOnce(() => fetchMuhurta(request))));
         if (cancelled) return;
+        if (settled.some((result) => result.status === "rejected")) setError(dict.ui.error);
         setProfileResults(
           requests.map(({ profile }, index) => {
             const result = settled[index];
@@ -967,7 +970,7 @@ function FamilyWeekPlanner({
     return () => {
       cancelled = true;
     };
-  }, [dates, dict.ui.error, location, profilesLoaded, selectedProfiles, startDate]);
+  }, [dates, dict.ui.error, location, profilesLoaded, refreshKey, selectedProfiles, startDate]);
 
   function toggleProfile(id: string) {
     setSelectedIds((current) => {
@@ -1034,7 +1037,14 @@ function FamilyWeekPlanner({
 
           {error ? (
             <div role="alert" className="rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm">
-              {error}
+              <p>{error}</p>
+              <button
+                type="button"
+                onClick={() => setRefreshKey((current) => current + 1)}
+                className="mt-2 rounded-lg border border-black/10 px-3 py-1.5 text-sm font-semibold dark:border-white/20"
+              >
+                {dict.ui.retry}
+              </button>
             </div>
           ) : null}
 

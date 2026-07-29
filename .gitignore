@@ -36,6 +36,7 @@ apps/web/.next/
 apps/web/tsconfig.tsbuildinfo
 apps/web/test-results/
 apps/web/playwright-report/
+apps/web/.lighthouseci/
 .push-dispatch.log
 .last-good-tag
 graphify-out/

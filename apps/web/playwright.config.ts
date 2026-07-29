@@ -2,13 +2,13 @@ import { readFileSync } from "node:fs";
 import { defineConfig, devices } from "@playwright/test";
 import webpush from "web-push";
 
-// E2E suite: real browser against the production build (`next start`) and
+// E2E suite: real browser against the production standalone server and
 // the real FastAPI backend (apps/api/.venv must exist — see apps/api README).
 // Run with `pnpm e2e` (which builds first — rewrites bake API_PROXY_TARGET
 // at build time, so the build must happen with the E2E port env too).
 const WEB_PORT = 3199;
 const API_PORT = 8199;
-// A second `next start` of the SAME build with throwaway VAPID keys in its
+// A second standalone server of the SAME build with throwaway VAPID keys in its
 // env — the push flag is read at request time, so one build serves both the
 // "push off" (3199) and "push on" (3197) servers. push.spec.ts targets the
 // push port explicitly; every other spec keeps the flag-off baseURL.
@@ -37,7 +37,7 @@ export const PUSH_E2E = {
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  fullyParallel: false, // shared next start instance; specs are fast enough serially
+  fullyParallel: false, // shared standalone server instance; specs are fast enough serially
   retries: process.env.CI ? 2 : 1,
   reporter: process.env.CI ? "github" : "list",
   timeout: 90_000,

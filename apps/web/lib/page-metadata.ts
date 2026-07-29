@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DEFAULT_LOCALE, getDictionary, isLocale, type Locale } from "@/lib/i18n";
 import { DEFAULT_OG_IMAGE, FEATURE_OG_IMAGES, featureVisualFromPath } from "@/lib/feature-assets";
+import { PUBLIC_BASE_URL } from "@/lib/site-config";
 
 type Dict = ReturnType<typeof getDictionary>;
 type MetadataPageKey = keyof Dict["metadata"];
@@ -23,6 +24,10 @@ export async function localizedPageMetadata(
   const entry = dict.metadata[page] as { title?: string; description: string };
   const feature = featureVisualFromPath(path);
   const image = feature ? FEATURE_OG_IMAGES[feature] : DEFAULT_OG_IMAGE;
+  const title = entry.title ?? dict.platform.name;
+  const localeTag = locale === "si" ? "si_LK" : "en_US";
+  const alternateLocale = locale === "si" ? "en_US" : "si_LK";
+  const url = `${PUBLIC_BASE_URL}/${locale}${path}`;
   return {
     ...(entry.title ? { title: entry.title } : {}),
     description: entry.description,
@@ -31,12 +36,19 @@ export async function localizedPageMetadata(
       languages: { en: `/en${path}`, si: `/si${path}` },
     },
     openGraph: {
-      ...(entry.title ? { title: entry.title } : {}),
+      title,
       description: entry.description,
-      images: [{ url: image, width: 1200, height: 630 }],
+      url,
+      siteName: dict.platform.name,
+      type: "website",
+      locale: localeTag,
+      alternateLocale,
+      images: [{ url: image, width: 1200, height: 630, alt: `${title} | ${dict.platform.name}` }],
     },
     twitter: {
       card: "summary_large_image",
+      title,
+      description: entry.description,
       images: [image],
     },
   };

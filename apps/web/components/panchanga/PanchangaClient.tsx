@@ -8,6 +8,7 @@ import { LocationPicker, DEFAULT_LOCATION, mostRecentLocation, type LocationValu
 import { DateNav } from "@/components/pancha-pakshi/DateNav";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import { PanchangaIcon } from "@/components/icons/features";
+import { ToolPageHero } from "@/components/layout/ToolPageHero";
 import { FullMoonIcon } from "@/components/icons/moon";
 import { loadAccountPreferences } from "@/lib/account-preferences";
 import { SkyTodayPanel } from "@/components/panchanga/SkyTodayPanel";
@@ -140,17 +141,15 @@ export function PanchangaClient() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="print:block">
-        <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <PanchangaIcon className="text-3xl text-accent print:hidden" />
-          {dict.panchanga.title}
-        </h1>
-      </header>
+      <div className="print:hidden">
+        <ToolPageHero icon={<PanchangaIcon />} title={dict.panchanga.title} description={dict.features.panchanga.description} eyebrow={dict.ui.heritageDescriptor} />
+      </div>
+      <header className="hidden print:block"><h1>{dict.panchanga.title}</h1></header>
 
       <section
         aria-label={dict.ui.dailyDetails}
         data-testid="panchanga-controls"
-        className="rounded-xl border border-black/10 bg-white/40 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.04] print:hidden"
+        className="heritage-card rounded-xl border p-4 print:hidden"
       >
         <h2 className="text-sm font-semibold uppercase tracking-wide text-accent">{dict.ui.dailyDetails}</h2>
         <div className="mt-3 flex flex-col gap-4">

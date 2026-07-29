@@ -25,7 +25,7 @@ for (const locale of ["en", "si"] as const) {
     await expect(page.locator('[data-testid="moon-calendar-grid"]')).toBeVisible();
     const selected = page.locator('[data-testid="moon-calendar-selected-day"]');
     await expect(selected).toBeVisible();
-    await expect(selected.getByText(DICTS[locale].moonCalendar.moonPhase)).toBeVisible();
+    await expect(selected.getByText(DICTS[locale].moonCalendar.moonPhase, { exact: true }).first()).toBeVisible();
     watcher.assertClean();
   });
 }
@@ -70,6 +70,7 @@ test("moon calendar: landing card, nav link, and sitemap are present", async ({ 
   await expect(
     page.getByRole("link", { name: new RegExp(DICTS.en.features.moonCalendar.title) }).first(),
   ).toBeVisible();
+  await page.getByText(DICTS.en.ui.todayTools, { exact: true }).click();
   await page.getByRole("link", { name: DICTS.en.nav.moonCalendar }).first().click();
   await expect(page).toHaveURL(/\/en\/moon-calendar$/);
 

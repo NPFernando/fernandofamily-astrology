@@ -31,6 +31,34 @@ curl -I http://127.0.0.1:3100/
 curl http://127.0.0.1:8100/metrics
 ```
 
+### Optional image-delivery aggregate export
+
+Leave `IMAGE_TELEMETRY_DASHBOARD_TOKEN` blank to keep the export route
+disabled. To enable the operational-only aggregate export, generate a long
+random value on the host, add it to `.env`, and restart the web container:
+
+```bash
+openssl rand -hex 32
+# set IMAGE_TELEMETRY_DASHBOARD_TOKEN=<generated value> in .env
+docker compose -f docker-compose.yml -f docker-compose.production.yml up -d web
+IMAGE_TELEMETRY_BASE_URL=http://127.0.0.1:3100 \
+IMAGE_TELEMETRY_DASHBOARD_TOKEN='<generated value>' \
+  pnpm -C apps/web telemetry:images:export
+```
+
+The output contains only process-lifetime aggregate outcome and transfer-size
+buckets. Do not expose this bearer token or the endpoint through a public
+dashboard.
+
+#### Rotate the export token
+
+Rotate this token like any operational secret: generate a new value, replace
+the value in the host `.env`, restart only the web service, and verify the new
+Bearer value through the loopback export command above. The old value must
+then return `404`; remove it from the shell history and any temporary notes.
+Because the endpoint fails closed when the variable is unset, removing the
+variable is also the immediate disable procedure.
+
 `docker-compose.production.yml` binds both services to `127.0.0.1` only —
 a reverse proxy (nginx, Caddy, or otherwise) is required to actually expose
 the site publicly. See [`dns-and-https.md`](dns-and-https.md).

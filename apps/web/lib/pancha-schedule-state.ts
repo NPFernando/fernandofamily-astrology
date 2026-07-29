@@ -11,6 +11,7 @@ import { loadAccountPreferences } from "@/lib/account-preferences";
 import { listLocalProfiles } from "@/lib/profiles";
 import { DEFAULT_LOCATION, mostRecentLocation } from "@/components/pancha-pakshi/LocationPicker";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
+import { loadBirthCalculationHandoff } from "@/lib/birth-calculation-handoff";
 
 const SCHEDULE_CACHE_KEY = "ff_last_schedule_cache";
 const SESSION_SCHEDULE_KEY = "ff_session_schedule";
@@ -135,8 +136,18 @@ export async function resolveDefaultScheduleRequest(): Promise<ScheduleRequest> 
   const localProfiles = listLocalProfiles();
   const newest = localProfiles[localProfiles.length - 1];
   const storedBird = window.localStorage.getItem("ff_selected_bird") as BirdId | null;
-  const derivedSeed = loadDerivedIdentitySeed();
-  const location = account.preferences?.default_location ?? mostRecentLocation() ?? DEFAULT_LOCATION;
+  const handoff = loadBirthCalculationHandoff();
+  const identity = handoff?.identity;
+  const derivedSeed = loadDerivedIdentitySeed() ?? (identity
+    ? {
+        bird: identity.birth_bird,
+        nakshatra_index: identity.nakshatra.index,
+        paksha: identity.paksha,
+        moon_rashi_index: identity.moon_rashi.index,
+        savedAtIso: handoff.savedAt,
+      }
+    : null);
+  const location = handoff?.input.location ?? account.preferences?.default_location ?? mostRecentLocation() ?? DEFAULT_LOCATION;
   const target = nowAsTargetDateTime(location.iana_tz);
   const base = {
     target_date: target.date,

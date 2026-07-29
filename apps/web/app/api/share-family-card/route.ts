@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import sharp from "sharp";
 import en from "@/locales/en.json";
 import si from "@/locales/si.json";
@@ -12,6 +14,15 @@ const DICTS = { en, si } as const;
 type Locale = (typeof LOCALES)[number];
 type Bird = (typeof BIRDS)[number];
 type Paksha = (typeof PAKSHAS)[number];
+
+async function badge(kind: "birds" | "activities", id: string, size: number): Promise<Buffer | null> {
+  try {
+    const source = await readFile(join(process.cwd(), "public", "icons", "generated", kind, `${id}-256.png`));
+    return await sharp(source).resize(size, size, { fit: "contain" }).png().toBuffer();
+  } catch {
+    return null;
+  }
+}
 
 type ShareProfile = {
   label: string;
@@ -195,10 +206,10 @@ function buildSvg(input: ShareRequest, panchanga: DailyPanchanga, rows: MuhurtaR
         : dict.familyAlmanac.noWindowStatus;
       return `<g>
         <rect x="${x}" y="${y - 34}" width="${W - x * 2}" height="50" rx="8" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.18)"/>
-        <text x="${x + 20}" y="${y}" font-family="Noto Sans Sinhala, Noto Sans, sans-serif" font-size="23" font-weight="700" fill="#ffffff">${esc(row.profile.label)}</text>
+        <text x="${x + 76}" y="${y}" font-family="Noto Sans Sinhala, Noto Sans, sans-serif" font-size="23" font-weight="700" fill="#ffffff">${esc(row.profile.label)}</text>
         <text x="${x + 290}" y="${y}" font-family="Noto Sans Sinhala, Noto Sans, sans-serif" font-size="20" fill="rgba(255,255,255,0.78)">${esc(bird)}</text>
         <text x="${W - x - 20}" y="${y - 3}" text-anchor="end" font-family="Noto Sans, sans-serif" font-size="22" font-weight="700" fill="#ffffff">${esc(time)}</text>
-        <text x="${W - x - 20}" y="${y + 20}" text-anchor="end" font-family="Noto Sans Sinhala, Noto Sans, sans-serif" font-size="15" fill="rgba(255,255,255,0.68)">${esc(meta)}</text>
+        <text x="${W - x - 20}" y="${y + 20}" text-anchor="end" font-family="Noto Sans Sinhala, Noto Sans, sans-serif" font-size="15" fill="rgba(255,255,255,0.76)">${esc(meta)}</text>
       </g>`;
     })
     .join("\n");
@@ -216,9 +227,9 @@ function buildSvg(input: ShareRequest, panchanga: DailyPanchanga, rows: MuhurtaR
   <text x="${x}" y="148" font-family="Noto Sans Sinhala, Noto Sans, sans-serif" font-size="48" font-weight="800" fill="#ffffff">${esc(dict.familyAlmanac.title)}</text>
   <text x="${x}" y="198" font-family="Noto Sans Sinhala, Noto Sans, sans-serif" font-size="28" fill="rgba(255,255,255,0.86)">${esc(dateLine)} · ${esc(input.location.name)}</text>
   <text x="${x}" y="250" font-family="Noto Sans Sinhala, Noto Sans, sans-serif" font-size="23" fill="rgba(255,255,255,0.76)">${esc(panchangaLine(panchanga, input.locale))}</text>
-  <text x="${x}" y="298" font-family="Noto Sans Sinhala, Noto Sans, sans-serif" font-size="18" font-weight="700" fill="rgba(255,255,255,0.62)">${esc(dict.familyAlmanac.bestIndividualWindow)}</text>
+  <text x="${x}" y="298" font-family="Noto Sans Sinhala, Noto Sans, sans-serif" font-size="18" font-weight="700" fill="rgba(255,255,255,0.76)">${esc(dict.familyAlmanac.bestIndividualWindow)}</text>
   ${rowSvg}
-  <text x="${W - x}" y="${H - 34}" text-anchor="end" font-family="Noto Sans, sans-serif" font-size="18" fill="rgba(255,255,255,0.6)">astrology.fernandofamily.com</text>
+  <text x="${W - x}" y="${H - 34}" text-anchor="end" font-family="Noto Sans, sans-serif" font-size="18" fill="rgba(255,255,255,0.76)">astrology.fernandofamily.com</text>
 </svg>`;
 }
 
@@ -273,7 +284,17 @@ export async function POST(request: Request) {
       }),
     );
     const svg = buildSvg(body, panchanga, muhurtaRows);
-    const png = await sharp(Buffer.from(svg)).png().toBuffer();
+    const badges = await Promise.all(
+      muhurtaRows.slice(0, 4).map(async (row, index) => {
+        if (!row.profile.bird) return null;
+        const input = await badge("birds", row.profile.bird, 42);
+        return input ? { input, left: 88, top: 309 + index * 62 } : null;
+      }),
+    );
+    const png = await sharp(Buffer.from(svg))
+      .composite(badges.filter((item): item is { input: Buffer; left: number; top: number } => item !== null))
+      .png()
+      .toBuffer();
     return new NextResponse(new Uint8Array(png), {
       status: 200,
       headers: {

@@ -5,9 +5,11 @@ import "../globals.css";
 import { SUPPORTED_LOCALES, isLocale, getDictionary, type Locale } from "@/lib/i18n";
 import { LocaleProvider } from "@/lib/locale-context";
 import { ThemeProvider } from "@/lib/theme-context";
+import { DataSaverProvider } from "@/lib/data-saver-context";
 import { Nav } from "@/components/layout/Nav";
 import { Footer } from "@/components/layout/Footer";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import { ImageLoadTelemetry } from "@/components/ImageLoadTelemetry";
 import { PUBLIC_BASE_URL } from "@/lib/site-config";
 import { DEFAULT_OG_IMAGE } from "@/lib/feature-assets";
 
@@ -85,18 +87,21 @@ export default async function LocaleLayout({
   return (
     <html
       lang={locale}
-      className={`${bodyFont.variable} ${sinhalaFont.variable} h-full antialiased`}
+      className={`${bodyFont.variable}${locale === "si" ? ` ${sinhalaFont.variable}` : ""} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col">
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <ThemeProvider>
-          <LocaleProvider locale={locale}>
-            <ServiceWorkerRegister />
-            <Nav />
-            <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">{children}</main>
-            <Footer />
-          </LocaleProvider>
+          <DataSaverProvider>
+            <LocaleProvider locale={locale}>
+              <ServiceWorkerRegister />
+              <ImageLoadTelemetry />
+              <Nav />
+              <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">{children}</main>
+              <Footer />
+            </LocaleProvider>
+          </DataSaverProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -33,6 +33,11 @@ Birth data and precise coordinates are never:
 - The most recently successfully calculated schedule, so it can be shown
   (clearly labeled as cached, with its original generation time) if you open
   the app while offline.
+- Recent birth date/time entries, so compatible birth tools can prefill the
+  same details on this device. The exact input plus already-calculated birth
+  identity, chart and Dasha results are retained only in the current tab's
+  session storage for up to 24 hours, so moving between reports does not make
+  you recalculate or retype them.
 
 All of the above lives only in your browser's local storage. A "clear saved
 preferences" action on the Privacy page removes all of it.
@@ -55,6 +60,20 @@ typed is sent, not any location your device has provided.
 
 No advertising, no tracking pixels, no analytics that would let a third
 party build a profile from your usage of this tool.
+
+## Anonymous image-delivery aggregates
+
+To keep decorative images efficient, the web app may count only three
+anonymous outcomes (loaded, deferred, or manually revealed) and a coarse
+transfer-size bucket. The payload contains no asset URL, cookie, account
+identifier, birth detail, location, or other calculator input, and respects
+the browser's Do Not Track preference. These aggregates live only in web
+process memory and reset on a process restart; they are never written to the
+application database.
+
+The aggregate export endpoint is disabled unless the deployment host sets
+`IMAGE_TELEMETRY_DASHBOARD_TOKEN`. It requires that token as a Bearer value,
+so it is not a public analytics endpoint.
 
 ## Period alerts (web push)
 

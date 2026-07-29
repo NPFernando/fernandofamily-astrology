@@ -30,8 +30,21 @@ export const EFFECT_COLORS: Record<EffectKey, string> = {
 // Sunrise amber accent — light and dark theme values (globals.css maps these
 // onto the --accent custom property).
 export const ACCENT = {
-  light: "#b45309",
-  dark: "#f5b942",
+  light: "#8a5a16",
+  dark: "#f2c56b",
+};
+
+// Sri Lankan craft-inspired foundation. These are semantic *brand* colors;
+// activity/effect colors above remain functional data colors and must never be
+// replaced by decorative palette choices.
+export const HERITAGE_COLORS = {
+  indigo: "#13213f",
+  indigoDeep: "#0b1327",
+  templeStone: "#f6f0e5",
+  brass: "#b88a35",
+  saffron: "#b85d28",
+  lotusTeal: "#216d68",
+  ink: "#211a14",
 };
 
 // Landing hero gradients: dawn (light theme) and dusk (dark theme), deep

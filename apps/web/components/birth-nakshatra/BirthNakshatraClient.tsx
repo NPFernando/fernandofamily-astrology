@@ -18,9 +18,13 @@ import {
 import { TargetDateTimeFields } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import { BirthNakshatraIcon } from "@/components/icons/features";
 import { BIRD_ICONS } from "@/components/icons/birds";
+import { ToolPageHero } from "@/components/layout/ToolPageHero";
 import { addProfile } from "@/lib/profiles";
 import { useSessionProbe } from "@/lib/use-session-probe";
 import { saveDerivedIdentitySeed } from "@/lib/pancha-schedule-state";
+import { clearBirthCalculationHandoff, loadBirthCalculationHandoff, saveBirthCalculationHandoff } from "@/lib/birth-calculation-handoff";
+import { mostRecentBirthDetails, saveRecentBirthDetails } from "@/lib/recent-birth-details";
+import { BirthCalculationHandoffNotice } from "@/components/BirthCalculationHandoffNotice";
 
 export function BirthNakshatraClient() {
   const { dict, locale } = useLocale();
@@ -34,12 +38,29 @@ export function BirthNakshatraClient() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
+  const [profileLabel, setProfileLabel] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [usingHandoff, setUsingHandoff] = useState(false);
 
   useEffect(() => {
-    // Hydrate after mount because recent locations live in localStorage.
+    // A same-tab calculated result takes precedence; otherwise use the
+    // device-local recent input for repeat visits.
+    const handoff = loadBirthCalculationHandoff();
+    if (handoff) {
+      setUsingHandoff(true);
+      setLocation(handoff.input.location);
+      setBirthDate(handoff.input.birthDate);
+      setBirthTime(handoff.input.birthTime);
+      setResult(handoff.identity ?? null);
+      return;
+    }
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
     setLocation(mostRecentLocation() ?? DEFAULT_LOCATION);
+    const recent = mostRecentBirthDetails();
+    if (recent) {
+      setBirthDate(recent.birth_date);
+      setBirthTime(recent.birth_time);
+    }
   }, []);
 
   const canCalculate = birthDate !== "" && birthTime !== "" && location !== null;
@@ -57,7 +78,10 @@ export function BirthNakshatraClient() {
         longitude: location!.longitude,
         iana_tz: location!.iana_tz,
       });
+      const normalizedTime = birthTime.length === 5 ? `${birthTime}:00` : birthTime;
       setResult(data);
+      saveRecentBirthDetails({ birth_date: birthDate, birth_time: normalizedTime });
+      saveBirthCalculationHandoff({ birthDate, birthTime: normalizedTime, location: location! }, { identity: data });
     } catch (e) {
       setError(e instanceof ApiError ? dict.ui.error : dict.ui.error);
     } finally {
@@ -82,7 +106,7 @@ export function BirthNakshatraClient() {
 
   async function saveProfile() {
     if (!result) return;
-    const label = window.prompt(dict.ui.profileLabelPrompt)?.trim();
+    const label = profileLabel.trim();
     if (!label) return;
     setSaving(true);
     try {
@@ -94,7 +118,7 @@ export function BirthNakshatraClient() {
         moon_rashi_index: result.moon_rashi.index,
       });
       setJustSaved(true);
-      window.setTimeout(() => setJustSaved(false), 2500);
+      setProfileLabel("");
     } finally {
       setSaving(false);
     }
@@ -102,19 +126,26 @@ export function BirthNakshatraClient() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="max-w-3xl">
-        <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <BirthNakshatraIcon className="text-3xl text-accent" />
-          {dict.birthNakshatra.title}
-        </h1>
-        <p className="mt-1 text-sm leading-relaxed opacity-80 sm:text-base">
-          {dict.birthNakshatra.description}
-        </p>
-      </header>
+      <ToolPageHero
+        icon={<BirthNakshatraIcon />}
+        title={dict.birthNakshatra.title}
+        description={dict.birthNakshatra.description}
+        eyebrow={dict.ui.heritageDescriptor}
+      />
+
+      {usingHandoff && <BirthCalculationHandoffNotice onStartFresh={() => {
+        clearBirthCalculationHandoff();
+        setUsingHandoff(false);
+        setBirthDate("");
+        setBirthTime("");
+        setLocation(DEFAULT_LOCATION);
+        setResult(null);
+        setError(null);
+      }} />}
 
       <section
         data-testid="birth-nakshatra-controls"
-        className="rounded-xl border border-black/10 bg-white/40 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.04]"
+        className="heritage-card rounded-2xl border p-4 shadow-sm sm:p-5"
       >
         <h2 className="text-sm font-semibold uppercase tracking-wide text-accent">
           {dict.birthNakshatra.birthDetailsTitle}
@@ -185,7 +216,7 @@ export function BirthNakshatraClient() {
             </ResultCard>
           </div>
 
-          <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">
+          <div className="heritage-card rounded-2xl border p-4 sm:p-5">
             <h2 className="text-sm font-semibold uppercase text-accent">
               {dict.birthNakshatra.nextActionsTitle}
             </h2>
@@ -204,15 +235,50 @@ export function BirthNakshatraClient() {
               >
                 {dict.birthNakshatra.openDailyGuide}
               </button>
-              <button
-                type="button"
-                onClick={saveProfile}
-                disabled={saving}
-                className="rounded-lg border border-black/10 px-4 py-2 text-sm hover:border-accent/50 disabled:opacity-50 dark:border-white/20"
-              >
-                {justSaved ? dict.ui.profileSaved : dict.ui.saveAsProfile}
-              </button>
             </div>
+            <section
+              data-testid="birth-nakshatra-family-onboarding"
+              className="mt-4 rounded-xl border border-accent/25 bg-accent/5 p-4"
+              aria-labelledby="family-profile-onboarding-title"
+            >
+              <h3 id="family-profile-onboarding-title" className="font-semibold text-accent">
+                {dict.birthNakshatra.familyOnboardingTitle}
+              </h3>
+              <p className="mt-1 text-sm leading-relaxed opacity-80">{dict.birthNakshatra.familyOnboardingDescription}</p>
+              {justSaved ? (
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <p role="status" className="text-sm font-semibold text-accent">{dict.birthNakshatra.profileReady}</p>
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/${locale}/family-almanac`)}
+                    className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white"
+                  >
+                    {dict.birthNakshatra.openFamilyAlmanac}
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                  <label className="min-w-0 flex-1">
+                    <span className="sr-only">{dict.birthNakshatra.profileLabel}</span>
+                    <input
+                      value={profileLabel}
+                      onChange={(event) => setProfileLabel(event.target.value)}
+                      placeholder={dict.birthNakshatra.profileLabel}
+                      maxLength={100}
+                      className="w-full rounded-lg border border-black/10 bg-background px-3 py-2 text-sm dark:border-white/15"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={saveProfile}
+                    disabled={saving || !profileLabel.trim()}
+                    className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {saving ? dict.ui.loading : dict.birthNakshatra.saveAndPlan}
+                  </button>
+                </div>
+              )}
+            </section>
             <p className="mt-3 text-xs leading-relaxed opacity-70">
               {dict.birthNakshatra.privacyNote}
             </p>

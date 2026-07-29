@@ -25,5 +25,6 @@ export function clearSavedPreferences() {
   // apps/web/app/[locale]/pancha-pakshi/page.tsx) — sessionStorage, not
   // localStorage, but still cleared here for a thorough "forget everything".
   window.sessionStorage.removeItem("ff_session_schedule");
+  window.sessionStorage.removeItem("ff_birth_calculation_handoff");
   document.cookie = "ff_locale=; path=/; max-age=0";
 }

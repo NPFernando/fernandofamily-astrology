@@ -17,6 +17,24 @@ function assertNoSevereViolations(violations: { id: string; impact?: string | nu
 }
 
 for (const locale of ["en", "si"] as const) {
+  test(`a11y (${locale}): display preferences is keyboard-operable and escapes cleanly`, async ({ page }) => {
+    const dict = DICTS[locale];
+    await page.goto(`/${locale}`);
+    const trigger = page.getByTestId("display-preferences");
+    await trigger.focus();
+    await page.keyboard.press("Enter");
+    const panel = page.locator("details", { has: trigger });
+    await expect(panel).toHaveAttribute("open", "");
+    await expect(page.getByRole("button", { name: dict.ui.enableLowDataMode })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(panel).not.toHaveAttribute("open", "");
+    await expect(trigger).toBeFocused();
+
+    await trigger.press("Enter");
+    const results = await new AxeBuilder({ page }).analyze();
+    assertNoSevereViolations(results.violations);
+  });
+
   test(`a11y (${locale}): home page has no critical/serious violations`, async ({ page }) => {
     await page.goto(`/${locale}`);
     const results = await new AxeBuilder({ page }).analyze();

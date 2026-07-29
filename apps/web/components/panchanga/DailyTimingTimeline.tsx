@@ -32,9 +32,9 @@ const ROW_STYLES: Record<TimelineTone, { border: string; bg: string; text: strin
     text: "text-amber-800 dark:text-amber-200",
   },
   personal: {
-    border: "border-sky-500/45",
-    bg: "bg-sky-500/10",
-    text: "text-sky-800 dark:text-sky-200",
+    border: "border-emerald-500/45",
+    bg: "bg-emerald-500/10",
+    text: "text-emerald-800 dark:text-emerald-200",
   },
 };
 
@@ -126,7 +126,7 @@ export function DailyTimingTimeline({
   return (
     <section
       data-testid={testId}
-      className={`rounded-xl border border-black/10 bg-white/35 p-4 dark:border-white/10 dark:bg-white/[.03] ${
+      className={`heritage-card rounded-xl border p-4 ${
         compact ? "print:hidden" : ""
       }`}
     >
@@ -135,23 +135,20 @@ export function DailyTimingTimeline({
           <h2 className="text-sm font-semibold uppercase text-accent">{timeline.title}</h2>
           <p className="mt-1 text-xs leading-relaxed opacity-70">{timeline.description}</p>
         </div>
-        <p className="text-xs tabular-nums opacity-70">
-          {formatTime(new Date(dayStartMs).toISOString(), locale)}-{formatTime(new Date(dayEndMs).toISOString(), locale)}
-        </p>
+        <div className="flex flex-wrap items-center gap-2 text-xs tabular-nums opacity-70">
+          <span>{formatTime(new Date(dayStartMs).toISOString(), locale)}-{formatTime(new Date(dayEndMs).toISOString(), locale)}</span>
+          {showNow && (
+            <span role="status" className="rounded-full border border-accent/30 bg-accent/10 px-2 py-1 font-semibold text-accent">
+              {timeline.now} · {formatTime(new Date(referenceMs).toISOString(), locale)}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="mt-4 hidden md:block" data-testid={`${testId}-strip`}>
         <div className="relative flex h-5 items-center border-t border-black/10 text-[11px] opacity-70 dark:border-white/10">
           <span>{formatTime(new Date(dayStartMs).toISOString(), locale)}</span>
           <span className="ml-auto">{formatTime(new Date(dayEndMs).toISOString(), locale)}</span>
-          {showNow && (
-            <span
-              className="absolute top-0 h-28 border-l-2 border-accent"
-              style={{ left: `${nowLeft}%` }}
-              aria-hidden="true"
-              title={timeline.now}
-            />
-          )}
         </div>
         <div className="mt-2 grid gap-3">
           {visibleRows.map((row) => (
@@ -174,6 +171,21 @@ export function DailyTimingTimeline({
                 ) : (
                   <p className="flex h-full items-center px-3 text-xs opacity-70">{row.empty}</p>
                 )}
+                {showNow && (
+                  <span
+                    data-testid={`${testId}-now-marker`}
+                    className="pointer-events-none absolute inset-y-0 z-10 border-l-2 border-accent"
+                    style={{ left: `${nowLeft}%` }}
+                    aria-hidden="true"
+                    title={timeline.now}
+                  >
+                    {row.id === "avoid" && (
+                      <span className="absolute -top-5 -translate-x-1/2 rounded bg-accent px-1.5 py-0.5 text-[10px] font-bold text-white">
+                        {timeline.now}
+                      </span>
+                    )}
+                  </span>
+                )}
               </div>
             </div>
           ))}
@@ -181,6 +193,11 @@ export function DailyTimingTimeline({
       </div>
 
       <div className="mt-4 grid gap-3 md:hidden" data-testid={`${testId}-cards`}>
+        {showNow && (
+          <p data-testid={`${testId}-now-status`} role="status" className="rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-sm font-semibold text-accent">
+            {timeline.currentDaylight.replace("{time}", formatTime(new Date(referenceMs).toISOString(), locale))}
+          </p>
+        )}
         {visibleRows.map((row) => (
           <div key={row.id} className="rounded-lg border border-black/10 bg-background p-3 dark:border-white/10">
             <h3 className="text-xs font-semibold uppercase opacity-70">{row.label}</h3>
@@ -191,7 +208,7 @@ export function DailyTimingTimeline({
                     key={item.id}
                     className={`rounded-md border px-3 py-2 text-sm ${ROW_STYLES[item.row].border} ${ROW_STYLES[item.row].bg}`}
                   >
-                    <p className="break-words font-semibold">
+                    <p className={`break-words font-semibold ${ROW_STYLES[item.row].text}`}>
                       {item.label}
                     </p>
                     <p className="mt-0.5 tabular-nums opacity-75">

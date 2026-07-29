@@ -5,21 +5,27 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #fffaf3;
-  --foreground: #201a12;
+  --background: #f6f0e5;
+  --foreground: #211a14;
   /* Sunrise amber, darkened one Tailwind amber step (700->800) from the
      original #b45309: that value read as *text* (nav active state, section
      headings, badges) failed WCAG AA 4.5:1 against several of the app's own
      light tinted backgrounds (4.22-4.49:1, axe-caught 2026-07-20) — #b45309
      itself is unchanged as a decorative/background color (hero gradient,
      accent/NN backgrounds) and still reads fine there. */
-  --accent: #92400e;
+  --accent: #8a5a16;
+  --surface: rgb(255 253 247 / 0.74);
+  --surface-strong: #fffdf7;
+  --ornament: #b88a35;
 }
 
 .dark {
   --background: #12100d;
-  --foreground: #f3ead9;
-  --accent: #f5b942;
+  --foreground: #f5eddc;
+  --accent: #f2c56b;
+  --surface: rgb(27 35 57 / 0.78);
+  --surface-strong: #172139;
+  --ornament: #d6ac58;
 }
 
 @theme inline {
@@ -31,7 +37,10 @@
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(circle at 4% 2%, rgb(184 138 53 / 0.10), transparent 26rem),
+    radial-gradient(circle at 96% 7%, rgb(33 109 104 / 0.08), transparent 30rem),
+    var(--background);
   color: var(--foreground);
   font-family: var(--font-body), var(--font-sinhala), sans-serif;
 }
@@ -47,6 +56,23 @@ html[lang="si"] body {
 }
 .dark .hero-dawn {
   background: linear-gradient(165deg, #0b0a1c 0%, #312e81 45%, #7c2d12 85%, #b45309 100%);
+}
+
+.heritage-display {
+  font-family: Georgia, "Noto Serif Sinhala", serif;
+  letter-spacing: -0.025em;
+}
+
+.heritage-card {
+  background: var(--surface);
+  border-color: color-mix(in srgb, var(--ornament) 30%, transparent);
+  box-shadow: 0 14px 36px rgb(32 26 18 / 0.07);
+}
+
+.heritage-ornament {
+  background-image:
+    radial-gradient(circle at center, transparent 0 62%, color-mix(in srgb, var(--ornament) 34%, transparent) 63% 64%, transparent 65%),
+    linear-gradient(135deg, transparent 47%, color-mix(in srgb, var(--ornament) 22%, transparent) 48% 52%, transparent 53%);
 }
 
 /* Motion: every animation lives behind prefers-reduced-motion so the site is

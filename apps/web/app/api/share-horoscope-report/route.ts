@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import sharp from "sharp";
 import { getDictionary, isLocale, nakshatraName, translateEnum, type Locale } from "@/lib/i18n";
 import type { BirthChart, BirthNakshatraRequest, BirthNakshatraResponse, DashaTimeline } from "@/lib/api-client";
@@ -9,6 +11,15 @@ type ShareRequest = {
 };
 
 const FONT = "Noto Sans Sinhala, Noto Sans, DejaVu Sans, sans-serif";
+
+async function birdBadge(bird: string): Promise<Buffer | null> {
+  try {
+    const source = await readFile(join(process.cwd(), "public", "icons", "generated", "birds", `${bird}-256.png`));
+    return await sharp(source).resize(104, 104, { fit: "contain" }).png().toBuffer();
+  } catch {
+    return null;
+  }
+}
 
 function esc(value: string): string {
   return value
@@ -119,7 +130,7 @@ function buildSvg(
     .map(
       ([label, value], index) => `<g>
         <rect x="${x}" y="${220 + index * 58}" width="470" height="44" rx="8" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.18)"/>
-        <text x="${x + 18}" y="${248 + index * 58}" font-family="${FONT}" font-size="18" font-weight="700" fill="rgba(255,255,255,0.70)">${esc(label)}</text>
+        <text x="${x + 18}" y="${248 + index * 58}" font-family="${FONT}" font-size="18" font-weight="700" fill="rgba(255,255,255,0.90)">${esc(label)}</text>
         <text x="${x + 210}" y="${248 + index * 58}" font-family="${FONT}" font-size="22" font-weight="800" fill="#ffffff">${esc(value)}</text>
       </g>`,
     )
@@ -136,8 +147,8 @@ function buildSvg(
   <defs>
     <linearGradient id="report" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#0f172a"/>
-      <stop offset="0.48" stop-color="#0f766e"/>
-      <stop offset="1" stop-color="#713f12"/>
+      <stop offset="0.48" stop-color="#0f5b52"/>
+      <stop offset="1" stop-color="#92400e"/>
     </linearGradient>
   </defs>
   <rect width="${W}" height="${H}" fill="url(#report)"/>
@@ -153,11 +164,11 @@ function buildSvg(
     <path d="M62 28 L270 236 M270 28 L62 236 M166 28 L270 132 L166 236 L62 132 Z" fill="none" stroke="#f8dfa5" stroke-width="3"/>
     <circle cx="166" cy="132" r="8" fill="#f59e0b"/>
   </g>
-  <text x="680" y="290" font-family="${FONT}" font-size="18" font-weight="800" fill="rgba(255,255,255,0.64)">${esc(dict.horoscopeReport.chartTitle)}</text>
+  <text x="680" y="290" font-family="${FONT}" font-size="18" font-weight="800" fill="rgba(255,255,255,0.76)">${esc(dict.horoscopeReport.chartTitle)}</text>
   ${chartRows}
-  <text x="680" y="478" font-family="${FONT}" font-size="18" font-weight="800" fill="rgba(255,255,255,0.64)">${esc(dict.horoscopeReport.currentDashaTitle)}</text>
+  <text x="680" y="478" font-family="${FONT}" font-size="18" font-weight="800" fill="rgba(255,255,255,0.76)">${esc(dict.horoscopeReport.currentDashaTitle)}</text>
   <text x="680" y="518" font-family="${FONT}" font-size="30" font-weight="850" fill="#ffffff">${esc(dashaLine)}</text>
-  <text x="${W - x}" y="${H - 34}" text-anchor="end" font-family="${FONT}" font-size="18" fill="rgba(255,255,255,0.6)">astrology.fernandofamily.com</text>
+  <text x="${W - x}" y="${H - 34}" text-anchor="end" font-family="${FONT}" font-size="18" fill="rgba(255,255,255,0.76)">astrology.fernandofamily.com</text>
 </svg>`;
 }
 
@@ -183,7 +194,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "invalid_horoscope_request" }, { status: 422 });
     }
     const svg = buildSvg(body, identity, chart, dasha);
-    const png = await sharp(Buffer.from(svg)).png().toBuffer();
+    const icon = await birdBadge(identity.birth_bird);
+    const png = await sharp(Buffer.from(svg))
+      .composite(icon ? [{ input: icon, left: 954, top: 44 }] : [])
+      .png()
+      .toBuffer();
     return new NextResponse(new Uint8Array(png), {
       status: 200,
       headers: {

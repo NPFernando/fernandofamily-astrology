@@ -17,7 +17,9 @@ export const FEATURE_VISUAL_IDS = [
 export type FeatureVisualId = (typeof FEATURE_VISUAL_IDS)[number];
 
 export const DEFAULT_OG_IMAGE = "/og/og-default.png";
-export const LANDING_POSTER = "/posters/landing-almanac.webp";
+export const LANDING_POSTER = "/posters/landing-heritage-v2.webp";
+export const LANDING_POSTER_AVIF = "/posters/landing-heritage-v2.avif";
+export const LANDING_POSTER_FALLBACK = "/posters/landing-heritage-v2.jpg";
 
 export const FEATURE_POSTERS: Record<FeatureVisualId, string> = {
   "birth-nakshatra": "/posters/features/birth-nakshatra.webp",
@@ -34,6 +36,47 @@ export const FEATURE_POSTERS: Record<FeatureVisualId, string> = {
   "horoscope-report": "/posters/features/horoscope-report.webp",
   dasha: "/posters/features/dasha.webp",
 };
+
+export const FEATURE_POSTER_AVIFS: Record<FeatureVisualId, string> = {
+  "birth-nakshatra": "/posters/features/birth-nakshatra.avif",
+  "pancha-pakshi": "/posters/features/pancha-pakshi.avif",
+  panchanga: "/posters/features/panchanga.avif",
+  "moon-calendar": "/posters/features/moon-calendar.avif",
+  "daily-guide": "/posters/features/daily-guide.avif",
+  "family-almanac": "/posters/features/family-almanac.avif",
+  muhurta: "/posters/features/muhurta.avif",
+  compatibility: "/posters/features/compatibility.avif",
+  "divisional-charts": "/posters/features/divisional-charts.avif",
+  porondam: "/posters/features/porondam.avif",
+  "birth-chart": "/posters/features/birth-chart.avif",
+  "horoscope-report": "/posters/features/horoscope-report.avif",
+  dasha: "/posters/features/dasha.avif",
+};
+
+export const FEATURE_POSTER_FALLBACKS: Record<FeatureVisualId, string> = {
+  "birth-nakshatra": "/posters/features/birth-nakshatra.jpg",
+  "pancha-pakshi": "/posters/features/pancha-pakshi.jpg",
+  panchanga: "/posters/features/panchanga.jpg",
+  "moon-calendar": "/posters/features/moon-calendar.jpg",
+  "daily-guide": "/posters/features/daily-guide.jpg",
+  "family-almanac": "/posters/features/family-almanac.jpg",
+  muhurta: "/posters/features/muhurta.jpg",
+  compatibility: "/posters/features/compatibility.jpg",
+  "divisional-charts": "/posters/features/divisional-charts.jpg",
+  porondam: "/posters/features/porondam.jpg",
+  "birth-chart": "/posters/features/birth-chart.jpg",
+  "horoscope-report": "/posters/features/horoscope-report.jpg",
+  dasha: "/posters/features/dasha.jpg",
+};
+
+export const POSTER_RESPONSIVE_WIDTHS = [480, 960, 1440] as const;
+
+export function posterSrcSet(src: string) {
+  const responsiveSources = POSTER_RESPONSIVE_WIDTHS.map((width) =>
+    `${src.replace(/(\.(?:avif|webp|jpg))$/, `-${width}$1`)} ${width}w`,
+  );
+  return [...responsiveSources, `${src} 1920w`].join(", ");
+}
 
 export const FEATURE_OG_IMAGES: Record<FeatureVisualId, string> = {
   "birth-nakshatra": "/og/birth-nakshatra.png",

@@ -13,12 +13,28 @@ const nextConfig: NextConfig = {
   // standalone runtime can't resolve. Marking it external keeps it a plain
   // node_modules require, which standalone output traces and copies.
   serverExternalPackages: ["pg", "web-push", "sharp"],
+  // Sharp resolves libvips dynamically, so Next's file tracer sees its JS
+  // wrapper but not the platform shared library. Keep it in standalone output
+  // for the PNG share-card routes.
+  outputFileTracingIncludes: {
+    "/*": ["./node_modules/.pnpm/@img+sharp-libvips-*/node_modules/@img/sharp-libvips-*/lib/**"],
+  },
   // This app imports packages/feature-registry from outside apps/web (the
   // monorepo root) — tell Next.js's bundler that's the real project root so
   // it resolves those files instead of treating apps/web as an island.
   outputFileTracingRoot: path.join(__dirname, "../.."),
   turbopack: {
     root: path.join(__dirname, "../.."),
+  },
+  async headers() {
+    return [
+      {
+        source: "/posters/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" },
+        ],
+      },
+    ];
   },
   async rewrites() {
     // `fallback` (not the default afterFiles) is load-bearing: afterFiles

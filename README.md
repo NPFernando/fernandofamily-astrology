@@ -180,6 +180,9 @@ nonetheless the correct, verified license for the vendored engine).
 
 - [`docs/privacy.md`](docs/privacy.md) — no accounts, no server-side
   storage of birth data, what's in browser local storage and how to clear it
+- Anonymous image-delivery aggregates are process-local and export only when
+  the deployment host explicitly configures `IMAGE_TELEMETRY_DASHBOARD_TOKEN`;
+  see [`docs/privacy.md`](docs/privacy.md#anonymous-image-delivery-aggregates)
 - The Pancha Pakshi tool displays a prominent bilingual disclaimer
   (traditional/cultural system, not scientifically validated, not a
   substitute for professional advice) on every relevant page

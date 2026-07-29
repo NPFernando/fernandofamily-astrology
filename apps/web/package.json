@@ -5,9 +5,15 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node scripts/start-standalone.mjs",
     "lint": "eslint",
-    "test": "node scripts/check-i18n-hygiene.mjs && node scripts/check-no-birth-fields-in-urls.mjs && node scripts/check-ics-generator.mjs && node scripts/check-account-location-rounding.mjs && node scripts/check-profiles.mjs",
+    "assets:heritage": "node scripts/generate-heritage-app-icons.mjs && node scripts/generate-heritage-feature-posters.mjs && node scripts/generate-poster-fallbacks.mjs && node scripts/generate-og-images.mjs",
+    "report:poster-payloads": "node scripts/report-poster-format-sizes.mjs",
+    "telemetry:images:export": "node scripts/export-image-telemetry.mjs",
+    "report:initial-bundle": "node scripts/report-initial-bundle.mjs",
+    "test:standalone": "node scripts/check-standalone-runtime.mjs",
+    "lighthouse:ci": "lhci autorun --config=lighthouserc.cjs",
+    "test": "node scripts/check-i18n-hygiene.mjs && node scripts/check-no-birth-fields-in-urls.mjs && node scripts/check-privacy-and-secrets.mjs && node scripts/check-ics-generator.mjs && node scripts/check-account-location-rounding.mjs && node scripts/check-profiles.mjs && node scripts/check-icon-coverage.mjs && node scripts/check-share-card-accessibility.mjs && node scripts/check-asset-size-budgets.mjs",
     "e2e": "API_PROXY_TARGET=http://127.0.0.1:8199 next build && playwright test",
     "e2e:only": "playwright test"
   },
@@ -23,6 +29,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
+    "@lhci/cli": "0.15.1",
     "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",

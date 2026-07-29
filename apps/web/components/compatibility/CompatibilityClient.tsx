@@ -11,6 +11,7 @@ import { translateEnum } from "@/lib/i18n";
 import { useLocale } from "@/lib/locale-context";
 import { BIRD_ICONS } from "@/components/icons/birds";
 import { CompatibilityIcon } from "@/components/icons/features";
+import { ToolPageHero } from "@/components/layout/ToolPageHero";
 
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
 const DEFAULT_A: BirdId = "vulture";
@@ -79,15 +80,12 @@ export function CompatibilityClient() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold">
-            <CompatibilityIcon className="text-3xl text-accent" />
-            {dict.compatibility.title}
-          </h1>
-          <p className="mt-1 max-w-2xl text-sm opacity-80">{dict.compatibility.description}</p>
-        </div>
-      </header>
+      <ToolPageHero
+        icon={<CompatibilityIcon />}
+        title={dict.compatibility.title}
+        description={dict.compatibility.description}
+        eyebrow={dict.ui.heritageDescriptor}
+      />
 
       <section
         aria-label={dict.compatibility.birdToolTitle}
@@ -109,7 +107,7 @@ export function CompatibilityClient() {
         <section
           data-testid="compatibility-result"
           aria-busy={loading}
-          className="rounded-lg border border-black/10 bg-white/35 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.03]"
+          className="heritage-card rounded-2xl border p-4 shadow-sm"
         >
           <h2 className="text-sm font-semibold uppercase">{dict.compatibility.result}</h2>
           <p className="mt-2 text-sm opacity-75">{pairLabel}</p>

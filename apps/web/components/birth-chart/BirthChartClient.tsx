@@ -11,9 +11,12 @@ import {
 } from "@/components/pancha-pakshi/LocationPicker";
 import { TargetDateTimeFields } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import { BirthChartIcon } from "@/components/icons/features";
+import { ToolPageHero } from "@/components/layout/ToolPageHero";
 import { BirthChartChart } from "@/components/birth-chart/BirthChartChart";
 import { YogataraTable } from "@/components/birth-chart/YogataraTable";
 import { mostRecentBirthDetails, saveRecentBirthDetails } from "@/lib/recent-birth-details";
+import { clearBirthCalculationHandoff, loadBirthCalculationHandoff, saveBirthCalculationHandoff } from "@/lib/birth-calculation-handoff";
+import { BirthCalculationHandoffNotice } from "@/components/BirthCalculationHandoffNotice";
 
 export function BirthChartClient() {
   const { dict } = useLocale();
@@ -24,10 +27,18 @@ export function BirthChartClient() {
   const [showStars, setShowStars] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [usingHandoff, setUsingHandoff] = useState(false);
 
   useEffect(() => {
-    // Hydrate after mount because recent locations/birth details live in
-    // localStorage.
+    const handoff = loadBirthCalculationHandoff();
+    if (handoff) {
+      setUsingHandoff(true);
+      setLocation(handoff.input.location);
+      setBirthDate(handoff.input.birthDate);
+      setBirthTime(handoff.input.birthTime);
+      setResult(handoff.chart ?? null);
+      return;
+    }
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
     setLocation(mostRecentLocation() ?? DEFAULT_LOCATION);
     const recent = mostRecentBirthDetails();
@@ -57,6 +68,7 @@ export function BirthChartClient() {
       });
       setResult(data);
       saveRecentBirthDetails({ birth_date: birthDate, birth_time: normalizedTime });
+      saveBirthCalculationHandoff({ birthDate, birthTime: normalizedTime, location: location! }, { chart: data });
     } catch (e) {
       setError(e instanceof ApiError ? dict.ui.error : dict.ui.error);
     } finally {
@@ -66,17 +78,26 @@ export function BirthChartClient() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="max-w-3xl">
-        <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <BirthChartIcon className="text-3xl text-accent" />
-          {dict.birthChart.title}
-        </h1>
-        <p className="mt-1 text-sm leading-relaxed opacity-80 sm:text-base">{dict.birthChart.description}</p>
-      </header>
+      <ToolPageHero
+        icon={<BirthChartIcon />}
+        title={dict.birthChart.title}
+        description={dict.birthChart.description}
+        eyebrow={dict.ui.heritageDescriptor}
+      />
+
+      {usingHandoff && <BirthCalculationHandoffNotice onStartFresh={() => {
+        clearBirthCalculationHandoff();
+        setUsingHandoff(false);
+        setBirthDate("");
+        setBirthTime("");
+        setLocation(DEFAULT_LOCATION);
+        setResult(null);
+        setError(null);
+      }} />}
 
       <section
         data-testid="birth-chart-controls"
-        className="rounded-xl border border-black/10 bg-white/40 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.04]"
+        className="heritage-card rounded-2xl border p-4 shadow-sm sm:p-5"
       >
         <h2 className="text-sm font-semibold uppercase tracking-wide text-accent">
           {dict.birthChart.birthDetailsTitle}

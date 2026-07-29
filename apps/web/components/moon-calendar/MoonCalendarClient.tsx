@@ -21,6 +21,7 @@ import {
 } from "@/components/pancha-pakshi/LocationPicker";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import { MoonCalendarIcon } from "@/components/icons/features";
+import { ToolPageHero } from "@/components/layout/ToolPageHero";
 import { PoyaDetailCard } from "@/components/panchanga/PoyaDetailCard";
 
 function sinhalaMonthName(dict: ReturnType<typeof getDictionary>, key: string): string {
@@ -157,18 +158,17 @@ export function MoonCalendarClient() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header>
-        <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <MoonCalendarIcon className="text-3xl text-accent" />
-          {dict.moonCalendar.title}
-        </h1>
-        <p className="mt-2 max-w-3xl text-sm leading-relaxed opacity-75">{dict.moonCalendar.description}</p>
-      </header>
+      <ToolPageHero
+        icon={<MoonCalendarIcon />}
+        title={dict.moonCalendar.title}
+        description={dict.moonCalendar.description}
+        eyebrow={dict.ui.heritageDescriptor}
+      />
 
       <section
         aria-label={dict.moonCalendar.controlsTitle}
         data-testid="moon-calendar-controls"
-        className="rounded-xl border border-black/10 bg-white/40 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.04]"
+        className="heritage-card rounded-2xl border p-4 shadow-sm sm:p-5"
       >
         <h2 className="text-sm font-semibold uppercase tracking-wide text-accent">
           {dict.moonCalendar.controlsTitle}

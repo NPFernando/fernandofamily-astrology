@@ -62,12 +62,11 @@ test("birth nakshatra: quick action opens Daily Guide with derived identity", as
 
 test("birth nakshatra: saving profile stores only derived fields", async ({ page }) => {
   await calculateSample(page, "en");
-  page.once("dialog", async (dialog) => {
-    expect(dialog.message()).toContain(DICTS.en.ui.profileLabelPrompt);
-    await dialog.accept("Sample birth");
-  });
-  await page.getByRole("button", { name: DICTS.en.ui.saveAsProfile }).click();
-  await expect(page.getByRole("button", { name: DICTS.en.ui.profileSaved })).toBeVisible();
+  const onboarding = page.getByTestId("birth-nakshatra-family-onboarding");
+  await onboarding.getByPlaceholder(DICTS.en.birthNakshatra.profileLabel).fill("Sample birth");
+  await onboarding.getByRole("button", { name: DICTS.en.birthNakshatra.saveAndPlan }).click();
+  await expect(onboarding.getByText(DICTS.en.birthNakshatra.profileReady)).toBeVisible();
+  await expect(onboarding.getByRole("button", { name: DICTS.en.birthNakshatra.openFamilyAlmanac })).toBeVisible();
   const raw = await page.evaluate(() => window.localStorage.getItem("ff_saved_profiles"));
   expect(raw).toContain("nakshatra_index");
   expect(raw).toContain("paksha");
@@ -76,6 +75,8 @@ test("birth nakshatra: saving profile stores only derived fields", async ({ page
   expect(raw).not.toContain("birth_time");
   expect(raw).not.toContain("latitude");
   expect(raw).not.toContain("longitude");
+  await onboarding.getByRole("button", { name: DICTS.en.birthNakshatra.openFamilyAlmanac }).click();
+  await expect(page).toHaveURL(/\/en\/family-almanac$/);
 });
 
 test("@mobile birth nakshatra fits 360px", async ({ page }) => {

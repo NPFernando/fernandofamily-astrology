@@ -23,6 +23,18 @@ async function gotoDate(page: import("@playwright/test").Page, date: string) {
   await page.waitForTimeout(300);
 }
 
+async function waitForGuideDate(page: import("@playwright/test").Page, text: string) {
+  const summary = page.locator('[data-testid="daily-guide-summary"]');
+  const deadline = Date.now() + 30_000;
+  while (Date.now() < deadline) {
+    if (await summary.getByText(text, { exact: false }).isVisible().catch(() => false)) return;
+    const retry = page.getByRole("button", { name: DICTS.en.ui.retry, exact: true }).first();
+    if (await retry.isVisible().catch(() => false)) await retry.click();
+    await page.waitForTimeout(500);
+  }
+  await expect(summary).toContainText(text);
+}
+
 async function seedFamilyWeekProfiles(page: import("@playwright/test").Page) {
   await page.addInitScript(() => {
     window.localStorage.setItem(
@@ -69,7 +81,7 @@ for (const locale of ["en", "si"] as const) {
     await expect(page.locator('[data-testid="daily-guide-panchanga"]')).toBeVisible();
     await expect(page.locator('[data-testid="daily-guide-sun-moon"]')).toBeVisible();
     await expect(page.locator('[data-testid="daily-guide-avoid-times"]').getByText(dict.panchanga.rahuKala)).toBeVisible();
-    await expect(page.getByText(dict.panchanga.nakshatra).first()).toBeVisible();
+    await expect(page.locator('[data-testid="daily-guide-panchanga"]').getByText(dict.panchanga.nakshatra)).toBeVisible();
     await expect(page.getByText(dict.dailyGuide.timeline.title)).toBeVisible();
     watcher.assertClean();
   });
@@ -177,6 +189,7 @@ test("daily guide: family week planner shows Poya context and opens selected day
   const watcher = watchForBirthDataInUrls(page);
   await openDailyGuide(page, "en");
   await gotoDate(page, "2026-07-23");
+  await waitForGuideDate(page, "July 23");
   await page.getByRole("tab", { name: DICTS.en.dailyGuide.viewWeek }).click();
 
   const planner = page.locator('[data-testid="daily-guide-family-week-planner"]');

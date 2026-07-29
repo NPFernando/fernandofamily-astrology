@@ -16,10 +16,10 @@ from app.core.vendor_path import configure_ayanamsa, ensure_vendor_on_path
 
 ensure_vendor_on_path()
 
-import swisseph as swe  # noqa: E402
-from jhora.panchanga import drik  # noqa: E402
+import swisseph as swe
+from jhora.panchanga import drik
 
-from app.modules.birth_chart.yogatara import YOGATARA_STARS  # noqa: E402
+from app.modules.birth_chart.yogatara import YOGATARA_STARS
 
 configure_ayanamsa(drik)
 

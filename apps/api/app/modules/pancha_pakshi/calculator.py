@@ -4,7 +4,10 @@ from zoneinfo import ZoneInfo
 
 from app.modules.pancha_pakshi import adapter, repository
 from app.modules.pancha_pakshi.enums import BirdId, PakshaId, PeriodKind
-from app.modules.pancha_pakshi.errors import PanchaPakshiInternalError, SunriseUnavailableError
+from app.modules.pancha_pakshi.errors import (
+    PanchaPakshiInternalError,
+    SunriseUnavailableError,
+)
 from app.modules.pancha_pakshi.models import (
     ChandrashtamaWindow,
     EngineMetadata,

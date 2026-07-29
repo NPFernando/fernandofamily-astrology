@@ -1,9 +1,10 @@
 from datetime import date as date_type
 from datetime import datetime, timedelta
+from itertools import pairwise
+from zoneinfo import ZoneInfo
 
 import pytest
 from fastapi.testclient import TestClient
-from zoneinfo import ZoneInfo
 
 from app.core import rate_limit
 from app.main import app
@@ -146,7 +147,7 @@ def test_karana_spans_cover_day_and_match_engine_at_sunrise():
     assert spans[0]["index_60"] == int(engine_karana[0])
     assert spans[0]["key"] == repository.karana_key_for_index60(int(engine_karana[0]))
     # Contiguous, ordered, and consistent with the karana arithmetic.
-    for earlier, later in zip(spans, spans[1:]):
+    for earlier, later in pairwise(spans):
         assert earlier["ends_at"] == later["starts_at"]
         assert (earlier["index_60"] % 60) + 1 == later["index_60"]
 

@@ -23,21 +23,25 @@ class Settings:
     pyjhora_version: str = os.environ.get("PYJHORA_VERSION", "4.8.7")
     pyjhora_commit: str = os.environ.get("PYJHORA_COMMIT", "ca22995709bd60e371e7820a1a5efc80ce4cf821")
     log_level: str = os.environ.get("LOG_LEVEL", "INFO")
-    metrics_allowed_cidrs: list[str] = [
-        c.strip()
-        for c in os.environ.get(
-            "METRICS_ALLOWED_CIDRS",
-            "127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16",
-        ).split(",")
-        if c.strip()
-    ]
-    cors_allowed_origins: list[str] = [
-        o.strip() for o in os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:3000").split(",") if o.strip()
-    ]
     # Set at container build time (Phase 6) to the actual deployed git commit SHA,
     # so /api/v1/metadata can satisfy AGPL-3.0 section 13's "corresponding source"
     # traceability requirement precisely rather than only by version tag.
     deployed_commit: str = os.environ.get("DEPLOYED_COMMIT", "dev")
+
+    def __init__(self) -> None:
+        self.metrics_allowed_cidrs = [
+            cidr.strip()
+            for cidr in os.environ.get(
+                "METRICS_ALLOWED_CIDRS",
+                "127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16",
+            ).split(",")
+            if cidr.strip()
+        ]
+        self.cors_allowed_origins = [
+            origin.strip()
+            for origin in os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+            if origin.strip()
+        ]
 
     @property
     def is_production(self) -> bool:

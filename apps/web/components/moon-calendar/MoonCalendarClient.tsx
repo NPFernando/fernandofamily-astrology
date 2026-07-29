@@ -455,7 +455,7 @@ function SelectedDayPanel({
           />
         </div>
       )}
-      <dl className="mt-4 grid gap-3 text-sm">
+      <dl data-testid="moon-calendar-selected-day-facts" className="mt-4 grid gap-3 text-sm">
         <Fact label={dict.moonCalendar.moonPhase} value={dict.moonCalendar.phaseLabels[day.moon_phase]} />
         <Fact label={dict.panchanga.sinhalaMonth} value={sinhalaMonthName(dict, day.sinhala_month.key)} />
         <Fact label={dict.ui.weekday} value={translateEnum(dict, "weekdays", day.weekday)} />

@@ -2,7 +2,10 @@ from app.modules.birth_chart.calculator import compute_birth_chart
 from app.modules.birth_chart.models import BirthChart
 from app.modules.birth_chart.requests import BirthChartRequest
 from app.modules.pancha_pakshi.models import EngineMetadata
-from app.modules.pancha_pakshi.validation import validate_location, validate_supported_date
+from app.modules.pancha_pakshi.validation import (
+    validate_location,
+    validate_supported_date,
+)
 
 
 def birth_chart(request: BirthChartRequest, engine: EngineMetadata) -> BirthChart:

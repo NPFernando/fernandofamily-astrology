@@ -19,8 +19,8 @@ _VENDOR_PATH = str(Path(__file__).resolve().parents[2] / "vendor")
 if _VENDOR_PATH not in sys.path:
     sys.path.insert(0, _VENDOR_PATH)
 
-from jhora import utils  # noqa: E402
-from jhora.panchanga import drik, pancha_paksha  # noqa: E402
+from jhora import utils
+from jhora.panchanga import drik, pancha_paksha
 
 utils.set_language("en")
 

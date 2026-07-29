@@ -3,6 +3,8 @@
 # sunrise_unavailable, 500 internal) cover both modules without duplication.
 from app.modules.pancha_pakshi.errors import (  # noqa: F401
     InvalidInputError,
-    PanchaPakshiInternalError as PanchangaInternalError,
     SunriseUnavailableError,
+)
+from app.modules.pancha_pakshi.errors import (
+    PanchaPakshiInternalError as PanchangaInternalError,  # noqa: F401
 )

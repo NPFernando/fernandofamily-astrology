@@ -15,6 +15,7 @@ from datetime import date
 
 import pytest
 from fastapi.testclient import TestClient
+from jhora.panchanga import drik
 
 from app.core import rate_limit
 from app.core.vendor_path import configure_ayanamsa
@@ -22,7 +23,6 @@ from app.main import app
 from app.modules.dasha import adapter as dasha_adapter
 from app.modules.pancha_pakshi import adapter as pp_adapter
 from app.modules.panchanga import repository as panchanga_repository
-from jhora.panchanga import drik
 
 client = TestClient(app)
 

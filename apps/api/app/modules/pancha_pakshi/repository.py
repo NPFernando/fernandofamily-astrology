@@ -2,7 +2,13 @@ import csv
 import os
 from pathlib import Path
 
-from app.modules.pancha_pakshi.enums import ActivityId, BirdId, EffectId, RelationId, WeekdayId
+from app.modules.pancha_pakshi.enums import (
+    ActivityId,
+    BirdId,
+    EffectId,
+    RelationId,
+    WeekdayId,
+)
 
 # 0-based, mirrors upstream `pancha_pakshi_birds` (jhora/panchanga/pancha_paksha.py).
 # CSV columns nak_bird_index / sub_bird_index / padu_pakshi / bharana_pakshi index into this.

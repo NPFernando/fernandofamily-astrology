@@ -1,6 +1,6 @@
 from datetime import date as date_type
 from datetime import time as time_type
-from typing import Annotated, Literal, Union
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
 
@@ -44,13 +44,13 @@ class BirdSelectionInput(_TargetAndLocation):
 
 # Full schedule/current requests accept any of the three input methods.
 ScheduleRequest = Annotated[
-    Union[BirthDateTimeInput, NakshatraPakshaInput, BirdSelectionInput], Field(discriminator="method")
+    BirthDateTimeInput | NakshatraPakshaInput | BirdSelectionInput, Field(discriminator="method")
 ]
 
 # The birth-bird endpoint only makes sense for the two methods that actually
 # resolve a bird from birth information — "bird" is direct selection, there is
 # nothing to compute.
-BirthBirdRequest = Annotated[Union[BirthDateTimeInput, NakshatraPakshaInput], Field(discriminator="method")]
+BirthBirdRequest = Annotated[BirthDateTimeInput | NakshatraPakshaInput, Field(discriminator="method")]
 
 
 # Auspicious-window search: same three input methods; target_date acts as the
@@ -82,7 +82,7 @@ class BirdSelectionWindowsInput(BirdSelectionInput, _WindowsParams):
 
 
 WindowsRequest = Annotated[
-    Union[BirthDateTimeWindowsInput, NakshatraPakshaWindowsInput, BirdSelectionWindowsInput],
+    BirthDateTimeWindowsInput | NakshatraPakshaWindowsInput | BirdSelectionWindowsInput,
     Field(discriminator="method"),
 ]
 
@@ -108,7 +108,7 @@ class BirdSelectionSummaryInput(BirdSelectionInput, _SummaryParams):
 
 
 SummaryRequest = Annotated[
-    Union[BirthDateTimeSummaryInput, NakshatraPakshaSummaryInput, BirdSelectionSummaryInput],
+    BirthDateTimeSummaryInput | NakshatraPakshaSummaryInput | BirdSelectionSummaryInput,
     Field(discriminator="method"),
 ]
 

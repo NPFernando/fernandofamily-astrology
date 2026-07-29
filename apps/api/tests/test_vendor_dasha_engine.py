@@ -33,10 +33,10 @@ from app.core.vendor_path import configure_ayanamsa, ensure_vendor_on_path
 
 ensure_vendor_on_path()
 
-import pytest  # noqa: E402
-from jhora import const, utils  # noqa: E402
-from jhora.panchanga import drik  # noqa: E402
-from jhora.horoscope.dhasa.graha import vimsottari  # noqa: E402
+import pytest
+from jhora import const, utils
+from jhora.horoscope.dhasa.graha import vimsottari
+from jhora.panchanga import drik
 
 # Same birth used by jhora/tests/pvr_tests.py's _vimsottari_test_1 (not
 # vendored -- source cited here, not the file itself), citing "Chapter

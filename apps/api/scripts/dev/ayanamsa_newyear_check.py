@@ -44,11 +44,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from app.core.vendor_path import ensure_vendor_on_path  # noqa: E402
+from app.core.vendor_path import ensure_vendor_on_path
 
 ensure_vendor_on_path()
 
-import swisseph as swe  # noqa: E402
+import swisseph as swe
 
 CANDIDATE_MODES = {
     "FAGAN": swe.SIDM_FAGAN_BRADLEY,

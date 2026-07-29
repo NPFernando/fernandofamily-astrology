@@ -57,7 +57,7 @@ def test_golden_schedule_matches_upstream_rows(fixture_path):
     assert len(flat_sub) == 50 == len(rows)
 
     for i, (sp, row) in enumerate(zip(flat_sub, rows)):
-        wdi, pi, dni, mbi, mai, sbi, sai, df, reli, pf, efi, rtng, ppi, bpi = row
+        _wdi, _pi, _dni, mbi, mai, sbi, sai, _df, reli, pf, efi, rtng, _ppi, _bpi = row
         assert sp.main_bird == repository.BIRD_ORDER[int(mbi)], f"row {i} main_bird mismatch"
         assert sp.main_activity == repository.ACTIVITY_ORDER[int(mai)], f"row {i} main_activity mismatch"
         assert sp.sub_bird == repository.BIRD_ORDER[int(sbi)], f"row {i} sub_bird mismatch"
@@ -74,5 +74,5 @@ def test_golden_schedule_matches_upstream_rows(fixture_path):
         assert mp.bharana_pakshi == repository.BIRD_ORDER[int(row0[13])]
 
     # day/night split: first 5 rows' daynight_index should be 0, last 5 rows' should be 1
-    assert all(int(rows[i][2]) == 0 for i in range(0, 25))
+    assert all(int(rows[i][2]) == 0 for i in range(25))
     assert all(int(rows[i][2]) == 1 for i in range(25, 50))

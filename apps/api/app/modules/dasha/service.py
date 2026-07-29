@@ -2,7 +2,10 @@ from app.modules.dasha.calculator import compute_dasha_timeline
 from app.modules.dasha.models import DashaTimeline
 from app.modules.dasha.requests import DashaRequest
 from app.modules.pancha_pakshi.models import EngineMetadata
-from app.modules.pancha_pakshi.validation import validate_location, validate_supported_date
+from app.modules.pancha_pakshi.validation import (
+    validate_location,
+    validate_supported_date,
+)
 
 
 def dasha_timeline(request: DashaRequest, engine: EngineMetadata) -> DashaTimeline:

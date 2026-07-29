@@ -15,7 +15,7 @@ from app.core.vendor_path import configure_ayanamsa, ensure_vendor_on_path
 
 ensure_vendor_on_path()
 
-from jhora.panchanga import drik  # noqa: E402
+from jhora.panchanga import drik
 
 configure_ayanamsa(drik)
 

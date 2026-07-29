@@ -2,10 +2,21 @@ from calendar import monthrange
 from datetime import date as date_type
 
 from app.modules.pancha_pakshi.models import EngineMetadata
-from app.modules.pancha_pakshi.validation import validate_location, validate_supported_date
-from app.modules.panchanga.calculator import compute_daily_panchanga, compute_eclipse_forecast, compute_month_panchanga
+from app.modules.pancha_pakshi.validation import (
+    validate_location,
+    validate_supported_date,
+)
+from app.modules.panchanga.calculator import (
+    compute_daily_panchanga,
+    compute_eclipse_forecast,
+    compute_month_panchanga,
+)
 from app.modules.panchanga.models import DailyPanchanga, EclipseForecast, MonthPanchanga
-from app.modules.panchanga.requests import DailyPanchangaRequest, EclipseForecastRequest, MonthPanchangaRequest
+from app.modules.panchanga.requests import (
+    DailyPanchangaRequest,
+    EclipseForecastRequest,
+    MonthPanchangaRequest,
+)
 
 
 def daily_panchanga(request: DailyPanchangaRequest, engine: EngineMetadata) -> DailyPanchanga:

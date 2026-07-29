@@ -1,6 +1,6 @@
 from datetime import date as date_type
 from datetime import time as time_type
-from typing import Annotated, Literal, Union
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
 
@@ -38,7 +38,7 @@ class MuhurtaBirdSelectionInput(_MuhurtaSearchBase):
 
 
 MuhurtaSearchRequest = Annotated[
-    Union[MuhurtaBirthDateTimeInput, MuhurtaNakshatraPakshaInput, MuhurtaBirdSelectionInput],
+    MuhurtaBirthDateTimeInput | MuhurtaNakshatraPakshaInput | MuhurtaBirdSelectionInput,
     Field(discriminator="method"),
 ]
 
@@ -73,10 +73,6 @@ class MuhurtaMonthBirdSelectionInput(_MuhurtaMonthBase):
 
 
 MuhurtaMonthRequest = Annotated[
-    Union[
-        MuhurtaMonthBirthDateTimeInput,
-        MuhurtaMonthNakshatraPakshaInput,
-        MuhurtaMonthBirdSelectionInput,
-    ],
+    MuhurtaMonthBirthDateTimeInput | MuhurtaMonthNakshatraPakshaInput | MuhurtaMonthBirdSelectionInput,
     Field(discriminator="method"),
 ]

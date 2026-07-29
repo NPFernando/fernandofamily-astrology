@@ -104,9 +104,7 @@ _PLANET_ENEMIES: dict[str, frozenset[str]] = {
 def rashyadpathi_compatible(planet_a: str, planet_b: str) -> bool:
     if planet_a == planet_b:
         return True
-    if planet_b in _PLANET_ENEMIES[planet_a] or planet_a in _PLANET_ENEMIES[planet_b]:
-        return False
-    return True
+    return planet_b not in _PLANET_ENEMIES[planet_a] and planet_a not in _PLANET_ENEMIES[planet_b]
 
 
 # --- Vashya Porondama: rashi -> 5 temperament groups ------------------------

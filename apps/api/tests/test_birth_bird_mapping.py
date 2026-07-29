@@ -1,10 +1,11 @@
+from datetime import date, time
+
 import pytest
 
 from app.modules.pancha_pakshi import repository
 from app.modules.pancha_pakshi.enums import BirdId, PakshaId
-from app.modules.pancha_pakshi.service import schedule_from_nakshatra_paksha
-from datetime import date, time
 from app.modules.pancha_pakshi.models import EngineMetadata
+from app.modules.pancha_pakshi.service import schedule_from_nakshatra_paksha
 
 _ENGINE = EngineMetadata(
     version="4.8.7", commit="ca22995709bd60e371e7820a1a5efc80ce4cf821",

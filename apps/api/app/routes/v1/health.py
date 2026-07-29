@@ -14,9 +14,9 @@ def live() -> dict:
 def ready(response: Response) -> dict:
     try:
         results = run_verification("fast")
-    except VerificationError as exc:
+    except VerificationError:
         response.status_code = 503
-        return {"status": "not_ready", "failed_check": str(exc)}
+        return {"status": "not_ready", "failed_check": "vendor_verification_failed"}
     return {
         "status": "ok",
         "checksummed_files": results["files_checked"],

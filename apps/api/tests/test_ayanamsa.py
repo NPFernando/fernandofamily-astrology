@@ -19,6 +19,8 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.modules.panchanga import adapter
+from app.routes.v1 import health
+from scripts.verify_vendor import VerificationError
 
 COLOMBO_TZ = timezone(timedelta(hours=5, minutes=30))
 
@@ -69,3 +71,14 @@ def test_health_ready_survives_the_ayanamsa_override():
     client = TestClient(app)
     response = client.get("/api/v1/health/ready")
     assert response.status_code == 200, response.text
+
+
+def test_health_ready_does_not_expose_verification_details(monkeypatch):
+    monkeypatch.setattr(
+        health,
+        "run_verification",
+        lambda _mode: (_ for _ in ()).throw(VerificationError("internal path: /srv/vendor")),
+    )
+    response = TestClient(app).get("/api/v1/health/ready")
+    assert response.status_code == 503
+    assert response.json() == {"status": "not_ready", "failed_check": "vendor_verification_failed"}

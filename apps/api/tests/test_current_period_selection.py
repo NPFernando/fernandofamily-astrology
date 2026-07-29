@@ -22,7 +22,7 @@ def test_current_period_is_start_inclusive():
     # Recompute selecting "now" exactly at the first sub-period's start.
     from app.modules.pancha_pakshi.calculator import select_current_and_next
 
-    current, nxt = select_current_and_next(sched, first_sub.starts_at)
+    current, _nxt = select_current_and_next(sched, first_sub.starts_at)
     assert current is not None
     assert current.major_index == 0 and current.sub_index == 0
     assert current.is_current is True
@@ -34,7 +34,7 @@ def test_current_period_is_end_exclusive():
 
     first_sub = sched.major_periods[0].sub_periods[0]
     # Exactly at the boundary (ends_at), the NEXT sub-period should be current, not this one.
-    current, nxt = select_current_and_next(sched, first_sub.ends_at)
+    current, _nxt = select_current_and_next(sched, first_sub.ends_at)
     assert current is not None
     assert not (current.major_index == 0 and current.sub_index == 0)
 

@@ -7,8 +7,8 @@ from app.core.vendor_path import configure_ayanamsa, ensure_vendor_on_path
 
 ensure_vendor_on_path()
 
-from jhora import const, utils  # noqa: E402
-from jhora.panchanga import drik, pancha_paksha  # noqa: E402
+from jhora import const, utils
+from jhora.panchanga import drik, pancha_paksha
 
 configure_ayanamsa(drik)
 

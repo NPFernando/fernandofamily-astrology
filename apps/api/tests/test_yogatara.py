@@ -22,17 +22,16 @@ from app.core.vendor_path import configure_ayanamsa, ensure_vendor_on_path
 
 ensure_vendor_on_path()
 
-import swisseph as swe  # noqa: E402
-from jhora.panchanga import drik  # noqa: E402
+import pytest
+import swisseph as swe
+from fastapi.testclient import TestClient
+from jhora.panchanga import drik
 
-import pytest  # noqa: E402
-from fastapi.testclient import TestClient  # noqa: E402
-
-from app.core import rate_limit  # noqa: E402
-from app.main import app  # noqa: E402
-from app.modules.birth_chart.yogatara import CRC_LATITUDES, YOGATARA_STARS  # noqa: E402
-from app.modules.pancha_pakshi import adapter as pp_adapter  # noqa: E402
-from app.modules.panchanga import repository as panchanga_repository  # noqa: E402
+from app.core import rate_limit
+from app.main import app
+from app.modules.birth_chart.yogatara import CRC_LATITUDES, YOGATARA_STARS
+from app.modules.pancha_pakshi import adapter as pp_adapter
+from app.modules.panchanga import repository as panchanga_repository
 
 client = TestClient(app)
 

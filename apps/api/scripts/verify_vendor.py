@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Verifies the vendored PyJHora engine: checksums, CSV schema, pin metadata,
 # and a live import + calculation smoke test. Run as:
 #   python3 apps/api/scripts/verify_vendor.py --mode full

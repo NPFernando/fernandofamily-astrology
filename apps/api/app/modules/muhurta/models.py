@@ -8,7 +8,6 @@ from app.modules.pancha_pakshi.enums import ActivityId, BirdId, EffectId
 from app.modules.pancha_pakshi.models import EngineMetadata, Location
 from app.modules.panchanga.models import MoonPhaseKey, PoyaInfo, SinhalaMonth
 
-
 MuhurtaPurpose = Literal[
     "general",
     "travel",

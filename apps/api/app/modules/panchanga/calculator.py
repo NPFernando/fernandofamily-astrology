@@ -4,7 +4,10 @@ from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from app.modules.pancha_pakshi import adapter as pp_adapter
-from app.modules.pancha_pakshi.calculator import _validated_sunrise_jd, resolve_utc_offset_hours
+from app.modules.pancha_pakshi.calculator import (
+    _validated_sunrise_jd,
+    resolve_utc_offset_hours,
+)
 from app.modules.pancha_pakshi.enums import PakshaId
 from app.modules.pancha_pakshi.models import EngineMetadata, Location
 from app.modules.pancha_pakshi.repository import WEEKDAY_ORDER
@@ -14,14 +17,14 @@ from app.modules.panchanga.models import (
     DailyPanchanga,
     EclipseForecast,
     GrahaPosition,
-    Kalams,
     KalamRange,
+    Kalams,
     KaranaSpan,
     LunarEclipseEvent,
     LunarMonth,
-    MoonRashiSpan,
     MonthPanchanga,
     MonthPanchangaDay,
+    MoonRashiSpan,
     NakshatraSpan,
     NextPoya,
     PoyaInfo,
@@ -681,7 +684,7 @@ def _next_poya(target_date: date_type, place, offset_hours: float) -> NextPoya:
     one comfortably within the cap; each anchor is one tithi call.
     """
     seen: set[str] = set()
-    for offset in range(0, 40):
+    for offset in range(40):
         anchor = target_date + timedelta(days=offset)
         for idx, start, _end in _tithi_spans_raw(anchor, place, offset_hours):
             if idx != 15 or start.isoformat() in seen:

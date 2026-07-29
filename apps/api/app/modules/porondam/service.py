@@ -1,5 +1,8 @@
 from app.modules.pancha_pakshi.models import EngineMetadata
-from app.modules.pancha_pakshi.validation import validate_location, validate_supported_date
+from app.modules.pancha_pakshi.validation import (
+    validate_location,
+    validate_supported_date,
+)
 from app.modules.porondam.calculator import compute_porondam, resolve_party
 from app.modules.porondam.models import PorondamResponse
 from app.modules.porondam.requests import PartyBirthInput, PorondamRequest

@@ -40,8 +40,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from app.modules.pancha_pakshi import adapter as pp_adapter  # noqa: E402
-from app.modules.panchanga import adapter  # noqa: E402
+from app.modules.pancha_pakshi import adapter as pp_adapter
+from app.modules.panchanga import adapter
 
 COLOMBO = ("Colombo", 6.9271, 79.8612, 5.5)
 FIXTURE = Path(__file__).resolve().parents[2] / "tests" / "fixtures" / "sl_poya_2021_2026.json"

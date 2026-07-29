@@ -1,8 +1,8 @@
 from collections import Counter
 
 from app.modules.compatibility.models import CompatibilityResponse, RelationVariant
-from app.modules.pancha_pakshi.enums import BirdId, RelationId
 from app.modules.pancha_pakshi import repository as pancha_repository
+from app.modules.pancha_pakshi.enums import BirdId, RelationId
 
 
 def bird_compatibility(bird_a: BirdId, bird_b: BirdId) -> CompatibilityResponse:
@@ -13,9 +13,7 @@ def bird_compatibility(bird_a: BirdId, bird_b: BirdId) -> CompatibilityResponse:
     for row in pancha_repository.load_rows():
         row_main_bird = int(row[3])
         row_sub_bird = int(row[5])
-        if (row_main_bird, row_sub_bird) == (a_index, b_index):
-            counts[pancha_repository.RELATION_ORDER[int(row[8])]] += 1
-        elif a_index != b_index and (row_main_bird, row_sub_bird) == (b_index, a_index):
+        if (row_main_bird, row_sub_bird) == (a_index, b_index) or a_index != b_index and (row_main_bird, row_sub_bird) == (b_index, a_index):
             counts[pancha_repository.RELATION_ORDER[int(row[8])]] += 1
 
     variants = [

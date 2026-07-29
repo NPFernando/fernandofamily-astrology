@@ -2,7 +2,15 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from app.modules.pancha_pakshi.enums import ActivityId, BirdId, EffectId, PakshaId, PeriodKind, RelationId, WeekdayId
+from app.modules.pancha_pakshi.enums import (
+    ActivityId,
+    BirdId,
+    EffectId,
+    PakshaId,
+    PeriodKind,
+    RelationId,
+    WeekdayId,
+)
 
 
 class EngineMetadata(BaseModel):

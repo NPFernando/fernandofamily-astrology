@@ -4,6 +4,7 @@ from app.modules.birth_nakshatra.models import (
     MoonRashi,
 )
 from app.modules.birth_nakshatra.repository import rashi_key
+from app.modules.birth_nakshatra.requests import BirthNakshatraRequest
 from app.modules.pancha_pakshi import adapter as pp_adapter
 from app.modules.pancha_pakshi import calculator as pp_calculator
 from app.modules.pancha_pakshi import repository as pp_repository
@@ -11,7 +12,6 @@ from app.modules.pancha_pakshi import validation
 from app.modules.pancha_pakshi.enums import PakshaId
 from app.modules.pancha_pakshi.models import EngineMetadata, Location
 from app.modules.panchanga import repository as panchanga_repository
-from app.modules.birth_nakshatra.requests import BirthNakshatraRequest
 
 
 def resolve_birth_nakshatra(

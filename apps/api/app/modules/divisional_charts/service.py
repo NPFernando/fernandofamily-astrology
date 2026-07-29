@@ -2,7 +2,10 @@ from app.modules.divisional_charts.calculator import compute_navamsa_chart
 from app.modules.divisional_charts.models import NavamsaChart
 from app.modules.divisional_charts.requests import NavamsaChartRequest
 from app.modules.pancha_pakshi.models import EngineMetadata
-from app.modules.pancha_pakshi.validation import validate_location, validate_supported_date
+from app.modules.pancha_pakshi.validation import (
+    validate_location,
+    validate_supported_date,
+)
 
 
 def navamsa_chart(request: NavamsaChartRequest, engine: EngineMetadata) -> NavamsaChart:

@@ -1,0 +1,7 @@
+import type { BirthCalculationInput } from "@/lib/birth-calculation-handoff";
+
+const STORAGE_KEY = "ff_private_birth_profiles"; const MAX_PROFILES = 12;
+export type PrivateBirthProfile = { id: string; label: string; input: BirthCalculationInput; createdAt: string };
+export function listPrivateBirthProfiles(): PrivateBirthProfile[] { if (typeof window === "undefined") return []; try { const value = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "[]"); return Array.isArray(value) ? value.filter((profile) => profile?.id && profile?.label && profile?.input?.birthDate && profile?.input?.birthTime && profile?.input?.location?.iana_tz).slice(0, MAX_PROFILES) : []; } catch { return []; } }
+export function savePrivateBirthProfile(label: string, input: BirthCalculationInput) { if (typeof window === "undefined") return; const profiles = listPrivateBirthProfiles(); const existing = profiles.find((profile) => JSON.stringify(profile.input) === JSON.stringify(input)); const next = existing ? profiles.map((profile) => profile.id === existing.id ? { ...profile, label: label.trim() || profile.label } : profile) : [{ id: crypto.randomUUID(), label: label.trim() || "Private profile", input, createdAt: new Date().toISOString() }, ...profiles].slice(0, MAX_PROFILES); window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); }
+export function removePrivateBirthProfile(id: string) { if (typeof window !== "undefined") window.localStorage.setItem(STORAGE_KEY, JSON.stringify(listPrivateBirthProfiles().filter((profile) => profile.id !== id))); }

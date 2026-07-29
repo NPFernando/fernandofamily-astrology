@@ -14,6 +14,7 @@ import { TargetDateTimeFields, type TargetDateTime } from "@/components/pancha-p
 import { saveRecentBirthDetails } from "@/lib/recent-birth-details";
 import { PorondamIcon } from "@/components/icons/features";
 import { ToolPageHero } from "@/components/layout/ToolPageHero";
+import { PrivateBirthProfilePicker } from "@/components/PrivateBirthProfilePicker";
 
 // Fixed display order matching repository.py / calculator.compute_porondam.
 const PORONDAM_ORDER = [
@@ -218,6 +219,7 @@ function PartyForm({
           value={value.location}
           onChange={(location) => onChange({ ...value, location })}
         />
+        <PrivateBirthProfilePicker input={value.location && value.dateTime.date && value.dateTime.time ? { birthDate: value.dateTime.date, birthTime: value.dateTime.time, location: value.location } : null} onSelect={(input) => onChange({ dateTime: { date: input.birthDate, time: input.birthTime }, location: input.location })} />
       </div>
     </fieldset>
   );

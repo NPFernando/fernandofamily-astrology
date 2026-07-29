@@ -10,6 +10,7 @@ import { Nav } from "@/components/layout/Nav";
 import { Footer } from "@/components/layout/Footer";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { ImageLoadTelemetry } from "@/components/ImageLoadTelemetry";
+import { NetworkStatus } from "@/components/NetworkStatus";
 import { PUBLIC_BASE_URL } from "@/lib/site-config";
 import { DEFAULT_OG_IMAGE } from "@/lib/feature-assets";
 
@@ -98,7 +99,8 @@ export default async function LocaleLayout({
               <ServiceWorkerRegister />
               <ImageLoadTelemetry />
               <Nav />
-              <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">{children}</main>
+              <NetworkStatus />
+              <main className="w-full flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 xl:px-10 2xl:px-12">{children}</main>
               <Footer />
             </LocaleProvider>
           </DataSaverProvider>

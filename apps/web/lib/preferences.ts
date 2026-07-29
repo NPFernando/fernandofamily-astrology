@@ -16,6 +16,8 @@ const PREFERENCE_KEYS = [
   "ff_saved_profiles",
   "ff_saved_reports",
   "ff_family_almanac_selected_profile_ids",
+  "ff_onboarding_dismissed",
+  "ff_private_birth_profiles",
 ] as const;
 
 export function clearSavedPreferences() {

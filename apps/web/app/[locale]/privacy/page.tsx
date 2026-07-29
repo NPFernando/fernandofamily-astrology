@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getDictionary } from "@/lib/i18n";
 import { localizedPageMetadata, resolveLocale } from "@/lib/page-metadata";
 import { ClearPreferencesButton } from "@/components/ClearPreferencesButton";
+import { LocalDataSummary } from "@/components/LocalDataSummary";
 
 export async function generateMetadata({
   params,
@@ -24,6 +25,7 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
       <p className="mt-4 leading-relaxed">{dict.pages.privacy.imageTelemetryBody}</p>
       <h2 className="mt-6 text-lg font-semibold">{dict.pages.privacy.localStorageTitle}</h2>
       <p className="mt-2 leading-relaxed">{dict.pages.privacy.localStorageBody}</p>
+      <LocalDataSummary labels={{ reports: dict.ui.localReports, profiles: dict.ui.localProfiles, recentBirthDetails: dict.ui.localBirthDetails }} />
       <ClearPreferencesButton
         label={dict.ui.clearSavedPreferences}
         clearedMessage={dict.pages.privacy.clearAction}

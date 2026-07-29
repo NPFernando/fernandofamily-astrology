@@ -3,7 +3,7 @@ import { enabledFeatures } from "@/lib/feature-registry";
 import { SUPPORTED_LOCALES } from "@/lib/i18n";
 import { PUBLIC_BASE_URL } from "@/lib/site-config";
 
-const STATIC_ROUTES = ["", "/about", "/methodology", "/privacy", "/disclaimer", "/licensing"];
+const STATIC_ROUTES = ["", "/about", "/methodology", "/privacy", "/disclaimer", "/licensing", "/learn"];
 const EXTRA_ROUTES = ["/pancha-pakshi/live"];
 
 export default function sitemap(): MetadataRoute.Sitemap {

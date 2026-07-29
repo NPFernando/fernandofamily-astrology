@@ -63,6 +63,11 @@ test("landing posters retain their visual baseline when JPEG fallback is selecte
   await page.locator('picture > source[type="image/avif"], picture > source[type="image/webp"]').evaluateAll((sources) => {
     for (const source of sources) source.setAttribute("type", "image/webp-disabled");
   });
+  await page.locator("picture > img").evaluateAll((images) => {
+    for (const image of images) {
+      if (image instanceof HTMLImageElement) image.loading = "eager";
+    }
+  });
 
   await expect
     .poll(() => page.locator("picture > img").evaluateAll((images) => images.map((image) => (image as HTMLImageElement).currentSrc.endsWith(".jpg"))))

@@ -67,7 +67,7 @@ export function Nav() {
 
   return (
     <header data-app-shell className="border-b border-black/10 dark:border-white/10">
-      <nav className="mx-auto grid min-h-40 max-w-6xl gap-3 px-4 py-3 md:min-h-0 md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center">
+      <nav className="grid min-h-40 w-full gap-3 px-4 py-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 md:min-h-0 md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center">
         <Link
           href={`/${locale}`}
           aria-current={pathname === `/${locale}` ? "page" : undefined}

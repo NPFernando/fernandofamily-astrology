@@ -12,6 +12,7 @@ import { DeferredPoster } from "@/components/DeferredPoster";
 import { FEATURE_POSTERS, FEATURE_POSTER_AVIFS, FEATURE_POSTER_FALLBACKS, LANDING_POSTER, LANDING_POSTER_AVIF, LANDING_POSTER_FALLBACK, isFeatureVisualId, posterSrcSet } from "@/lib/feature-assets";
 import { groupedFeatures } from "@/lib/feature-groups";
 import { HeritageMark } from "@/components/icons/heritage-mark";
+import { OnboardingGuide } from "@/components/OnboardingGuide";
 
 export async function generateMetadata({
   params,
@@ -113,6 +114,8 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
           </div>
         )}
       </section>
+
+      <OnboardingGuide />
 
       {featured && (() => {
         const visual = isFeatureVisualId(featured.icon) ? featured.icon : null;

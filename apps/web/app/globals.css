@@ -142,6 +142,17 @@ body.pancha-live-active main {
    never prints. The visibility approach keeps layout computation intact
    while suppressing everything except the sheet subtree. */
 @media print {
+  body {
+    background: #fff;
+    color: #000;
+  }
+  .heritage-card {
+    box-shadow: none;
+    break-inside: avoid;
+  }
+  main {
+    padding: 0 !important;
+  }
   /* Pages WITH a dedicated print sheet (the Pancha Pakshi calculator) print
      only that sheet. Pages without one (body lacks .has-print-sheet) print
      their normal content, relying on print: utilities to hide controls —

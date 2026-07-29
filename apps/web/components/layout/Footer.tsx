@@ -9,8 +9,8 @@ export function Footer() {
   const shortCommit = DEPLOYED_COMMIT === "dev" ? "dev" : DEPLOYED_COMMIT.slice(0, 7);
 
   return (
-    <footer data-app-shell className="mt-12 border-t border-black/10 px-4 py-8 text-sm dark:border-white/10">
-      <div className="mx-auto flex max-w-5xl flex-col gap-4">
+    <footer data-app-shell className="mt-12 border-t border-black/10 px-4 py-8 text-sm dark:border-white/10 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
+      <div className="flex w-full flex-col gap-4">
         <nav className="flex flex-wrap gap-4">
           <a href={PUBLIC_REPOSITORY_URL} target="_blank" rel="noreferrer noopener" className="hover:underline">
             {dict.nav.sourceCode}
@@ -23,6 +23,9 @@ export function Footer() {
           </Link>
           <Link href={`/${locale}/privacy`} className="hover:underline">
             {dict.nav.privacy}
+          </Link>
+          <Link href={`/${locale}/learn`} className="hover:underline">
+            {dict.nav.learn}
           </Link>
           <Link href={`/${locale}/disclaimer`} className="hover:underline">
             {dict.nav.disclaimer}

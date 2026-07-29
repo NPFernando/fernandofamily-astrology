@@ -35,6 +35,7 @@ import { mostRecentBirthDetails, saveRecentBirthDetails } from "@/lib/recent-bir
 import { clearBirthCalculationHandoff, loadBirthCalculationHandoff, saveBirthCalculationHandoff } from "@/lib/birth-calculation-handoff";
 import { BirthCalculationHandoffNotice } from "@/components/BirthCalculationHandoffNotice";
 import { ReportWorkspaceActions } from "@/components/reports/ReportWorkspaceActions";
+import { PrivateBirthProfilePicker } from "@/components/PrivateBirthProfilePicker";
 
 type ReportResult = {
   request: BirthNakshatraRequest;
@@ -260,6 +261,7 @@ export function HoroscopeReportClient() {
             <p className="mb-2 text-sm opacity-70">{dict.ui.location}</p>
             <LocationPicker value={location} onChange={setLocation} />
           </div>
+          <PrivateBirthProfilePicker input={location && birthDate && birthTime ? { birthDate, birthTime, location } : null} onSelect={(input) => { setBirthDate(input.birthDate); setBirthTime(input.birthTime); setLocation(input.location); setResult(null); }} />
           <button
             type="button"
             disabled={!canCalculate || loading}

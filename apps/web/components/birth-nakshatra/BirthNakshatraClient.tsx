@@ -25,6 +25,7 @@ import { saveDerivedIdentitySeed } from "@/lib/pancha-schedule-state";
 import { clearBirthCalculationHandoff, loadBirthCalculationHandoff, saveBirthCalculationHandoff } from "@/lib/birth-calculation-handoff";
 import { mostRecentBirthDetails, saveRecentBirthDetails } from "@/lib/recent-birth-details";
 import { BirthCalculationHandoffNotice } from "@/components/BirthCalculationHandoffNotice";
+import { PrivateBirthProfilePicker } from "@/components/PrivateBirthProfilePicker";
 
 export function BirthNakshatraClient() {
   const { dict, locale } = useLocale();
@@ -164,6 +165,7 @@ export function BirthNakshatraClient() {
             <p className="mb-2 text-sm opacity-70">{dict.ui.location}</p>
             <LocationPicker value={location} onChange={setLocation} />
           </div>
+          <PrivateBirthProfilePicker input={location && birthDate && birthTime ? { birthDate, birthTime, location } : null} onSelect={(input) => { setBirthDate(input.birthDate); setBirthTime(input.birthTime); setLocation(input.location); setResult(null); }} />
           <button
             type="button"
             disabled={!canCalculate || loading}

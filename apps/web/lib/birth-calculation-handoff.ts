@@ -1,4 +1,4 @@
-import type { BirthChart, BirthNakshatraResponse, DasamsaChart, DashaTimeline, NavamsaChart, SaptamsaChart } from "@/lib/api-client";
+import type { AshtakavargaResult, BirthChart, BirthNakshatraResponse, DasamsaChart, DashaTimeline, NavamsaChart, SaptamsaChart } from "@/lib/api-client";
 import type { LocationValue } from "@/components/pancha-pakshi/LocationPicker";
 
 export type BirthCalculationInput = { birthDate: string; birthTime: string; location: LocationValue };
@@ -8,6 +8,7 @@ export type BirthCalculationHandoff = {
   chart?: BirthChart;
   dasha?: DashaTimeline;
   divisional?: { navamsa: NavamsaChart; dasamsa: DasamsaChart; saptamsa: SaptamsaChart };
+  ashtakavarga?: AshtakavargaResult;
   savedAt: string;
 };
 
@@ -36,7 +37,7 @@ export function loadBirthCalculationHandoff() {
 /** Same-tab only: exact inputs and already-computed reports never enter a URL or server-side store. */
 export function saveBirthCalculationHandoff(
   input: BirthCalculationInput,
-  results: Pick<BirthCalculationHandoff, "identity" | "chart" | "dasha" | "divisional">,
+  results: Pick<BirthCalculationHandoff, "identity" | "chart" | "dasha" | "divisional" | "ashtakavarga">,
 ) {
   if (typeof window === "undefined") return;
   const current = loadRaw();

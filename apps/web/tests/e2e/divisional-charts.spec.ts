@@ -81,7 +81,7 @@ test("divisional charts: invalid birth date shows a validation error, not a cras
 test("divisional charts: nav link and sitemap are present", async ({ page, request }) => {
   const dict = DICTS.en;
   await page.goto("/en");
-  await page.getByText(dict.ui.birthTools, { exact: true }).click();
+  await page.locator("summary").filter({ hasText: dict.ui.birthTools }).click();
   await expect(page.getByRole("link", { name: dict.nav.divisionalCharts, exact: true })).toBeVisible();
   const sitemap = await request.get("/sitemap.xml");
   expect(await sitemap.text()).toContain("/en/divisional-charts");

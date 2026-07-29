@@ -34,6 +34,7 @@ import { saveDerivedIdentitySeed } from "@/lib/pancha-schedule-state";
 import { mostRecentBirthDetails, saveRecentBirthDetails } from "@/lib/recent-birth-details";
 import { clearBirthCalculationHandoff, loadBirthCalculationHandoff, saveBirthCalculationHandoff } from "@/lib/birth-calculation-handoff";
 import { BirthCalculationHandoffNotice } from "@/components/BirthCalculationHandoffNotice";
+import { ReportWorkspaceActions } from "@/components/reports/ReportWorkspaceActions";
 
 type ReportResult = {
   request: BirthNakshatraRequest;
@@ -85,7 +86,7 @@ export function HoroscopeReportClient() {
   const signedIn = Boolean(probe.user?.email);
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
-  const [location, setLocation] = useState<LocationValue | null>(null);
+  const [location, setLocation] = useState<LocationValue | null>(DEFAULT_LOCATION);
   const [result, setResult] = useState<ReportResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -291,6 +292,7 @@ export function HoroscopeReportClient() {
 
       {result && report && (
         <section data-testid="horoscope-report-result" className="flex flex-col gap-5 print:gap-4">
+          <ReportWorkspaceActions reportPath="/horoscope-report" />
           <div className="print:hidden rounded-xl border border-black/10 bg-white/30 p-4 dark:border-white/10 dark:bg-white/[.03]">
             <h2 className="text-sm font-semibold uppercase text-accent">{dict.horoscopeReport.actionsTitle}</h2>
             <div className="mt-3 flex flex-wrap gap-2">

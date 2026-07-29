@@ -7,7 +7,7 @@ import sharp from "sharp";
 const features = [
   ["birth-nakshatra", "star"], ["pancha-pakshi", "bird"], ["panchanga", "sun"], ["moon-calendar", "moon"],
   ["daily-guide", "guide"], ["family-almanac", "calendar"], ["muhurta", "flame"], ["compatibility", "pair"],
-  ["divisional-charts", "diamond"], ["porondam", "pair"], ["birth-chart", "diamond"], ["horoscope-report", "scroll"], ["dasha", "rings"],
+  ["divisional-charts", "diamond"], ["porondam", "pair"], ["birth-chart", "diamond"], ["horoscope-report", "scroll"], ["dasha", "rings"], ["ashtakavarga", "calendar"],
 ];
 
 function glyph(kind) {

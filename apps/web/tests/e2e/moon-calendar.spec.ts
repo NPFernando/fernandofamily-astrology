@@ -70,7 +70,7 @@ test("moon calendar: landing card, nav link, and sitemap are present", async ({ 
   await expect(
     page.getByRole("link", { name: new RegExp(DICTS.en.features.moonCalendar.title) }).first(),
   ).toBeVisible();
-  await page.getByText(DICTS.en.ui.todayTools, { exact: true }).click();
+  await page.locator("summary").filter({ hasText: DICTS.en.ui.todayTools }).click();
   await page.getByRole("link", { name: DICTS.en.nav.moonCalendar }).first().click();
   await expect(page).toHaveURL(/\/en\/moon-calendar$/);
 

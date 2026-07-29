@@ -54,7 +54,7 @@ test("porondam: calculate stays disabled until both parties' details are complet
 test("porondam: nav link and sitemap are present", async ({ page, request }) => {
   const dict = DICTS.en;
   await page.goto("/en");
-  await page.getByText(dict.ui.familyTools, { exact: true }).click();
+  await page.locator("summary").filter({ hasText: dict.ui.familyTools }).click();
   await expect(page.getByRole("link", { name: dict.nav.porondam, exact: true })).toBeVisible();
   const sitemap = await request.get("/sitemap.xml");
   expect(await sitemap.text()).toContain("/en/porondam");

@@ -7,7 +7,7 @@ export const FEATURE_GROUPS = [
   },
   {
     id: "birth",
-    featureIds: ["birth-nakshatra", "birth-chart", "divisional-charts", "horoscope-report", "dasha"],
+    featureIds: ["birth-nakshatra", "birth-chart", "divisional-charts", "horoscope-report", "dasha", "ashtakavarga"],
   },
   {
     id: "family",

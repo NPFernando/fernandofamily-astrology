@@ -17,12 +17,13 @@ import { YogataraTable } from "@/components/birth-chart/YogataraTable";
 import { mostRecentBirthDetails, saveRecentBirthDetails } from "@/lib/recent-birth-details";
 import { clearBirthCalculationHandoff, loadBirthCalculationHandoff, saveBirthCalculationHandoff } from "@/lib/birth-calculation-handoff";
 import { BirthCalculationHandoffNotice } from "@/components/BirthCalculationHandoffNotice";
+import { ReportWorkspaceActions } from "@/components/reports/ReportWorkspaceActions";
 
 export function BirthChartClient() {
   const { dict } = useLocale();
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
-  const [location, setLocation] = useState<LocationValue | null>(null);
+  const [location, setLocation] = useState<LocationValue | null>(DEFAULT_LOCATION);
   const [result, setResult] = useState<BirthChartData | null>(null);
   const [showStars, setShowStars] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -145,6 +146,7 @@ export function BirthChartClient() {
 
       {result && (
         <section data-testid="birth-chart-result" className="flex flex-col gap-3">
+          <ReportWorkspaceActions reportPath="/birth-chart" />
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-sm font-semibold uppercase text-accent">{dict.birthChart.chartTitle}</h2>
             <button

@@ -18,6 +18,7 @@ function Glyph({ feature }: { feature: FeatureVisualId }) {
     case "birth-chart": return <><path d="M32 10 54 32 32 54 10 32 32 10Z" /><path d="M32 10v44M10 32h44M21 21l22 22M43 21 21 43" /></>;
     case "horoscope-report": return <><rect x="17" y="12" width="30" height="40" rx="3" /><path d="M23 23h18M23 31h18M23 39h11" /><circle cx="40" cy="42" r="5" /></>;
     case "dasha": return <><circle cx="32" cy="32" r="19" /><circle cx="32" cy="32" r="10" /><path d="M32 13v19l10 6" /></>;
+    case "ashtakavarga": return <><path d="M14 17h36v30H14zM14 27h36M26 17v30M38 17v30" /><path d="M20 22h.01M32 22h.01M44 22h.01M20 35h.01M32 35h.01M44 35h.01" /></>;
   }
 }
 
@@ -43,3 +44,4 @@ export const PorondamIcon = (props: FeatureIconProps) => <FeatureIcon feature="p
 export const BirthChartIcon = (props: FeatureIconProps) => <FeatureIcon feature="birth-chart" {...props} />;
 export const HoroscopeReportIcon = (props: FeatureIconProps) => <FeatureIcon feature="horoscope-report" {...props} />;
 export const DashaIcon = (props: FeatureIconProps) => <FeatureIcon feature="dasha" {...props} />;
+export const AshtakavargaIcon = (props: FeatureIconProps) => <FeatureIcon feature="ashtakavarga" {...props} />;

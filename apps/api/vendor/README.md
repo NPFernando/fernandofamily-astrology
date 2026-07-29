@@ -54,10 +54,28 @@ From `src/jhora/` at the pinned commit:
   zero PyQt6/pyqtgraph/tkinter/matplotlib imports anywhere in this
   closure; `jhora/horoscope/main.py` (PyQt UI, ~1800 lines) is never
   transitively imported and stays fully excluded.
+- `horoscope/chart/ashtakavarga.py` (2026-07-24) — added for the
+  Ashtakavarga feature (`app/modules/ashtakavarga/`). Small and
+  self-contained: its only imports are `numpy` (already a direct
+  dependency, `requirements.txt`, and already used by the already-
+  vendored `utils.py`) and `jhora.const`/`jhora.utils`, both already
+  vendored in full — confirmed every symbol it references
+  (`ashtaka_varga_dict`, `ashtakavarga_rasi_owners`,
+  `ashtakavarga_rasimana_multipliers`,
+  `ashtakavarga_grahamana_multipliers`, `SUN_TO_SATURN`, `HOUSE_1`/`5`/`9`,
+  `MOON_ID`, `SATURN_ID`, `_ascendant_symbol`,
+  `get_planet_to_house_dict_from_chart`) already exists in the vendored
+  `const.py`/`utils.py` before pulling this file in — zero new
+  transitive dependencies, unlike Shadbala below.
 
 Not vendored: the rest of `jhora/horoscope/` (`main.py`,
 `chart/arudhas.py` — only needed for Arudha Lagna dhasa, which nothing
-calls yet — `dhasa/raasi/*`, `transit/`, `match/`, `prediction/`, etc.),
+calls yet — `chart/strength.py` (Shadbala/Bhavabala; verified genuinely
+practiced in Sri Lanka too, but scoped 2026-07-24 as its own
+future/larger pass — it pulls in `panchanga/surya_sidhantha.py` and
+`horoscope/transit/tajaka.py`, neither vendored, plus ~55 interdependent
+functions each needing independent correctness verification before
+shipping) — `dhasa/raasi/*`, `transit/`, `match/`, `prediction/`, etc.),
 `jhora/ui/` (PyQt-dependent, never imported by our call path), other
 `panchanga/*.py` siblings (`drik1.py`, `eclipse.py`, `hijri.py`,
 `khanda_khaadyaka.py`, `surya_sidhantha.py`, `vratha.py` — not imported

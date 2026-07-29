@@ -15,6 +15,7 @@ const FEATURES = [
   "birth-chart",
   "horoscope-report",
   "dasha",
+  "ashtakavarga",
 ] as const;
 
 test("landing page uses generated hero, feature posters, and nonblank icons", async ({ page }) => {

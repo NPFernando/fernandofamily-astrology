@@ -3,7 +3,7 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { enabledFeatures } from "@/lib/feature-registry";
 import { resolveKey } from "@/lib/i18n";
@@ -20,6 +20,8 @@ export function Nav() {
   const { locale, dict } = useLocale();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
   const features = enabledFeatures();
   const featureLabel = (id: string, fallback: string) => {
     if (id === "birth-nakshatra") return dict.nav.birthNakshatra;
@@ -34,6 +36,7 @@ export function Nav() {
     if (id === "birth-chart") return dict.nav.birthChart;
     if (id === "horoscope-report") return dict.nav.horoscopeReport;
     if (id === "dasha") return dict.nav.dasha;
+    if (id === "ashtakavarga") return dict.nav.ashtakavarga;
     return fallback;
   };
   const groups = groupedFeatures(features);
@@ -51,10 +54,14 @@ export function Nav() {
     if (!mobileMenuOpen) return;
 
     function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") setMobileMenuOpen(false);
+      if (event.key === "Escape") {
+        setMobileMenuOpen(false);
+        window.setTimeout(() => mobileMenuButtonRef.current?.focus(), 0);
+      }
     }
 
     window.addEventListener("keydown", closeOnEscape);
+    mobileMenuRef.current?.querySelector<HTMLElement>("a, button")?.focus();
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [mobileMenuOpen]);
 
@@ -76,7 +83,7 @@ export function Nav() {
           {groups.map((group) => {
             const active = group.features.some((feature) => isActive(`/${locale}${feature.route}`));
             return (
-              <details key={group.id} className="group relative flex-none" open={active || undefined}>
+              <details key={group.id} className="group relative flex-none" open={active || undefined} onKeyDown={(event) => { if (event.key === "Escape") (event.currentTarget as HTMLDetailsElement).open = false; }}>
                 <summary
                   className={`flex cursor-pointer list-none items-center gap-1 whitespace-nowrap rounded-full border px-3 py-1.5 leading-none transition [&::-webkit-details-marker]:hidden ${
                     active
@@ -110,6 +117,7 @@ export function Nav() {
         </div>
         <div className="flex flex-wrap items-center gap-2 md:justify-end">
           <button
+            ref={mobileMenuButtonRef}
             type="button"
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-site-navigation"
@@ -140,6 +148,7 @@ export function Nav() {
         </div>
         {mobileMenuOpen ? (
           <div
+            ref={mobileMenuRef}
             id="mobile-site-navigation"
             className="heritage-card grid gap-5 rounded-2xl border p-4 text-sm md:hidden"
             aria-label={dict.ui.pageNavigation}
@@ -173,6 +182,9 @@ export function Nav() {
               className={`rounded-lg border border-black/10 px-3 py-2.5 font-medium transition hover:bg-accent/10 dark:border-white/10 ${isActive(`/${locale}/about`) ? "bg-accent/10 text-accent" : ""}`}
             >
               {dict.nav.about}
+            </Link>
+            <Link href={`/${locale}/my-reports`} onClick={() => setMobileMenuOpen(false)} className="rounded-lg border border-black/10 px-3 py-2.5 font-medium transition hover:bg-accent/10 dark:border-white/10">
+              {dict.ui.myReports}
             </Link>
           </div>
         ) : null}

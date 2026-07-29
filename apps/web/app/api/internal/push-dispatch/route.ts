@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import webpush from "web-push";
 import { query } from "@/lib/db";
 import { pushEnabled } from "@/lib/push-flag";
-import { isMissingTableError, requirePushStorage } from "@/lib/push-api";
+import { requirePushStorage } from "@/lib/push-api";
 import en from "@/locales/en.json";
 import si from "@/locales/si.json";
 
@@ -126,11 +126,8 @@ export async function POST(request: Request) {
               latitude, longitude, iana_tz, min_effect, lead_minutes, locale, failures
          FROM push_subscriptions ORDER BY created_at LIMIT 500`,
     );
-  } catch (e) {
-    if (isMissingTableError(e)) {
-      return NextResponse.json({ error: "storage_unavailable" }, { status: 503 });
-    }
-    throw e;
+  } catch {
+    return NextResponse.json({ error: "storage_unavailable" }, { status: 503 });
   }
 
   const nowMs = Date.now();

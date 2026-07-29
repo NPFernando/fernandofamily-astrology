@@ -51,6 +51,6 @@ test("@mobile active navigation is marked without page overflow", async ({ page 
   await page.setViewportSize({ width: 360, height: 740 });
   await page.goto("/si/panchanga");
   await page.getByRole("button", { name: DICTS.si.ui.menu }).click();
-  await expect(page.locator('[aria-current="page"]').getByText(DICTS.si.nav.panchanga)).toBeVisible();
+  await expect(page.locator('#mobile-site-navigation [aria-current="page"]')).toHaveText(DICTS.si.nav.panchanga);
   await expectNoHorizontalScroll(page);
 });

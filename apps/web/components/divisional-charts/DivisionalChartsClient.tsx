@@ -25,6 +25,7 @@ import { SaptamsaChart } from "@/components/divisional-charts/SaptamsaChart";
 import { mostRecentBirthDetails, saveRecentBirthDetails } from "@/lib/recent-birth-details";
 import { clearBirthCalculationHandoff, loadBirthCalculationHandoff, saveBirthCalculationHandoff } from "@/lib/birth-calculation-handoff";
 import { BirthCalculationHandoffNotice } from "@/components/BirthCalculationHandoffNotice";
+import { ReportWorkspaceActions } from "@/components/reports/ReportWorkspaceActions";
 
 type ChartType = "navamsa" | "dasamsa" | "saptamsa";
 
@@ -32,7 +33,7 @@ export function DivisionalChartsClient() {
   const { dict } = useLocale();
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
-  const [location, setLocation] = useState<LocationValue | null>(null);
+  const [location, setLocation] = useState<LocationValue | null>(DEFAULT_LOCATION);
   const [navamsaResult, setNavamsaResult] = useState<NavamsaChartData | null>(null);
   const [dasamsaResult, setDasamsaResult] = useState<DasamsaChartData | null>(null);
   const [saptamsaResult, setSaptamsaResult] = useState<SaptamsaChartData | null>(null);
@@ -91,11 +92,12 @@ export function DivisionalChartsClient() {
       // All three charts share identical birth-data input, so compute all
       // of them from a single "Calculate" press -- switching tabs
       // afterwards is then instant, not a second network round-trip.
-      const [navamsa, dasamsa, saptamsa] = await Promise.all([
-        fetchNavamsaChart(requestBody),
-        fetchDasamsaChart(requestBody),
-        fetchSaptamsaChart(requestBody),
-      ]);
+      // The vendored astronomy engine has process-global calculation state.
+      // Run the three dependent projections in order rather than racing it;
+      // the results still populate together and tab changes remain instant.
+      const navamsa = await fetchNavamsaChart(requestBody);
+      const dasamsa = await fetchDasamsaChart(requestBody);
+      const saptamsa = await fetchSaptamsaChart(requestBody);
       setNavamsaResult(navamsa);
       setDasamsaResult(dasamsa);
       setSaptamsaResult(saptamsa);
@@ -184,6 +186,7 @@ export function DivisionalChartsClient() {
 
       {result && (
         <section data-testid="divisional-charts-result" className="flex flex-col gap-3">
+          <ReportWorkspaceActions reportPath="/divisional-charts" />
           <div
             role="tablist"
             aria-label={dict.divisionalCharts.title}

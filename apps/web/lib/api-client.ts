@@ -269,6 +269,28 @@ export type NavamsaChartRequest = {
   iana_tz: string;
 };
 
+// ---------------------------------------------------------------------------
+// Ashtakavarga (/api/v1/ashtakavarga) — Sarvashtakavarga house strengths.
+
+export type AshtakavargaRequest = NavamsaChartRequest;
+
+export type AshtakavargaHousePoints = {
+  rashi_index: number;
+  rashi_key: RashiId;
+  points: number;
+};
+
+export type AshtakavargaResult = {
+  engine: EngineMetadata;
+  location: Location;
+  birth_date: string;
+  birth_time: string;
+  ascendant_rashi_index: number;
+  ascendant_rashi_key: RashiId;
+  sarvashtakavarga: AshtakavargaHousePoints[];
+  total_points: number;
+};
+
 export type NavamsaPlacement = {
   key: string; // repository.GRAHA_KEYS entry, e.g. "sun"
   rashi_index: number; // 1..12
@@ -978,6 +1000,18 @@ export function fetchDasha(body: DashaRequest): Promise<DashaTimeline> {
     return data as DashaTimeline;
   });
   return res;
+}
+
+export function fetchAshtakavarga(body: AshtakavargaRequest): Promise<AshtakavargaResult> {
+  return fetch("/api/v1/ashtakavarga/calculate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).then(async (response) => {
+    const data = await response.json().catch(() => null);
+    if (!response.ok) throw new ApiError(response.status, data);
+    return data as AshtakavargaResult;
+  });
 }
 
 export function fetchPorondamMatch(body: PorondamRequest): Promise<PorondamResponse> {

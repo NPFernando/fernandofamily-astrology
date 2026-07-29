@@ -147,3 +147,12 @@ export function validateSubscribeBody(
 export function isMissingTableError(e: unknown): boolean {
   return typeof e === "object" && e !== null && (e as { code?: string }).code === "42P01";
 }
+
+// A configured DATABASE_URL can still point at an unavailable service in a
+// deployment or test environment. Push is optional, so surface every known
+// storage outage as a retryable 503 rather than leaking an unexpected 500.
+export function isPushStorageUnavailable(e: unknown): boolean {
+  if (isMissingTableError(e)) return true;
+  const code = typeof e === "object" && e !== null ? (e as { code?: string }).code : undefined;
+  return code === "3D000" || code === "57P01" || code === "ECONNREFUSED" || code === "ENOTFOUND" || code === "ETIMEDOUT";
+}

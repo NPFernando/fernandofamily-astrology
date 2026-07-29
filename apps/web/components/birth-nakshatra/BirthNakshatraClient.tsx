@@ -33,7 +33,7 @@ export function BirthNakshatraClient() {
   const signedIn = Boolean(probe.user?.email);
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
-  const [location, setLocation] = useState<LocationValue | null>(null);
+  const [location, setLocation] = useState<LocationValue | null>(DEFAULT_LOCATION);
   const [result, setResult] = useState<BirthNakshatraResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);

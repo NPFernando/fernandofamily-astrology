@@ -16,12 +16,13 @@ import { DashaTimeline } from "@/components/dasha/DashaTimeline";
 import { mostRecentBirthDetails, saveRecentBirthDetails } from "@/lib/recent-birth-details";
 import { clearBirthCalculationHandoff, loadBirthCalculationHandoff, saveBirthCalculationHandoff } from "@/lib/birth-calculation-handoff";
 import { BirthCalculationHandoffNotice } from "@/components/BirthCalculationHandoffNotice";
+import { ReportWorkspaceActions } from "@/components/reports/ReportWorkspaceActions";
 
 export function DashaClient() {
   const { dict } = useLocale();
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
-  const [location, setLocation] = useState<LocationValue | null>(null);
+  const [location, setLocation] = useState<LocationValue | null>(DEFAULT_LOCATION);
   const [result, setResult] = useState<DashaTimelineData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -147,6 +148,7 @@ export function DashaClient() {
 
       {result && (
         <section data-testid="dasha-result" className="flex flex-col gap-3">
+          <ReportWorkspaceActions reportPath="/dasha" />
           <h2 className="text-sm font-semibold uppercase text-accent">{dict.dasha.resultTitle}</h2>
           <DashaTimeline periods={result.periods} />
         </section>

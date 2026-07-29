@@ -159,6 +159,17 @@ export const features: FeatureEntry[] = [
     descriptionKey: "features.dasha.description",
     icon: "dasha",
   },
+  {
+    id: "ashtakavarga",
+    enabled: true,
+    public: true,
+    order: 52,
+    route: "/ashtakavarga",
+    apiNamespace: "/api/v1/ashtakavarga",
+    titleKey: "features.ashtakavarga.title",
+    descriptionKey: "features.ashtakavarga.description",
+    icon: "ashtakavarga",
+  },
 ];
 
 export function enabledFeatures(): FeatureEntry[] {

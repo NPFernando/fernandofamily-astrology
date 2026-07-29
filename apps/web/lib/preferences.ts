@@ -14,6 +14,7 @@ const PREFERENCE_KEYS = [
   "ff_recent_birth_details",
   "ff_last_schedule_cache",
   "ff_saved_profiles",
+  "ff_saved_reports",
   "ff_family_almanac_selected_profile_ids",
 ] as const;
 

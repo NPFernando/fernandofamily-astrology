@@ -55,6 +55,10 @@
     "dasha": {
       "title": "Dasha (Planetary Periods)",
       "description": "See your Vimshottari Mahadasha timeline — the 9 major planetary periods spanning your life from birth, and which one is active now."
+    },
+    "ashtakavarga": {
+      "title": "Ashtakavarga",
+      "description": "View Sarvashtakavarga points across all twelve rashis from your birth details."
     }
   },
   "nav": {
@@ -76,7 +80,8 @@
     "porondam": "Porondam",
     "birthChart": "Birth Chart",
     "horoscopeReport": "Horoscope Report",
-    "dasha": "Dasha"
+    "dasha": "Dasha",
+    "ashtakavarga": "Ashtakavarga"
   },
   "enums": {
     "birds": {
@@ -435,6 +440,18 @@
     "pageNavigation": "Page navigation",
     "menu": "Menu",
     "installApp": "Install app",
+    "myReports": "My Reports",
+    "open": "Open",
+    "rename": "Rename",
+    "remove": "Remove",
+    "export": "Export",
+    "noSavedReports": "No saved reports yet.",
+    "deviceOnly": "Saved only on this device.",
+    "saveToMyReports": "Save to My Reports",
+    "continueCalculation": "Continue with this calculation",
+    "reportSaved": "Report saved on this device.",
+    "reportDeleted": "Report removed.",
+    "reportExported": "Report download created.",
     "installGuideTitle": "Add to Home Screen",
     "installGuideBody": "Install this app for quick access and offline viewing of your last saved schedule.",
     "installIosStepShare": "Tap the Share button in Safari.",
@@ -626,6 +643,10 @@
     "dasha": {
       "title": "Dasha (Vimshottari Planetary Periods)",
       "description": "Calculate your Vimshottari Mahadasha timeline from birth date, time and location — the 9 major planetary periods spanning your life, and which one is active now."
+    },
+    "ashtakavarga": {
+      "title": "Ashtakavarga",
+      "description": "Calculate Sarvashtakavarga points for all twelve rashis from birth date, time and location."
     }
   },
   "push": {
@@ -995,6 +1016,17 @@
     "currentLabel": "Current",
     "durationYears": "years",
     "antardashaTitle": "Antardasha sub-periods"
+  },
+  "ashtakavarga": {
+    "title": "Ashtakavarga",
+    "description": "Sarvashtakavarga shows a traditional point total for each of the twelve rashis, calculated from the birth chart.",
+    "birthDetailsTitle": "Birth details",
+    "calculate": "Calculate Ashtakavarga",
+    "resultTitle": "Sarvashtakavarga points",
+    "total": "Total points",
+    "ascendant": "Ascendant",
+    "saveReport": "Save to My Reports",
+    "privacyNote": "Birth details are sent only in a POST request for this calculation and are retained only in this browser tab for compatible reports."
   },
   "porondam": {
     "title": "Porondam (Wedding Horoscope Matching)",

@@ -17,6 +17,20 @@ function assertNoSevereViolations(violations: { id: string; impact?: string | nu
 }
 
 for (const locale of ["en", "si"] as const) {
+  test(`a11y (${locale}): mobile navigation moves focus and restores it on Escape`, async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 740 });
+    await page.goto(`/${locale}`);
+    const menu = page.getByRole("button", { name: DICTS[locale].ui.menu });
+    await menu.focus();
+    await page.keyboard.press("Enter");
+    const navigation = page.locator("#mobile-site-navigation");
+    await expect(navigation).toBeVisible();
+    await expect(page.locator("#mobile-site-navigation a").first()).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(navigation).toBeHidden();
+    await expect(menu).toBeFocused();
+  });
+
   test(`a11y (${locale}): display preferences is keyboard-operable and escapes cleanly`, async ({ page }) => {
     const dict = DICTS[locale];
     await page.goto(`/${locale}`);

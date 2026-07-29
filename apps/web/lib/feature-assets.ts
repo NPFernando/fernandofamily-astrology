@@ -12,6 +12,7 @@ export const FEATURE_VISUAL_IDS = [
   "birth-chart",
   "horoscope-report",
   "dasha",
+  "ashtakavarga",
 ] as const;
 
 export type FeatureVisualId = (typeof FEATURE_VISUAL_IDS)[number];
@@ -35,6 +36,7 @@ export const FEATURE_POSTERS: Record<FeatureVisualId, string> = {
   "birth-chart": "/posters/features/birth-chart.webp",
   "horoscope-report": "/posters/features/horoscope-report.webp",
   dasha: "/posters/features/dasha.webp",
+  ashtakavarga: "/posters/features/ashtakavarga.webp",
 };
 
 export const FEATURE_POSTER_AVIFS: Record<FeatureVisualId, string> = {
@@ -51,6 +53,7 @@ export const FEATURE_POSTER_AVIFS: Record<FeatureVisualId, string> = {
   "birth-chart": "/posters/features/birth-chart.avif",
   "horoscope-report": "/posters/features/horoscope-report.avif",
   dasha: "/posters/features/dasha.avif",
+  ashtakavarga: "/posters/features/ashtakavarga.avif",
 };
 
 export const FEATURE_POSTER_FALLBACKS: Record<FeatureVisualId, string> = {
@@ -67,6 +70,7 @@ export const FEATURE_POSTER_FALLBACKS: Record<FeatureVisualId, string> = {
   "birth-chart": "/posters/features/birth-chart.jpg",
   "horoscope-report": "/posters/features/horoscope-report.jpg",
   dasha: "/posters/features/dasha.jpg",
+  ashtakavarga: "/posters/features/ashtakavarga.jpg",
 };
 
 export const POSTER_RESPONSIVE_WIDTHS = [480, 960, 1440] as const;
@@ -92,6 +96,7 @@ export const FEATURE_OG_IMAGES: Record<FeatureVisualId, string> = {
   "birth-chart": "/og/birth-chart.png",
   "horoscope-report": "/og/horoscope-report.png",
   dasha: "/og/dasha.png",
+  ashtakavarga: "/og/ashtakavarga.png",
 };
 
 export function isFeatureVisualId(value: string): value is FeatureVisualId {

@@ -148,22 +148,21 @@ export function CommandPalette() {
               placeholder={dict.ui.commandPaletteSearch}
               className="w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 text-sm dark:border-white/20"
             />
-            <ul id={RESULTS_ID} role="listbox" className="mt-2 max-h-72 overflow-y-auto">
+            <div id={RESULTS_ID} role="listbox" className="mt-2 max-h-72 overflow-y-auto">
               {visible.length ? visible.map((command, index) => (
-                <li key={command.href}>
-                  <Link
-                    id={`command-palette-option-${index}`}
-                    href={command.href}
-                    role="option"
-                    aria-selected={index === activeIndex}
-                    onClick={() => setOpen(false)}
-                    className={`block rounded-lg px-3 py-2 text-sm ${index === activeIndex ? "bg-accent/10" : "hover:bg-accent/10"}`}
-                  >
-                    {command.label}
-                  </Link>
-                </li>
-              )) : <li className="px-3 py-2 text-sm opacity-70">{dict.ui.commandPaletteEmpty}</li>}
-            </ul>
+                <Link
+                  key={command.href}
+                  id={`command-palette-option-${index}`}
+                  href={command.href}
+                  role="option"
+                  aria-selected={index === activeIndex}
+                  onClick={() => setOpen(false)}
+                  className={`block rounded-lg px-3 py-2 text-sm ${index === activeIndex ? "bg-accent/10" : "hover:bg-accent/10"}`}
+                >
+                  {command.label}
+                </Link>
+              )) : <p className="px-3 py-2 text-sm opacity-70">{dict.ui.commandPaletteEmpty}</p>}
+            </div>
           </div>
         </div>
       )}

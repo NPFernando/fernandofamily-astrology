@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import {
-  isMissingTableError,
+  isPushStorageUnavailableError,
   requirePushEnabled,
   requirePushStorage,
   validateSubscribeBody,
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
       ],
     );
   } catch (e) {
-    if (isMissingTableError(e)) {
+    if (isPushStorageUnavailableError(e)) {
       return NextResponse.json({ error: "storage_unavailable" }, { status: 503 });
     }
     throw e;

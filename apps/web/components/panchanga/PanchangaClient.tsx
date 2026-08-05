@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { getDictionary, nakshatraName, translateEnum } from "@/lib/i18n";
 import { ApiError, fetchPanchanga, fetchEclipseForecast, type DailyPanchanga, type EclipseForecast } from "@/lib/api-client";
-import { LocationPicker, DEFAULT_LOCATION, mostRecentLocation, useVaultRecentLocation, type LocationValue } from "@/components/pancha-pakshi/LocationPicker";
+import { LocationPicker, DEFAULT_LOCATION, useVaultRecentLocation, type LocationValue } from "@/components/pancha-pakshi/LocationPicker";
 import { useLocalVault } from "@/components/LocalVaultProvider";
 import { DateNav } from "@/components/pancha-pakshi/DateNav";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
@@ -107,7 +107,7 @@ export function PanchangaClient() {
     (async () => {
       const account = await loadAccountPreferences();
       if (cancelled) return;
-      const loc = account.preferences?.default_location ?? (unlocked ? vaultLocation : null) ?? mostRecentLocation() ?? DEFAULT_LOCATION;
+      const loc = account.preferences?.default_location ?? (unlocked ? vaultLocation : null) ?? DEFAULT_LOCATION;
       // "Today" must be resolved in the LOCATION's timezone, not the
       // browser's — otherwise a device whose system clock is in a different
       // zone than the (possibly default Colombo) location can load the

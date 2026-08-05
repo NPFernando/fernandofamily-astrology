@@ -16,7 +16,6 @@ import { loadAccountPreferences } from "@/lib/account-preferences";
 import {
   DEFAULT_LOCATION,
   LocationPicker,
-  mostRecentLocation,
   useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
@@ -124,7 +123,7 @@ export function MoonCalendarClient() {
     (async () => {
       const account = await loadAccountPreferences();
       if (cancelled) return;
-      const loc = account.preferences?.default_location ?? (unlocked ? vaultLocation : null) ?? mostRecentLocation() ?? DEFAULT_LOCATION;
+      const loc = account.preferences?.default_location ?? (unlocked ? vaultLocation : null) ?? DEFAULT_LOCATION;
       const targetDate = requestedDate ?? todayIsoForLocation(loc);
       const initialMonth = monthFromDate(targetDate);
       setLocation(loc);

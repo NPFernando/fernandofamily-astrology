@@ -17,6 +17,14 @@ const nextConfig: NextConfig = {
   // monorepo root) — tell Next.js's bundler that's the real project root so
   // it resolves those files instead of treating apps/web as an island.
   outputFileTracingRoot: path.join(__dirname, "../.."),
+  // Sharp loads libvips via a native module at runtime. Its JavaScript package
+  // is traced through serverExternalPackages, but the shared library is not,
+  // leaving share-card requests as 500s in a standalone deployment.
+  outputFileTracingIncludes: {
+    "/api/share-card": [
+      "./node_modules/.pnpm/@img+sharp-libvips-linux-arm64@*/node_modules/@img/sharp-libvips-linux-arm64/lib/**",
+    ],
+  },
   turbopack: {
     root: path.join(__dirname, "../.."),
   },

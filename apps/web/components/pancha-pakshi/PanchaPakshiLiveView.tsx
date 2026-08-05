@@ -154,13 +154,14 @@ export function PanchaPakshiLiveView() {
       const request = await resolveDefaultScheduleRequest({
         recentLocation: unlocked ? vaultData.recentLocations?.[0] ?? null : null,
         derivedIdentitySeed: unlocked ? vaultData.derivedIdentitySeed ?? null : null,
+        selectedBird: unlocked ? vaultData.selectedBird ?? null : null,
       });
       if (!cancelled) void runSchedule(request);
     })();
     return () => {
       cancelled = true;
     };
-  }, [unlocked, vaultData.cachedSchedule, vaultData.derivedIdentitySeed, vaultData.liveScheduleSeed, vaultData.recentLocations, vaultReady, runSchedule]);
+  }, [unlocked, vaultData.cachedSchedule, vaultData.derivedIdentitySeed, vaultData.liveScheduleSeed, vaultData.recentLocations, vaultData.selectedBird, vaultReady, runSchedule]);
 
   const skewMs = serverTime ? serverTime.getTime() - fetchedAtClientMs : 0;
 

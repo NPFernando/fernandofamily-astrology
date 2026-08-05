@@ -24,7 +24,6 @@ import { DateNav } from "@/components/pancha-pakshi/DateNav";
 import {
   DEFAULT_LOCATION,
   LocationPicker,
-  mostRecentLocation,
   useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
@@ -395,6 +394,7 @@ export function DailyGuideClient() {
       const initial = await resolveDefaultScheduleRequest({
         recentLocation: unlocked ? vaultLocation : null,
         derivedIdentitySeed: unlocked ? vaultData.derivedIdentitySeed ?? null : null,
+        selectedBird: unlocked ? vaultData.selectedBird ?? null : null,
       });
       if (cancelled) return;
       const initialLocation = locationFromRequest(initial);
@@ -415,7 +415,7 @@ export function DailyGuideClient() {
   const windows = useMemo(() => (data ? bestWindows(data.schedule) : []), [data]);
 
   function changeDate(nextDate: string) {
-    const loc = location ?? mostRecentLocation() ?? DEFAULT_LOCATION;
+    const loc = location ?? vaultLocation ?? DEFAULT_LOCATION;
     const base = request ?? {
       method: "bird",
       bird: "peacock",

@@ -1,0 +1,11 @@
+[Unit]
+Description=Monthly Fernando Family Astrology encrypted off-site restore drill
+
+[Timer]
+OnCalendar=Sun *-*-01..07 05:20:00
+RandomizedDelaySec=30m
+Persistent=true
+Unit=fernandofamily-db-offsite-restore-drill.service
+
+[Install]
+WantedBy=timers.target

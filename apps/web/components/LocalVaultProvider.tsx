@@ -1,23 +1,27 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   activeVaultKey,
   clearLegacySensitiveStorage,
   clearVault,
   deriveVaultKey,
+  exportVaultBackup,
   hasVault,
+  importVaultBackup,
   readVault,
   setActiveVaultKey,
+  type VaultBackup,
+  type VaultBackupImportResult,
   writeVault,
 } from "@/lib/local-vault";
-import { setMostRecentVaultLocation } from "@/lib/vault-location-cache";
 import type {
   CachedSchedule,
   DerivedIdentitySeed,
   LiveScheduleSeed,
   SessionSchedule,
 } from "@/lib/pancha-schedule-state";
+import type { BirdId } from "@/lib/api-client";
 
 export type LocalVaultData = {
   recentBirthDetails?: { birth_date: string; birth_time: string }[];
@@ -26,6 +30,7 @@ export type LocalVaultData = {
   sessionSchedule?: SessionSchedule;
   liveScheduleSeed?: LiveScheduleSeed;
   derivedIdentitySeed?: DerivedIdentitySeed;
+  selectedBird?: BirdId;
 };
 
 type VaultContextValue = {
@@ -34,7 +39,10 @@ type VaultContextValue = {
   unlocked: boolean;
   hasEncryptedData: boolean;
   unlock: (passphrase: string) => Promise<boolean>;
+  lock: () => void;
   update: (updater: (current: LocalVaultData) => LocalVaultData) => Promise<void>;
+  exportBackup: () => VaultBackup | null;
+  importBackup: (serialized: string) => VaultBackupImportResult;
   clear: () => void;
 };
 
@@ -45,15 +53,16 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
   const [key, setKey] = useState<CryptoKey | null>(() => activeVaultKey());
   const [ready, setReady] = useState(false);
   const [hasEncryptedData, setHasEncryptedData] = useState(false);
+  const [sessionVersion, setSessionVersion] = useState(0);
   const dataRef = useRef<LocalVaultData>({});
   const writeQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const sessionEpochRef = useRef(0);
 
   const commit = useCallback(async (vaultKey: CryptoKey, next: LocalVaultData) => {
     const operation = writeQueueRef.current.then(async () => {
       await writeVault(vaultKey, next);
       dataRef.current = next;
       setData(next);
-      setMostRecentVaultLocation(next.recentLocations?.[0] ?? null);
       setHasEncryptedData(true);
     });
     writeQueueRef.current = operation.catch(() => undefined);
@@ -70,7 +79,6 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
           dataRef.current = retainedData;
           setKey(retainedKey);
           setData(retainedData);
-          setMostRecentVaultLocation(retainedData.recentLocations?.[0] ?? null);
         }
       }
       if (!cancelled) {
@@ -92,6 +100,12 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
         return undefined;
       }
     }
+    function readBird(): BirdId | undefined {
+      const bird = window.localStorage.getItem("ff_selected_bird");
+      return bird === "vulture" || bird === "owl" || bird === "crow" || bird === "cock" || bird === "peacock"
+        ? bird
+        : undefined;
+    }
     return {
       recentBirthDetails: read(window.localStorage, "ff_recent_birth_details"),
       recentLocations: read(window.localStorage, "ff_recent_locations"),
@@ -99,6 +113,7 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
       sessionSchedule: read(window.sessionStorage, "ff_session_schedule"),
       liveScheduleSeed: read(window.sessionStorage, "ff_live_schedule_seed"),
       derivedIdentitySeed: read(window.sessionStorage, "ff_derived_identity_seed"),
+      selectedBird: readBird(),
     };
   }, []);
 
@@ -121,6 +136,7 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
       sessionSchedule: stored?.sessionSchedule ?? legacy.sessionSchedule,
       liveScheduleSeed: stored?.liveScheduleSeed ?? legacy.liveScheduleSeed,
       derivedIdentitySeed: stored?.derivedIdentitySeed ?? legacy.derivedIdentitySeed,
+      selectedBird: stored?.selectedBird ?? legacy.selectedBird,
     } satisfies LocalVaultData;
 
     // Creating an empty encrypted payload makes "Create vault" durable even
@@ -130,18 +146,24 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
     clearLegacySensitiveStorage();
     setActiveVaultKey(nextKey);
     setKey(nextKey);
+    setSessionVersion((version) => version + 1);
     return true;
   }, [commit, legacyData]);
 
   const update = useCallback(
     async (updater: (current: LocalVaultData) => LocalVaultData) => {
       if (!key) throw new Error("Unlock the private data vault before saving.");
+      const sessionEpoch = sessionEpochRef.current;
       const operation = writeQueueRef.current.then(async () => {
+        // A lock invalidates work that was waiting behind an earlier vault
+        // write. It must neither write stale values nor repopulate this tab's
+        // in-memory data after the user has explicitly locked it.
+        if (sessionEpoch !== sessionEpochRef.current || activeVaultKey() !== key) return;
         const next = updater(dataRef.current);
         await writeVault(key, next);
+        if (sessionEpoch !== sessionEpochRef.current || activeVaultKey() !== key) return;
         dataRef.current = next;
         setData(next);
-        setMostRecentVaultLocation(next.recentLocations?.[0] ?? null);
         setHasEncryptedData(true);
       });
       writeQueueRef.current = operation.catch(() => undefined);
@@ -151,21 +173,55 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
   );
 
   const clear = useCallback(() => {
+    sessionEpochRef.current += 1;
     clearVault();
     clearLegacySensitiveStorage();
     dataRef.current = {};
     setData({});
     setKey(null);
     setActiveVaultKey(null);
-    setMostRecentVaultLocation(null);
     setHasEncryptedData(false);
+    setSessionVersion((version) => version + 1);
+  }, []);
+
+  const lock = useCallback(() => {
+    // Retain only authenticated ciphertext in browser storage. Remounting the
+    // child tree drops private values held in individual calculator forms.
+    sessionEpochRef.current += 1;
+    dataRef.current = {};
+    setData({});
+    setKey(null);
+    setActiveVaultKey(null);
+    setHasEncryptedData(hasVault());
+    setSessionVersion((version) => version + 1);
+  }, []);
+
+  const exportBackup = useCallback(() => exportVaultBackup(), []);
+
+  const importBackup = useCallback((serialized: string): VaultBackupImportResult => {
+    const result = importVaultBackup(serialized);
+    if (result !== "imported") return result;
+    // Imported ciphertext is intentionally locked. Do not retain a key or
+    // prior in-memory data from this tab, and do not preserve legacy cleartext.
+    clearLegacySensitiveStorage();
+    sessionEpochRef.current += 1;
+    dataRef.current = {};
+    setData({});
+    setKey(null);
+    setActiveVaultKey(null);
+    setHasEncryptedData(true);
+    return result;
   }, []);
 
   const value = useMemo(
-    () => ({ data, ready, unlocked: key !== null, hasEncryptedData, unlock, update, clear }),
-    [clear, data, hasEncryptedData, key, ready, unlock, update],
+    () => ({ data, ready, unlocked: key !== null, hasEncryptedData, unlock, lock, update, exportBackup, importBackup, clear }),
+    [clear, data, exportBackup, hasEncryptedData, importBackup, key, lock, ready, unlock, update],
   );
-  return <LocalVaultContext.Provider value={value}>{children}</LocalVaultContext.Provider>;
+  return (
+    <LocalVaultContext.Provider value={value}>
+      <Fragment key={sessionVersion}>{children}</Fragment>
+    </LocalVaultContext.Provider>
+  );
 }
 
 export function useLocalVault(): VaultContextValue {

@@ -1,9 +1,8 @@
 // Minimal app-shell service worker. Caches the shell, locale data, and icons
-// so the site is reachable offline; the schedule itself is cached separately
-// in localStorage by the app (see app/[locale]/pancha-pakshi/page.tsx) and
-// re-rendered there with an explicit "cached, not live" label — this worker
-// does not attempt any astronomical calculation of its own.
-const CACHE_NAME = "ff-astrology-shell-v6";
+// so the site is reachable offline. The app may separately read an encrypted
+// vault-owned cached schedule and labels it as cached rather than live; this
+// worker neither stores schedules nor attempts astronomical calculation.
+const CACHE_NAME = "ff-astrology-shell-v7";
 // Locale data is bundled into the page JS (imported at build time, not
 // fetched from a public URL), so it's cached automatically once the page
 // itself is cached below — no separate /locales/*.json entries needed here.
@@ -79,9 +78,14 @@ self.addEventListener("install", (event) => {
     caches
       .open(CACHE_NAME)
       .then((cache) => cache.addAll(PRECACHE_URLS.map((url) => new Request(url, { cache: "reload" }))))
-      .catch(() => undefined)
-      .then(() => self.skipWaiting()),
+      .catch(() => undefined),
   );
+});
+
+// Do not replace an active app while somebody is using it. The page sends
+// this message only after its visitor chooses Refresh from the update notice.
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {

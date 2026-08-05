@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { useLocalVault } from "@/components/LocalVaultProvider";
-import { mostRecentVaultLocation, setMostRecentVaultLocation } from "@/lib/vault-location-cache";
 
 export type LocationValue = {
   name: string;
@@ -33,13 +32,8 @@ const SRI_LANKA_LOCATIONS = [
   { en: "Galle", si: "ගාල්ල", latitude: 6.0535, longitude: 80.221 },
 ] as const;
 
-export function mostRecentLocation(): LocationValue | null {
-  return mostRecentVaultLocation();
-}
-
-// Use this in client components that need to rehydrate when a vault is
-// unlocked in the current tab. `mostRecentLocation` remains for imperative
-// callers that need the same in-memory value outside React.
+// Private locations are supplied reactively from the unlocked vault. Locked
+// callers receive null and explicitly choose a safe default or a new location.
 export function useVaultRecentLocation(): LocationValue | null {
   const { data } = useLocalVault();
   return data.recentLocations?.[0] ?? null;
@@ -107,9 +101,6 @@ export function LocationPicker({
 
   function commit(loc: LocationValue) {
     onChange(loc);
-    // Keep an explicit location available across same-tab tool/method changes
-    // even when the user has chosen not to unlock persistent storage.
-    setMostRecentVaultLocation(loc);
     const next = [loc, ...(vaultData.recentLocations ?? []).filter(
       (item) => item.latitude !== loc.latitude || item.longitude !== loc.longitude,
     )].slice(0, MAX_RECENT);
@@ -456,7 +447,6 @@ export function LocationPicker({
               type="button"
               onClick={() => {
                 setRecent([]);
-                setMostRecentVaultLocation(null);
                 if (unlocked) void updateVault((current) => ({ ...current, recentLocations: [] }));
               }}
               className="text-xs underline opacity-70 hover:opacity-100"

@@ -12,7 +12,6 @@ import {
 import {
   DEFAULT_LOCATION,
   LocationPicker,
-  mostRecentLocation,
   useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
@@ -41,9 +40,8 @@ export function BirthNakshatraClient() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Hydrate after mount because recent locations live in localStorage.
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
-    setLocation(vaultLocation ?? mostRecentLocation() ?? DEFAULT_LOCATION);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate only from the unlocked vault.
+    setLocation(vaultLocation ?? DEFAULT_LOCATION);
   }, [vaultLocation]);
 
   const canCalculate = birthDate !== "" && birthTime !== "" && location !== null;

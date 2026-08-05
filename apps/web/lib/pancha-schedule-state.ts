@@ -92,14 +92,15 @@ export function requestFromSchedule(schedule: ScheduleResponse): ScheduleRequest
 export async function resolveDefaultScheduleRequest({
   recentLocation,
   derivedIdentitySeed,
+  selectedBird,
 }: {
   recentLocation?: VaultLocation | null;
   derivedIdentitySeed?: DerivedIdentitySeed | null;
+  selectedBird?: BirdId | null;
 } = {}): Promise<ScheduleRequest> {
   const account = await loadAccountPreferences();
   const localProfiles = listLocalProfiles();
   const newest = localProfiles[localProfiles.length - 1];
-  const storedBird = window.localStorage.getItem("ff_selected_bird") as BirdId | null;
   const location = account.preferences?.default_location ?? recentLocation ?? {
     name: "Colombo, Sri Lanka",
     latitude: 6.9271,
@@ -145,7 +146,7 @@ export async function resolveDefaultScheduleRequest({
       moon_rashi_index: newest.moon_rashi_index ?? null,
     };
   }
-  return { ...base, method: "bird", bird: storedBird ?? "peacock" };
+  return { ...base, method: "bird", bird: selectedBird ?? "peacock" };
 }
 
 export async function fetchLiveSchedule(request: ScheduleRequest) {

@@ -13,7 +13,7 @@ import { ScheduleTimeline } from "@/components/pancha-pakshi/ScheduleTimeline";
 import { LiveCountdown } from "@/components/pancha-pakshi/LiveCountdown";
 import { ScheduleSkeleton } from "@/components/pancha-pakshi/ScheduleSkeleton";
 import { SavedProfiles } from "@/components/pancha-pakshi/SavedProfiles";
-import { DEFAULT_LOCATION, mostRecentLocation } from "@/components/pancha-pakshi/LocationPicker";
+import { DEFAULT_LOCATION, type LocationValue } from "@/components/pancha-pakshi/LocationPicker";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import type { SavedProfile } from "@/lib/profiles";
 import { BestWindows } from "@/components/pancha-pakshi/BestWindows";
@@ -28,10 +28,12 @@ import { PanchaPakshiIcon } from "@/components/icons/features";
 import { useLocalVault } from "@/components/LocalVaultProvider";
 import {
   cachedScheduleFor,
+  derivedIdentitySeedFor,
   liveScheduleSeedFor,
   sessionScheduleFor,
   fetchLiveSchedule,
   resolveDefaultScheduleRequest,
+  setEphemeralDerivedIdentitySeed,
 } from "@/lib/pancha-schedule-state";
 
 type Method = "birth_datetime" | "nakshatra_paksha" | "bird";
@@ -40,6 +42,13 @@ export function PanchaPakshiClient() {
   const { dict, locale } = useLocale();
   const { data: vaultData, ready: vaultReady, unlocked, update: updateVault } = useLocalVault();
   const [method, setMethod] = useState<Method>("bird");
+  // This is intentionally page-local rather than a module or storage cache.
+  // A selection made while the vault is unlocked is hidden as soon as it locks;
+  // a selection made in a locked tab remains usable only in that tab.
+  const [formLocation, setFormLocation] = useState<{
+    value: LocationValue;
+    selectedWhileUnlocked: boolean;
+  } | null>(null);
   const feature = features.find((f) => f.id === "pancha-pakshi")!;
 
   const [lastRequest, setLastRequest] = useState<ScheduleRequest | null>(null);
@@ -55,6 +64,14 @@ export function PanchaPakshiClient() {
   const [exportDetail, setExportDetail] = useState<ExportDetail>("full");
   const countdownCardRef = useRef<HTMLDivElement>(null);
   const initializedForUnlock = useRef<boolean | null>(null);
+  const activeFormLocation =
+    formLocation && (!formLocation.selectedWhileUnlocked || unlocked)
+      ? formLocation.value
+      : (unlocked ? vaultData.recentLocations?.[0] : null) ?? null;
+  const chooseFormLocation = useCallback(
+    (location: LocationValue) => setFormLocation({ value: location, selectedWhileUnlocked: unlocked }),
+    [unlocked],
+  );
 
   useEffect(() => {
     // Deferred to an effect (not a lazy useState initializer) so the first
@@ -146,6 +163,7 @@ export function PanchaPakshiClient() {
       const request = await resolveDefaultScheduleRequest({
         recentLocation: unlocked ? vaultData.recentLocations?.[0] ?? null : null,
         derivedIdentitySeed: unlocked ? vaultData.derivedIdentitySeed ?? null : null,
+        selectedBird: unlocked ? vaultData.selectedBird ?? null : null,
       });
       if (cancelled) return;
       setUsedDefaults(true);
@@ -154,7 +172,7 @@ export function PanchaPakshiClient() {
     return () => {
       cancelled = true;
     };
-  }, [unlocked, vaultData.derivedIdentitySeed, vaultData.recentLocations, vaultData.sessionSchedule, vaultReady, runSchedule]);
+  }, [unlocked, vaultData.derivedIdentitySeed, vaultData.recentLocations, vaultData.selectedBird, vaultData.sessionSchedule, vaultReady, runSchedule]);
 
   const refetch = useCallback(() => {
     if (lastRequest && isOnline) runSchedule(lastRequest);
@@ -167,11 +185,22 @@ export function PanchaPakshiClient() {
     (request: ScheduleRequest) => {
       setUsedDefaults(false);
       if (request.method === "bird") {
-        window.localStorage.setItem("ff_selected_bird", request.bird);
+        if (unlocked) {
+          void updateVault((current) => ({ ...current, selectedBird: request.bird }));
+        } else {
+          setEphemeralDerivedIdentitySeed(
+            derivedIdentitySeedFor({
+              bird: request.bird,
+              nakshatra_index: null,
+              paksha: null,
+              moon_rashi_index: null,
+            }),
+          );
+        }
       }
       void runSchedule(request);
     },
-    [runSchedule],
+    [runSchedule, unlocked, updateVault],
   );
 
   const changeDate = useCallback(
@@ -199,7 +228,7 @@ export function PanchaPakshiClient() {
 
   const scheduleFromProfile = useCallback(
     (profile: SavedProfile) => {
-      const location = (unlocked ? vaultData.recentLocations?.[0] : null) ?? mostRecentLocation() ?? DEFAULT_LOCATION;
+      const location = (unlocked ? vaultData.recentLocations?.[0] : null) ?? DEFAULT_LOCATION;
       const target = nowAsTargetDateTime(location.iana_tz);
       const base = {
         target_date: target.date,
@@ -265,6 +294,8 @@ export function PanchaPakshiClient() {
       runUserSchedule={runUserSchedule}
       scheduleFromProfile={scheduleFromProfile}
       saveCandidate={saveCandidate}
+      location={activeFormLocation}
+      setLocation={chooseFormLocation}
     />
   );
 
@@ -454,6 +485,8 @@ function ScheduleSettings({
   runUserSchedule,
   scheduleFromProfile,
   saveCandidate,
+  location,
+  setLocation,
 }: {
   method: Method;
   setMethod: (method: Method) => void;
@@ -465,6 +498,8 @@ function ScheduleSettings({
   runUserSchedule: (request: ScheduleRequest) => void;
   scheduleFromProfile: (profile: SavedProfile) => void;
   saveCandidate: Omit<SavedProfile, "id" | "created_at" | "label"> | null;
+  location: LocationValue | null;
+  setLocation: (location: LocationValue) => void;
 }) {
   const { dict } = useLocale();
 
@@ -520,9 +555,15 @@ function ScheduleSettings({
         role="tabpanel"
         className="animate-panel-in rounded-lg border border-black/10 p-4 dark:border-white/10"
       >
-        {method === "birth_datetime" && <BirthInputForm onSubmit={runUserSchedule} />}
-        {method === "nakshatra_paksha" && <NakshatraPakshaForm onSubmit={runUserSchedule} />}
-        {method === "bird" && <BirdSelector onSubmit={runUserSchedule} />}
+        {method === "birth_datetime" && (
+          <BirthInputForm location={location} onLocationChange={setLocation} onSubmit={runUserSchedule} />
+        )}
+        {method === "nakshatra_paksha" && (
+          <NakshatraPakshaForm location={location} onLocationChange={setLocation} onSubmit={runUserSchedule} />
+        )}
+        {method === "bird" && (
+          <BirdSelector location={location} onLocationChange={setLocation} onSubmit={runUserSchedule} />
+        )}
       </section>
     </section>
   );

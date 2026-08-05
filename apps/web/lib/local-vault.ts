@@ -19,6 +19,7 @@ export const LEGACY_SENSITIVE_LOCAL_STORAGE_KEYS = [
   "ff_recent_birth_details",
   "ff_recent_locations",
   "ff_last_schedule_cache",
+  "ff_selected_bird",
 ] as const;
 
 export const LEGACY_SENSITIVE_SESSION_STORAGE_KEYS = [
@@ -33,6 +34,16 @@ type EncryptedPayload = {
   ciphertext: string;
 };
 
+export type VaultBackup = {
+  format: "fernandofamily-private-vault";
+  version: 1;
+  exportedAt: string;
+  salt: string;
+  payload: EncryptedPayload;
+};
+
+export type VaultBackupImportResult = "imported" | "existing_vault" | "invalid_backup";
+
 function toBase64(value: Uint8Array): string {
   let binary = "";
   for (const byte of value) binary += String.fromCharCode(byte);
@@ -42,6 +53,39 @@ function toBase64(value: Uint8Array): string {
 function fromBase64(value: string): Uint8Array {
   const binary = atob(value);
   return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+}
+
+function validBase64(value: unknown, expectedLength?: number): value is string {
+  if (typeof value !== "string" || !value) return false;
+  try {
+    const decoded = fromBase64(value);
+    return expectedLength === undefined ? decoded.byteLength > 0 : decoded.byteLength === expectedLength;
+  } catch {
+    return false;
+  }
+}
+
+function parseEncryptedPayload(value: unknown): EncryptedPayload | null {
+  if (!value || typeof value !== "object") return null;
+  const payload = value as Partial<EncryptedPayload>;
+  if (payload.version !== 1 || !validBase64(payload.iv, 12) || !validBase64(payload.ciphertext)) return null;
+  return { version: 1, iv: payload.iv, ciphertext: payload.ciphertext };
+}
+
+function parseVaultBackup(value: unknown): VaultBackup | null {
+  if (!value || typeof value !== "object") return null;
+  const backup = value as Partial<VaultBackup>;
+  if (
+    backup.format !== "fernandofamily-private-vault" ||
+    backup.version !== 1 ||
+    typeof backup.exportedAt !== "string" ||
+    Number.isNaN(Date.parse(backup.exportedAt)) ||
+    !validBase64(backup.salt, 16)
+  ) {
+    return null;
+  }
+  const payload = parseEncryptedPayload(backup.payload);
+  return payload ? { format: backup.format, version: 1, exportedAt: backup.exportedAt, salt: backup.salt, payload } : null;
 }
 
 function asBufferSource(value: Uint8Array): ArrayBuffer {
@@ -125,6 +169,48 @@ export function clearVault(): void {
   window.localStorage.removeItem(VAULT_KEY);
   window.localStorage.removeItem(SALT_KEY);
   activeKey = null;
+}
+
+// A backup intentionally copies only authenticated ciphertext and its KDF
+// salt. It never decrypts the vault, includes no passphrase, and is portable
+// only for someone who knows the original passphrase.
+export function exportVaultBackup(): VaultBackup | null {
+  const salt = window.localStorage.getItem(SALT_KEY);
+  const rawPayload = window.localStorage.getItem(VAULT_KEY);
+  if (!validBase64(salt, 16) || !rawPayload) return null;
+  try {
+    const payload = parseEncryptedPayload(JSON.parse(rawPayload));
+    if (!payload) return null;
+    return {
+      format: "fernandofamily-private-vault",
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      salt,
+      payload,
+    };
+  } catch {
+    return null;
+  }
+}
+
+// Import is intentionally fail-closed: a device with a vault must be cleared
+// first, so an uploaded file can never silently replace private local data.
+export function importVaultBackup(serialized: string): VaultBackupImportResult {
+  if (hasVault()) return "existing_vault";
+  try {
+    const backup = parseVaultBackup(JSON.parse(serialized));
+    if (!backup) return "invalid_backup";
+    window.localStorage.setItem(SALT_KEY, backup.salt);
+    window.localStorage.setItem(VAULT_KEY, JSON.stringify(backup.payload));
+    activeKey = null;
+    return "imported";
+  } catch {
+    // No existing vault was present before this operation, so a failed write
+    // must leave no partial salt/ciphertext pair behind.
+    window.localStorage.removeItem(SALT_KEY);
+    window.localStorage.removeItem(VAULT_KEY);
+    return "invalid_backup";
+  }
 }
 
 export function clearLegacySensitiveStorage(): void {

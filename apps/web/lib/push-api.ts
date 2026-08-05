@@ -142,8 +142,15 @@ export function validateSubscribeBody(
   };
 }
 
-// Postgres "relation does not exist" — the push migration hasn't been
-// applied yet. Surfaced as the same clean 503 as "no DB configured".
-export function isMissingTableError(e: unknown): boolean {
-  return typeof e === "object" && e !== null && (e as { code?: string }).code === "42P01";
+// A push route is optional infrastructure: a missing migration or an
+// unavailable database is a temporary service dependency, not an application
+// crash. Surface both as the same clean 503 and retain unexpected query
+// failures as 500s for investigation.
+export function isPushStorageUnavailableError(e: unknown): boolean {
+  if (typeof e !== "object" || e === null) return false;
+  const code = (e as { code?: string }).code;
+  return (
+    code === "42P01" ||
+    ["28P01", "ECONNREFUSED", "ECONNRESET", "ENETUNREACH", "EHOSTUNREACH", "ETIMEDOUT"].includes(code ?? "")
+  );
 }

@@ -29,8 +29,7 @@ invite-only auth scaffold, an image-level ephemeris trim
 hunt (pool crash guard, stale-closure refetch, profile merge races, search
 debounce/abort, skew-consistent timeline, sw.js cache hygiene, and more).
 
-**Still open:** remaining P2 items (install-prompt UX, iOS PWA quirks,
-per-page OG variants), web-push notifications, and everything in
+**Still open:** remaining P2 items (per-page OG variants) and everything in
 `docs/roadmap.md`'s backlog.
 
 ## P0 — quick wins / genuine defects
@@ -49,12 +48,9 @@ per-page OG variants), web-push notifications, and everything in
    re-reads `pin.json` and re-hashes `MANIFEST.sha256` on every schedule /
    birth-bird / current request. The data is immutable for the life of the
    container — compute once at module import (or `functools.lru_cache`).
-3. **No per-page titles or descriptions** (S) — only the locale layout has
-   `generateMetadata`, so every page (including `/en/pancha-pakshi`) shares
-   the platform title. The spec's SEO section wanted "Pancha Pakshi Live
-   Timetable | Fernando Family Astrology" etc. Root cause: every page is a
-   `"use client"` component, and client files can't export `generateMetadata`.
-   Fix alongside P1 item 1 below.
+3. ~~**No per-page titles or descriptions**~~ — **shipped.** Locale-scoped
+   server page wrappers use `localizedPageMetadata`, with canonical/hreflang,
+   localized title/description, and per-feature social imagery.
 4. **Rate-limit `_hits` dict never evicts idle IPs** (S) — unbounded slow
    memory growth in a long-lived container. Sweep empty buckets when they
    drain, or cap the dict size.
@@ -84,10 +80,10 @@ per-page OG variants), web-push notifications, and everything in
    (old current fades, new current highlights). All behind
    `@media (prefers-reduced-motion: no-preference)`. No library needed —
    CSS transitions cover all of it.
-8. **OG/social images + structured data** (S/M) — zero `openGraph`/`twitter`
-   metadata and no schema.org JSON-LD today. Add one original OG image
-   (platform) + one for Pancha Pakshi, per-locale descriptions, and a
-   `WebApplication` JSON-LD block.
+8. ~~**OG/social images + structured data**~~ — **shipped.** The generated
+   default and per-feature 1200×630 social cards are mapped by
+   `feature-assets.ts` into OpenGraph/Twitter metadata and are covered by
+   Playwright; the locale layout provides `WebApplication` JSON-LD.
 9. **Auspicious-window endpoint** (M) — "when is the next `very_good`
    sub-period for my bird?" is the question the tool exists to answer, and
    users currently have to expand periods and scan. The engine already
@@ -112,10 +108,9 @@ per-page OG variants), web-push notifications, and everything in
    halves round-trips for the windows feature above.
 3. **Skeleton loading states** (S) — the calculator shows a bare "Loading…"
    string; add skeleton cards for the schedule area so layout doesn't jump.
-4. **Install prompt + iOS PWA guidance** (S) — SW and manifest exist, but
-   there's no "Add to Home Screen" affordance; iOS needs `apple-touch-icon`
-   (PNG — the single SVG icon won't be used by iOS) and a short instruction
-   sheet since iOS has no install prompt event.
+4. ~~**Install prompt + iOS PWA guidance**~~ — **shipped.** The install
+   affordance, iOS instruction sheet, Apple touch icon, offline shell status,
+   and user-controlled service-worker refresh flow are covered by Playwright.
 5. **`/current` response model** (S) — the route returns a bare `dict`;
    give it a typed response model so OpenAPI documents it properly.
 6. ~~**Request-ID propagation to clients**~~ — **shipped.** Every response
@@ -126,9 +121,13 @@ per-page OG variants), web-push notifications, and everything in
 7. ~~**Prometheus-style metrics endpoint**~~ — **shipped.** `/metrics`
    (`app/core/metrics.py`) exposes real Prometheus-format counters/histograms
    (request counts and durations by method/path/status), CIDR-gated via
-   `metrics_allowed_cidrs`. What's still genuinely open: nothing in this repo
-   actually scrapes it — no Prometheus/Grafana config or compose service
-   exists anywhere. The endpoint is a foundation, not active monitoring.
+   `metrics_allowed_cidrs`. The opt-in production monitoring profile now
+   scrapes it with Prometheus, probes the public HTTPS `/en` and readiness
+   endpoints through Blackbox exporter (including certificate-expiry alerts),
+   delivers Alertmanager webhook notifications, and provisions a loopback-only
+   Grafana dashboard; an hourly GitHub-hosted public smoke workflow adds an
+   off-host check. See
+   `docs/deployment/monitoring.md`.
 8. **Dev one-shot script** (S) — a `make dev` / root `package.json` script
    that starts API venv + web dev server together; today it's two manual
    terminals with an env var.
@@ -173,10 +172,12 @@ localStorage/sessionStorage only, and `ClearPreferencesButton` wipes it.
 
 Status:
 
-- **Phase A (device-local export/import)** — **not built.** A "Your data"
-  section listing device-local keys plus a download/restore-JSON button for
-  cross-device portability without any account. Still a small, cheap
-  candidate if wanted (S).
+- **Phase A (device-local vault backup/restore)** — **shipped.** The privacy
+  page downloads and restores only the encrypted vault ciphertext plus its
+  KDF salt; raw values and the passphrase are never exported. Restore is
+  fail-closed when a device already has a vault, and requires the original
+  passphrase before any private data is readable. Non-sensitive saved
+  profiles remain separate and can already sync through an optional account.
 - **Phase B (optional Google sign-in, allowlisted)** — **shipped.** Auth.js
   v5, JWT session strategy, feature-flagged hard-off unless
   `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`/`AUTH_SECRET` are set;

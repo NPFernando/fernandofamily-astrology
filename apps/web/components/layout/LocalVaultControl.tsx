@@ -6,14 +6,23 @@ import { useLocale } from "@/lib/locale-context";
 
 export function LocalVaultControl() {
   const { dict } = useLocale();
-  const { hasEncryptedData, ready, unlocked, unlock } = useLocalVault();
+  const { hasEncryptedData, ready, unlocked, unlock, lock } = useLocalVault();
   const [open, setOpen] = useState(false);
   const [passphrase, setPassphrase] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   if (!ready) return null;
   if (unlocked) {
-    return <span className="text-xs opacity-65" title={dict.ui.vaultUnlocked}>🔒</span>;
+    return (
+      <button
+        type="button"
+        onClick={lock}
+        title={dict.ui.vaultUnlocked}
+        className="rounded-lg border border-black/10 px-2 py-1 text-xs hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+      >
+        {dict.ui.lockPrivateData}
+      </button>
+    );
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {

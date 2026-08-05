@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getDictionary } from "@/lib/i18n";
 import { localizedPageMetadata, resolveLocale } from "@/lib/page-metadata";
 import { ClearPreferencesButton } from "@/components/ClearPreferencesButton";
+import { VaultBackupControls } from "@/components/VaultBackupControls";
 
 export async function generateMetadata({
   params,
@@ -27,6 +28,7 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
         label={dict.ui.clearSavedPreferences}
         clearedMessage={dict.pages.privacy.clearAction}
       />
+      <VaultBackupControls />
     </article>
   );
 }

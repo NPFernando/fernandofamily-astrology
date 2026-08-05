@@ -44,7 +44,6 @@ import { DateNav } from "@/components/pancha-pakshi/DateNav";
 import {
   DEFAULT_LOCATION,
   LocationPicker,
-  mostRecentLocation,
   useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
@@ -297,7 +296,7 @@ export function FamilyAlmanacClient() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const initialLocation = (unlocked ? vaultLocation : null) ?? mostRecentLocation() ?? DEFAULT_LOCATION;
+      const initialLocation = (unlocked ? vaultLocation : null) ?? DEFAULT_LOCATION;
       const initialDate = requestedDate ?? todayFor(initialLocation).date;
       if (!cancelled) void run(defaultRequest(initialDate, initialLocation));
     })();
@@ -449,7 +448,7 @@ export function FamilyAlmanacClient() {
   }, [date, familyKey, loadingProfiles, location, selectedProfiles]);
 
   function changeDate(nextDate: string) {
-    const loc = location ?? mostRecentLocation() ?? DEFAULT_LOCATION;
+    const loc = location ?? vaultLocation ?? DEFAULT_LOCATION;
     const base = request ?? defaultRequest(nextDate, loc);
     void run(withDateLocation(base, nextDate, loc));
   }

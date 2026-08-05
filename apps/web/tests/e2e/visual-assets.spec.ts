@@ -63,6 +63,10 @@ test("generated feature assets and per-page OG images are served", async ({ page
     const ogImage = await page.locator('meta[property="og:image"]').getAttribute("content");
     expect(ogImage).toContain(`/og/${feature}.png`);
   }
+
+  await page.goto("/en/pancha-pakshi/live");
+  const liveOgImage = await page.locator('meta[property="og:image"]').getAttribute("content");
+  expect(liveOgImage).toContain("/og/pancha-pakshi.png");
 });
 
 test("@mobile landing generated visuals fit at 360px", async ({ page }) => {

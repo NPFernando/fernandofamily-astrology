@@ -6,7 +6,6 @@ import { ApiError, fetchNavamsaChart, type NavamsaChart as NavamsaChartData } fr
 import {
   DEFAULT_LOCATION,
   LocationPicker,
-  mostRecentLocation,
   useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
@@ -28,9 +27,8 @@ export function DivisionalChartsClient() {
 
   useEffect(() => {
     // Hydrate after mount because recent locations/birth details live in
-    // localStorage.
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
-    setLocation(vaultLocation ?? mostRecentLocation() ?? DEFAULT_LOCATION);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate only from the unlocked vault.
+    setLocation(vaultLocation ?? DEFAULT_LOCATION);
     if (recent) {
 
       setBirthDate(recent.birth_date);

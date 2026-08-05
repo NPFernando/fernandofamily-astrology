@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { ApiError, fetchPorondamMatch, type PorondamResponse } from "@/lib/api-client";
 import { nakshatraName, translateEnum } from "@/lib/i18n";
 import {
   DEFAULT_LOCATION,
   LocationPicker,
-  mostRecentLocation,
   useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
@@ -46,8 +45,8 @@ export function PorondamClient() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Hydrate after mount because recent locations live in localStorage.
-    const recent = vaultLocation ?? mostRecentLocation() ?? DEFAULT_LOCATION;
+    // Hydrate only from the unlocked vault, or the safe public default.
+    const recent = vaultLocation ?? DEFAULT_LOCATION;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
     setBride((b) => (b.location ? b : { ...b, location: recent }));
     setGroom((g) => (g.location ? g : { ...g, location: recent }));
@@ -206,7 +205,7 @@ function PartyForm({
 }: {
   label: string;
   value: PartyState;
-  onChange: (next: PartyState) => void;
+  onChange: Dispatch<SetStateAction<PartyState>>;
 }) {
   return (
     <fieldset className="rounded-xl border border-black/10 bg-white/40 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.04]">
@@ -214,13 +213,13 @@ function PartyForm({
       <div className="mt-3 flex flex-col gap-4">
         <TargetDateTimeFields
           value={value.dateTime}
-          onChange={(dateTime) => onChange({ ...value, dateTime })}
+          onChange={(dateTime) => onChange((current) => ({ ...current, dateTime }))}
           dateLabelKey="birthDate"
           timeLabelKey="birthTime"
         />
         <LocationPicker
           value={value.location}
-          onChange={(location) => onChange({ ...value, location })}
+          onChange={(location) => onChange((current) => ({ ...current, location }))}
         />
       </div>
     </fieldset>

@@ -4,7 +4,6 @@
 const PREFERENCE_KEYS = [
   "ff_locale",
   "ff_theme",
-  "ff_selected_bird",
   "ff_saved_profiles",
   "ff_family_almanac_selected_profile_ids",
 ] as const;

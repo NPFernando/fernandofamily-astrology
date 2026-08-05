@@ -1,6 +1,6 @@
 # GitHub Actions / CI-CD pipeline
 
-Four workflows, all on GitHub-hosted runners (no self-hosted runner — see
+Six workflows, all on GitHub-hosted runners (no self-hosted runner — see
 the note below on why):
 
 ## `ci.yml`
@@ -12,6 +12,11 @@ Runs on every push and pull request:
   sanity check against the vendored, pinned PyJHora source).
 - Frontend: `pnpm lint`, `npx tsc --noEmit`, `pnpm build`, `pnpm test`
   (including the i18n-hygiene and no-birth-fields-in-URL checks).
+- Deployment-script safety: ShellCheck plus hermetic tests for the database
+  backup archive and the restore drill's production-database refusal.
+- Browser: a production standalone build plus the Playwright suite. On
+  failure, its traces, screenshots, and error-context files are retained as
+  the `e2e-failure-artifacts` workflow artifact for 14 days.
 
 ## `build.yml`
 
@@ -47,7 +52,33 @@ Once approved, it SSHes into the production host and runs
 restriction) with the new commit SHA as the only thing sent over the wire —
 that script validates the input is a bare tag, then hands off to
 `infra/deploy/deploy.sh`, which does the actual `docker compose pull` +
-`up -d` + health check + rollback-on-failure.
+`up -d` + API/web/PWA/commit release checks + rollback-on-failure.
+
+If `MONITORING_ENABLED=1` is present in the production host's `.env`, the
+same deploy also starts the loopback-only monitoring profile. It requires the
+file-backed Grafana password and alert webhook described in
+[`monitoring.md`](monitoring.md); deployment fails closed if either file is
+missing.
+
+## `public-smoke.yml`
+
+Runs hourly and on manual dispatch from a GitHub-hosted runner. It requires
+exact `200` HTTPS responses for the public English page, API readiness route,
+web manifest, and service worker; it also checks the expected public document
+markers without writing their bodies to the log. This provides an off-host
+signal for DNS, TLS, edge-routing, and stale-asset failures. Set the optional
+repository variable `PUBLIC_SMOKE_BASE_URL` before changing the canonical
+public domain; it is not a secret.
+
+## `security.yml`
+
+Runs CodeQL's extended security queries for Python and JavaScript/TypeScript
+on pull requests, pushes to `main`, manual dispatch, and a weekly schedule.
+It also performs a redacted Git-history credential scan. Configure the
+`CodeQL` matrix checks and `Secret scan` as required branch-protection checks
+for `main`; workflow files alone cannot prevent an administrator from merging
+around a failed check. CodeQL uses its documented no-build mode for these
+interpreted languages. [CodeQL action guidance](https://github.com/github/codeql-action)
 
 ### Why no self-hosted runner
 

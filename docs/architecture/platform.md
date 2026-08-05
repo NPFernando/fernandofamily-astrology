@@ -57,7 +57,16 @@ Layering inside `apps/api/app/modules/pancha_pakshi/`:
 Next.js App Router under `app/[locale]/`, bilingual (English/Sinhala) via
 locale-scoped routes, with all user-facing strings sourced from
 `apps/web/locales/{en,si}.json` — never hardcoded in components. A PWA
-service worker caches the app shell and the last successfully calculated
-schedule for offline viewing, explicitly labeled as cached rather than
-presented as live (see [`../roadmap.md`](../roadmap.md) and the privacy
-page for what's cached client-side, and why nothing sensitive is).
+service worker caches only the app shell for offline viewing. Calculation API
+responses are never cached by the worker; an unlocked vault may separately
+hold the last schedule, explicitly labeled as cached rather than presented as
+live. Waiting worker updates activate only after the visitor chooses Refresh
+(see [`../roadmap.md`](../roadmap.md) and the privacy page for what's cached
+client-side, and why nothing sensitive is).
+
+The private vault is portable only as an encrypted backup containing its
+ciphertext and KDF salt; it never exports a passphrase or decrypted values.
+Import refuses to overwrite an existing vault, and the restored data remains
+locked until its original passphrase is supplied. Users can also lock it
+explicitly: that drops the in-memory key and remounts calculator UI state,
+leaving only encrypted ciphertext in browser storage.

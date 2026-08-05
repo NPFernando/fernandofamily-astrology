@@ -27,7 +27,6 @@ import { useSessionProbe } from "@/lib/use-session-probe";
 import {
   DEFAULT_LOCATION,
   LocationPicker,
-  mostRecentLocation,
   useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
@@ -1072,6 +1071,7 @@ export function MuhurtaClient() {
       const initial = await resolveDefaultScheduleRequest({
         recentLocation: unlocked ? vaultLocation : null,
         derivedIdentitySeed: unlocked ? vaultData.derivedIdentitySeed ?? null : null,
+        selectedBird: unlocked ? vaultData.selectedBird ?? null : null,
       });
       if (cancelled) return;
       const initialLocation = locationFromRequest(initial);
@@ -1097,7 +1097,7 @@ export function MuhurtaClient() {
     days?: number;
     minEffect?: "good" | "very_good";
   }) {
-    const nextLocation = next.location ?? location ?? mostRecentLocation() ?? DEFAULT_LOCATION;
+    const nextLocation = next.location ?? location ?? vaultLocation ?? DEFAULT_LOCATION;
     const nextDate = next.date ?? (date || todayFor(nextLocation));
     const nextRequest =
       next.request ??

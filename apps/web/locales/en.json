@@ -597,6 +597,7 @@
     "inProgress": "In progress",
     "planned": "Planned",
     "vote": "Vote",
+    "voted": "Voted",
     "readiness": "Release and device readiness evidence",
     "planner": "Encrypted personal planner",
     "groups": "Encrypted family groups",

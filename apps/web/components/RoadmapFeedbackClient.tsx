@@ -16,13 +16,18 @@ type RoadmapItem = {
   status: Status;
 };
 
-function loadVotes(): Record<string, number> {
-  try { return JSON.parse(window.localStorage.getItem(VOTES_KEY) ?? "{}"); } catch { return {}; }
+function loadVotes(): Record<string, 1> {
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(VOTES_KEY) ?? "{}") as Record<string, unknown>;
+    return Object.fromEntries(Object.entries(stored).filter(([, value]) => typeof value === "number" && value > 0).map(([id]) => [id, 1]));
+  } catch {
+    return {};
+  }
 }
 
 export function RoadmapFeedbackClient() {
   const { dict } = useLocale();
-  const [votes, setVotes] = useState<Record<string, number>>(() => typeof window === "undefined" ? {} : loadVotes());
+  const [votes, setVotes] = useState<Record<string, 1>>(() => typeof window === "undefined" ? {} : loadVotes());
   const [selected, setSelected] = useState<ItemId>("planner");
   const [feedback, setFeedback] = useState("");
   const [query, setQuery] = useState("");
@@ -48,7 +53,9 @@ export function RoadmapFeedbackClient() {
 
   function vote(id: ItemId) {
     setVotes((current) => {
-      const next = { ...current, [id]: (current[id] ?? 0) + 1 };
+      const next = { ...current };
+      if (next[id]) delete next[id];
+      else next[id] = 1;
       window.localStorage.setItem(VOTES_KEY, JSON.stringify(next));
       return next;
     });
@@ -70,7 +77,7 @@ export function RoadmapFeedbackClient() {
       <aside className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm" data-testid="roadmap-safety-notice"><h2 className="font-semibold">{dict.roadmap.safetyTitle}</h2><p className="mt-1 opacity-90">{dict.roadmap.safetyBody}</p></aside>
 
       <section aria-label={dict.roadmap.categorySummary} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {categories.map((entry) => <button key={entry} type="button" onClick={() => setCategory(category === entry ? "" : entry)} className={`rounded-xl border p-4 text-left ${category === entry ? "border-accent bg-accent/10" : "border-black/10 dark:border-white/10"}`}><span className="text-sm opacity-75">{entry}</span><strong className="mt-1 block text-2xl">{items.filter((item) => item.category === entry).length}</strong></button>)}
+        {categories.map((entry) => <button key={entry} type="button" aria-pressed={category === entry} onClick={() => setCategory(category === entry ? "" : entry)} className={`rounded-xl border p-4 text-left ${category === entry ? "border-accent bg-accent/10" : "border-black/10 dark:border-white/10"}`}><span className="text-sm opacity-75">{entry}</span><strong className="mt-1 block text-2xl">{items.filter((item) => item.category === entry).length}</strong></button>)}
       </section>
 
       <section className="grid gap-3 md:grid-cols-[1.4fr_1fr]">
@@ -82,7 +89,7 @@ export function RoadmapFeedbackClient() {
       <section data-testid="roadmap-items" className="grid gap-4 xl:grid-cols-3">
         {statuses.map((status) => {
           const statusItems = filtered.filter((item) => item.status === status);
-          return <section key={status} className="rounded-xl border border-black/10 bg-white/35 p-3 dark:border-white/10 dark:bg-white/[.03]"><div className="flex items-center justify-between gap-3 border-b border-black/10 pb-2 dark:border-white/10"><h2 className="font-semibold">{dict.roadmap[status]}</h2><span className="rounded-full border border-black/10 px-2 py-0.5 text-xs dark:border-white/20">{statusItems.length}</span></div><div className="mt-3 space-y-3">{statusItems.length ? statusItems.map((item) => <article key={item.id} className="rounded-lg border border-black/10 bg-background/50 p-3 dark:border-white/10"><p className="font-semibold">{item.label}</p><p className="mt-1 text-xs uppercase tracking-wide opacity-65">{item.category}</p><button type="button" onClick={() => vote(item.id)} className="mt-3 rounded-lg border border-accent/40 px-3 py-1.5 text-sm font-semibold text-accent">{dict.roadmap.vote} · {votes[item.id] ?? 0}</button></article>) : <p className="py-6 text-center text-sm opacity-65">{dict.roadmap.noMatches}</p>}</div></section>;
+          return <section key={status} className="rounded-xl border border-black/10 bg-white/35 p-3 dark:border-white/10 dark:bg-white/[.03]"><div className="flex items-center justify-between gap-3 border-b border-black/10 pb-2 dark:border-white/10"><h2 className="font-semibold">{dict.roadmap[status]}</h2><span className="rounded-full border border-black/10 px-2 py-0.5 text-xs dark:border-white/20">{statusItems.length}</span></div><div className="mt-3 space-y-3">{statusItems.length ? statusItems.map((item) => { const voted = votes[item.id] === 1; return <article key={item.id} className="rounded-lg border border-black/10 bg-background/50 p-3 dark:border-white/10"><p className="font-semibold">{item.label}</p><p className="mt-1 text-xs uppercase tracking-wide opacity-65">{item.category}</p><button type="button" aria-pressed={voted} onClick={() => vote(item.id)} className="mt-3 rounded-lg border border-accent/40 px-3 py-1.5 text-sm font-semibold text-accent">{voted ? dict.roadmap.voted : dict.roadmap.vote} · {voted ? 1 : 0}</button></article>; }) : <p className="py-6 text-center text-sm opacity-65">{dict.roadmap.noMatches}</p>}</div></section>;
         })}
       </section>
 

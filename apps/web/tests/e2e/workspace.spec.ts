@@ -49,18 +49,29 @@ test("roadmap feedback remains a local draft while votes persist on this device"
   await expect(roadmap).toContainText(DICTS.en.roadmap.calendar);
   await expect(roadmap).not.toContainText(DICTS.en.roadmap.planner);
   await page.getByLabel(DICTS.en.roadmap.search).fill("");
-  await roadmap.getByRole("button", { name: new RegExp(`${DICTS.en.roadmap.vote}.*0`) }).first().click();
-  await expect(roadmap.getByRole("button", { name: new RegExp(`${DICTS.en.roadmap.vote}.*1`) }).first()).toBeVisible();
+  const vote = roadmap.getByRole("button", { name: new RegExp(`${DICTS.en.roadmap.vote}.*0`) }).first();
+  await vote.click();
+  await expect(roadmap.getByRole("button", { name: new RegExp(`${DICTS.en.roadmap.voted}.*1`) }).first()).toHaveAttribute("aria-pressed", "true");
+  await roadmap.getByRole("button", { name: new RegExp(`${DICTS.en.roadmap.voted}.*1`) }).first().click();
+  await expect(roadmap.getByRole("button", { name: new RegExp(`${DICTS.en.roadmap.vote}.*0`) }).first()).toHaveAttribute("aria-pressed", "false");
+  const privacyFilter = page.getByRole("button", { name: DICTS.en.roadmap.categoryPrivacy, exact: false }).first();
+  await privacyFilter.click();
+  await expect(privacyFilter).toHaveAttribute("aria-pressed", "true");
 
   await page.getByLabel(DICTS.en.roadmap.feedbackLabel).fill("Please add a compact week view.");
   const issue = page.getByRole("link", { name: DICTS.en.roadmap.openIssue });
   await expect(issue).toHaveAttribute("href", /Please%20add%20a%20compact%20week%20view/);
-  await expect.poll(() => page.evaluate(() => window.localStorage.getItem("ff_roadmap_votes_v1"))).toContain("1");
+  await expect.poll(() => page.evaluate(() => window.localStorage.getItem("ff_roadmap_votes_v1"))).toBe("{}");
 });
 
 test("keyboard command palette finds and opens privacy-aware tools", async ({ page }) => {
   await page.goto("/en");
-  await expect(page.getByRole("button", { name: DICTS.en.ui.commandPalette })).toBeVisible();
+  const trigger = page.getByRole("button", { name: DICTS.en.ui.commandPalette });
+  await expect(trigger).toBeVisible();
+  await trigger.click();
+  await expect(page.getByRole("dialog", { name: DICTS.en.ui.commandPalette })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: DICTS.en.ui.commandPalette })).toHaveCount(0);
   await page.keyboard.press("Control+K");
   const dialog = page.getByRole("dialog", { name: DICTS.en.ui.commandPalette });
   await expect(dialog).toBeVisible();
@@ -75,7 +86,6 @@ test("keyboard command palette finds and opens privacy-aware tools", async ({ pa
   await nextSearch.press("Enter");
   await expect(page).toHaveURL(/\/en\/pancha-pakshi$/);
 
-  const trigger = page.getByRole("button", { name: DICTS.en.ui.commandPalette });
   await trigger.focus();
   await page.keyboard.press("Control+K");
   const focusDialog = page.getByRole("dialog", { name: DICTS.en.ui.commandPalette });

@@ -25,12 +25,21 @@ import type {
   LiveScheduleSeed,
   SessionSchedule,
 } from "@/lib/pancha-schedule-state";
-import type { BirdId } from "@/lib/api-client";
+import type { BirdId, DailyPanchanga, ScheduleRequest, ScheduleResponse } from "@/lib/api-client";
+
+export type CachedDailyGuide = {
+  request: ScheduleRequest;
+  panchanga: DailyPanchanga;
+  schedule: ScheduleResponse;
+  referenceAt: string;
+  cachedAtIso: string;
+};
 
 export type LocalVaultData = {
   recentBirthDetails?: { birth_date: string; birth_time: string }[];
   recentLocations?: { name: string; latitude: number; longitude: number; iana_tz: string }[];
   cachedSchedule?: CachedSchedule;
+  cachedDailyGuide?: CachedDailyGuide;
   sessionSchedule?: SessionSchedule;
   liveScheduleSeed?: LiveScheduleSeed;
   derivedIdentitySeed?: DerivedIdentitySeed;
@@ -144,6 +153,10 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
       recentBirthDetails: stored?.recentBirthDetails ?? legacy.recentBirthDetails,
       recentLocations: stored?.recentLocations ?? legacy.recentLocations,
       cachedSchedule: stored?.cachedSchedule ?? legacy.cachedSchedule,
+      // Daily Guide is newly vault-owned. It has no predecessor in
+      // clear-text browser storage, so only an already-encrypted value can
+      // populate it.
+      cachedDailyGuide: stored?.cachedDailyGuide,
       sessionSchedule: stored?.sessionSchedule ?? legacy.sessionSchedule,
       liveScheduleSeed: stored?.liveScheduleSeed ?? legacy.liveScheduleSeed,
       derivedIdentitySeed: stored?.derivedIdentitySeed ?? legacy.derivedIdentitySeed,

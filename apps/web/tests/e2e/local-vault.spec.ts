@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { DICTS } from "./helpers";
 
 const PASSPHRASE = "correct horse battery staple";
 const BIRTH_DATE = "2000-01-01";
@@ -45,6 +46,15 @@ test("legacy private data receives a visible migration deadline before vault cre
   await page.getByRole("button", { name: "Protect private data" }).click();
   await expect(page.getByText("Private data from an older version is waiting to be encrypted.", { exact: false })).toBeVisible();
   await expect(page.getByText("2027-02-01", { exact: false })).toBeVisible();
+});
+
+test("privacy page: private data center hides counts while the vault is locked", async ({ page }) => {
+  await page.goto("/en/privacy");
+  const center = page.locator('[data-testid="privacy-data-center"]');
+  await expect(center).toBeVisible();
+  await expect(center).toContainText(DICTS.en.ui.dataCenterEmpty);
+  await expect(center).toContainText("—");
+  await expect(center.getByRole("button", { name: DICTS.en.ui.dataCenterExportProfiles })).toBeVisible();
 });
 
 test("local vault migrates sensitive legacy values, restores them after unlock, and clears them", async ({ page }) => {

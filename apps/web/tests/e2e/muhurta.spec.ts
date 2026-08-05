@@ -80,6 +80,18 @@ test("muhurta: a decision brief downloads as a calendar event without birth data
   watcher.assertClean();
 });
 
+test("muhurta: two candidate windows can be compared side by side", async ({ page }) => {
+  await openMuhurta(page, "en");
+  const compare = page.getByRole("button", { name: DICTS.en.muhurta.compareWindow });
+  await expect(compare.nth(1)).toBeVisible();
+  await compare.nth(0).click();
+  await compare.nth(1).click();
+  const comparison = page.locator('[data-testid="muhurta-window-comparison"]');
+  await expect(comparison).toBeVisible();
+  await expect(comparison).toContainText(DICTS.en.muhurta.windowComparisonTitle);
+  await expect(comparison).toContainText(DICTS.en.muhurta.gradeLabel);
+});
+
 test("muhurta: event presets show purpose-specific advisories", async ({ page }) => {
   await openMuhurta(page, "en");
   await page.getByRole("button", { name: DICTS.en.muhurta.purposes.vehicle_purchase }).click();

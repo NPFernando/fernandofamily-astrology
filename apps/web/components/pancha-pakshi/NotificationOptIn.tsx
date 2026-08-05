@@ -6,6 +6,7 @@ import { usePushSupport } from "@/lib/use-push-support";
 import type { BirdId, PakshaId } from "@/lib/api-client";
 
 const LEAD_OPTIONS = [5, 10, 15, 30, 60];
+const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 
 // Chrome expects the applicationServerKey as a Uint8Array.
 function urlBase64ToUint8Array(base64: string): Uint8Array {
@@ -36,6 +37,8 @@ export function NotificationOptIn({
   const [status, setStatus] = useState<string | null>(null);
   const [minEffect, setMinEffect] = useState<"good" | "very_good">("very_good");
   const [leadMinutes, setLeadMinutes] = useState(10);
+  const [quietStartHour, setQuietStartHour] = useState<number | null>(null);
+  const [quietEndHour, setQuietEndHour] = useState<number | null>(null);
 
   useEffect(() => {
     if (!support.available) return;
@@ -56,6 +59,29 @@ export function NotificationOptIn({
   if (!support.available || !support.publicKey) return null;
   if (bird === null && (nakshatraIndex === null || paksha === null)) return null;
 
+  async function saveSubscription(sub: PushSubscription) {
+    const json = sub.toJSON();
+    const res = await fetch("/api/push/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        subscription: { endpoint: sub.endpoint, keys: json.keys },
+        bird,
+        nakshatra_index: nakshatraIndex,
+        paksha,
+        latitude,
+        longitude,
+        iana_tz: ianaTz,
+        min_effect: minEffect,
+        lead_minutes: leadMinutes,
+        quiet_start_hour: quietStartHour,
+        quiet_end_hour: quietEndHour,
+        locale,
+      }),
+    });
+    return res.ok;
+  }
+
   async function enable() {
     setWorking(true);
     setStatus(null);
@@ -70,29 +96,30 @@ export function NotificationOptIn({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(support.publicKey!) as BufferSource,
       });
-      const json = sub.toJSON();
-      const res = await fetch("/api/push/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subscription: { endpoint: sub.endpoint, keys: json.keys },
-          bird,
-          nakshatra_index: nakshatraIndex,
-          paksha,
-          latitude,
-          longitude,
-          iana_tz: ianaTz,
-          min_effect: minEffect,
-          lead_minutes: leadMinutes,
-          locale,
-        }),
-      });
-      if (!res.ok) {
+      if (!(await saveSubscription(sub))) {
         await sub.unsubscribe().catch(() => undefined);
         setStatus(dict.ui.error);
         return;
       }
       setSubscribed(true);
+    } catch {
+      setStatus(dict.ui.error);
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function updatePreferences() {
+    setWorking(true);
+    setStatus(null);
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const sub = await registration.pushManager.getSubscription();
+      if (!sub || !(await saveSubscription(sub))) {
+        setStatus(dict.ui.error);
+        return;
+      }
+      setStatus(dict.ui.notifyPreferencesSaved);
     } catch {
       setStatus(dict.ui.error);
     } finally {
@@ -145,6 +172,40 @@ export function NotificationOptIn({
       <div className="mt-3 flex flex-col gap-3">
         <p className="opacity-80">{dict.ui.notifyBody}</p>
 
+        <div className="grid gap-3 border-y border-black/10 py-3 dark:border-white/10 sm:grid-cols-2">
+          <label className="flex flex-col gap-1">
+            <span className="text-xs uppercase opacity-70">{dict.ui.notifyEffectLabel}</span>
+            <select
+              value={minEffect}
+              onChange={(e) => setMinEffect(e.target.value as "good" | "very_good")}
+              className="rounded-lg border border-black/10 px-3 py-2 dark:border-white/20 dark:bg-transparent"
+            >
+              <option value="very_good">{dict.ui.notifyEffectVeryGood}</option>
+              <option value="good">{dict.ui.notifyEffectGood}</option>
+            </select>
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-xs uppercase opacity-70">{dict.ui.notifyLeadLabel}</span>
+            <select value={leadMinutes} onChange={(e) => setLeadMinutes(Number(e.target.value))} className="rounded-lg border border-black/10 px-3 py-2 dark:border-white/20 dark:bg-transparent">
+              {LEAD_OPTIONS.map((n) => <option key={n} value={n}>{dict.ui.notifyLeadMinutes.replace("{n}", String(n))}</option>)}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-xs uppercase opacity-70">{dict.ui.notifyQuietStart}</span>
+            <select value={quietStartHour ?? ""} onChange={(e) => setQuietStartHour(e.target.value === "" ? null : Number(e.target.value))} className="rounded-lg border border-black/10 px-3 py-2 dark:border-white/20 dark:bg-transparent">
+              <option value="">{dict.ui.notifyQuietOff}</option>
+              {HOURS.map((hour) => <option key={hour} value={hour}>{String(hour).padStart(2, "0")}:00</option>)}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-xs uppercase opacity-70">{dict.ui.notifyQuietEnd}</span>
+            <select value={quietEndHour ?? ""} onChange={(e) => setQuietEndHour(e.target.value === "" ? null : Number(e.target.value))} className="rounded-lg border border-black/10 px-3 py-2 dark:border-white/20 dark:bg-transparent">
+              <option value="">{dict.ui.notifyQuietOff}</option>
+              {HOURS.map((hour) => <option key={hour} value={hour}>{String(hour).padStart(2, "0")}:00</option>)}
+            </select>
+          </label>
+        </div>
+
         {subscribed ? (
           <>
             <p className="font-medium text-accent">{dict.ui.notifyActive}</p>
@@ -159,6 +220,9 @@ export function NotificationOptIn({
               >
                 {dict.ui.notifyTest}
               </button>
+              <button type="button" disabled={working || (quietStartHour === null) !== (quietEndHour === null) || quietStartHour === quietEndHour} onClick={() => { void updatePreferences(); }} className="w-fit rounded-lg border border-accent/40 px-4 py-2 text-accent dark:border-white/20 disabled:opacity-40">
+                {dict.ui.notifySavePreferences}
+              </button>
               <button
                 type="button"
                 disabled={working}
@@ -171,34 +235,9 @@ export function NotificationOptIn({
           </>
         ) : (
           <>
-            <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase opacity-70">{dict.ui.notifyEffectLabel}</span>
-              <select
-                value={minEffect}
-                onChange={(e) => setMinEffect(e.target.value as "good" | "very_good")}
-                className="w-fit rounded-lg border border-black/10 px-3 py-2 dark:border-white/20 dark:bg-transparent"
-              >
-                <option value="very_good">{dict.ui.notifyEffectVeryGood}</option>
-                <option value="good">{dict.ui.notifyEffectGood}</option>
-              </select>
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="text-xs uppercase opacity-70">{dict.ui.notifyLeadLabel}</span>
-              <select
-                value={leadMinutes}
-                onChange={(e) => setLeadMinutes(Number(e.target.value))}
-                className="w-fit rounded-lg border border-black/10 px-3 py-2 dark:border-white/20 dark:bg-transparent"
-              >
-                {LEAD_OPTIONS.map((n) => (
-                  <option key={n} value={n}>
-                    {dict.ui.notifyLeadMinutes.replace("{n}", String(n))}
-                  </option>
-                ))}
-              </select>
-            </label>
             <button
               type="button"
-              disabled={working}
+              disabled={working || (quietStartHour === null) !== (quietEndHour === null) || quietStartHour === quietEndHour}
               onClick={enable}
               className="w-fit rounded-lg bg-accent px-4 py-2 font-semibold text-white disabled:opacity-40"
             >

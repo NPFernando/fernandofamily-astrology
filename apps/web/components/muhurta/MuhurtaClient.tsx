@@ -40,6 +40,7 @@ import { SavedProfiles } from "@/components/pancha-pakshi/SavedProfiles";
 import { LoadingCards } from "@/components/ui/ContentStates";
 import { MobileActionBar } from "@/components/ui/MobileActionBar";
 import { buildIcs, downloadIcs } from "@/lib/ics";
+import { ResultNavigation, SourceContext } from "@/components/ui/ResultContext";
 
 const feature = features.find((f) => f.id === "muhurta")!;
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
@@ -1109,6 +1110,7 @@ export function MuhurtaClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [usedDefaults, setUsedDefaults] = useState(false);
+  const [comparedWindows, setComparedWindows] = useState<MuhurtaWindow[]>([]);
 
   const run = useCallback(
     async (
@@ -1124,6 +1126,7 @@ export function MuhurtaClient() {
       setLocation(nextLocation);
       setLoading(true);
       setError(null);
+      setComparedWindows([]);
       try {
         const result = await fetchMuhurta(
           toMuhurtaRequest(baseRequest, nextDate, nextLocation, nextPurpose, nextDays, nextMinEffect),
@@ -1372,6 +1375,13 @@ export function MuhurtaClient() {
 
           {data && !loading && !error && activeView === "recommendations" && (
             <div data-testid="muhurta-result" className="flex flex-col gap-5">
+              <ResultNavigation
+                label={dict.ui.resultNavigation}
+                items={[
+                  { href: "#muhurta-windows", label: dict.muhurta.summaryTitle },
+                  { href: "#muhurta-family-panel", label: dict.muhurta.familyTitle },
+                ]}
+              />
               <section className="rounded-xl border border-black/10 bg-white/25 p-4 dark:border-white/10 dark:bg-white/[.03]">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
@@ -1430,7 +1440,18 @@ export function MuhurtaClient() {
               {topWindows.length ? (
                 <section className="flex flex-col gap-3" data-testid="muhurta-windows">
                   {topWindows.map((window) => (
-                    <WindowCard key={`${window.starts_at}-${window.ends_at}-${window.score}`} window={window} />
+                    <WindowCard
+                      key={`${window.starts_at}-${window.ends_at}-${window.score}`}
+                      window={window}
+                      compared={comparedWindows.some((candidate) => candidate.starts_at === window.starts_at && candidate.ends_at === window.ends_at)}
+                      onCompare={() => {
+                        setComparedWindows((current) => {
+                          const exists = current.some((candidate) => candidate.starts_at === window.starts_at && candidate.ends_at === window.ends_at);
+                          if (exists) return current.filter((candidate) => candidate.starts_at !== window.starts_at || candidate.ends_at !== window.ends_at);
+                          return [...current.slice(-1), window];
+                        });
+                      }}
+                    />
                   ))}
                 </section>
               ) : (
@@ -1438,6 +1459,13 @@ export function MuhurtaClient() {
                   {dict.muhurta.noWindows}
                 </p>
               )}
+              {comparedWindows.length === 2 && <DecisionComparison windows={comparedWindows} dict={dict} locale={locale} onClear={() => setComparedWindows([])} />}
+              <SourceContext
+                title={dict.ui.sourceContextTitle}
+                body={dict.ui.sourceContextBody}
+                methodologyHref={`/${locale}/methodology`}
+                methodologyLabel={dict.ui.sourceContextLink}
+              />
             </div>
           )}
 
@@ -1461,7 +1489,7 @@ export function MuhurtaClient() {
     </div>
   );
 
-  function WindowCard({ window }: { window: MuhurtaWindow }) {
+  function WindowCard({ window, compared, onCompare }: { window: MuhurtaWindow; compared: boolean; onCompare: () => void }) {
     function downloadDecisionBrief() {
       downloadIcs(
         `muhurta-decision-${window.effective_date}.ics`,
@@ -1536,6 +1564,14 @@ export function MuhurtaClient() {
           >
             {dict.muhurta.shareDecisionBrief}
           </button>
+          <button
+            type="button"
+            aria-pressed={compared}
+            onClick={onCompare}
+            className={`rounded-lg border px-3 py-1.5 text-xs font-semibold ${compared ? "border-accent bg-accent/10 text-accent" : "border-black/10 hover:border-accent dark:border-white/20"}`}
+          >
+            {compared ? dict.muhurta.removeFromComparison : dict.muhurta.compareWindow}
+          </button>
         </div>
 
         <div
@@ -1567,4 +1603,44 @@ export function MuhurtaClient() {
       </article>
     );
   }
+}
+
+function DecisionComparison({
+  windows,
+  dict,
+  locale,
+  onClear,
+}: {
+  windows: MuhurtaWindow[];
+  dict: Dictionary;
+  locale: "en" | "si";
+  onClear: () => void;
+}) {
+  return (
+    <section data-testid="muhurta-window-comparison" className="rounded-xl border border-accent/35 bg-accent/5 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold uppercase text-accent">{dict.muhurta.windowComparisonTitle}</h2>
+          <p className="mt-1 text-sm opacity-80">{dict.muhurta.windowComparisonBody}</p>
+        </div>
+        <button type="button" onClick={onClear} className="rounded-lg border border-black/10 px-3 py-1.5 text-xs font-semibold dark:border-white/20">
+          {dict.muhurta.clearComparison}
+        </button>
+      </div>
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        {windows.map((window) => (
+          <article key={`${window.starts_at}-${window.ends_at}`} className="rounded-lg border border-black/10 bg-background p-3 text-sm dark:border-white/10">
+            <p className="font-semibold">{formatDate(window.effective_date, locale)}</p>
+            <p className="mt-1 text-lg font-bold tabular-nums">{formatTime(window.starts_at, locale)} - {formatTime(window.ends_at, locale)}</p>
+            <dl className="mt-3 space-y-2">
+              <Fact label={dict.muhurta.gradeLabel} value={dict.muhurta.grades[window.grade]} />
+              <Fact label={dict.muhurta.scoreLabel} value={String(window.score)} />
+              <Fact label={dict.muhurta.decisionBriefReasons} value={window.reasons.map((reason) => sourceLabel(reason, dict)).join(", ")} />
+            </dl>
+            {window.cautions.length > 0 && <p className="mt-3 text-xs text-amber-800 dark:text-amber-200">{window.cautions.map((caution) => `${dict.muhurta.cautions[caution.key]}: ${cautionValue(caution, dict)}`).join(" · ")}</p>}
+          </article>
+        ))}
+      </div>
+    </section>
+  );
 }

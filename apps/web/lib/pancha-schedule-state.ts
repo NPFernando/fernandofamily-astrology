@@ -8,7 +8,7 @@ import {
   type ScheduleResponse,
 } from "@/lib/api-client";
 import { loadAccountPreferences } from "@/lib/account-preferences";
-import { listLocalProfiles } from "@/lib/profiles";
+import { activeProfileId, listLocalProfiles } from "@/lib/profiles";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
 
 export type CachedSchedule = { schedule: ScheduleResponse; cachedAtIso: string };
@@ -100,7 +100,11 @@ export async function resolveDefaultScheduleRequest({
 } = {}): Promise<ScheduleRequest> {
   const account = await loadAccountPreferences();
   const localProfiles = listLocalProfiles();
-  const newest = localProfiles[localProfiles.length - 1];
+  // A profile selected explicitly in this tab beats the old "newest" rule.
+  // This is derived-only state and intentionally never unlocks or supplies
+  // birth date, time, or exact location.
+  const active = localProfiles.find((profile) => profile.id === activeProfileId());
+  const newest = active ?? localProfiles[localProfiles.length - 1];
   const location = account.preferences?.default_location ?? recentLocation ?? {
     name: "Colombo, Sri Lanka",
     latitude: 6.9271,
@@ -130,6 +134,18 @@ export async function resolveDefaultScheduleRequest({
   }
   if (identitySeed?.bird) {
     return { ...base, method: "bird", bird: identitySeed.bird };
+  }
+  if (active?.bird) {
+    return { ...base, method: "bird", bird: active.bird };
+  }
+  if (active?.nakshatra_index && active?.paksha) {
+    return {
+      ...base,
+      method: "nakshatra_paksha",
+      nakshatra_index: active.nakshatra_index,
+      paksha: active.paksha,
+      moon_rashi_index: active.moon_rashi_index ?? null,
+    };
   }
   if (account.preferences?.default_bird) {
     return { ...base, method: "bird", bird: account.preferences.default_bird };

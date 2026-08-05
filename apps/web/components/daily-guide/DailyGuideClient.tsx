@@ -27,7 +27,7 @@ import {
   useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
-import { useLocalVault } from "@/components/LocalVaultProvider";
+import { useLocalVault, type CachedDailyGuide } from "@/components/LocalVaultProvider";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import { resolveDefaultScheduleRequest } from "@/lib/pancha-schedule-state";
 import {
@@ -48,6 +48,7 @@ import { PoyaDetailCard } from "@/components/panchanga/PoyaDetailCard";
 import { SavedProfiles } from "@/components/pancha-pakshi/SavedProfiles";
 import { LoadingCards } from "@/components/ui/ContentStates";
 import { MobileActionBar } from "@/components/ui/MobileActionBar";
+import { ResultNavigation, SourceContext } from "@/components/ui/ResultContext";
 import { EFFECT_COLORS } from "@fernandofamily/design-system";
 
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
@@ -202,6 +203,32 @@ function requestFromProfile(profile: SavedProfile, date: string, location: Locat
     };
   }
   return null;
+}
+
+function dailyGuideCacheFor(request: ScheduleRequest, data: GuideData): CachedDailyGuide {
+  return {
+    request,
+    panchanga: data.panchanga,
+    schedule: data.schedule,
+    referenceAt: data.referenceAt,
+    cachedAtIso: new Date().toISOString(),
+  };
+}
+
+function cachedGuideMatches(cache: CachedDailyGuide, request: ScheduleRequest): boolean {
+  return (
+    cache.request.method === request.method &&
+    cache.request.target_date === request.target_date &&
+    cache.request.location_name === request.location_name &&
+    cache.request.latitude === request.latitude &&
+    cache.request.longitude === request.longitude &&
+    cache.request.iana_tz === request.iana_tz &&
+    (request.method !== "bird" || (cache.request.method === "bird" && cache.request.bird === request.bird)) &&
+    (request.method !== "nakshatra_paksha" ||
+      (cache.request.method === "nakshatra_paksha" &&
+        cache.request.nakshatra_index === request.nakshatra_index &&
+        cache.request.paksha === request.paksha))
+  );
 }
 
 function muhurtaRequestFromProfile(profile: SavedProfile, date: string, location: LocationValue) {
@@ -392,7 +419,7 @@ function TodayCommandCenter({
 
 export function DailyGuideClient() {
   const { dict, locale } = useLocale();
-  const { data: vaultData, unlocked } = useLocalVault();
+  const { data: vaultData, unlocked, update: updateVault } = useLocalVault();
   const vaultLocation = useVaultRecentLocation();
   const searchParams = useSearchParams();
   const requestedDate = validDateParam(searchParams.get("date"));
@@ -406,6 +433,8 @@ export function DailyGuideClient() {
   const [knownNakshatraIndex, setKnownNakshatraIndex] = useState(1);
   const [knownPaksha, setKnownPaksha] = useState<PakshaId>("waxing");
   const [activeView, setActiveView] = useState<"today" | "week">("today");
+  const [isStale, setIsStale] = useState(false);
+  const [cachedAtIso, setCachedAtIso] = useState<string | null>(null);
 
   const run = useCallback(async (nextRequest: ScheduleRequest) => {
     if (nextRequest.method === "nakshatra_paksha") {
@@ -428,19 +457,38 @@ export function DailyGuideClient() {
         }),
         fetchScheduleWithServerTime(nextRequest),
       ]);
-      setData({
+      const nextData: GuideData = {
         panchanga,
         schedule: scheduleResult.data,
         serverTime: scheduleResult.serverTime,
         fetchedAtClientMs: Date.now(),
         referenceAt: requestReferenceIso(nextRequest, panchanga),
-      });
+      };
+      setData(nextData);
+      setIsStale(false);
+      setCachedAtIso(null);
+      if (unlocked) {
+        void updateVault((current) => ({ ...current, cachedDailyGuide: dailyGuideCacheFor(nextRequest, nextData) }));
+      }
     } catch (e) {
-      setError(e instanceof ApiError ? dict.ui.error : dict.ui.error);
+      const cached = unlocked ? vaultData.cachedDailyGuide : null;
+      if (cached && cachedGuideMatches(cached, nextRequest)) {
+        setData({
+          panchanga: cached.panchanga,
+          schedule: cached.schedule,
+          serverTime: null,
+          fetchedAtClientMs: Date.now(),
+          referenceAt: cached.referenceAt,
+        });
+        setIsStale(true);
+        setCachedAtIso(cached.cachedAtIso);
+      } else {
+        setError(e instanceof ApiError ? dict.ui.error : dict.ui.error);
+      }
     } finally {
       setLoading(false);
     }
-  }, [dict.ui.error]);
+  }, [dict.ui.error, unlocked, updateVault, vaultData.cachedDailyGuide]);
 
   useEffect(() => {
     let cancelled = false;
@@ -697,6 +745,13 @@ export function DailyGuideClient() {
         </p>
       )}
 
+      {isStale && data && (
+        <p role="status" data-testid="daily-guide-offline-cache" className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs font-medium">
+          {dict.ui.offlineCachedNotice}
+          {cachedAtIso ? ` ${new Date(cachedAtIso).toLocaleString(locale === "si" ? "si-LK" : "en-US")}` : ""}
+        </p>
+      )}
+
       {error && (
         <div role="alert" className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm">
           <p>{error}</p>
@@ -720,6 +775,14 @@ export function DailyGuideClient() {
 
       {data && activeView === "today" && (
         <div data-testid="daily-guide-result" className="flex flex-col gap-5">
+          <ResultNavigation
+            label={dict.ui.resultNavigation}
+            items={[
+              { href: "#daily-guide-current", label: dict.dailyGuide.currentTitle },
+              { href: "#daily-guide-good-windows", label: dict.dailyGuide.goodWindowsTitle },
+              { href: "#daily-guide-avoid-times", label: dict.dailyGuide.avoidTitle },
+            ]}
+          />
           <TodayCommandCenter
             date={data.panchanga.date}
             locationName={data.schedule.location.name}
@@ -936,6 +999,12 @@ export function DailyGuideClient() {
               <p className="rounded-xl border border-black/10 p-4 text-xs leading-relaxed opacity-70 dark:border-white/10">
                 {dict.guidance.disclaimer}
               </p>
+              <SourceContext
+                title={dict.ui.sourceContextTitle}
+                body={dict.ui.sourceContextBody}
+                methodologyHref={`/${locale}/methodology`}
+                methodologyLabel={dict.ui.sourceContextLink}
+              />
             </aside>
           </div>
         </div>

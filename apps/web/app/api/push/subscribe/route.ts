@@ -31,8 +31,8 @@ export async function POST(request: Request) {
     await query(
       `INSERT INTO push_subscriptions
          (endpoint, p256dh, auth, bird, nakshatra_index, paksha,
-          latitude, longitude, iana_tz, min_effect, lead_minutes, locale)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+          latitude, longitude, iana_tz, min_effect, lead_minutes, quiet_start_hour, quiet_end_hour, locale)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
        ON CONFLICT (endpoint) DO UPDATE
           SET p256dh = EXCLUDED.p256dh,
               auth = EXCLUDED.auth,
@@ -44,11 +44,13 @@ export async function POST(request: Request) {
               iana_tz = EXCLUDED.iana_tz,
               min_effect = EXCLUDED.min_effect,
               lead_minutes = EXCLUDED.lead_minutes,
+              quiet_start_hour = EXCLUDED.quiet_start_hour,
+              quiet_end_hour = EXCLUDED.quiet_end_hour,
               locale = EXCLUDED.locale,
               failures = 0`,
       [
         v.endpoint, v.p256dh, v.auth, v.bird, v.nakshatra_index, v.paksha,
-        v.latitude, v.longitude, v.iana_tz, v.min_effect, v.lead_minutes, v.locale,
+        v.latitude, v.longitude, v.iana_tz, v.min_effect, v.lead_minutes, v.quiet_start_hour, v.quiet_end_hour, v.locale,
       ],
     );
   } catch (e) {

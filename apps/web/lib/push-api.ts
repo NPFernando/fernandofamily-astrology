@@ -45,6 +45,8 @@ export type SubscribeBody = {
   iana_tz?: unknown;
   min_effect?: unknown;
   lead_minutes?: unknown;
+  quiet_start_hour?: unknown;
+  quiet_end_hour?: unknown;
   locale?: unknown;
 };
 
@@ -60,6 +62,8 @@ export type ValidSubscription = {
   iana_tz: string;
   min_effect: string;
   lead_minutes: number;
+  quiet_start_hour: number | null;
+  quiet_end_hour: number | null;
   locale: string;
 };
 
@@ -118,6 +122,16 @@ export function validateSubscribeBody(
   if (!Number.isInteger(lead) || lead < 5 || lead > 60) {
     return { ok: false, message: "lead_minutes must be 5..60" };
   }
+  const quietStart = body.quiet_start_hour == null ? null : Number(body.quiet_start_hour);
+  const quietEnd = body.quiet_end_hour == null ? null : Number(body.quiet_end_hour);
+  if (
+    (quietStart === null) !== (quietEnd === null) ||
+    (quietStart !== null && (!Number.isInteger(quietStart) || quietStart < 0 || quietStart > 23)) ||
+    (quietEnd !== null && (!Number.isInteger(quietEnd) || quietEnd < 0 || quietEnd > 23)) ||
+    (quietStart !== null && quietStart === quietEnd)
+  ) {
+    return { ok: false, message: "quiet hours must be a distinct 0..23 start and end pair" };
+  }
   const locale = body.locale == null ? "si" : String(body.locale);
   if (!(LOCALES as readonly string[]).includes(locale)) {
     return { ok: false, message: "invalid locale" };
@@ -137,6 +151,8 @@ export function validateSubscribeBody(
       iana_tz: tz,
       min_effect: minEffect,
       lead_minutes: lead,
+      quiet_start_hour: quietStart,
+      quiet_end_hour: quietEnd,
       locale,
     },
   };
@@ -151,6 +167,10 @@ export function isPushStorageUnavailableError(e: unknown): boolean {
   const code = (e as { code?: string }).code;
   return (
     code === "42P01" ||
+    // A deployment can briefly receive app code before its additive push
+    // preference migration. Treat the missing column as optional storage
+    // infrastructure, returning a clean retryable 503 rather than a 500.
+    code === "42703" ||
     ["28P01", "ECONNREFUSED", "ECONNRESET", "ENETUNREACH", "EHOSTUNREACH", "ETIMEDOUT"].includes(code ?? "")
   );
 }

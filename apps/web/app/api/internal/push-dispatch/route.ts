@@ -31,6 +31,8 @@ type SubscriptionRow = {
   iana_tz: string;
   min_effect: string;
   lead_minutes: number;
+  quiet_start_hour: number | null;
+  quiet_end_hour: number | null;
   locale: string;
   failures: number;
 };
@@ -46,6 +48,18 @@ type WindowEntry = {
 
 function windowsCacheKey(sub: SubscriptionRow): string {
   return [sub.bird, sub.nakshatra_index, sub.paksha, sub.latitude, sub.longitude, sub.iana_tz, sub.min_effect].join("|");
+}
+
+function isQuietHour(sub: SubscriptionRow, startAt: string): boolean {
+  if (sub.quiet_start_hour === null || sub.quiet_end_hour === null) return false;
+  const hour = Number(
+    new Intl.DateTimeFormat("en-US", { timeZone: sub.iana_tz, hour: "2-digit", hourCycle: "h23" })
+      .formatToParts(new Date(startAt))
+      .find((part) => part.type === "hour")?.value,
+  );
+  const start = sub.quiet_start_hour;
+  const end = sub.quiet_end_hour;
+  return start < end ? hour >= start && hour < end : hour >= start || hour < end;
 }
 
 async function fetchWindowsFor(sub: SubscriptionRow): Promise<WindowEntry[]> {
@@ -123,7 +137,7 @@ export async function POST(request: Request) {
   try {
     subs = await query<SubscriptionRow>(
       `SELECT endpoint, p256dh, auth, bird, nakshatra_index, paksha,
-              latitude, longitude, iana_tz, min_effect, lead_minutes, locale, failures
+              latitude, longitude, iana_tz, min_effect, lead_minutes, quiet_start_hour, quiet_end_hour, locale, failures
          FROM push_subscriptions ORDER BY created_at LIMIT 500`,
     );
   } catch (e) {
@@ -150,7 +164,7 @@ export async function POST(request: Request) {
       // Fires when the window's start is between (lead − one tick) and lead
       // away — with the 5-minute cron cadence each window lands in exactly
       // one tick; push_sent below still guards against any overlap.
-      return startMs - nowMs > leadMs - TICK_MS && startMs - nowMs <= leadMs;
+      return startMs - nowMs > leadMs - TICK_MS && startMs - nowMs <= leadMs && !isQuietHour(sub, w.starts_at);
     });
 
     for (const w of due) {

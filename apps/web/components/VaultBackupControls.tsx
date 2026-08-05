@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import { useLocalVault } from "@/components/LocalVaultProvider";
 import { useLocale } from "@/lib/locale-context";
 
@@ -8,9 +8,11 @@ const BACKUP_FILENAME = "fernando-family-private-vault-v1.json";
 
 export function VaultBackupControls() {
   const { dict } = useLocale();
-  const { ready, hasEncryptedData, exportBackup, importBackup } = useLocalVault();
+  const { ready, unlocked, hasEncryptedData, exportBackup, importBackup, rotatePassphrase: rotateVaultPassphrase } = useLocalVault();
   const inputRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [newPassphrase, setNewPassphrase] = useState("");
+  const [confirmation, setConfirmation] = useState("");
 
   if (!ready) return null;
 
@@ -39,6 +41,24 @@ export function VaultBackupControls() {
           ? dict.ui.vaultBackupExisting
           : dict.ui.vaultBackupInvalid,
     );
+  }
+
+  async function submitPassphraseRotation(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (newPassphrase !== confirmation) {
+      setMessage(dict.ui.vaultPassphraseMismatch);
+      return;
+    }
+    try {
+      const rotated = await rotateVaultPassphrase(newPassphrase);
+      setMessage(rotated ? dict.ui.vaultPassphraseRotated : dict.ui.vaultPassphraseRotationFailed);
+      if (rotated) {
+        setNewPassphrase("");
+        setConfirmation("");
+      }
+    } catch (cause) {
+      setMessage(cause instanceof Error ? cause.message : dict.ui.vaultPassphraseRotationFailed);
+    }
   }
 
   return (
@@ -78,6 +98,39 @@ export function VaultBackupControls() {
         />
       </div>
       {hasEncryptedData && <p className="mt-3 text-xs opacity-75">{dict.ui.vaultBackupExisting}</p>}
+      {unlocked && (
+        <form onSubmit={submitPassphraseRotation} className="mt-6 border-t border-black/10 pt-5 dark:border-white/15">
+          <h3 className="text-base font-semibold">{dict.ui.rotateVaultPassphrase}</h3>
+          <p className="mt-2 text-sm leading-relaxed opacity-80">{dict.ui.rotateVaultPassphraseBody}</p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <label className="text-sm font-medium">
+              {dict.ui.newVaultPassphrase}
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={newPassphrase}
+                onChange={(event) => setNewPassphrase(event.target.value)}
+                className="mt-1 w-full rounded border border-black/15 bg-transparent px-2 py-1.5 dark:border-white/20"
+                required
+              />
+            </label>
+            <label className="text-sm font-medium">
+              {dict.ui.confirmVaultPassphrase}
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={confirmation}
+                onChange={(event) => setConfirmation(event.target.value)}
+                className="mt-1 w-full rounded border border-black/15 bg-transparent px-2 py-1.5 dark:border-white/20"
+                required
+              />
+            </label>
+          </div>
+          <button type="submit" className="mt-4 rounded-full border border-black/10 px-4 py-2 text-sm hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10">
+            {dict.ui.rotateVaultPassphrase}
+          </button>
+        </form>
+      )}
       {message && <p role="status" className="mt-3 text-sm text-accent">{message}</p>}
     </section>
   );

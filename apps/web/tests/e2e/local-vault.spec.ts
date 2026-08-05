@@ -164,3 +164,74 @@ test("vault backup rejects invalid files without creating a vault", async ({ pag
   await expect(page.getByText("This backup file is invalid or unsupported.", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Protect private data" })).toBeVisible();
 });
+
+test("vault passphrase rotation re-encrypts data and invalidates the previous passphrase", async ({ page }) => {
+  const newPassphrase = "new correct horse battery staple";
+  await page.goto("/en/birth-chart");
+  await page.evaluate(() => {
+    window.localStorage.setItem(
+      "ff_recent_birth_details",
+      JSON.stringify([{ birth_date: "2000-01-01", birth_time: "12:00" }]),
+    );
+  });
+  await createVault(page);
+  const before = await page.evaluate(() => ({
+    salt: window.localStorage.getItem("ff_private_vault_salt_v1"),
+    payload: window.localStorage.getItem("ff_private_vault_v1"),
+  }));
+
+  await page.goto("/en/privacy");
+  await page.getByRole("button", { name: "Unlock private data" }).click();
+  await page.getByLabel("Vault passphrase").fill(PASSPHRASE);
+  await page.getByRole("button", { name: "Unlock", exact: true }).click();
+  await page.getByLabel("New vault passphrase").fill(newPassphrase);
+  await page.getByLabel("Confirm new passphrase").fill(newPassphrase);
+  await page.getByRole("button", { name: "Change vault passphrase" }).click();
+  await expect(page.getByText("Vault passphrase changed. Download a new encrypted backup.", { exact: true })).toBeVisible();
+  const after = await page.evaluate(() => ({
+    salt: window.localStorage.getItem("ff_private_vault_salt_v1"),
+    payload: window.localStorage.getItem("ff_private_vault_v1"),
+    rotation: window.localStorage.getItem("ff_private_vault_rotation_v1"),
+  }));
+  expect(after.salt).not.toBe(before.salt);
+  expect(after.payload).not.toBe(before.payload);
+  expect(after.payload).not.toContain(BIRTH_DATE);
+  expect(after.rotation).toBeNull();
+
+  await page.getByRole("button", { name: "Lock private data" }).click();
+  await page.getByRole("button", { name: "Unlock private data" }).click();
+  await page.getByLabel("Vault passphrase").fill(PASSPHRASE);
+  await page.getByRole("button", { name: "Unlock", exact: true }).click();
+  await expect(page.getByText("That passphrase could not unlock this vault.", { exact: true })).toBeVisible();
+
+  await page.getByLabel("Vault passphrase").fill(newPassphrase);
+  await page.getByRole("button", { name: "Unlock", exact: true }).click();
+  await page.goto("/en/birth-chart");
+  await page.getByRole("button", { name: "Unlock private data" }).click();
+  await page.getByLabel("Vault passphrase").fill(newPassphrase);
+  await page.getByRole("button", { name: "Unlock", exact: true }).click();
+  await expect(page.locator('input[type="date"]')).toHaveValue(BIRTH_DATE);
+  await expect(page.locator('input[type="time"]')).toHaveValue(BIRTH_TIME);
+
+  // Simulate a tab being interrupted between the new salt and new ciphertext
+  // writes. The next page must recover the previous authenticated pair rather
+  // than leave the vault unreadable.
+  if (!before.salt || !before.payload || !after.salt || !after.payload) {
+    throw new Error("Expected both vault storage pairs for rotation recovery test.");
+  }
+  await page.evaluate(({ previous, next }) => {
+    window.localStorage.setItem("ff_private_vault_rotation_v1", JSON.stringify({ version: 1, previous, next }));
+    window.localStorage.setItem("ff_private_vault_salt_v1", next.salt);
+    window.localStorage.setItem("ff_private_vault_v1", JSON.stringify(previous.payload));
+  }, {
+    previous: { salt: before.salt, payload: JSON.parse(before.payload) },
+    next: { salt: after.salt, payload: JSON.parse(after.payload) },
+  });
+  await page.reload();
+  await page.getByRole("button", { name: "Unlock private data" }).click();
+  await page.getByLabel("Vault passphrase").fill(PASSPHRASE);
+  await page.getByRole("button", { name: "Unlock", exact: true }).click();
+  await expect(page.locator('input[type="date"]')).toHaveValue(BIRTH_DATE);
+  await expect(page.locator('input[type="time"]')).toHaveValue(BIRTH_TIME);
+  await expect.poll(() => page.evaluate(() => window.localStorage.getItem("ff_private_vault_rotation_v1"))).toBeNull();
+});

@@ -3,12 +3,14 @@
 import { Fragment, createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   activeVaultKey,
+  applyVaultPassphraseRotation,
   clearLegacySensitiveStorage,
   clearVault,
   deriveVaultKey,
   exportVaultBackup,
   hasVault,
   importVaultBackup,
+  prepareVaultPassphraseRotation,
   readVault,
   setActiveVaultKey,
   type VaultBackup,
@@ -41,6 +43,7 @@ type VaultContextValue = {
   unlock: (passphrase: string) => Promise<boolean>;
   lock: () => void;
   update: (updater: (current: LocalVaultData) => LocalVaultData) => Promise<void>;
+  rotatePassphrase: (passphrase: string) => Promise<boolean>;
   exportBackup: () => VaultBackup | null;
   importBackup: (serialized: string) => VaultBackupImportResult;
   clear: () => void;
@@ -184,6 +187,23 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
     setSessionVersion((version) => version + 1);
   }, []);
 
+  const rotatePassphrase = useCallback(async (passphrase: string) => {
+    if (!key) return false;
+    const sessionEpoch = sessionEpochRef.current;
+    const vaultKey = key;
+    const operation = writeQueueRef.current.then(async () => {
+      if (sessionEpoch !== sessionEpochRef.current || activeVaultKey() !== vaultKey) return false;
+      const rotation = await prepareVaultPassphraseRotation(dataRef.current, passphrase);
+      if (sessionEpoch !== sessionEpochRef.current || activeVaultKey() !== vaultKey) return false;
+      if (!applyVaultPassphraseRotation(rotation)) return false;
+      setActiveVaultKey(rotation.key);
+      setKey(rotation.key);
+      return true;
+    });
+    writeQueueRef.current = operation.then(() => undefined, () => undefined);
+    return operation;
+  }, [key]);
+
   const lock = useCallback(() => {
     // Retain only authenticated ciphertext in browser storage. Remounting the
     // child tree drops private values held in individual calculator forms.
@@ -214,8 +234,8 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
   }, []);
 
   const value = useMemo(
-    () => ({ data, ready, unlocked: key !== null, hasEncryptedData, unlock, lock, update, exportBackup, importBackup, clear }),
-    [clear, data, exportBackup, hasEncryptedData, importBackup, key, lock, ready, unlock, update],
+    () => ({ data, ready, unlocked: key !== null, hasEncryptedData, unlock, lock, update, rotatePassphrase, exportBackup, importBackup, clear }),
+    [clear, data, exportBackup, hasEncryptedData, importBackup, key, lock, ready, rotatePassphrase, unlock, update],
   );
   return (
     <LocalVaultContext.Provider value={value}>

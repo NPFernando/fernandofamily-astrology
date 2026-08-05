@@ -28,8 +28,10 @@ import {
   DEFAULT_LOCATION,
   LocationPicker,
   mostRecentLocation,
+  useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
+import { useLocalVault } from "@/components/LocalVaultProvider";
 import { DateNav } from "@/components/pancha-pakshi/DateNav";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import { resolveDefaultScheduleRequest } from "@/lib/pancha-schedule-state";
@@ -1018,6 +1020,8 @@ function Fact({ label, value }: { label: string; value: string }) {
 
 export function MuhurtaClient() {
   const { dict, locale } = useLocale();
+  const { data: vaultData, unlocked } = useLocalVault();
+  const vaultLocation = useVaultRecentLocation();
   const [identityRequest, setIdentityRequest] = useState<ScheduleRequest | null>(null);
   const [location, setLocation] = useState<LocationValue | null>(null);
   const [date, setDate] = useState("");
@@ -1061,7 +1065,10 @@ export function MuhurtaClient() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const initial = await resolveDefaultScheduleRequest();
+      const initial = await resolveDefaultScheduleRequest({
+        recentLocation: unlocked ? vaultLocation : null,
+        derivedIdentitySeed: unlocked ? vaultData.derivedIdentitySeed ?? null : null,
+      });
       if (cancelled) return;
       const initialLocation = locationFromRequest(initial);
       setUsedDefaults(true);
@@ -1070,7 +1077,8 @@ export function MuhurtaClient() {
     return () => {
       cancelled = true;
     };
-  }, [run]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- rerun on unlock, not every user location write.
+  }, [run, unlocked]);
 
   const currentBird = useMemo(() => {
     if (identityRequest?.method === "bird") return identityRequest.bird;

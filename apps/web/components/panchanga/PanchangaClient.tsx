@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { getDictionary, nakshatraName, translateEnum } from "@/lib/i18n";
 import { ApiError, fetchPanchanga, fetchEclipseForecast, type DailyPanchanga, type EclipseForecast } from "@/lib/api-client";
-import { LocationPicker, DEFAULT_LOCATION, mostRecentLocation, type LocationValue } from "@/components/pancha-pakshi/LocationPicker";
+import { LocationPicker, DEFAULT_LOCATION, mostRecentLocation, useVaultRecentLocation, type LocationValue } from "@/components/pancha-pakshi/LocationPicker";
+import { useLocalVault } from "@/components/LocalVaultProvider";
 import { DateNav } from "@/components/pancha-pakshi/DateNav";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import { PanchangaIcon } from "@/components/icons/features";
@@ -59,6 +60,8 @@ function formatDateTime(iso: string, locale: string) {
 
 export function PanchangaClient() {
   const { dict, locale } = useLocale();
+  const { unlocked } = useLocalVault();
+  const vaultLocation = useVaultRecentLocation();
   const [date, setDate] = useState<string>(() => todayIso());
   const [location, setLocation] = useState<LocationValue | null>(null);
   const [data, setData] = useState<DailyPanchanga | null>(null);
@@ -104,7 +107,7 @@ export function PanchangaClient() {
     (async () => {
       const account = await loadAccountPreferences();
       if (cancelled) return;
-      const loc = account.preferences?.default_location ?? mostRecentLocation() ?? DEFAULT_LOCATION;
+      const loc = account.preferences?.default_location ?? (unlocked ? vaultLocation : null) ?? mostRecentLocation() ?? DEFAULT_LOCATION;
       // "Today" must be resolved in the LOCATION's timezone, not the
       // browser's — otherwise a device whose system clock is in a different
       // zone than the (possibly default Colombo) location can load the
@@ -119,7 +122,7 @@ export function PanchangaClient() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [unlocked]);
 
   const onDateChange = useCallback(
     (next: string) => {

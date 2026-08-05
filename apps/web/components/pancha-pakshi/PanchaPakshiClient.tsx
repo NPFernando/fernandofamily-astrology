@@ -25,21 +25,20 @@ import { PrintSheet, type ExportDetail } from "@/components/pancha-pakshi/PrintS
 import { Legend } from "@/components/pancha-pakshi/Legend";
 import { StickyCurrentBar } from "@/components/pancha-pakshi/StickyCurrentBar";
 import { PanchaPakshiIcon } from "@/components/icons/features";
+import { useLocalVault } from "@/components/LocalVaultProvider";
 import {
+  cachedScheduleFor,
+  liveScheduleSeedFor,
+  sessionScheduleFor,
   fetchLiveSchedule,
-  hasDerivedIdentitySeed,
-  loadCachedSchedule,
-  loadSessionSchedule,
   resolveDefaultScheduleRequest,
-  saveCachedSchedule,
-  saveLiveSeed,
-  saveSessionSchedule,
 } from "@/lib/pancha-schedule-state";
 
 type Method = "birth_datetime" | "nakshatra_paksha" | "bird";
 
 export function PanchaPakshiClient() {
   const { dict, locale } = useLocale();
+  const { data: vaultData, ready: vaultReady, unlocked, update: updateVault } = useLocalVault();
   const [method, setMethod] = useState<Method>("bird");
   const feature = features.find((f) => f.id === "pancha-pakshi")!;
 
@@ -55,6 +54,7 @@ export function PanchaPakshiClient() {
   const [usedDefaults, setUsedDefaults] = useState(false);
   const [exportDetail, setExportDetail] = useState<ExportDetail>("full");
   const countdownCardRef = useRef<HTMLDivElement>(null);
+  const initializedForUnlock = useRef<boolean | null>(null);
 
   useEffect(() => {
     // Deferred to an effect (not a lazy useState initializer) so the first
@@ -86,13 +86,18 @@ export function PanchaPakshiClient() {
       setFetchedAtClientMs(fetchedAtMs);
       setIsStale(false);
       setCachedAtIso(null);
-      saveCachedSchedule(data);
-      saveSessionSchedule(data, st, fetchedAtMs);
+      if (unlocked) {
+        void updateVault((current) => ({
+          ...current,
+          cachedSchedule: cachedScheduleFor(data),
+          sessionSchedule: sessionScheduleFor(data, st, fetchedAtMs),
+        }));
+      }
     } catch (e) {
       // Offline / request failed — fall back to the last cached schedule,
       // clearly labeled as cached, never presented as live. No client-side
       // fallback astronomical calculation is used.
-      const cached = loadCachedSchedule();
+      const cached = unlocked ? vaultData.cachedSchedule ?? null : null;
       if (cached) {
         setSchedule(cached.schedule);
         setServerTime(null);
@@ -105,15 +110,18 @@ export function PanchaPakshiClient() {
     } finally {
       setLoading(false);
     }
-  }, [dict.ui.error]);
+  }, [dict.ui.error, unlocked, updateVault, vaultData.cachedSchedule]);
 
   useEffect(() => {
+    if (!vaultReady || initializedForUnlock.current === unlocked) return;
+    initializedForUnlock.current = unlocked;
     // Restores a schedule lost to the remount that happens when switching
     // language (the locale segment changing navigates to a new pathname,
     // which unmounts this page). Same-tab-session only, so this never
     // resurrects genuinely old data across a new visit — see
-    // loadSessionSchedule's comment.
-    const restored = hasDerivedIdentitySeed() ? null : loadSessionSchedule();
+    // vault state. Locked sessions intentionally do not restore encrypted
+    // calculations.
+    const restored = unlocked && !vaultData.derivedIdentitySeed ? vaultData.sessionSchedule ?? null : null;
     if (restored) {
       /* eslint-disable react-hooks/set-state-in-effect -- one-time hydration
          from sessionStorage on mount, same pattern as the isOnline effect
@@ -135,7 +143,10 @@ export function PanchaPakshiClient() {
     if (navigator.onLine === false) return;
     let cancelled = false;
     (async () => {
-      const request = await resolveDefaultScheduleRequest();
+      const request = await resolveDefaultScheduleRequest({
+        recentLocation: unlocked ? vaultData.recentLocations?.[0] ?? null : null,
+        derivedIdentitySeed: unlocked ? vaultData.derivedIdentitySeed ?? null : null,
+      });
       if (cancelled) return;
       setUsedDefaults(true);
       void runSchedule(request);
@@ -143,8 +154,7 @@ export function PanchaPakshiClient() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [unlocked, vaultData.derivedIdentitySeed, vaultData.recentLocations, vaultData.sessionSchedule, vaultReady, runSchedule]);
 
   const refetch = useCallback(() => {
     if (lastRequest && isOnline) runSchedule(lastRequest);
@@ -189,7 +199,7 @@ export function PanchaPakshiClient() {
 
   const scheduleFromProfile = useCallback(
     (profile: SavedProfile) => {
-      const location = mostRecentLocation() ?? DEFAULT_LOCATION;
+      const location = (unlocked ? vaultData.recentLocations?.[0] : null) ?? mostRecentLocation() ?? DEFAULT_LOCATION;
       const target = nowAsTargetDateTime(location.iana_tz);
       const base = {
         target_date: target.date,
@@ -211,7 +221,7 @@ export function PanchaPakshiClient() {
         });
       }
     },
-    [runUserSchedule],
+    [runUserSchedule, unlocked, vaultData.recentLocations],
   );
 
   const skewMs = serverTime ? serverTime.getTime() - fetchedAtClientMs : 0;
@@ -315,7 +325,14 @@ export function PanchaPakshiClient() {
                     )}
                     <Link
                       href={`/${locale}/pancha-pakshi/live`}
-                      onClick={() => saveLiveSeed(schedule, serverTime, fetchedAtClientMs)}
+                      onClick={() => {
+                        if (unlocked) {
+                          void updateVault((current) => ({
+                            ...current,
+                            liveScheduleSeed: liveScheduleSeedFor(schedule, serverTime, fetchedAtClientMs),
+                          }));
+                        }
+                      }}
                       className="rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-white shadow-sm transition hover:opacity-90"
                     >
                       {dict.ui.liveView}

@@ -39,11 +39,13 @@ import { getDictionary, nakshatraName, translateEnum } from "@/lib/i18n";
 import { useLocale } from "@/lib/locale-context";
 import { addProfile, listProfiles, mergeLocalToServerOnce, removeProfile, updateProfile, type SavedProfile } from "@/lib/profiles";
 import { useSessionProbe } from "@/lib/use-session-probe";
+import { useLocalVault } from "@/components/LocalVaultProvider";
 import { DateNav } from "@/components/pancha-pakshi/DateNav";
 import {
   DEFAULT_LOCATION,
   LocationPicker,
   mostRecentLocation,
+  useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
 import { DailyTimingTimeline } from "@/components/panchanga/DailyTimingTimeline";
@@ -238,6 +240,8 @@ async function shareOrDownloadPng(blob: Blob, filename: string) {
 
 export function FamilyAlmanacClient() {
   const { dict, locale } = useLocale();
+  const { unlocked } = useLocalVault();
+  const vaultLocation = useVaultRecentLocation();
   const searchParams = useSearchParams();
   const requestedDate = validDateParam(searchParams.get("date"));
   const session = useSessionProbe();
@@ -293,14 +297,15 @@ export function FamilyAlmanacClient() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const initialLocation = mostRecentLocation() ?? DEFAULT_LOCATION;
+      const initialLocation = (unlocked ? vaultLocation : null) ?? mostRecentLocation() ?? DEFAULT_LOCATION;
       const initialDate = requestedDate ?? todayFor(initialLocation).date;
       if (!cancelled) void run(defaultRequest(initialDate, initialLocation));
     })();
     return () => {
       cancelled = true;
     };
-  }, [requestedDate, run]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- rerun on unlock, not every user location write.
+  }, [requestedDate, run, unlocked]);
 
   useEffect(() => {
     if (!session.loaded) return;

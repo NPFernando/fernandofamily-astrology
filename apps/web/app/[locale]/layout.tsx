@@ -10,6 +10,7 @@ import { Footer } from "@/components/layout/Footer";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { PUBLIC_BASE_URL } from "@/lib/site-config";
 import { DEFAULT_OG_IMAGE } from "@/lib/feature-assets";
+import { LocalVaultProvider } from "@/components/LocalVaultProvider";
 
 const bodyFont = Inter({ variable: "--font-body", subsets: ["latin"] });
 const sinhalaFont = Noto_Sans_Sinhala({ variable: "--font-sinhala", subsets: ["sinhala"] });
@@ -92,10 +93,12 @@ export default async function LocaleLayout({
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <ThemeProvider>
           <LocaleProvider locale={locale}>
-            <ServiceWorkerRegister />
-            <Nav />
-            <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">{children}</main>
-            <Footer />
+            <LocalVaultProvider>
+              <ServiceWorkerRegister />
+              <Nav />
+              <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">{children}</main>
+              <Footer />
+            </LocalVaultProvider>
           </LocaleProvider>
         </ThemeProvider>
       </body>

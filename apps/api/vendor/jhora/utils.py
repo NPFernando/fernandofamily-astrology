@@ -219,7 +219,7 @@ def _get_location(place_name=None):
                     #print("RESULT:",result)
                     return result
     else:
-        print(place_name,'not in '+const._place_database_file+'.Trying to get from Google')
+        # Suppress lookup diagnostics: place names can be user-provided.
         result = _scrap_google_map_for_latlongtz_from_city_with_country(place_name)
         if result  is not None and len(result)==3:
             place_found = True
@@ -229,7 +229,6 @@ def _get_location(place_name=None):
             _longitude = round(result[1],4)
             _time_zone = round(result[2],2)
             result = [place_name,_latitude,_longitude,_time_zone]
-            print('google result',result)
             """ TODO: To save in database
             result should be converted to the CSV format in world_cities file
             Country, place, lat, long, timezone string, timezone hours
@@ -243,19 +242,16 @@ def _get_location(place_name=None):
                     #print('saving to database',_city,_country)
                     save_location_to_database([_country,_city,_latitude,_longitude,_tz_str,_time_zone])
         else:
-            print('Could not get',place_name,'from google.Trying to get from OpenStreetMaps')
             place_found = False
             result = get_location_using_nominatim(place_name)
             if result:
                 place_found = True
-                print(place_name,'found in OpenStreetMap')
                 [_place_name,_latitude,_longitude,_time_zone] = result
                 _arr = place_name.split(','); 
                 if len(_arr)>=2:
                     _city = ','.join(_arr[:-1]); _country=_arr[-1];_tz_str=''
                     #print('city,country',_city,_country)
                     if _city not in world_cities_dict.keys():
-                        print('saving to database',_city,_country)
                         save_location_to_database([_country,_city,_latitude,_longitude,_tz_str,_time_zone])
     if place_found:
         return result
@@ -282,7 +278,6 @@ def scrap_google_map_for_latlongtz_from_city_with_country(city_with_country):
     latitude = data[1]
     longitude = data[0]
     timezone_offset = get_place_timezone_offset(latitude, longitude)
-    print('city',city_with_country,'lat=',latitude,'long=',longitude,'timezone offset',timezone_offset)
     return city_with_country,latitude,longitude,timezone_offset
 def get_location_using_nominatim(place_with_country_code):
     """
@@ -328,10 +323,8 @@ def _scrap_google_map_for_latlongtz_from_city_with_country(city_with_country):
         latitude = data[1]
         longitude = data[0]
         timezone_offset = get_place_timezone_offset(latitude, longitude)
-        print('city',city_with_country,'lat=',latitude,'long=',longitude,'timezone offset',timezone_offset)
         return latitude,longitude,timezone_offset
-    except Exception as e: 
-        print(e)
+    except Exception:
         warnings.warn("Unable to get location from Google Map Scrap. Aborted")
         return []
 def _get_timezone_from_pytz(timezone_str_from_geocoder):

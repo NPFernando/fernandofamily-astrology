@@ -25,8 +25,10 @@ import {
   DEFAULT_LOCATION,
   LocationPicker,
   mostRecentLocation,
+  useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
+import { useLocalVault } from "@/components/LocalVaultProvider";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import { resolveDefaultScheduleRequest } from "@/lib/pancha-schedule-state";
 import {
@@ -337,6 +339,8 @@ function requestReferenceIso(request: ScheduleRequest, panchanga: DailyPanchanga
 
 export function DailyGuideClient() {
   const { dict, locale } = useLocale();
+  const { data: vaultData, unlocked } = useLocalVault();
+  const vaultLocation = useVaultRecentLocation();
   const searchParams = useSearchParams();
   const requestedDate = validDateParam(searchParams.get("date"));
   const [request, setRequest] = useState<ScheduleRequest | null>(null);
@@ -388,7 +392,10 @@ export function DailyGuideClient() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const initial = await resolveDefaultScheduleRequest();
+      const initial = await resolveDefaultScheduleRequest({
+        recentLocation: unlocked ? vaultLocation : null,
+        derivedIdentitySeed: unlocked ? vaultData.derivedIdentitySeed ?? null : null,
+      });
       if (cancelled) return;
       const initialLocation = locationFromRequest(initial);
       const next = requestedDate ? withDateLocation(initial, requestedDate, initialLocation) : initial;
@@ -398,7 +405,10 @@ export function DailyGuideClient() {
     return () => {
       cancelled = true;
     };
-  }, [requestedDate, run]);
+  // Vault writes also change vaultLocation after a user selects a place; this
+  // bootstrap should rerun only for navigation or an unlock transition.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestedDate, run, unlocked]);
 
   const viewingToday = Boolean(location && date === todayFor(location).date);
   const currentPeriod = viewingToday ? data?.schedule.current_period ?? null : null;

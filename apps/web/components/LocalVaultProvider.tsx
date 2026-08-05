@@ -9,6 +9,7 @@ import {
   deriveVaultKey,
   exportVaultBackup,
   hasVault,
+  hasLegacySensitiveStorage,
   importVaultBackup,
   readVault,
   setVaultBackupRecommended,
@@ -41,6 +42,7 @@ type VaultContextValue = {
   ready: boolean;
   unlocked: boolean;
   hasEncryptedData: boolean;
+  legacyMigrationPending: boolean;
   backupRecommended: boolean;
   unlock: (passphrase: string) => Promise<boolean>;
   lock: () => void;
@@ -58,6 +60,7 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
   const [key, setKey] = useState<CryptoKey | null>(() => activeVaultKey());
   const [ready, setReady] = useState(false);
   const [hasEncryptedData, setHasEncryptedData] = useState(false);
+  const [legacyMigrationPending, setLegacyMigrationPending] = useState(false);
   const [backupRecommended, setBackupRecommended] = useState(false);
   const [sessionVersion, setSessionVersion] = useState(0);
   const dataRef = useRef<LocalVaultData>({});
@@ -89,6 +92,7 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
       }
       if (!cancelled) {
         setHasEncryptedData(hasVault());
+        setLegacyMigrationPending(hasLegacySensitiveStorage());
         setBackupRecommended(vaultBackupRecommended());
         setReady(true);
       }
@@ -151,6 +155,7 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
     // only after this authenticated write succeeds.
     await commit(nextKey, next);
     clearLegacySensitiveStorage();
+    setLegacyMigrationPending(false);
     if (!alreadyEncrypted) {
       setVaultBackupRecommended(true);
       setBackupRecommended(true);
@@ -192,6 +197,7 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
     setKey(null);
     setActiveVaultKey(null);
     setHasEncryptedData(false);
+    setLegacyMigrationPending(false);
     setBackupRecommended(false);
     setSessionVersion((version) => version + 1);
   }, []);
@@ -251,14 +257,15 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
     setKey(null);
     setActiveVaultKey(null);
     setHasEncryptedData(true);
+    setLegacyMigrationPending(false);
     setVaultBackupRecommended(false);
     setBackupRecommended(false);
     return result;
   }, []);
 
   const value = useMemo(
-    () => ({ data, ready, unlocked: key !== null, hasEncryptedData, backupRecommended, unlock, lock, update, rotatePassphrase, exportBackup, importBackup, clear }),
-    [backupRecommended, clear, data, exportBackup, hasEncryptedData, importBackup, key, lock, ready, rotatePassphrase, unlock, update],
+    () => ({ data, ready, unlocked: key !== null, hasEncryptedData, legacyMigrationPending, backupRecommended, unlock, lock, update, rotatePassphrase, exportBackup, importBackup, clear }),
+    [backupRecommended, clear, data, exportBackup, hasEncryptedData, importBackup, key, legacyMigrationPending, lock, ready, rotatePassphrase, unlock, update],
   );
   return (
     <LocalVaultContext.Provider value={value}>

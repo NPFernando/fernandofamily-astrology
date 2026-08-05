@@ -111,6 +111,26 @@ grep -Fxq restore "$RESTIC_STATE_FILE"
 
 bash "$REPO_ROOT/infra/deploy/database-backup-healthcheck.sh"
 
+evidence="$(bash "$REPO_ROOT/infra/deploy/database-recovery-evidence.sh")"
+grep -Fq '"format":"fernandofamily-recovery-evidence"' <<<"$evidence"
+grep -Fq '"id":"local_backup","status":"current"' <<<"$evidence"
+grep -Fq '"id":"offsite_restore_drill","status":"current"' <<<"$evidence"
+if grep -Fq "$RESTIC_REPOSITORY" <<<"$evidence"; then
+  echo "recovery evidence exposed the Restic repository" >&2
+  exit 1
+fi
+if grep -Fq "$ASTROLOGY_DATABASE_URL" <<<"$evidence"; then
+  echo "recovery evidence exposed the database URL" >&2
+  exit 1
+fi
+
+touch -d '2 days ago' "$BACKUP_DIR/.backup-last-success"
+if stale_evidence="$(bash "$REPO_ROOT/infra/deploy/database-recovery-evidence.sh")"; then
+  echo "recovery evidence accepted a stale backup marker" >&2
+  exit 1
+fi
+grep -Fq '"id":"local_backup","status":"stale"' <<<"$stale_evidence"
+
 export ALERT_WEBHOOK_URL_FILE="$WORK_DIR/alert-webhook-url"
 printf 'https://alerts.example.invalid/operations' > "$ALERT_WEBHOOK_URL_FILE"
 chmod 600 "$ALERT_WEBHOOK_URL_FILE"

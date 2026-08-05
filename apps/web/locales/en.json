@@ -327,6 +327,7 @@
     "vaultPassphrase": "Vault passphrase",
     "chooseVaultPassphrase": "Choose a vault passphrase",
     "vaultPassphraseHint": "It is never stored. You will need it again after closing or locking this browser tab.",
+    "vaultLegacyMigrationNotice": "Private data from an older version is waiting to be encrypted. Create a vault and download a backup before {deadline}; legacy import support will then be retired.",
     "createVault": "Create vault",
     "unlockVault": "Unlock",
     "vaultUnlockFailed": "That passphrase could not unlock this vault.",

@@ -35,6 +35,18 @@ async function readDownload(download: import("@playwright/test").Download): Prom
   return content;
 }
 
+test("legacy private data receives a visible migration deadline before vault creation", async ({ page }) => {
+  await page.goto("/en/birth-chart");
+  await page.evaluate(() => {
+    window.localStorage.setItem("ff_recent_birth_details", '[{"birth_date":"2000-01-01","birth_time":"12:00"}]');
+  });
+  await page.reload();
+
+  await page.getByRole("button", { name: "Protect private data" }).click();
+  await expect(page.getByText("Private data from an older version is waiting to be encrypted.", { exact: false })).toBeVisible();
+  await expect(page.getByText("2027-02-01", { exact: false })).toBeVisible();
+});
+
 test("local vault migrates sensitive legacy values, restores them after unlock, and clears them", async ({ page }) => {
   await page.goto("/en/birth-chart");
   const legacyValues = [

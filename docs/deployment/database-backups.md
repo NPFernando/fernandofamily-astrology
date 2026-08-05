@@ -102,6 +102,21 @@ name and a generic failure summary. You can also inspect it with
 `systemctl status fernandofamily-db-backup-healthcheck.service`. It never
 prints a DSN, archive name, provider credential, or Restic repository URL.
 
+For a scrubbed, shareable status record, run the evidence report from the
+repository root. It reports only fixed check IDs, current/stale/missing state,
+UTC success timestamps, and configured age limits; it never includes paths,
+archive names, connection URLs, credentials, or storage-provider details. A
+non-current marker causes a non-zero exit after the JSON is printed, so an
+operator can retain the record while automation still fails closed.
+
+```bash
+bash infra/deploy/database-recovery-evidence.sh
+```
+
+Attach this JSON to the restricted recovery runbook or incident record after
+reviewing it. Do not add a DSN, archive content, provider endpoint, or secret
+to the report.
+
 ## Retention and provider immutability
 
 The checked-in Restic policy retains 14 daily, 8 weekly, and 12 monthly

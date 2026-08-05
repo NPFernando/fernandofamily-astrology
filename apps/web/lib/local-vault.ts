@@ -9,6 +9,13 @@ const VAULT_TRANSACTION_JOURNAL_STORAGE = "ff-vault-transaction";
 const VAULT_BACKUP_RECOMMENDED_STORAGE = "ff_private_vault_backup_recommended_v1";
 const ITERATIONS = 310_000;
 
+// Legacy browser-storage migration is deliberately time-bounded. The UI tells
+// affected users about this date before the read/import support is removed in
+// a later compatibility-breaking release. Do not make this an automatic
+// deletion deadline: losing a user's only private data copy would be worse
+// than retaining an explicit, opt-in migration path during the notice period.
+export const LEGACY_VAULT_MIGRATION_DEADLINE = "2027-02-01";
+
 // Module state is scoped to the current browser tab. It survives React layout
 // remounts (such as an /en -> /si navigation) without ever being serialized.
 let activeKey: CryptoKey | null = null;
@@ -343,4 +350,12 @@ export function clearLegacySensitiveStorage(): void {
   if (typeof window === "undefined") return;
   for (const key of LEGACY_SENSITIVE_LOCAL_STORAGE_KEYS) window.localStorage.removeItem(key);
   for (const key of LEGACY_SENSITIVE_SESSION_STORAGE_KEYS) window.sessionStorage.removeItem(key);
+}
+
+export function hasLegacySensitiveStorage(): boolean {
+  if (typeof window === "undefined") return false;
+  return (
+    LEGACY_SENSITIVE_LOCAL_STORAGE_KEYS.some((key) => window.localStorage.getItem(key) !== null) ||
+    LEGACY_SENSITIVE_SESSION_STORAGE_KEYS.some((key) => window.sessionStorage.getItem(key) !== null)
+  );
 }

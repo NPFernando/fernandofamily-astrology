@@ -46,6 +46,17 @@ The vault's encrypted ciphertext and salt remain in browser storage so the
 user can unlock later. Use **Clear saved preferences** to remove both the
 vault and the ordinary preferences from this browser.
 
+### Legacy browser-storage migration window
+
+Older versions stored some calculator state in browser storage without vault
+encryption. When that state is found, the vault control shows a migration
+notice. Create a vault and download an encrypted backup by **2027-02-01**;
+the next compatibility-breaking release after that date will remove the
+legacy import readers. The deadline is a notice period, not an automatic
+deletion job: the app will never silently discard a user's only private data
+copy. After successfully creating or unlocking a vault, the imported values
+are encrypted and the legacy browser-storage keys are removed.
+
 ## Location
 
 If you use "Use my location," your device's coordinates are read by your

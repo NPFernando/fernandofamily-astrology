@@ -2,11 +2,12 @@
 
 import { FormEvent, useState } from "react";
 import { useLocalVault } from "@/components/LocalVaultProvider";
+import { LEGACY_VAULT_MIGRATION_DEADLINE } from "@/lib/local-vault";
 import { useLocale } from "@/lib/locale-context";
 
 export function LocalVaultControl() {
   const { dict } = useLocale();
-  const { hasEncryptedData, ready, unlocked, unlock, lock } = useLocalVault();
+  const { hasEncryptedData, legacyMigrationPending, ready, unlocked, unlock, lock } = useLocalVault();
   const [open, setOpen] = useState(false);
   const [passphrase, setPassphrase] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +62,11 @@ export function LocalVaultControl() {
           <p className="mt-1 text-xs leading-relaxed opacity-70">
             {dict.ui.vaultPassphraseHint}
           </p>
+          {legacyMigrationPending && !hasEncryptedData && (
+            <p role="status" className="mt-2 text-xs leading-relaxed text-accent">
+              {dict.ui.vaultLegacyMigrationNotice.replace("{deadline}", LEGACY_VAULT_MIGRATION_DEADLINE)}
+            </p>
+          )}
           <input
             id="local-vault-passphrase"
             type="password"

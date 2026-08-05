@@ -6,7 +6,15 @@ import { PUBLIC_REPOSITORY_URL } from "@/lib/site-config";
 
 const VOTES_KEY = "ff_roadmap_votes_v1";
 
-type ItemId = "readiness" | "planner" | "groups" | "agenda" | "changes" | "alerts" | "commands" | "icons";
+type ItemId = "readiness" | "planner" | "groups" | "agenda" | "changes" | "alerts" | "commands" | "icons" | "week" | "calendar";
+type Status = "released" | "inProgress" | "planned";
+
+type RoadmapItem = {
+  id: ItemId;
+  label: string;
+  category: string;
+  status: Status;
+};
 
 function loadVotes(): Record<string, number> {
   try { return JSON.parse(window.localStorage.getItem(VOTES_KEY) ?? "{}"); } catch { return {}; }
@@ -17,47 +25,73 @@ export function RoadmapFeedbackClient() {
   const [votes, setVotes] = useState<Record<string, number>>(() => typeof window === "undefined" ? {} : loadVotes());
   const [selected, setSelected] = useState<ItemId>("planner");
   const [feedback, setFeedback] = useState("");
-  const items = useMemo(() => [
-    ["readiness", dict.roadmap.readiness, "released"],
-    ["planner", dict.roadmap.planner, "released"],
-    ["groups", dict.roadmap.groups, "released"],
-    ["agenda", dict.roadmap.agenda, "released"],
-    ["changes", dict.roadmap.changes, "released"],
-    ["alerts", dict.roadmap.alerts, "released"],
-    ["commands", dict.roadmap.commands, "released"],
-    ["icons", dict.roadmap.icons, "released"],
-  ] as const, [dict]);
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("");
+  const items = useMemo<RoadmapItem[]>(() => [
+    { id: "readiness", label: dict.roadmap.readiness, category: dict.roadmap.categoryReliability, status: "released" },
+    { id: "planner", label: dict.roadmap.planner, category: dict.roadmap.categoryPrivacy, status: "released" },
+    { id: "groups", label: dict.roadmap.groups, category: dict.roadmap.categoryPrivacy, status: "released" },
+    { id: "agenda", label: dict.roadmap.agenda, category: dict.roadmap.categoryPlanning, status: "released" },
+    { id: "changes", label: dict.roadmap.changes, category: dict.roadmap.categoryPlanning, status: "released" },
+    { id: "alerts", label: dict.roadmap.alerts, category: dict.roadmap.categoryReliability, status: "released" },
+    { id: "commands", label: dict.roadmap.commands, category: dict.roadmap.categoryExperience, status: "released" },
+    { id: "icons", label: dict.roadmap.icons, category: dict.roadmap.categoryExperience, status: "released" },
+    { id: "week", label: dict.roadmap.week, category: dict.roadmap.categoryPlanning, status: "planned" },
+    { id: "calendar", label: dict.roadmap.calendar, category: dict.roadmap.categoryPrivacy, status: "planned" },
+  ], [dict]);
+  const categories = [...new Set(items.map((item) => item.category))];
+  const filtered = items.filter((item) => {
+    const matchesQuery = `${item.label} ${item.category}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase());
+    return matchesQuery && (!category || item.category === category);
+  });
+  const statuses: Status[] = ["released", "inProgress", "planned"];
 
   function vote(id: ItemId) {
-    setVotes((current) => { const next = { ...current, [id]: (current[id] ?? 0) + 1 }; window.localStorage.setItem(VOTES_KEY, JSON.stringify(next)); return next; });
+    setVotes((current) => {
+      const next = { ...current, [id]: (current[id] ?? 0) + 1 };
+      window.localStorage.setItem(VOTES_KEY, JSON.stringify(next));
+      return next;
+    });
   }
-  const draft = `${dict.roadmap.feedbackSubject}: ${items.find(([id]) => id === selected)?.[1]}\n\n${feedback.trim()}`;
-  const issueHref = `${PUBLIC_REPOSITORY_URL}/issues/new?title=${encodeURIComponent(`${dict.roadmap.feedbackSubject}: ${items.find(([id]) => id === selected)?.[1]}`)}&body=${encodeURIComponent(draft)}`;
+
+  const selectedLabel = items.find((item) => item.id === selected)?.label ?? "";
+  const draft = `${dict.roadmap.feedbackSubject}: ${selectedLabel}\n\n${feedback.trim()}`;
+  const issueHref = `${PUBLIC_REPOSITORY_URL}/issues/new?title=${encodeURIComponent(`${dict.roadmap.feedbackSubject}: ${selectedLabel}`)}&body=${encodeURIComponent(draft)}`;
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="max-w-3xl">
-        <h1 className="text-2xl font-bold">{dict.roadmap.title}</h1>
-        <p className="mt-2 leading-relaxed opacity-80">{dict.roadmap.body}</p>
-        <p className="mt-2 text-xs opacity-70">{dict.roadmap.localVoteNote}</p>
+      <header className="rounded-2xl border border-black/10 bg-gradient-to-br from-accent/10 to-transparent p-5 dark:border-white/10">
+        <p className="text-xs font-semibold uppercase tracking-wider text-accent">{dict.roadmap.kicker}</p>
+        <h1 className="mt-2 text-2xl font-bold">{dict.roadmap.title}</h1>
+        <p className="mt-2 max-w-3xl leading-relaxed opacity-80">{dict.roadmap.body}</p>
+        <div className="mt-4 flex flex-wrap gap-3"><a href={PUBLIC_REPOSITORY_URL} target="_blank" rel="noreferrer" className="rounded-lg border border-black/10 px-3 py-1.5 text-sm font-semibold dark:border-white/20">{dict.roadmap.viewGithub}</a><a href={issueHref} target="_blank" rel="noreferrer" className="rounded-lg bg-accent px-3 py-1.5 text-sm font-semibold text-white">{dict.roadmap.submitIdea}</a></div>
       </header>
-      <section data-testid="roadmap-items" className="grid gap-3 md:grid-cols-2">
-        {items.map(([id, label, status]) => (
-          <article key={id} className="rounded-xl border border-black/10 bg-white/35 p-4 dark:border-white/10 dark:bg-white/[.03]">
-            <div className="flex items-start justify-between gap-3"><p className="font-semibold">{label}</p><span className="rounded-full border border-black/10 px-2 py-1 text-xs dark:border-white/20">{dict.roadmap[status]}</span></div>
-            <button type="button" onClick={() => vote(id)} className="mt-4 rounded-lg border border-accent/40 px-3 py-1.5 text-sm font-semibold text-accent">{dict.roadmap.vote} · {votes[id] ?? 0}</button>
-          </article>
-        ))}
+
+      <aside className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm" data-testid="roadmap-safety-notice"><h2 className="font-semibold">{dict.roadmap.safetyTitle}</h2><p className="mt-1 opacity-90">{dict.roadmap.safetyBody}</p></aside>
+
+      <section aria-label={dict.roadmap.categorySummary} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {categories.map((entry) => <button key={entry} type="button" onClick={() => setCategory(category === entry ? "" : entry)} className={`rounded-xl border p-4 text-left ${category === entry ? "border-accent bg-accent/10" : "border-black/10 dark:border-white/10"}`}><span className="text-sm opacity-75">{entry}</span><strong className="mt-1 block text-2xl">{items.filter((item) => item.category === entry).length}</strong></button>)}
       </section>
+
+      <section className="grid gap-3 md:grid-cols-[1.4fr_1fr]">
+        <label className="text-sm font-medium">{dict.roadmap.search}<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={dict.roadmap.searchPlaceholder} className="mt-1 block w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" /></label>
+        <label className="text-sm font-medium">{dict.roadmap.filterCategory}<select value={category} onChange={(event) => setCategory(event.target.value)} className="mt-1 block w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20"><option value="">{dict.roadmap.allCategories}</option>{categories.map((entry) => <option key={entry} value={entry}>{entry}</option>)}</select></label>
+      </section>
+      <p className="text-sm opacity-75">{dict.roadmap.itemsShown.replace("{n}", String(filtered.length))} {dict.roadmap.localVoteNote}</p>
+
+      <section data-testid="roadmap-items" className="grid gap-4 xl:grid-cols-3">
+        {statuses.map((status) => {
+          const statusItems = filtered.filter((item) => item.status === status);
+          return <section key={status} className="rounded-xl border border-black/10 bg-white/35 p-3 dark:border-white/10 dark:bg-white/[.03]"><div className="flex items-center justify-between gap-3 border-b border-black/10 pb-2 dark:border-white/10"><h2 className="font-semibold">{dict.roadmap[status]}</h2><span className="rounded-full border border-black/10 px-2 py-0.5 text-xs dark:border-white/20">{statusItems.length}</span></div><div className="mt-3 space-y-3">{statusItems.length ? statusItems.map((item) => <article key={item.id} className="rounded-lg border border-black/10 bg-background/50 p-3 dark:border-white/10"><p className="font-semibold">{item.label}</p><p className="mt-1 text-xs uppercase tracking-wide opacity-65">{item.category}</p><button type="button" onClick={() => vote(item.id)} className="mt-3 rounded-lg border border-accent/40 px-3 py-1.5 text-sm font-semibold text-accent">{dict.roadmap.vote} · {votes[item.id] ?? 0}</button></article>) : <p className="py-6 text-center text-sm opacity-65">{dict.roadmap.noMatches}</p>}</div></section>;
+        })}
+      </section>
+
       <section className="rounded-xl border border-black/10 p-4 dark:border-white/10">
         <h2 className="text-lg font-semibold">{dict.roadmap.feedbackTitle}</h2>
         <p className="mt-1 text-sm opacity-80">{dict.roadmap.feedbackBody}</p>
-        <label className="mt-4 block text-sm font-medium">{dict.roadmap.feedbackFor}<select value={selected} onChange={(event) => setSelected(event.target.value as ItemId)} className="mt-1 block w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20">{items.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label>
+        <label className="mt-4 block text-sm font-medium">{dict.roadmap.feedbackFor}<select value={selected} onChange={(event) => setSelected(event.target.value as ItemId)} className="mt-1 block w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20">{items.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
         <label className="mt-3 block text-sm font-medium">{dict.roadmap.feedbackLabel}<textarea value={feedback} onChange={(event) => setFeedback(event.target.value)} rows={4} className="mt-1 w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" /></label>
-        <div className="mt-3 flex flex-wrap gap-3">
-          <button type="button" onClick={() => { void navigator.clipboard?.writeText(draft); }} className="rounded-lg border border-black/10 px-4 py-2 text-sm font-semibold dark:border-white/20">{dict.roadmap.copyFeedback}</button>
-          <a href={issueHref} target="_blank" rel="noreferrer" className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white">{dict.roadmap.openIssue}</a>
-        </div>
+        <div className="mt-3 flex flex-wrap gap-3"><button type="button" onClick={() => { void navigator.clipboard?.writeText(draft); }} className="rounded-lg border border-black/10 px-4 py-2 text-sm font-semibold dark:border-white/20">{dict.roadmap.copyFeedback}</button><a href={issueHref} target="_blank" rel="noreferrer" className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white">{dict.roadmap.openIssue}</a></div>
       </section>
     </div>
   );

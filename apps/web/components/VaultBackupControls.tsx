@@ -66,6 +66,27 @@ export function VaultBackupControls() {
       <h2 className="text-lg font-semibold">{dict.ui.vaultBackupTitle}</h2>
       <p className="mt-2 text-sm leading-relaxed opacity-80">{dict.ui.vaultBackupBody}</p>
       <p className="mt-2 text-sm font-medium">{dict.ui.vaultBackupRecoveryWarning}</p>
+      <div className="mt-4 rounded-lg border border-black/10 bg-black/[.02] p-3 dark:border-white/10 dark:bg-white/[.03]" data-testid="vault-recovery-checklist">
+        <h3 className="text-sm font-semibold">{dict.ui.vaultRecoveryChecklistTitle}</h3>
+        <ul className="mt-2 space-y-2 text-sm">
+          <li className="flex gap-2">
+            <span aria-hidden className={hasEncryptedData ? "text-emerald-700 dark:text-emerald-300" : "text-amber-700 dark:text-amber-300"}>
+              {hasEncryptedData ? "✓" : "!"}
+            </span>
+            <span>{hasEncryptedData ? dict.ui.vaultRecoveryEncrypted : dict.ui.vaultRecoveryCreate}</span>
+          </li>
+          <li className="flex gap-2">
+            <span aria-hidden className={backupRecommended ? "text-amber-700 dark:text-amber-300" : "text-emerald-700 dark:text-emerald-300"}>
+              {backupRecommended ? "!" : "✓"}
+            </span>
+            <span>{backupRecommended ? dict.ui.vaultRecoveryBackupNeeded : dict.ui.vaultRecoveryBackupReminderCleared}</span>
+          </li>
+          <li className="flex gap-2">
+            <span aria-hidden className="text-accent">→</span>
+            <span>{dict.ui.vaultRecoveryRestoreGuide}</span>
+          </li>
+        </ul>
+      </div>
       {backupRecommended && <p role="status" data-testid="vault-backup-recommended" className="mt-2 text-sm font-medium text-accent">{dict.ui.vaultBackupRecommended}</p>}
       <div className="mt-4 flex flex-wrap gap-3">
         <button

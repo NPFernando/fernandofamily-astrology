@@ -36,6 +36,9 @@ import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFi
 import { resolveDefaultScheduleRequest } from "@/lib/pancha-schedule-state";
 import { BIRD_ICONS } from "@/components/icons/birds";
 import { MuhurtaIcon } from "@/components/icons/features";
+import { SavedProfiles } from "@/components/pancha-pakshi/SavedProfiles";
+import { LoadingCards } from "@/components/ui/ContentStates";
+import { MobileActionBar } from "@/components/ui/MobileActionBar";
 
 const feature = features.find((f) => f.id === "muhurta")!;
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
@@ -341,6 +344,75 @@ function bestIndividualWindow(response: MuhurtaSearchResponse | null): MuhurtaWi
     if (a.duration_seconds !== b.duration_seconds) return b.duration_seconds - a.duration_seconds;
     return new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime();
   })[0];
+}
+
+function MuhurtaDateComparison({
+  data,
+  locale,
+  dict,
+  onUseDate,
+}: {
+  data: MuhurtaSearchResponse;
+  locale: string;
+  dict: Dictionary;
+  onUseDate: (date: string) => void;
+}) {
+  const candidates = data.per_day
+    .map((day) => {
+      const top = data.windows
+        .filter((window) => window.effective_date === day.date)
+        .sort((a, b) => {
+          const grade = GRADE_RANK[a.grade] - GRADE_RANK[b.grade];
+          return grade || b.score - a.score || b.duration_seconds - a.duration_seconds;
+        })[0] ?? null;
+      return { day, top };
+    })
+    .filter((candidate): candidate is { day: MuhurtaSearchResponse["per_day"][number]; top: MuhurtaWindow } => Boolean(candidate.top))
+    .sort((a, b) => {
+      const grade = GRADE_RANK[a.top.grade] - GRADE_RANK[b.top.grade];
+      return grade || b.top.score - a.top.score || b.day.total_seconds - a.day.total_seconds;
+    })
+    .slice(0, 3);
+
+  if (candidates.length < 2) return null;
+  return (
+    <section data-testid="muhurta-date-comparison" className="rounded-xl border border-black/10 bg-white/25 p-4 dark:border-white/10 dark:bg-white/[.03]">
+      <h2 className="text-sm font-semibold uppercase text-accent">{dict.muhurta.compareDatesTitle}</h2>
+      <p className="mt-1 text-sm opacity-75">{dict.muhurta.compareDatesBody}</p>
+      <div className="mt-4 grid gap-3 lg:grid-cols-3">
+        {candidates.map(({ day, top }) => (
+          <article key={day.date} className="rounded-lg border border-black/10 p-3 dark:border-white/10">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="font-semibold">{formatDate(day.date, locale)}</p>
+                <p className="mt-1 text-sm tabular-nums">
+                  {formatTime(top.starts_at, locale)} - {formatTime(top.ends_at, locale)}
+                </p>
+              </div>
+              <span className={`shrink-0 rounded-full border px-2 py-1 text-xs font-semibold ${GRADE_STYLE[top.grade]}`}>
+                {dict.muhurta.grades[top.grade]}
+              </span>
+            </div>
+            <p className="mt-3 text-xs opacity-75">
+              {dict.muhurta.compareReason}: {top.reasons.map((reason) => sourceLabel(reason, dict)).join(", ")}
+            </p>
+            <p className="mt-1 text-xs opacity-75">
+              {top.cautions.length
+                ? `${dict.muhurta.compareCautions}: ${top.cautions.map((caution) => cautionValue(caution, dict)).join(", ")}`
+                : dict.muhurta.compareNoCautions}
+            </p>
+            <button
+              type="button"
+              onClick={() => onUseDate(day.date)}
+              className="mt-3 w-full rounded-lg border border-accent/40 px-3 py-1.5 text-sm font-semibold text-accent hover:bg-accent/10"
+            >
+              {dict.muhurta.compareUseDate}
+            </button>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 function profileIdentityText(profile: SavedProfile, dict: Dictionary) {
@@ -1162,6 +1234,7 @@ export function MuhurtaClient() {
 
       <div className="grid gap-6 lg:grid-cols-[22rem_minmax(0,1fr)] lg:items-start">
         <aside
+          id="muhurta-controls"
           className="rounded-xl border border-black/10 bg-white/35 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.03]"
           data-testid="muhurta-controls"
         >
@@ -1260,6 +1333,17 @@ export function MuhurtaClient() {
             </label>
 
             <LocationPicker value={location} onChange={(nextLocation) => rerun({ location: nextLocation })} />
+            <div className="border-t border-black/10 pt-4 dark:border-white/10">
+              <SavedProfiles
+                onPick={(profile) => {
+                  const loc = location ?? vaultLocation ?? DEFAULT_LOCATION;
+                  const nextDate = date || todayFor(loc);
+                  const nextRequest = requestFromProfile(profile, nextDate, loc);
+                  if (nextRequest) rerun({ request: nextRequest });
+                }}
+                saveCandidate={null}
+              />
+            </div>
           </div>
         </aside>
 
@@ -1270,11 +1354,7 @@ export function MuhurtaClient() {
             </p>
           )}
 
-          {loading && (
-            <p className="rounded-lg border border-black/10 p-4 text-sm opacity-80 dark:border-white/10">
-              {dict.ui.loading}
-            </p>
-          )}
+          {loading && <LoadingCards label={dict.ui.loading} count={4} />}
 
           {error && (
             <div role="alert" className="rounded-lg border border-red-500/40 bg-red-500/10 p-4 text-sm">
@@ -1318,6 +1398,21 @@ export function MuhurtaClient() {
                   ))}
                 </div>
               </section>
+
+              <MuhurtaDateComparison
+                data={data}
+                locale={locale}
+                dict={dict}
+                onUseDate={(nextDate) => rerun({ date: nextDate })}
+              />
+
+              <MobileActionBar
+                label={dict.muhurta.quickActions}
+                actions={[
+                  { label: dict.ui.changeDetails, href: "#muhurta-controls" },
+                  { label: dict.muhurta.openDailyGuide, href: `/${locale}/daily-guide?date=${date}`, primary: true },
+                ]}
+              />
 
               {date && location ? (
                 <FamilyMuhurtaPanel

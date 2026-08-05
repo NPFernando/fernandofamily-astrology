@@ -45,6 +45,9 @@ import { activityGuidance } from "@/lib/pancha-guidance";
 import { SkyTodayPanel } from "@/components/panchanga/SkyTodayPanel";
 import { DailyTimingTimeline } from "@/components/panchanga/DailyTimingTimeline";
 import { PoyaDetailCard } from "@/components/panchanga/PoyaDetailCard";
+import { SavedProfiles } from "@/components/pancha-pakshi/SavedProfiles";
+import { LoadingCards } from "@/components/ui/ContentStates";
+import { MobileActionBar } from "@/components/ui/MobileActionBar";
 import { EFFECT_COLORS } from "@fernandofamily/design-system";
 
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
@@ -336,6 +339,57 @@ function requestReferenceIso(request: ScheduleRequest, panchanga: DailyPanchanga
   return `${request.target_date}T${request.target_time}${offsetSuffix(panchanga.sunrise)}`;
 }
 
+function TodayCommandCenter({
+  date,
+  locationName,
+  hasCurrentPeriod,
+}: {
+  date: string;
+  locationName: string;
+  hasCurrentPeriod: boolean;
+}) {
+  const { dict, locale } = useLocale();
+  const actions = [
+    { href: `/${locale}/pancha-pakshi`, label: dict.dailyGuide.openPanchaPakshi },
+    { href: `/${locale}/muhurta`, label: dict.dailyGuide.openMuhurta },
+    { href: `/${locale}/panchanga?date=${date}`, label: dict.dailyGuide.openPanchanga },
+    { href: `/${locale}/moon-calendar?date=${date}`, label: dict.dailyGuide.openMoonCalendar },
+  ];
+  return (
+    <section
+      data-testid="daily-guide-command-center"
+      className="rounded-xl border border-accent/30 bg-accent/5 p-4 dark:bg-accent/10"
+    >
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-sm font-semibold uppercase text-accent">{dict.dailyGuide.todayCommandCenterTitle}</h2>
+          <p className="mt-1 text-sm leading-relaxed opacity-80">
+            {dict.dailyGuide.todayCommandCenterBody
+              .replace("{location}", locationName)
+              .replace("{period}", hasCurrentPeriod ? dict.dailyGuide.currentPeriodReady : dict.dailyGuide.currentPeriodUnavailable)}
+          </p>
+        </div>
+        <span className="w-fit rounded-full border border-accent/30 px-3 py-1 text-xs font-semibold text-accent">
+          {date}
+        </span>
+      </div>
+      <div className="mt-4 flex flex-wrap gap-2">
+        {actions.map((action, index) => (
+          <Link
+            key={action.href}
+            href={action.href}
+            className={`rounded-lg px-3 py-2 text-sm font-semibold ${
+              index === 0 ? "bg-accent text-white" : "border border-accent/40 text-accent hover:bg-accent/10"
+            }`}
+          >
+            {action.label}
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function DailyGuideClient() {
   const { dict, locale } = useLocale();
   const { data: vaultData, unlocked } = useLocalVault();
@@ -532,6 +586,7 @@ export function DailyGuideClient() {
       </div>
 
       <section
+        id="daily-guide-controls"
         data-testid="daily-guide-controls"
         className="rounded-xl border border-black/10 bg-white/40 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.04]"
       >
@@ -631,6 +686,9 @@ export function DailyGuideClient() {
             </div>
           </div>
         </div>
+        <div className="mt-4 border-t border-black/10 pt-4 dark:border-white/10">
+          <SavedProfiles onPick={pickProfile} saveCandidate={null} />
+        </div>
       </section>
 
       {usedDefaults && data && (
@@ -654,14 +712,7 @@ export function DailyGuideClient() {
         </div>
       )}
 
-      {loading && !data && (
-        <div role="status" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <span className="sr-only">{dict.ui.loading}</span>
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-28 rounded-xl border border-black/10 motion-safe:animate-pulse dark:border-white/10" />
-          ))}
-        </div>
-      )}
+      {loading && !data && <LoadingCards label={dict.ui.loading} count={6} className="lg:grid-cols-3" />}
 
       {data && activeView === "week" && location && date && (
         <FamilyWeekPlanner startDate={date} location={location} onUseDate={useWeekDate} />
@@ -669,6 +720,11 @@ export function DailyGuideClient() {
 
       {data && activeView === "today" && (
         <div data-testid="daily-guide-result" className="flex flex-col gap-5">
+          <TodayCommandCenter
+            date={data.panchanga.date}
+            locationName={data.schedule.location.name}
+            hasCurrentPeriod={Boolean(currentPeriod)}
+          />
           <section
             data-testid="daily-guide-summary"
             className="rounded-xl border border-black/10 bg-white/35 p-4 dark:border-white/10 dark:bg-white/[.03]"
@@ -702,6 +758,14 @@ export function DailyGuideClient() {
               </div>
             </div>
           </section>
+          <MobileActionBar
+            label={dict.dailyGuide.todayCommandCenterTitle}
+            actions={[
+              { label: dict.ui.changeDetails, href: "#daily-guide-controls" },
+              { label: dict.dailyGuide.openPanchaPakshi, href: `/${locale}/pancha-pakshi`, primary: true },
+              { label: dict.dailyGuide.openMuhurta, href: `/${locale}/muhurta` },
+            ]}
+          />
 
           <PoyaDetailCard
             locale={locale}

@@ -82,7 +82,7 @@ export function BirthNakshatraClient() {
     }
   }
 
-  function openTool(path: "/pancha-pakshi" | "/daily-guide") {
+  function openTool(path: "/pancha-pakshi" | "/daily-guide" | "/muhurta") {
     seedResult();
     router.push(`/${locale}${path}`);
   }
@@ -210,6 +210,13 @@ export function BirthNakshatraClient() {
                 className="rounded-lg border border-accent/40 px-4 py-2 text-sm font-semibold text-accent hover:bg-accent/10"
               >
                 {dict.birthNakshatra.openDailyGuide}
+              </button>
+              <button
+                type="button"
+                onClick={() => openTool("/muhurta")}
+                className="rounded-lg border border-accent/40 px-4 py-2 text-sm font-semibold text-accent hover:bg-accent/10"
+              >
+                {dict.birthNakshatra.openMuhurta}
               </button>
               <button
                 type="button"

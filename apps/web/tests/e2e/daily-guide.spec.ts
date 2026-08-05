@@ -58,6 +58,8 @@ for (const locale of ["en", "si"] as const) {
     const dict = DICTS[locale];
 
     await expect(page.locator('[data-testid="daily-guide-summary"]')).toBeVisible();
+    await expect(page.locator('[data-testid="daily-guide-command-center"]')).toBeVisible();
+    await expect(page.locator('[data-testid="daily-guide-command-center"]')).toContainText(DICTS[locale].dailyGuide.todayCommandCenterTitle);
     await expect(page.locator('[data-testid="daily-guide-timing-timeline"]')).toBeVisible();
     await expect(page.locator('[data-testid="daily-guide-timing-timeline-strip"]')).toBeVisible();
     await expect(page.locator('[data-testid="daily-guide-family-board"]')).toBeVisible();

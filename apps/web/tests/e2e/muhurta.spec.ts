@@ -54,6 +54,8 @@ for (const locale of ["en", "si"] as const) {
     await expect(page.getByRole("button", { name: DICTS[locale].muhurta.purposes.vehicle_purchase })).toBeVisible();
     await expect(page.getByRole("button", { name: DICTS[locale].muhurta.purposes.wedding_engagement })).toBeVisible();
     await expect(page.locator('[data-testid="muhurta-day-summary"]')).toBeVisible();
+    await expect(page.locator('[data-testid="muhurta-date-comparison"]')).toBeVisible();
+    await expect(page.locator('[data-testid="muhurta-date-comparison"]')).toContainText(DICTS[locale].muhurta.compareDatesTitle);
     await expect(page.locator('[data-testid="muhurta-windows"]')).toBeVisible();
     await expect(page.locator('[data-testid="muhurta-source-overlaps"]').first()).toBeVisible();
     await expect(page.getByText(DICTS[locale].muhurta.sourceOverlapsTitle).first()).toBeVisible();

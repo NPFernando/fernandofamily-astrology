@@ -134,6 +134,7 @@ test("vault backup is ciphertext-only and restores only after the original passp
   }, LOCATION);
   await createVault(page);
   await page.goto("/en/privacy");
+  await expect(page.locator('[data-testid="vault-recovery-checklist"]')).toContainText("Recovery checklist");
 
   const downloadPromise = page.waitForEvent("download");
   await page.getByTestId("vault-backup-download").click();

@@ -20,6 +20,7 @@ import {
   DEFAULT_LOCATION,
   LocationPicker,
   mostRecentLocation,
+  useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
 import { TargetDateTimeFields } from "@/components/pancha-pakshi/TargetDateTimeFields";
@@ -29,8 +30,9 @@ import { BirthChartChart } from "@/components/birth-chart/BirthChartChart";
 import { DashaTimeline } from "@/components/dasha/DashaTimeline";
 import { addProfile } from "@/lib/profiles";
 import { useSessionProbe } from "@/lib/use-session-probe";
-import { saveDerivedIdentitySeed } from "@/lib/pancha-schedule-state";
-import { mostRecentBirthDetails, saveRecentBirthDetails } from "@/lib/recent-birth-details";
+import { useLocalVault } from "@/components/LocalVaultProvider";
+import { derivedIdentitySeedFor, setEphemeralDerivedIdentitySeed } from "@/lib/pancha-schedule-state";
+import { useRecentBirthDetails } from "@/lib/recent-birth-details";
 
 type ReportResult = {
   request: BirthNakshatraRequest;
@@ -77,6 +79,9 @@ function replaceTokens(template: string, values: Record<string, string | number>
 
 export function HoroscopeReportClient() {
   const { dict, locale } = useLocale();
+  const { recent, saveRecentBirthDetails } = useRecentBirthDetails();
+  const { unlocked, update: updateVault } = useLocalVault();
+  const vaultLocation = useVaultRecentLocation();
   const router = useRouter();
   const probe = useSessionProbe();
   const signedIn = Boolean(probe.user?.email);
@@ -94,13 +99,12 @@ export function HoroscopeReportClient() {
   useEffect(() => {
     // Hydrate after mount because recent locations/birth details live in localStorage.
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
-    setLocation(mostRecentLocation() ?? DEFAULT_LOCATION);
-    const recent = mostRecentBirthDetails();
+    setLocation(vaultLocation ?? mostRecentLocation() ?? DEFAULT_LOCATION);
     if (recent) {
       setBirthDate(recent.birth_date);
       setBirthTime(recent.birth_time);
     }
-  }, []);
+  }, [recent, vaultLocation]);
 
   const canCalculate = birthDate !== "" && birthTime !== "" && location !== null;
   const currentDasha = useMemo(() => (result ? findCurrentDasha(result.dasha.periods, todayKey()) : null), [result]);
@@ -126,7 +130,7 @@ export function HoroscopeReportClient() {
         fetchDasha(request),
       ]);
       setResult({ request, identity, chart, dasha });
-      saveRecentBirthDetails({ birth_date: birthDate, birth_time: normalizedTime });
+      void saveRecentBirthDetails({ birth_date: birthDate, birth_time: normalizedTime });
     } catch (e) {
       setError(e instanceof ApiError ? dict.ui.error : dict.ui.error);
     } finally {
@@ -136,12 +140,17 @@ export function HoroscopeReportClient() {
 
   function seedIdentity() {
     if (!result) return;
-    saveDerivedIdentitySeed({
+    const seed = derivedIdentitySeedFor({
       bird: result.identity.birth_bird,
       nakshatra_index: result.identity.nakshatra.index,
       paksha: result.identity.paksha,
       moon_rashi_index: result.identity.moon_rashi.index,
     });
+    if (unlocked) {
+      void updateVault((current) => ({ ...current, derivedIdentitySeed: seed }));
+    } else {
+      setEphemeralDerivedIdentitySeed(seed);
+    }
   }
 
   function openTool(path: "/birth-chart" | "/dasha" | "/daily-guide" | "/pancha-pakshi") {

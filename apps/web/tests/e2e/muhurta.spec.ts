@@ -117,7 +117,9 @@ test("muhurta: month view highlights July 2026 Poya and opens the selected date"
   await expect(panel).toBeVisible();
   await panel.locator('input[type="month"]').fill("2026-07");
   const poya = panel.locator('[data-testid="muhurta-month-poya"]').first();
-  await expect(poya).toBeVisible({ timeout: 60_000 });
+  // The old month remains visible while the new request is in flight. Wait
+  // for the July result itself rather than clicking a stale Poya button.
+  await expect(poya).toHaveAttribute("aria-label", /July 29, 2026/, { timeout: 60_000 });
   await poya.click();
   await expect(panel.locator('[data-testid="muhurta-month-selected-day"]')).toContainText(
     DICTS.en.enums.sinhalaMonths.esala,

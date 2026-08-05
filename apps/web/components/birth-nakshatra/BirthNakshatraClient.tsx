@@ -13,6 +13,7 @@ import {
   DEFAULT_LOCATION,
   LocationPicker,
   mostRecentLocation,
+  useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
 import { TargetDateTimeFields } from "@/components/pancha-pakshi/TargetDateTimeFields";
@@ -20,12 +21,15 @@ import { BirthNakshatraIcon } from "@/components/icons/features";
 import { BIRD_ICONS } from "@/components/icons/birds";
 import { addProfile } from "@/lib/profiles";
 import { useSessionProbe } from "@/lib/use-session-probe";
-import { saveDerivedIdentitySeed } from "@/lib/pancha-schedule-state";
+import { useLocalVault } from "@/components/LocalVaultProvider";
+import { derivedIdentitySeedFor, setEphemeralDerivedIdentitySeed } from "@/lib/pancha-schedule-state";
 
 export function BirthNakshatraClient() {
   const { dict, locale } = useLocale();
   const router = useRouter();
   const probe = useSessionProbe();
+  const { unlocked, update: updateVault } = useLocalVault();
+  const vaultLocation = useVaultRecentLocation();
   const signedIn = Boolean(probe.user?.email);
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
@@ -39,8 +43,8 @@ export function BirthNakshatraClient() {
   useEffect(() => {
     // Hydrate after mount because recent locations live in localStorage.
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
-    setLocation(mostRecentLocation() ?? DEFAULT_LOCATION);
-  }, []);
+    setLocation(vaultLocation ?? mostRecentLocation() ?? DEFAULT_LOCATION);
+  }, [vaultLocation]);
 
   const canCalculate = birthDate !== "" && birthTime !== "" && location !== null;
 
@@ -67,12 +71,17 @@ export function BirthNakshatraClient() {
 
   function seedResult() {
     if (!result) return;
-    saveDerivedIdentitySeed({
+    const seed = derivedIdentitySeedFor({
       bird: result.birth_bird,
       nakshatra_index: result.nakshatra.index,
       paksha: result.paksha,
       moon_rashi_index: result.moon_rashi.index,
     });
+    if (unlocked) {
+      void updateVault((current) => ({ ...current, derivedIdentitySeed: seed }));
+    } else {
+      setEphemeralDerivedIdentitySeed(seed);
+    }
   }
 
   function openTool(path: "/pancha-pakshi" | "/daily-guide") {

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import type { BirdId, BirdSelectionInput } from "@/lib/api-client";
-import { LocationPicker, mostRecentLocation, type LocationValue } from "./LocationPicker";
+import { LocationPicker, mostRecentLocation, useVaultRecentLocation, type LocationValue } from "./LocationPicker";
 import { TargetDateTimeFields, nowAsTargetDateTime, type TargetDateTime } from "./TargetDateTimeFields";
 import { BIRD_ICONS } from "@/components/icons/birds";
 
@@ -11,6 +11,7 @@ const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
 
 export function BirdSelector({ onSubmit }: { onSubmit: (input: BirdSelectionInput) => void }) {
   const { dict } = useLocale();
+  const vaultLocation = useVaultRecentLocation();
   const [bird, setBird] = useState<BirdId | null>(null);
   const [target, setTarget] = useState<TargetDateTime>(nowAsTargetDateTime());
   const [targetTouched, setTargetTouched] = useState(false);
@@ -22,13 +23,13 @@ export function BirdSelector({ onSubmit }: { onSubmit: (input: BirdSelectionInpu
     // post-mount (not a lazy initializer) since mostRecentLocation() reads
     // localStorage — matching the hydration-safe pattern LocationPicker
     // itself and PanchangaClient already use.
-    const recent = mostRecentLocation();
+    const recent = vaultLocation ?? mostRecentLocation();
     if (recent) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
       setLocation(recent);
       setTarget(nowAsTargetDateTime(recent.iana_tz));
     }
-  }, []);
+  }, [vaultLocation]);
 
   const canSubmit = bird !== null && location !== null;
   function chooseLocation(next: LocationValue) {

@@ -12,9 +12,11 @@ import {
   importVaultBackup,
   prepareVaultPassphraseRotation,
   readVault,
+  setVaultBackupRecommended,
   setActiveVaultKey,
   type VaultBackup,
   type VaultBackupImportResult,
+  vaultBackupRecommended,
   writeVault,
 } from "@/lib/local-vault";
 import type {
@@ -40,6 +42,7 @@ type VaultContextValue = {
   ready: boolean;
   unlocked: boolean;
   hasEncryptedData: boolean;
+  backupRecommended: boolean;
   unlock: (passphrase: string) => Promise<boolean>;
   lock: () => void;
   update: (updater: (current: LocalVaultData) => LocalVaultData) => Promise<void>;
@@ -56,6 +59,7 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
   const [key, setKey] = useState<CryptoKey | null>(() => activeVaultKey());
   const [ready, setReady] = useState(false);
   const [hasEncryptedData, setHasEncryptedData] = useState(false);
+  const [backupRecommended, setBackupRecommended] = useState(false);
   const [sessionVersion, setSessionVersion] = useState(0);
   const dataRef = useRef<LocalVaultData>({});
   const writeQueueRef = useRef<Promise<void>>(Promise.resolve());
@@ -86,6 +90,7 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
       }
       if (!cancelled) {
         setHasEncryptedData(hasVault());
+        setBackupRecommended(vaultBackupRecommended());
         setReady(true);
       }
     })();
@@ -147,6 +152,10 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
     // only after this authenticated write succeeds.
     await commit(nextKey, next);
     clearLegacySensitiveStorage();
+    if (!alreadyEncrypted) {
+      setVaultBackupRecommended(true);
+      setBackupRecommended(true);
+    }
     setActiveVaultKey(nextKey);
     setKey(nextKey);
     setSessionVersion((version) => version + 1);
@@ -184,6 +193,7 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
     setKey(null);
     setActiveVaultKey(null);
     setHasEncryptedData(false);
+    setBackupRecommended(false);
     setSessionVersion((version) => version + 1);
   }, []);
 
@@ -198,6 +208,8 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
       if (!applyVaultPassphraseRotation(rotation)) return false;
       setActiveVaultKey(rotation.key);
       setKey(rotation.key);
+      setVaultBackupRecommended(true);
+      setBackupRecommended(true);
       return true;
     });
     writeQueueRef.current = operation.then(() => undefined, () => undefined);
@@ -216,7 +228,14 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
     setSessionVersion((version) => version + 1);
   }, []);
 
-  const exportBackup = useCallback(() => exportVaultBackup(), []);
+  const exportBackup = useCallback(() => {
+    const backup = exportVaultBackup();
+    if (backup) {
+      setVaultBackupRecommended(false);
+      setBackupRecommended(false);
+    }
+    return backup;
+  }, []);
 
   const importBackup = useCallback((serialized: string): VaultBackupImportResult => {
     const result = importVaultBackup(serialized);
@@ -230,12 +249,14 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
     setKey(null);
     setActiveVaultKey(null);
     setHasEncryptedData(true);
+    setVaultBackupRecommended(false);
+    setBackupRecommended(false);
     return result;
   }, []);
 
   const value = useMemo(
-    () => ({ data, ready, unlocked: key !== null, hasEncryptedData, unlock, lock, update, rotatePassphrase, exportBackup, importBackup, clear }),
-    [clear, data, exportBackup, hasEncryptedData, importBackup, key, lock, ready, rotatePassphrase, unlock, update],
+    () => ({ data, ready, unlocked: key !== null, hasEncryptedData, backupRecommended, unlock, lock, update, rotatePassphrase, exportBackup, importBackup, clear }),
+    [backupRecommended, clear, data, exportBackup, hasEncryptedData, importBackup, key, lock, ready, rotatePassphrase, unlock, update],
   );
   return (
     <LocalVaultContext.Provider value={value}>

@@ -8,7 +8,7 @@ const BACKUP_FILENAME = "fernando-family-private-vault-v1.json";
 
 export function VaultBackupControls() {
   const { dict } = useLocale();
-  const { ready, unlocked, hasEncryptedData, exportBackup, importBackup, rotatePassphrase: rotateVaultPassphrase } = useLocalVault();
+  const { ready, unlocked, hasEncryptedData, backupRecommended, exportBackup, importBackup, rotatePassphrase: rotateVaultPassphrase } = useLocalVault();
   const inputRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [newPassphrase, setNewPassphrase] = useState("");
@@ -66,6 +66,7 @@ export function VaultBackupControls() {
       <h2 className="text-lg font-semibold">{dict.ui.vaultBackupTitle}</h2>
       <p className="mt-2 text-sm leading-relaxed opacity-80">{dict.ui.vaultBackupBody}</p>
       <p className="mt-2 text-sm font-medium">{dict.ui.vaultBackupRecoveryWarning}</p>
+      {backupRecommended && <p role="status" data-testid="vault-backup-recommended" className="mt-2 text-sm font-medium text-accent">{dict.ui.vaultBackupRecommended}</p>}
       <div className="mt-4 flex flex-wrap gap-3">
         <button
           type="button"

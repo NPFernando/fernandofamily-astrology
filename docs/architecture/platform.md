@@ -70,3 +70,8 @@ Import refuses to overwrite an existing vault, and the restored data remains
 locked until its original passphrase is supplied. Users can also lock it
 explicitly: that drops the in-memory key and remounts calculator UI state,
 leaving only encrypted ciphertext in browser storage.
+
+Passphrase rotation uses a short-lived browser-storage journal containing only
+the previous and next AES-GCM ciphertext pairs plus their public KDF salts.
+If a tab closes mid-rotation, the next vault operation restores the previous
+authenticated pair rather than leaving private data unreadable.

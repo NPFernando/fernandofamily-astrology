@@ -84,8 +84,13 @@ export TEST_RESTIC_STATE="$RESTIC_STATE_FILE"
 export TEST_ALERT_STATE="$ALERT_STATE_FILE"
 export RESTIC_REPOSITORY="s3:https://object.example.invalid/fernandofamily-astrology"
 export RESTIC_PASSWORD_FILE="$WORK_DIR/restic-password"
+export ASTROLOGY_OFFSITE_IMMUTABILITY_CONFIRMED=1
 printf 'test-restic-password' > "$RESTIC_PASSWORD_FILE"
 chmod 600 "$RESTIC_PASSWORD_FILE"
+
+bash "$REPO_ROOT/infra/deploy/database-offsite-preflight.sh"
+bash "$REPO_ROOT/infra/deploy/database-offsite-preflight.sh" --verify-remote
+grep -Fxq snapshots "$RESTIC_STATE_FILE"
 
 bash "$REPO_ROOT/infra/deploy/database-backup.sh"
 backup="$(find "$BACKUP_DIR" -maxdepth 1 -type f -name 'astrology-*.dump' -print -quit)"

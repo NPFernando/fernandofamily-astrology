@@ -341,6 +341,7 @@
     "vaultBackupExisting": "Clear this device's existing private vault before restoring another backup.",
     "vaultBackupInvalid": "This backup file is invalid or unsupported.",
     "vaultBackupUnavailable": "This private vault cannot be backed up right now.",
+    "vaultBackupRecommended": "Download a fresh encrypted backup before closing this tab.",
     "rotateVaultPassphrase": "Change vault passphrase",
     "rotateVaultPassphraseBody": "Available only while this tab is unlocked. Your encrypted vault is re-encrypted with a new salt and passphrase. Download a new backup afterward; existing backup copies still require the old passphrase.",
     "newVaultPassphrase": "New vault passphrase",

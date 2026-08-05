@@ -50,6 +50,7 @@ ASTROLOGY_OFFSITE_RESTORE_DRILL_MAX_AGE_DAYS=40
 RESTIC_REPOSITORY=s3:https://<provider-endpoint>/<bucket>/fernandofamily-astrology
 RESTIC_PASSWORD_FILE=/etc/fernandofamily-astrology/restic-password
 RESTIC_DATABASE_BACKUP_TAG=fernandofamily-astrology-postgres
+ASTROLOGY_OFFSITE_IMMUTABILITY_CONFIRMED=1
 ```
 
 The backup role needs read access to the application tables. The restore role
@@ -112,6 +113,18 @@ or delete objects inside the agreed retention window, then record the bucket,
 region, retention period, and recovery owners in a restricted operations
 runbook. This repository deliberately cannot create or weaken that policy:
 object-store ownership and legal retention requirements are external authority.
+
+After an authorized operator has confirmed that provider-side immutability is
+active and that the backup role cannot shorten retention, set
+`ASTROLOGY_OFFSITE_IMMUTABILITY_CONFIRMED=1` in the restricted environment
+file. From a restricted shell, run the non-mutating preflight before enabling
+the off-site timers. `--verify-remote` performs a read-only Restic listing;
+neither mode creates a snapshot, prunes data, or changes provider settings.
+
+```bash
+bash infra/deploy/database-offsite-preflight.sh
+bash infra/deploy/database-offsite-preflight.sh --verify-remote
+```
 
 The off-site timer runs after the local backup and retains only snapshots with
 the dedicated application tag (14 daily, 8 weekly, and 12 monthly by default)

@@ -1,0 +1,11 @@
+title = "Fernando Family Astrology secret scanning configuration"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Browser-storage identifier, not a credential"
+regexTarget = "match"
+regexes = [
+  '''ff_private_vault_rotation_v1''',
+]

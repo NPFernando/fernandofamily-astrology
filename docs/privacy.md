@@ -38,7 +38,9 @@ using AES-GCM encryption; its derived key exists only in the current tab's
 memory. Locking the vault clears those in-memory values and a new tab must be
 unlocked again. The vault backup/download contains only encrypted ciphertext
 and its salt—never the passphrase or plaintext—and can be restored only with
-the original passphrase.
+the original passphrase. Changing the passphrase re-encrypts the vault with a
+new salt; download a fresh encrypted backup afterward. Older backup files still
+need the former passphrase until you securely remove those copies.
 
 The vault's encrypted ciphertext and salt remain in browser storage so the
 user can unlock later. Use **Clear saved preferences** to remove both the

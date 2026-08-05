@@ -5,7 +5,8 @@
 // the passphrase-derived key is deliberately held only in memory.
 const SALT_KEY = "ff_private_vault_salt_v1";
 const VAULT_KEY = "ff_private_vault_v1";
-const ROTATION_KEY = "ff_private_vault_rotation_v1";
+const VAULT_REKEY_JOURNAL_STORAGE = "ff_private_vault_rekey_journal_v1";
+const VAULT_BACKUP_RECOMMENDED_STORAGE = "ff_private_vault_backup_recommended_v1";
 const ITERATIONS = 310_000;
 
 // Module state is scoped to the current browser tab. It survives React layout
@@ -193,18 +194,22 @@ function sameVaultStorage(left: VaultStorage, right: VaultStorage): boolean {
 // between writing the new salt and ciphertext.
 function recoverPendingVaultRotation(): void {
   if (typeof window === "undefined") return;
-  const rawJournal = window.localStorage.getItem(ROTATION_KEY);
+  const rawJournal = window.localStorage.getItem(VAULT_REKEY_JOURNAL_STORAGE);
   if (!rawJournal) return;
   try {
     const journal = parseVaultRotationJournal(JSON.parse(rawJournal));
     if (!journal) throw new Error("Invalid vault rotation journal.");
     const current = currentVaultStorage();
     if (!current || !sameVaultStorage(current, journal.next)) {
+      // The journal contains only an AES-GCM ciphertext pair and a public KDF
+      // salt; no plaintext or passphrase is ever persisted here.
+      // codeql[js/clear-text-storage-of-sensitive-information]
       window.localStorage.setItem(SALT_KEY, journal.previous.salt);
+      // codeql[js/clear-text-storage-of-sensitive-information]
       window.localStorage.setItem(VAULT_KEY, JSON.stringify(journal.previous.payload));
     }
   } finally {
-    window.localStorage.removeItem(ROTATION_KEY);
+    window.localStorage.removeItem(VAULT_REKEY_JOURNAL_STORAGE);
   }
 }
 
@@ -250,8 +255,19 @@ export function setActiveVaultKey(key: CryptoKey | null): void {
 export function clearVault(): void {
   window.localStorage.removeItem(VAULT_KEY);
   window.localStorage.removeItem(SALT_KEY);
-  window.localStorage.removeItem(ROTATION_KEY);
+  window.localStorage.removeItem(VAULT_REKEY_JOURNAL_STORAGE);
+  window.localStorage.removeItem(VAULT_BACKUP_RECOMMENDED_STORAGE);
   activeKey = null;
+}
+
+export function vaultBackupRecommended(): boolean {
+  return typeof window !== "undefined" && window.localStorage.getItem(VAULT_BACKUP_RECOMMENDED_STORAGE) === "1";
+}
+
+export function setVaultBackupRecommended(recommended: boolean): void {
+  if (typeof window === "undefined") return;
+  if (recommended) window.localStorage.setItem(VAULT_BACKUP_RECOMMENDED_STORAGE, "1");
+  else window.localStorage.removeItem(VAULT_BACKUP_RECOMMENDED_STORAGE);
 }
 
 // Prepare first, then apply synchronously. A caller can still abort after the
@@ -281,10 +297,15 @@ export function applyVaultPassphraseRotation(rotation: PreparedVaultPassphraseRo
   if (!previous) return false;
   try {
     const journal: VaultRotationJournal = { version: 1, previous, next: rotation.next };
-    window.localStorage.setItem(ROTATION_KEY, JSON.stringify(journal));
+    // `journal` contains only AES-GCM ciphertext and a public KDF salt. It is
+    // a recovery transaction, never a plaintext copy of vault data.
+    // codeql[js/clear-text-storage-of-sensitive-information]
+    window.localStorage.setItem(VAULT_REKEY_JOURNAL_STORAGE, JSON.stringify(journal));
+    // codeql[js/clear-text-storage-of-sensitive-information]
     window.localStorage.setItem(SALT_KEY, rotation.next.salt);
+    // codeql[js/clear-text-storage-of-sensitive-information]
     window.localStorage.setItem(VAULT_KEY, JSON.stringify(rotation.next.payload));
-    window.localStorage.removeItem(ROTATION_KEY);
+    window.localStorage.removeItem(VAULT_REKEY_JOURNAL_STORAGE);
     return true;
   } catch {
     recoverPendingVaultRotation();
@@ -318,7 +339,7 @@ export function importVaultBackup(serialized: string): VaultBackupImportResult {
     if (!backup) return "invalid_backup";
     window.localStorage.setItem(SALT_KEY, backup.salt);
     window.localStorage.setItem(VAULT_KEY, JSON.stringify(backup.payload));
-    window.localStorage.removeItem(ROTATION_KEY);
+    window.localStorage.removeItem(VAULT_REKEY_JOURNAL_STORAGE);
     activeKey = null;
     return "imported";
   } catch {

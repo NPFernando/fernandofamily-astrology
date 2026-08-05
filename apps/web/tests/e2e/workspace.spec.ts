@@ -81,8 +81,11 @@ test("keyboard command palette finds and opens privacy-aware tools", async ({ pa
   const focusDialog = page.getByRole("dialog", { name: DICTS.en.ui.commandPalette });
   const focusSearch = focusDialog.getByLabel(DICTS.en.ui.commandPaletteSearch);
   await expect(focusSearch).toBeFocused();
+  await expect(focusSearch).toHaveAttribute("aria-activedescendant", "command-palette-option-0");
+  await nextSearch.press("ArrowDown");
+  await expect(focusSearch).toHaveAttribute("aria-activedescendant", "command-palette-option-1");
   await page.keyboard.press("Shift+Tab");
-  await expect(focusDialog.getByRole("link", { name: DICTS.en.nav.privacy })).toBeFocused();
+  await expect(focusDialog.getByRole("option", { name: DICTS.en.nav.privacy })).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(focusSearch).toBeFocused();
   await page.keyboard.press("Escape");

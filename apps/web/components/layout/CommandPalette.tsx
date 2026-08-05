@@ -7,6 +7,8 @@ import { enabledFeatures } from "@/lib/feature-registry";
 import { resolveKey } from "@/lib/i18n";
 import { useLocale } from "@/lib/locale-context";
 
+const RESULTS_ID = "command-palette-results";
+
 export function CommandPalette() {
   const { dict, locale } = useLocale();
   const router = useRouter();
@@ -132,7 +134,12 @@ export function CommandPalette() {
             <input
               id="command-palette-query"
               ref={inputRef}
+              role="combobox"
               value={query}
+              aria-activedescendant={visible.length ? `command-palette-option-${activeIndex}` : undefined}
+              aria-autocomplete="list"
+              aria-controls={RESULTS_ID}
+              aria-expanded
               onChange={(event) => {
                 setQuery(event.target.value);
                 setActiveIndex(0);
@@ -141,11 +148,14 @@ export function CommandPalette() {
               placeholder={dict.ui.commandPaletteSearch}
               className="w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 text-sm dark:border-white/20"
             />
-            <ul className="mt-2 max-h-72 overflow-y-auto">
+            <ul id={RESULTS_ID} role="listbox" className="mt-2 max-h-72 overflow-y-auto">
               {visible.length ? visible.map((command, index) => (
                 <li key={command.href}>
                   <Link
+                    id={`command-palette-option-${index}`}
                     href={command.href}
+                    role="option"
+                    aria-selected={index === activeIndex}
                     onClick={() => setOpen(false)}
                     className={`block rounded-lg px-3 py-2 text-sm ${index === activeIndex ? "bg-accent/10" : "hover:bg-accent/10"}`}
                   >

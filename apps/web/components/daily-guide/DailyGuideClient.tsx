@@ -609,6 +609,9 @@ export function DailyGuideClient() {
         <p className="mt-1 text-sm leading-relaxed opacity-80 sm:text-base">
           {dict.dailyGuide.description}
         </p>
+        <Link href={`/${locale}/daily-guide/planner`} className="mt-3 inline-block text-sm font-semibold text-accent underline">
+          {dict.dailyGuide.openPlanner}
+        </Link>
       </header>
 
       <div
@@ -821,6 +824,7 @@ export function DailyGuideClient() {
               </div>
             </div>
           </section>
+          {request && <WhatChangedPanel request={request} current={data} />}
           <MobileActionBar
             label={dict.dailyGuide.todayCommandCenterTitle}
             actions={[
@@ -1010,6 +1014,40 @@ export function DailyGuideClient() {
         </div>
       )}
     </div>
+  );
+}
+
+function WhatChangedPanel({ request, current }: { request: ScheduleRequest; current: GuideData }) {
+  const { dict, locale } = useLocale();
+  const [previous, setPrevious] = useState<{ panchanga: DailyPanchanga; schedule: ScheduleResponse } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const previousDate = addDays(current.panchanga.date, -1);
+    const previousRequest = { ...request, target_date: previousDate, target_time: targetTimeFor(previousDate, locationFromRequest(request)) } as ScheduleRequest;
+    void Promise.all([
+      fetchPanchanga({ date: previousDate, location_name: request.location_name, latitude: request.latitude, longitude: request.longitude, iana_tz: request.iana_tz }),
+      fetchScheduleWithServerTime(previousRequest),
+    ]).then(([panchanga, schedule]) => {
+      if (!cancelled) setPrevious({ panchanga, schedule: schedule.data });
+    }).catch(() => {
+      if (!cancelled) setPrevious(null);
+    });
+    return () => { cancelled = true; };
+  }, [current.panchanga.date, request]);
+
+  if (!previous) return null;
+  const rows = [
+    [dict.panchanga.tithi, translateEnum(dict, "tithis", previous.panchanga.tithi[0]?.key ?? ""), translateEnum(dict, "tithis", current.panchanga.tithi[0]?.key ?? "")],
+    [dict.panchanga.nakshatra, previous.panchanga.nakshatra[0] ? nakshatraName(previous.panchanga.nakshatra[0].index, locale) : "", current.panchanga.nakshatra[0] ? nakshatraName(current.panchanga.nakshatra[0].index, locale) : ""],
+    [dict.ui.bestWindowsToday, String(bestWindows(previous.schedule).length), String(bestWindows(current.schedule).length)],
+  ] as const;
+  return (
+    <section data-testid="daily-guide-what-changed" className="rounded-xl border border-black/10 bg-white/35 p-4 dark:border-white/10 dark:bg-white/[.03]">
+      <h2 className="text-sm font-semibold uppercase text-accent">{dict.dailyGuide.whatChangedTitle}</h2>
+      <p className="mt-1 text-sm opacity-75">{dict.dailyGuide.whatChangedBody}</p>
+      <div className="mt-3 grid gap-2 sm:grid-cols-3">{rows.map(([label, before, after]) => <div key={label} className="rounded-lg border border-black/10 p-3 text-sm dark:border-white/10"><p className="text-xs uppercase opacity-70">{label}</p><p className="mt-1 opacity-70">{dict.dailyGuide.previousDay}: {before}</p><p className="font-semibold">{dict.dailyGuide.thisDay}: {after}</p></div>)}</div>
+    </section>
   );
 }
 

@@ -33,6 +33,8 @@ type SubscriptionRow = {
   lead_minutes: number;
   quiet_start_hour: number | null;
   quiet_end_hour: number | null;
+  allowed_weekdays: number[];
+  max_alerts_per_day: number;
   locale: string;
   failures: number;
 };
@@ -60,6 +62,11 @@ function isQuietHour(sub: SubscriptionRow, startAt: string): boolean {
   const start = sub.quiet_start_hour;
   const end = sub.quiet_end_hour;
   return start < end ? hour >= start && hour < end : hour >= start || hour < end;
+}
+
+function localWeekday(startAt: string, ianaTz: string): number {
+  const weekday = new Intl.DateTimeFormat("en-US", { timeZone: ianaTz, weekday: "long" }).format(new Date(startAt));
+  return ({ Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6, Sunday: 7 } as Record<string, number>)[weekday] ?? 1;
 }
 
 async function fetchWindowsFor(sub: SubscriptionRow): Promise<WindowEntry[]> {
@@ -137,7 +144,7 @@ export async function POST(request: Request) {
   try {
     subs = await query<SubscriptionRow>(
       `SELECT endpoint, p256dh, auth, bird, nakshatra_index, paksha,
-              latitude, longitude, iana_tz, min_effect, lead_minutes, quiet_start_hour, quiet_end_hour, locale, failures
+              latitude, longitude, iana_tz, min_effect, lead_minutes, quiet_start_hour, quiet_end_hour, allowed_weekdays, max_alerts_per_day, locale, failures
          FROM push_subscriptions ORDER BY created_at LIMIT 500`,
     );
   } catch (e) {
@@ -164,11 +171,16 @@ export async function POST(request: Request) {
       // Fires when the window's start is between (lead − one tick) and lead
       // away — with the 5-minute cron cadence each window lands in exactly
       // one tick; push_sent below still guards against any overlap.
-      return startMs - nowMs > leadMs - TICK_MS && startMs - nowMs <= leadMs && !isQuietHour(sub, w.starts_at);
+      return startMs - nowMs > leadMs - TICK_MS && startMs - nowMs <= leadMs && !isQuietHour(sub, w.starts_at) && sub.allowed_weekdays.includes(localWeekday(w.starts_at, sub.iana_tz));
     });
 
     for (const w of due) {
       const windowKey = `${w.effective_date}:${w.id}`;
+      const sentToday = await query<{ count: string }>(
+        "SELECT COUNT(*)::text AS count FROM push_sent WHERE endpoint = $1 AND window_key LIKE $2",
+        [sub.endpoint, `${w.effective_date}:%`],
+      );
+      if (Number(sentToday[0]?.count ?? 0) >= sub.max_alerts_per_day) continue;
       const already = await query(
         `SELECT 1 FROM push_sent WHERE endpoint = $1 AND window_key = $2`,
         [sub.endpoint, windowKey],

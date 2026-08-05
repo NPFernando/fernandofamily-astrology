@@ -1,0 +1,147 @@
+"use client";
+
+import Link from "next/link";
+import { FormEvent, useMemo, useState } from "react";
+import { useLocalVault } from "@/components/LocalVaultProvider";
+import { useLocale } from "@/lib/locale-context";
+import { getDictionary } from "@/lib/i18n";
+import { listLocalProfiles, type SavedProfile } from "@/lib/profiles";
+import { planSort, type VaultFamilyGroup, type VaultPlan } from "@/lib/planner";
+import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
+
+function initialDate() {
+  return nowAsTargetDateTime("Asia/Colombo").date;
+}
+
+export function PlannerClient() {
+  const { dict, locale } = useLocale();
+  const { data, unlocked, update } = useLocalVault();
+  const profiles = useMemo(() => listLocalProfiles(), []);
+  const [date, setDate] = useState(initialDate);
+  const [title, setTitle] = useState("");
+  const [start, setStart] = useState("");
+  const [end, setEnd] = useState("");
+  const [notes, setNotes] = useState("");
+  const [groupLabel, setGroupLabel] = useState("");
+  const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
+
+  const plans = useMemo(() => (data.plans ?? []).filter((plan) => plan.date === date).sort(planSort), [data.plans, date]);
+  const groups = data.familyGroups ?? [];
+
+  function toggleProfile(id: string) {
+    setSelectedProfiles((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]);
+  }
+
+  async function savePlan(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!unlocked || !title.trim()) return;
+    const plan: VaultPlan = {
+      id: crypto.randomUUID(),
+      title: title.trim(),
+      date,
+      starts_at: start || null,
+      ends_at: end || null,
+      profile_ids: selectedProfiles,
+      notes: notes.trim(),
+      source: "manual",
+      created_at: new Date().toISOString(),
+    };
+    await update((current) => ({ ...current, plans: [...(current.plans ?? []), plan] }));
+    setTitle("");
+    setStart("");
+    setEnd("");
+    setNotes("");
+  }
+
+  async function saveGroup(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!unlocked || !groupLabel.trim() || selectedProfiles.length === 0) return;
+    const group: VaultFamilyGroup = {
+      id: crypto.randomUUID(),
+      label: groupLabel.trim(),
+      profile_ids: selectedProfiles,
+      created_at: new Date().toISOString(),
+    };
+    await update((current) => ({ ...current, familyGroups: [...(current.familyGroups ?? []), group] }));
+    setGroupLabel("");
+  }
+
+  async function removePlan(id: string) {
+    await update((current) => ({ ...current, plans: (current.plans ?? []).filter((plan) => plan.id !== id) }));
+  }
+
+  async function removeGroup(id: string) {
+    await update((current) => ({ ...current, familyGroups: (current.familyGroups ?? []).filter((group) => group.id !== id) }));
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      <header className="max-w-3xl">
+        <h1 className="text-2xl font-bold">{dict.dailyGuide.plannerTitle}</h1>
+        <p className="mt-1 text-sm leading-relaxed opacity-80 sm:text-base">{dict.dailyGuide.plannerDescription}</p>
+        <Link href={`/${locale}/daily-guide`} className="mt-3 inline-block text-sm font-semibold text-accent underline">{dict.dailyGuide.backToGuide}</Link>
+      </header>
+
+      {!unlocked ? (
+        <section className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm" data-testid="planner-locked">
+          {dict.dailyGuide.plannerLocked}
+        </section>
+      ) : (
+        <>
+          <section className="rounded-xl border border-black/10 bg-white/35 p-4 dark:border-white/10 dark:bg-white/[.03]">
+            <label className="block max-w-xs text-sm font-medium">
+              {dict.ui.pickDate}
+              <input type="date" value={date} onChange={(event) => setDate(event.target.value)} className="mt-1 w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" />
+            </label>
+            <form onSubmit={savePlan} className="mt-4 grid gap-3 lg:grid-cols-2">
+              <label className="text-sm font-medium">{dict.dailyGuide.planTitle}<input required value={title} onChange={(event) => setTitle(event.target.value)} className="mt-1 w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" /></label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="text-sm font-medium">{dict.dailyGuide.planStart}<input type="time" value={start} onChange={(event) => setStart(event.target.value)} className="mt-1 w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" /></label>
+                <label className="text-sm font-medium">{dict.dailyGuide.planEnd}<input type="time" value={end} onChange={(event) => setEnd(event.target.value)} className="mt-1 w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" /></label>
+              </div>
+              <label className="text-sm font-medium lg:col-span-2">{dict.dailyGuide.planNotes}<textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={2} className="mt-1 w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" /></label>
+              <div className="lg:col-span-2"><ProfileChoices profiles={profiles} selected={selectedProfiles} onToggle={toggleProfile} dict={dict} /></div>
+              <button type="submit" className="w-fit rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white">{dict.dailyGuide.addPlan}</button>
+            </form>
+          </section>
+
+          <section data-testid="planner-agenda" className="rounded-xl border border-black/10 p-4 dark:border-white/10">
+            <h2 className="text-lg font-semibold">{dict.dailyGuide.agendaTitle}</h2>
+            {plans.length === 0 ? <p className="mt-2 text-sm opacity-70">{dict.dailyGuide.agendaEmpty}</p> : <ul className="mt-3 space-y-2">{plans.map((plan) => <li key={plan.id} className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-black/10 p-3 text-sm dark:border-white/10"><div><p className="font-semibold">{plan.starts_at ? `${plan.starts_at}${plan.ends_at ? `–${plan.ends_at}` : ""} · ` : ""}{plan.title}</p>{plan.notes && <p className="mt-1 opacity-70">{plan.notes}</p>}</div><button type="button" onClick={() => { void removePlan(plan.id); }} className="text-xs text-accent underline">{dict.ui.deleteProfile}</button></li>)}</ul>}
+          </section>
+
+          <section className="rounded-xl border border-black/10 p-4 dark:border-white/10">
+            <h2 className="text-lg font-semibold">{dict.dailyGuide.groupTitle}</h2>
+            <p className="mt-1 text-sm opacity-80">{dict.dailyGuide.groupDescription}</p>
+            <form onSubmit={saveGroup} className="mt-3 flex flex-wrap gap-3"><input required value={groupLabel} onChange={(event) => setGroupLabel(event.target.value)} placeholder={dict.dailyGuide.groupNamePlaceholder} className="rounded-lg border border-black/10 bg-transparent px-3 py-2 text-sm dark:border-white/20" /><button type="submit" className="rounded-lg border border-accent/40 px-4 py-2 text-sm font-semibold text-accent">{dict.dailyGuide.saveGroup}</button></form>
+            {groups.length > 0 && <ul className="mt-4 space-y-2">{groups.map((group) => <li key={group.id} className="flex items-center justify-between rounded-lg border border-black/10 px-3 py-2 text-sm dark:border-white/10"><span>{group.label} · {group.profile_ids.length}</span><button type="button" onClick={() => { void removeGroup(group.id); }} className="text-xs text-accent underline">{dict.ui.deleteProfile}</button></li>)}</ul>}
+          </section>
+        </>
+      )}
+    </div>
+  );
+}
+
+type ProfileChoicesProps = {
+  profiles: SavedProfile[];
+  selected: string[];
+  onToggle: (id: string) => void;
+  dict: ReturnType<typeof getDictionary>;
+};
+
+function ProfileChoices({ profiles, selected, onToggle, dict }: ProfileChoicesProps) {
+  if (profiles.length === 0) return <p className="text-sm opacity-70">{dict.dailyGuide.groupNoProfiles}</p>;
+  return (
+    <fieldset>
+      <legend className="text-sm font-medium">{dict.dailyGuide.groupProfiles}</legend>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {profiles.map((profile) => (
+          <label key={profile.id} className="flex items-center gap-2 rounded-full border border-black/10 px-3 py-1.5 text-sm dark:border-white/20">
+            <input type="checkbox" checked={selected.includes(profile.id)} onChange={() => onToggle(profile.id)} />
+            {profile.label}
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+}

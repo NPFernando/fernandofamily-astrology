@@ -26,6 +26,7 @@ import type {
   SessionSchedule,
 } from "@/lib/pancha-schedule-state";
 import type { BirdId, DailyPanchanga, ScheduleRequest, ScheduleResponse } from "@/lib/api-client";
+import type { VaultFamilyGroup, VaultPlan } from "@/lib/planner";
 
 export type CachedDailyGuide = {
   request: ScheduleRequest;
@@ -40,6 +41,8 @@ export type LocalVaultData = {
   recentLocations?: { name: string; latitude: number; longitude: number; iana_tz: string }[];
   cachedSchedule?: CachedSchedule;
   cachedDailyGuide?: CachedDailyGuide;
+  plans?: VaultPlan[];
+  familyGroups?: VaultFamilyGroup[];
   sessionSchedule?: SessionSchedule;
   liveScheduleSeed?: LiveScheduleSeed;
   derivedIdentitySeed?: DerivedIdentitySeed;

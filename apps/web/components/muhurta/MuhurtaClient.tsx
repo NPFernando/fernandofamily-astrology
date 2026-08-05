@@ -41,6 +41,7 @@ import { LoadingCards } from "@/components/ui/ContentStates";
 import { MobileActionBar } from "@/components/ui/MobileActionBar";
 import { buildIcs, downloadIcs } from "@/lib/ics";
 import { ResultNavigation, SourceContext } from "@/components/ui/ResultContext";
+import type { VaultPlan } from "@/lib/planner";
 
 const feature = features.find((f) => f.id === "muhurta")!;
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
@@ -1097,7 +1098,7 @@ function Fact({ label, value }: { label: string; value: string }) {
 
 export function MuhurtaClient() {
   const { dict, locale } = useLocale();
-  const { data: vaultData, unlocked } = useLocalVault();
+  const { data: vaultData, unlocked, update: updateVault } = useLocalVault();
   const vaultLocation = useVaultRecentLocation();
   const [identityRequest, setIdentityRequest] = useState<ScheduleRequest | null>(null);
   const [location, setLocation] = useState<LocationValue | null>(null);
@@ -1111,6 +1112,7 @@ export function MuhurtaClient() {
   const [error, setError] = useState<string | null>(null);
   const [usedDefaults, setUsedDefaults] = useState(false);
   const [comparedWindows, setComparedWindows] = useState<MuhurtaWindow[]>([]);
+  const [savedPlanKeys, setSavedPlanKeys] = useState<string[]>([]);
 
   const run = useCallback(
     async (
@@ -1490,6 +1492,24 @@ export function MuhurtaClient() {
   );
 
   function WindowCard({ window, compared, onCompare }: { window: MuhurtaWindow; compared: boolean; onCompare: () => void }) {
+    async function saveToPlanner() {
+      if (!unlocked) return;
+      const title = globalThis.window.prompt(dict.dailyGuide.planTitle, `${dict.muhurta.decisionBriefTitle}: ${dict.muhurta.grades[window.grade]}`)?.trim();
+      if (!title) return;
+      const plan: VaultPlan = {
+        id: crypto.randomUUID(),
+        title,
+        date: window.effective_date,
+        starts_at: formatTime(window.starts_at, locale),
+        ends_at: formatTime(window.ends_at, locale),
+        profile_ids: [],
+        notes: `${dict.muhurta.decisionBriefReasons}: ${window.reasons.map((reason) => sourceLabel(reason, dict)).join(", ")}`,
+        source: "muhurta",
+        created_at: new Date().toISOString(),
+      };
+      await updateVault((current) => ({ ...current, plans: [...(current.plans ?? []), plan] }));
+      setSavedPlanKeys((current) => [...current, `${window.starts_at}-${window.ends_at}`]);
+    }
     function downloadDecisionBrief() {
       downloadIcs(
         `muhurta-decision-${window.effective_date}.ics`,
@@ -1571,6 +1591,14 @@ export function MuhurtaClient() {
             className={`rounded-lg border px-3 py-1.5 text-xs font-semibold ${compared ? "border-accent bg-accent/10 text-accent" : "border-black/10 hover:border-accent dark:border-white/20"}`}
           >
             {compared ? dict.muhurta.removeFromComparison : dict.muhurta.compareWindow}
+          </button>
+          <button
+            type="button"
+            disabled={!unlocked || savedPlanKeys.includes(`${window.starts_at}-${window.ends_at}`)}
+            onClick={() => { void saveToPlanner(); }}
+            className="rounded-lg border border-black/10 px-3 py-1.5 text-xs font-semibold hover:border-accent disabled:opacity-40 dark:border-white/20"
+          >
+            {savedPlanKeys.includes(`${window.starts_at}-${window.ends_at}`) ? dict.dailyGuide.planSaved : dict.dailyGuide.saveToPlanner}
           </button>
         </div>
 

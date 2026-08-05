@@ -7,6 +7,7 @@ import type { BirdId, PakshaId } from "@/lib/api-client";
 
 const LEAD_OPTIONS = [5, 10, 15, 30, 60];
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
+const WEEKDAYS = [1, 2, 3, 4, 5, 6, 7];
 
 // Chrome expects the applicationServerKey as a Uint8Array.
 function urlBase64ToUint8Array(base64: string): Uint8Array {
@@ -39,6 +40,8 @@ export function NotificationOptIn({
   const [leadMinutes, setLeadMinutes] = useState(10);
   const [quietStartHour, setQuietStartHour] = useState<number | null>(null);
   const [quietEndHour, setQuietEndHour] = useState<number | null>(null);
+  const [allowedWeekdays, setAllowedWeekdays] = useState<number[]>(WEEKDAYS);
+  const [maxAlertsPerDay, setMaxAlertsPerDay] = useState(3);
 
   useEffect(() => {
     if (!support.available) return;
@@ -76,6 +79,8 @@ export function NotificationOptIn({
         lead_minutes: leadMinutes,
         quiet_start_hour: quietStartHour,
         quiet_end_hour: quietEndHour,
+        allowed_weekdays: allowedWeekdays,
+        max_alerts_per_day: maxAlertsPerDay,
         locale,
       }),
     });
@@ -204,6 +209,27 @@ export function NotificationOptIn({
               {HOURS.map((hour) => <option key={hour} value={hour}>{String(hour).padStart(2, "0")}:00</option>)}
             </select>
           </label>
+          <fieldset className="flex flex-col gap-2 sm:col-span-2">
+            <legend className="text-xs uppercase opacity-70">{dict.ui.notifyDaysLabel}</legend>
+            <div className="flex flex-wrap gap-x-3 gap-y-2">
+              {WEEKDAYS.map((weekday) => (
+                <label key={weekday} className="flex items-center gap-1.5 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={allowedWeekdays.includes(weekday)}
+                    onChange={() => setAllowedWeekdays((current) => current.includes(weekday) ? current.filter((value) => value !== weekday) : [...current, weekday].sort())}
+                  />
+                  {new Intl.DateTimeFormat(locale === "si" ? "si-LK" : "en-US", { weekday: "short" }).format(new Date(2024, 0, weekday))}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <label className="flex flex-col gap-1">
+            <span className="text-xs uppercase opacity-70">{dict.ui.notifyDailyLimit}</span>
+            <select value={maxAlertsPerDay} onChange={(e) => setMaxAlertsPerDay(Number(e.target.value))} className="rounded-lg border border-black/10 px-3 py-2 dark:border-white/20 dark:bg-transparent">
+              {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{dict.ui.notifyDailyLimitValue.replace("{n}", String(n))}</option>)}
+            </select>
+          </label>
         </div>
 
         {subscribed ? (
@@ -220,7 +246,7 @@ export function NotificationOptIn({
               >
                 {dict.ui.notifyTest}
               </button>
-              <button type="button" disabled={working || (quietStartHour === null) !== (quietEndHour === null) || quietStartHour === quietEndHour} onClick={() => { void updatePreferences(); }} className="w-fit rounded-lg border border-accent/40 px-4 py-2 text-accent dark:border-white/20 disabled:opacity-40">
+              <button type="button" disabled={working || allowedWeekdays.length === 0 || (quietStartHour === null) !== (quietEndHour === null) || quietStartHour === quietEndHour} onClick={() => { void updatePreferences(); }} className="w-fit rounded-lg border border-accent/40 px-4 py-2 text-accent dark:border-white/20 disabled:opacity-40">
                 {dict.ui.notifySavePreferences}
               </button>
               <button
@@ -237,7 +263,7 @@ export function NotificationOptIn({
           <>
             <button
               type="button"
-              disabled={working || (quietStartHour === null) !== (quietEndHour === null) || quietStartHour === quietEndHour}
+              disabled={working || allowedWeekdays.length === 0 || (quietStartHour === null) !== (quietEndHour === null) || quietStartHour === quietEndHour}
               onClick={enable}
               className="w-fit rounded-lg bg-accent px-4 py-2 font-semibold text-white disabled:opacity-40"
             >

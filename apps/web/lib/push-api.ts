@@ -47,6 +47,8 @@ export type SubscribeBody = {
   lead_minutes?: unknown;
   quiet_start_hour?: unknown;
   quiet_end_hour?: unknown;
+  allowed_weekdays?: unknown;
+  max_alerts_per_day?: unknown;
   locale?: unknown;
 };
 
@@ -64,6 +66,8 @@ export type ValidSubscription = {
   lead_minutes: number;
   quiet_start_hour: number | null;
   quiet_end_hour: number | null;
+  allowed_weekdays: number[];
+  max_alerts_per_day: number;
   locale: string;
 };
 
@@ -132,6 +136,14 @@ export function validateSubscribeBody(
   ) {
     return { ok: false, message: "quiet hours must be a distinct 0..23 start and end pair" };
   }
+  const weekdays = Array.isArray(body.allowed_weekdays) ? body.allowed_weekdays.map(Number) : [1, 2, 3, 4, 5, 6, 7];
+  if (!weekdays.length || weekdays.length > 7 || weekdays.some((day) => !Number.isInteger(day) || day < 1 || day > 7) || new Set(weekdays).size !== weekdays.length) {
+    return { ok: false, message: "allowed_weekdays must contain unique values from 1..7" };
+  }
+  const maxAlertsPerDay = body.max_alerts_per_day == null ? 3 : Number(body.max_alerts_per_day);
+  if (!Number.isInteger(maxAlertsPerDay) || maxAlertsPerDay < 1 || maxAlertsPerDay > 5) {
+    return { ok: false, message: "max_alerts_per_day must be 1..5" };
+  }
   const locale = body.locale == null ? "si" : String(body.locale);
   if (!(LOCALES as readonly string[]).includes(locale)) {
     return { ok: false, message: "invalid locale" };
@@ -153,6 +165,8 @@ export function validateSubscribeBody(
       lead_minutes: lead,
       quiet_start_hour: quietStart,
       quiet_end_hour: quietEnd,
+      allowed_weekdays: weekdays,
+      max_alerts_per_day: maxAlertsPerDay,
       locale,
     },
   };

@@ -76,6 +76,16 @@ test("generated feature assets and per-page OG images are served", async ({ page
   expect(liveOgImage).toContain("/og/pancha-pakshi.png");
 });
 
+test("top-level feature pages use their matching decorative poster masthead", async ({ page }) => {
+  await page.goto("/en/daily-guide");
+  const masthead = page.getByTestId("feature-masthead");
+  await expect(masthead).toBeVisible();
+  await expect(masthead.locator("img")).toHaveAttribute("src", /daily-guide/);
+
+  await page.goto("/en/pancha-pakshi/live");
+  await expect(page.getByTestId("feature-masthead")).toHaveCount(0);
+});
+
 test("@mobile landing generated visuals fit at 360px", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 740 });
   await page.goto("/si");

@@ -74,4 +74,17 @@ test("keyboard command palette finds and opens privacy-aware tools", async ({ pa
   await nextSearch.press("ArrowDown");
   await nextSearch.press("Enter");
   await expect(page).toHaveURL(/\/en\/pancha-pakshi$/);
+
+  const trigger = page.getByRole("button", { name: DICTS.en.ui.commandPalette });
+  await trigger.focus();
+  await page.keyboard.press("Control+K");
+  const focusDialog = page.getByRole("dialog", { name: DICTS.en.ui.commandPalette });
+  const focusSearch = focusDialog.getByLabel(DICTS.en.ui.commandPaletteSearch);
+  await expect(focusSearch).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(focusDialog.getByRole("link", { name: DICTS.en.nav.privacy })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(focusSearch).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(trigger).toBeFocused();
 });

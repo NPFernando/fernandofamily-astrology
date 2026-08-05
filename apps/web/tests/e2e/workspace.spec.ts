@@ -64,7 +64,14 @@ test("keyboard command palette finds and opens privacy-aware tools", async ({ pa
   await page.keyboard.press("Control+K");
   const dialog = page.getByRole("dialog", { name: DICTS.en.ui.commandPalette });
   await expect(dialog).toBeVisible();
-  await dialog.getByLabel(DICTS.en.ui.commandPaletteSearch).fill("Roadmap");
-  await dialog.getByRole("link", { name: DICTS.en.roadmap.title }).click();
+  const search = dialog.getByLabel(DICTS.en.ui.commandPaletteSearch);
+  await search.fill("Roadmap");
+  await search.press("Enter");
   await expect(page).toHaveURL(/\/en\/roadmap$/);
+
+  await page.keyboard.press("Control+K");
+  const nextSearch = page.getByRole("dialog", { name: DICTS.en.ui.commandPalette }).getByLabel(DICTS.en.ui.commandPaletteSearch);
+  await nextSearch.press("ArrowDown");
+  await nextSearch.press("Enter");
+  await expect(page).toHaveURL(/\/en\/pancha-pakshi$/);
 });

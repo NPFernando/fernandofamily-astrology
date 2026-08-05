@@ -47,11 +47,6 @@ type VaultRotationJournal = {
   next: VaultStorage;
 };
 
-export type VaultPassphraseRotation = {
-  key: CryptoKey;
-  salt: string;
-};
-
 export type VaultBackup = {
   format: "fernandofamily-private-vault";
   version: 1;
@@ -270,33 +265,24 @@ export function setVaultBackupRecommended(recommended: boolean): void {
   else window.localStorage.removeItem(VAULT_BACKUP_RECOMMENDED_STORAGE);
 }
 
-// Derive the replacement key first. A caller can still abort after the
-// expensive KDF work (for example because the user locked the vault), without
-// changing browser storage.
-export async function deriveVaultPassphraseRotation(passphrase: string): Promise<VaultPassphraseRotation> {
-  const saltBytes = crypto.getRandomValues(new Uint8Array(16));
-  return {
-    key: await deriveVaultKeyForSalt(passphrase, saltBytes),
-    salt: toBase64(saltBytes),
-  };
-}
-
-// Returns false without changing the unlocked key when browser storage cannot
-// safely stage the rotation. A leftover journal is recovered to the previous
-// ciphertext pair before the result is returned.
+// A caller can still abort after the expensive KDF/encryption work (for
+// example because the user locked the vault), without changing browser
+// storage. The derived key never leaves this guarded commit boundary.
 export async function applyVaultPassphraseRotation(
-  rotation: VaultPassphraseRotation,
+  passphrase: string,
   value: unknown,
   canCommit: () => boolean,
-): Promise<boolean> {
+): Promise<CryptoKey | null> {
+  const saltBytes = crypto.getRandomValues(new Uint8Array(16));
+  const key = await deriveVaultKeyForSalt(passphrase, saltBytes);
   const next: VaultStorage = {
-    salt: rotation.salt,
-    payload: await encryptVaultPayload(rotation.key, value),
+    salt: toBase64(saltBytes),
+    payload: await encryptVaultPayload(key, value),
   };
-  if (!canCommit()) return false;
+  if (!canCommit()) return null;
   recoverPendingVaultRotation();
   const previous = currentVaultStorage();
-  if (!previous) return false;
+  if (!previous) return null;
   try {
     const journal: VaultRotationJournal = { version: 1, previous, next };
     // `journal` contains only AES-GCM ciphertext and a public KDF salt. It is
@@ -308,10 +294,10 @@ export async function applyVaultPassphraseRotation(
     // codeql[js/clear-text-storage-of-sensitive-information]
     window.localStorage.setItem(VAULT_KEY, JSON.stringify(next.payload));
     window.localStorage.removeItem(VAULT_TRANSACTION_JOURNAL_STORAGE);
-    return true;
+    return key;
   } catch {
     recoverPendingVaultRotation();
-    return false;
+    return null;
   }
 }
 

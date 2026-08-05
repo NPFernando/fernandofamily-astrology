@@ -7,5 +7,5 @@ useDefault = true
 description = "Browser-storage identifier, not a credential"
 regexTarget = "match"
 regexes = [
-  '''ff_private_vault_(rotation|rekey)_journal_v1''',
+  '''ff_private_vault_(rotation_v1|rekey_journal_v1)''',
 ]

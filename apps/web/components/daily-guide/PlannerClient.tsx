@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
 import { useLocalVault } from "@/components/LocalVaultProvider";
+import { buildIcs, downloadIcs } from "@/lib/ics";
 import { useLocale } from "@/lib/locale-context";
 import { getDictionary } from "@/lib/i18n";
 import { listLocalProfiles, type SavedProfile } from "@/lib/profiles";
-import { planSort, type VaultFamilyGroup, type VaultPlan } from "@/lib/planner";
+import { plansToIcsEvents, planSort, type VaultFamilyGroup, type VaultPlan } from "@/lib/planner";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
 
 function initialDate() {
@@ -24,6 +25,7 @@ export function PlannerClient() {
   const [notes, setNotes] = useState("");
   const [groupLabel, setGroupLabel] = useState("");
   const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
+  const [exportMessage, setExportMessage] = useState<string | null>(null);
 
   const plans = useMemo(() => (data.plans ?? []).filter((plan) => plan.date === date).sort(planSort), [data.plans, date]);
   const groups = data.familyGroups ?? [];
@@ -74,6 +76,16 @@ export function PlannerClient() {
     await update((current) => ({ ...current, familyGroups: (current.familyGroups ?? []).filter((group) => group.id !== id) }));
   }
 
+  function downloadAgenda() {
+    const events = plansToIcsEvents(plans);
+    if (events.length === 0) {
+      setExportMessage(dict.dailyGuide.agendaExportUnavailable);
+      return;
+    }
+    downloadIcs(`daily-agenda-${date}.ics`, buildIcs(events));
+    setExportMessage(null);
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <header className="max-w-3xl">
@@ -106,8 +118,10 @@ export function PlannerClient() {
           </section>
 
           <section data-testid="planner-agenda" className="rounded-xl border border-black/10 p-4 dark:border-white/10">
-            <h2 className="text-lg font-semibold">{dict.dailyGuide.agendaTitle}</h2>
+            <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-semibold">{dict.dailyGuide.agendaTitle}</h2><button type="button" onClick={downloadAgenda} className="rounded-lg border border-accent/40 px-3 py-1.5 text-sm font-semibold text-accent">{dict.dailyGuide.exportAgenda}</button></div>
+            <p className="mt-1 text-xs opacity-70">{dict.dailyGuide.agendaExportHelp}</p>
             {plans.length === 0 ? <p className="mt-2 text-sm opacity-70">{dict.dailyGuide.agendaEmpty}</p> : <ul className="mt-3 space-y-2">{plans.map((plan) => <li key={plan.id} className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-black/10 p-3 text-sm dark:border-white/10"><div><p className="font-semibold">{plan.starts_at ? `${plan.starts_at}${plan.ends_at ? `–${plan.ends_at}` : ""} · ` : ""}{plan.title}</p>{plan.notes && <p className="mt-1 opacity-70">{plan.notes}</p>}</div><button type="button" onClick={() => { void removePlan(plan.id); }} className="text-xs text-accent underline">{dict.ui.deleteProfile}</button></li>)}</ul>}
+            {exportMessage && <p role="status" className="mt-2 text-sm text-accent">{exportMessage}</p>}
           </section>
 
           <section className="rounded-xl border border-black/10 p-4 dark:border-white/10">

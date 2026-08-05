@@ -24,6 +24,10 @@ test("daily planner keeps manual plans and family groups inside the encrypted va
   await page.getByLabel(DICTS.en.dailyGuide.planStart).fill("09:30");
   await page.getByRole("button", { name: DICTS.en.dailyGuide.addPlan }).click();
   await expect(page.getByTestId("planner-agenda")).toContainText("Temple visit");
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: DICTS.en.dailyGuide.exportAgenda }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(/^daily-agenda-\d{4}-\d{2}-\d{2}\.ics$/);
 
   await page.getByLabel("Amma").check();
   await page.getByPlaceholder(DICTS.en.dailyGuide.groupNamePlaceholder).fill("Weekend family");

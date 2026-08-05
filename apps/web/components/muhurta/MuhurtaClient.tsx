@@ -39,6 +39,7 @@ import { MuhurtaIcon } from "@/components/icons/features";
 import { SavedProfiles } from "@/components/pancha-pakshi/SavedProfiles";
 import { LoadingCards } from "@/components/ui/ContentStates";
 import { MobileActionBar } from "@/components/ui/MobileActionBar";
+import { buildIcs, downloadIcs } from "@/lib/ics";
 
 const feature = features.find((f) => f.id === "muhurta")!;
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
@@ -1461,6 +1462,38 @@ export function MuhurtaClient() {
   );
 
   function WindowCard({ window }: { window: MuhurtaWindow }) {
+    function downloadDecisionBrief() {
+      downloadIcs(
+        `muhurta-decision-${window.effective_date}.ics`,
+        buildIcs([
+          {
+            uid: `muhurta-decision-${new Date(window.starts_at).getTime()}`,
+            start: new Date(window.starts_at),
+            end: new Date(window.ends_at),
+            summary: `${dict.muhurta.decisionBriefTitle}: ${dict.muhurta.grades[window.grade]}`,
+            description: `${dict.muhurta.decisionBriefReasons}: ${window.reasons.map((reason) => sourceLabel(reason, dict)).join(", ")}`,
+          },
+        ]),
+      );
+    }
+
+    async function shareDecisionBrief() {
+      const text = [
+        `${dict.muhurta.decisionBriefTitle}: ${formatDate(window.effective_date, locale)}`,
+        `${formatTime(window.starts_at, locale)} - ${formatTime(window.ends_at, locale)} · ${dict.muhurta.grades[window.grade]}`,
+        `${dict.muhurta.decisionBriefReasons}: ${window.reasons.map((reason) => sourceLabel(reason, dict)).join(", ")}`,
+      ].join("\n");
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: dict.muhurta.decisionBriefTitle, text });
+          return;
+        }
+      } catch {
+        // A dismissed native share sheet is not an application error.
+      }
+      await navigator.clipboard?.writeText(text);
+    }
+
     return (
       <article className="rounded-xl border border-black/10 bg-white/35 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.03]">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -1484,6 +1517,25 @@ export function MuhurtaClient() {
               {sourceLabel(reason, dict)}
             </span>
           ))}
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2 print:hidden">
+          <button
+            type="button"
+            onClick={downloadDecisionBrief}
+            className="rounded-lg border border-accent/40 px-3 py-1.5 text-xs font-semibold text-accent hover:bg-accent/10"
+          >
+            {dict.muhurta.downloadDecisionBrief}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              void shareDecisionBrief();
+            }}
+            className="rounded-lg border border-black/10 px-3 py-1.5 text-xs font-semibold hover:border-accent dark:border-white/20"
+          >
+            {dict.muhurta.shareDecisionBrief}
+          </button>
         </div>
 
         <div

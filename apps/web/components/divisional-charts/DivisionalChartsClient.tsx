@@ -13,6 +13,7 @@ import { TargetDateTimeFields } from "@/components/pancha-pakshi/TargetDateTimeF
 import { DivisionalChartsIcon } from "@/components/icons/features";
 import { NavamsaChart } from "@/components/divisional-charts/NavamsaChart";
 import { useRecentBirthDetails } from "@/lib/recent-birth-details";
+import { ResultExplanation } from "@/components/ui/ResultExplanation";
 
 export function DivisionalChartsClient() {
   const { dict } = useLocale();
@@ -124,6 +125,7 @@ export function DivisionalChartsClient() {
       {result && (
         <section data-testid="divisional-charts-result" className="flex flex-col gap-3">
           <h2 className="text-sm font-semibold uppercase text-accent">{dict.divisionalCharts.chartTitle}</h2>
+          <ResultExplanation title={dict.ui.resultGuideTitle} body={dict.ui.resultGuideBody} />
           <NavamsaChart chart={result} />
         </section>
       )}

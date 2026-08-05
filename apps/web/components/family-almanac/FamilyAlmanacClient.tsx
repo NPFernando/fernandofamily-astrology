@@ -502,6 +502,22 @@ export function FamilyAlmanacClient() {
     setActionMessage(dict.familyAlmanac.profileRenamed);
   }
 
+  async function duplicateSavedProfile(profile: SavedProfile) {
+    const label = window.prompt(dict.familyAlmanac.duplicateProfilePrompt, `${profile.label} (${dict.familyAlmanac.profileCopy})`)?.trim();
+    if (!label) return;
+    const duplicated = await addProfile(signedIn, {
+      label,
+      bird: profile.bird,
+      nakshatra_index: profile.nakshatra_index,
+      paksha: profile.paksha,
+      moon_rashi_index: profile.moon_rashi_index,
+    });
+    await refreshProfiles(
+      selectedIds.length >= FAMILY_ALMANAC_PROFILE_LIMIT ? selectedIds : [...selectedIds, duplicated.id],
+    );
+    setActionMessage(dict.familyAlmanac.profileDuplicated);
+  }
+
   async function deleteSavedProfile(profile: SavedProfile) {
     await removeProfile(signedIn, profile.id);
     const nextSelected = selectedIds.filter((id) => id !== profile.id);
@@ -591,6 +607,7 @@ export function FamilyAlmanacClient() {
             onToggle={toggleProfile}
             onCreateDirectBird={createDirectBirdProfile}
             onRename={renameSavedProfile}
+            onDuplicate={duplicateSavedProfile}
             onDelete={deleteSavedProfile}
           />
         </div>
@@ -815,6 +832,7 @@ function ProfileSelector({
   onToggle,
   onCreateDirectBird,
   onRename,
+  onDuplicate,
   onDelete,
 }: {
   dict: Dictionary;
@@ -826,6 +844,7 @@ function ProfileSelector({
   onToggle: (profileId: string) => void;
   onCreateDirectBird: (label: string, bird: BirdId) => Promise<void>;
   onRename: (profile: SavedProfile) => Promise<void>;
+  onDuplicate: (profile: SavedProfile) => Promise<void>;
   onDelete: (profile: SavedProfile) => Promise<void>;
 }) {
   const [quickLabel, setQuickLabel] = useState("");
@@ -947,6 +966,15 @@ function ProfileSelector({
                         className="rounded-md border border-black/10 px-2 py-1 text-[11px] font-semibold hover:border-accent dark:border-white/15"
                       >
                         {dict.familyAlmanac.renameProfile}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void onDuplicate(profile);
+                        }}
+                        className="rounded-md border border-black/10 px-2 py-1 text-[11px] font-semibold hover:border-accent dark:border-white/15"
+                      >
+                        {dict.familyAlmanac.duplicateProfile}
                       </button>
                       <button
                         type="button"

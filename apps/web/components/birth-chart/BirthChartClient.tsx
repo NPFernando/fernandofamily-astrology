@@ -14,6 +14,7 @@ import { BirthChartIcon } from "@/components/icons/features";
 import { BirthChartChart } from "@/components/birth-chart/BirthChartChart";
 import { YogataraTable } from "@/components/birth-chart/YogataraTable";
 import { useRecentBirthDetails } from "@/lib/recent-birth-details";
+import { ResultExplanation } from "@/components/ui/ResultExplanation";
 
 export function BirthChartClient() {
   const { dict } = useLocale();
@@ -140,6 +141,7 @@ export function BirthChartClient() {
               {dict.birthChart.starsToggle}
             </button>
           </div>
+          <ResultExplanation title={dict.ui.resultGuideTitle} body={dict.ui.resultGuideBody} />
           <BirthChartChart chart={result} showStars={showStars} />
           <YogataraTable rows={result.graha_yogataras} />
         </section>

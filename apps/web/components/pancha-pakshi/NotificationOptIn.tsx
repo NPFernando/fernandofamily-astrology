@@ -122,6 +122,23 @@ export function NotificationOptIn({
     }
   }
 
+  async function sendTestAlert() {
+    setWorking(true);
+    setStatus(null);
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      await registration.showNotification(dict.ui.notifyTitle, {
+        body: dict.ui.notifyTestSent,
+        tag: "fernandofamily-notification-test",
+      });
+      setStatus(dict.ui.notifyTestSent);
+    } catch {
+      setStatus(dict.ui.error);
+    } finally {
+      setWorking(false);
+    }
+  }
+
   return (
     <details className="rounded-xl border border-black/10 p-4 text-sm dark:border-white/10 print:hidden">
       <summary className="cursor-pointer font-semibold">{dict.ui.notifyTitle}</summary>
@@ -131,14 +148,26 @@ export function NotificationOptIn({
         {subscribed ? (
           <>
             <p className="font-medium text-accent">{dict.ui.notifyActive}</p>
-            <button
-              type="button"
-              disabled={working}
-              onClick={disable}
-              className="w-fit rounded-lg border border-black/10 px-4 py-2 dark:border-white/20 disabled:opacity-40"
-            >
-              {working ? dict.ui.notifyWorking : dict.ui.notifyDisable}
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={working}
+                onClick={() => {
+                  void sendTestAlert();
+                }}
+                className="w-fit rounded-lg border border-accent/40 px-4 py-2 text-accent dark:border-white/20 disabled:opacity-40"
+              >
+                {dict.ui.notifyTest}
+              </button>
+              <button
+                type="button"
+                disabled={working}
+                onClick={disable}
+                className="w-fit rounded-lg border border-black/10 px-4 py-2 dark:border-white/20 disabled:opacity-40"
+              >
+                {working ? dict.ui.notifyWorking : dict.ui.notifyDisable}
+              </button>
+            </div>
           </>
         ) : (
           <>

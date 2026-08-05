@@ -13,6 +13,7 @@ import { TargetDateTimeFields } from "@/components/pancha-pakshi/TargetDateTimeF
 import { DashaIcon } from "@/components/icons/features";
 import { DashaTimeline } from "@/components/dasha/DashaTimeline";
 import { useRecentBirthDetails } from "@/lib/recent-birth-details";
+import { ResultExplanation } from "@/components/ui/ResultExplanation";
 
 export function DashaClient() {
   const { dict } = useLocale();
@@ -127,6 +128,7 @@ export function DashaClient() {
       {result && (
         <section data-testid="dasha-result" className="flex flex-col gap-3">
           <h2 className="text-sm font-semibold uppercase text-accent">{dict.dasha.resultTitle}</h2>
+          <ResultExplanation title={dict.ui.resultGuideTitle} body={dict.ui.resultGuideBody} />
           <DashaTimeline periods={result.periods} />
         </section>
       )}

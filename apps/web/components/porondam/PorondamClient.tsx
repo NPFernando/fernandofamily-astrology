@@ -13,6 +13,7 @@ import {
 import { TargetDateTimeFields, type TargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import { useRecentBirthDetails } from "@/lib/recent-birth-details";
 import { PorondamIcon } from "@/components/icons/features";
+import { ResultExplanation } from "@/components/ui/ResultExplanation";
 
 // Fixed display order matching repository.py / calculator.compute_porondam.
 const PORONDAM_ORDER = [
@@ -148,6 +149,7 @@ export function PorondamClient() {
       {result && (
         <section data-testid="porondam-result" className="flex flex-col gap-4">
           <h2 className="text-sm font-semibold uppercase text-accent">{dict.porondam.resultTitle}</h2>
+          <ResultExplanation title={dict.ui.resultGuideTitle} body={dict.ui.resultGuideBody} />
 
           <div className="grid gap-3 sm:grid-cols-2">
             <PartySummary label={dict.porondam.brideLabel} data={result.bride} />

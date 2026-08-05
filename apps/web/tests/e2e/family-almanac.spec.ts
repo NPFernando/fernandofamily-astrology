@@ -142,6 +142,23 @@ test("family almanac: saved profiles can be renamed and removed", async ({ page 
   await expect(page.locator('[data-testid="family-almanac-profile"]').filter({ hasText: "Duwa" })).toHaveCount(0);
 });
 
+test("family almanac: a saved derived profile can be duplicated", async ({ page }) => {
+  await seedFamilyProfiles(page);
+  await openFamilyAlmanac(page, "en", "?date=2026-07-23");
+
+  const amma = page.locator('[data-testid="family-almanac-profile"]').filter({ hasText: "Amma" });
+  page.once("dialog", async (dialog) => {
+    expect(dialog.message()).toContain(DICTS.en.familyAlmanac.duplicateProfilePrompt);
+    await dialog.accept("Amma copy");
+  });
+  await amma.getByRole("button", { name: DICTS.en.familyAlmanac.duplicateProfile }).click();
+  await expect(page.locator('[data-testid="family-almanac-profile"]').filter({ hasText: "Amma copy" })).toBeVisible();
+
+  const storage = await page.evaluate(() => window.localStorage.getItem("ff_saved_profiles") ?? "");
+  expect(storage).not.toContain("birth_date");
+  expect(storage).not.toContain("birth_time");
+});
+
 test("family almanac: planner export and share action avoid raw birth fields", async ({ page }) => {
   await seedFamilyProfiles(page);
   const watcher = watchForBirthDataInUrls(page);

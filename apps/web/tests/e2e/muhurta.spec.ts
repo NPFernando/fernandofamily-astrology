@@ -69,6 +69,17 @@ test("muhurta: travel purpose shows direction caution", async ({ page }) => {
   await expect(page.getByText(DICTS.en.muhurta.cautions.disha_shool).first()).toBeVisible({ timeout: 20_000 });
 });
 
+test("muhurta: a decision brief downloads as a calendar event without birth data", async ({ page }) => {
+  const watcher = watchForBirthDataInUrls(page);
+  await openMuhurta(page, "en");
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("button", { name: DICTS.en.muhurta.downloadDecisionBrief }).first().click(),
+  ]);
+  expect(download.suggestedFilename()).toMatch(/^muhurta-decision-\d{4}-\d{2}-\d{2}\.ics$/);
+  watcher.assertClean();
+});
+
 test("muhurta: event presets show purpose-specific advisories", async ({ page }) => {
   await openMuhurta(page, "en");
   await page.getByRole("button", { name: DICTS.en.muhurta.purposes.vehicle_purchase }).click();

@@ -10,7 +10,7 @@ import {
   exportVaultBackup,
   hasVault,
   importVaultBackup,
-  prepareVaultPassphraseRotation,
+  deriveVaultPassphraseRotation,
   readVault,
   setVaultBackupRecommended,
   setActiveVaultKey,
@@ -203,9 +203,13 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
     const vaultKey = key;
     const operation = writeQueueRef.current.then(async () => {
       if (sessionEpoch !== sessionEpochRef.current || activeVaultKey() !== vaultKey) return false;
-      const rotation = await prepareVaultPassphraseRotation(dataRef.current, passphrase);
+      const rotation = await deriveVaultPassphraseRotation(passphrase);
       if (sessionEpoch !== sessionEpochRef.current || activeVaultKey() !== vaultKey) return false;
-      if (!applyVaultPassphraseRotation(rotation)) return false;
+      if (!(await applyVaultPassphraseRotation(
+        rotation,
+        dataRef.current,
+        () => sessionEpoch === sessionEpochRef.current && activeVaultKey() === vaultKey,
+      ))) return false;
       setActiveVaultKey(rotation.key);
       setKey(rotation.key);
       setVaultBackupRecommended(true);

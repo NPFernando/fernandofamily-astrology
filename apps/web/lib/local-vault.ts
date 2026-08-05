@@ -5,7 +5,7 @@
 // the passphrase-derived key is deliberately held only in memory.
 const SALT_KEY = "ff_private_vault_salt_v1";
 const VAULT_KEY = "ff_private_vault_v1";
-const VAULT_REKEY_JOURNAL_STORAGE = "ff_private_vault_rekey_journal_v1";
+const VAULT_TRANSACTION_JOURNAL_STORAGE = "ff-vault-transaction";
 const VAULT_BACKUP_RECOMMENDED_STORAGE = "ff_private_vault_backup_recommended_v1";
 const ITERATIONS = 310_000;
 
@@ -47,9 +47,9 @@ type VaultRotationJournal = {
   next: VaultStorage;
 };
 
-export type PreparedVaultPassphraseRotation = {
+export type VaultPassphraseRotation = {
   key: CryptoKey;
-  next: VaultStorage;
+  salt: string;
 };
 
 export type VaultBackup = {
@@ -194,7 +194,7 @@ function sameVaultStorage(left: VaultStorage, right: VaultStorage): boolean {
 // between writing the new salt and ciphertext.
 function recoverPendingVaultRotation(): void {
   if (typeof window === "undefined") return;
-  const rawJournal = window.localStorage.getItem(VAULT_REKEY_JOURNAL_STORAGE);
+  const rawJournal = window.localStorage.getItem(VAULT_TRANSACTION_JOURNAL_STORAGE);
   if (!rawJournal) return;
   try {
     const journal = parseVaultRotationJournal(JSON.parse(rawJournal));
@@ -209,7 +209,7 @@ function recoverPendingVaultRotation(): void {
       window.localStorage.setItem(VAULT_KEY, JSON.stringify(journal.previous.payload));
     }
   } finally {
-    window.localStorage.removeItem(VAULT_REKEY_JOURNAL_STORAGE);
+    window.localStorage.removeItem(VAULT_TRANSACTION_JOURNAL_STORAGE);
   }
 }
 
@@ -255,7 +255,7 @@ export function setActiveVaultKey(key: CryptoKey | null): void {
 export function clearVault(): void {
   window.localStorage.removeItem(VAULT_KEY);
   window.localStorage.removeItem(SALT_KEY);
-  window.localStorage.removeItem(VAULT_REKEY_JOURNAL_STORAGE);
+  window.localStorage.removeItem(VAULT_TRANSACTION_JOURNAL_STORAGE);
   window.localStorage.removeItem(VAULT_BACKUP_RECOMMENDED_STORAGE);
   activeKey = null;
 }
@@ -270,42 +270,44 @@ export function setVaultBackupRecommended(recommended: boolean): void {
   else window.localStorage.removeItem(VAULT_BACKUP_RECOMMENDED_STORAGE);
 }
 
-// Prepare first, then apply synchronously. A caller can still abort after the
+// Derive the replacement key first. A caller can still abort after the
 // expensive KDF work (for example because the user locked the vault), without
 // changing browser storage.
-export async function prepareVaultPassphraseRotation(
-  value: unknown,
-  passphrase: string,
-): Promise<PreparedVaultPassphraseRotation> {
+export async function deriveVaultPassphraseRotation(passphrase: string): Promise<VaultPassphraseRotation> {
   const saltBytes = crypto.getRandomValues(new Uint8Array(16));
-  const key = await deriveVaultKeyForSalt(passphrase, saltBytes);
   return {
-    key,
-    next: {
-      salt: toBase64(saltBytes),
-      payload: await encryptVaultPayload(key, value),
-    },
+    key: await deriveVaultKeyForSalt(passphrase, saltBytes),
+    salt: toBase64(saltBytes),
   };
 }
 
 // Returns false without changing the unlocked key when browser storage cannot
 // safely stage the rotation. A leftover journal is recovered to the previous
 // ciphertext pair before the result is returned.
-export function applyVaultPassphraseRotation(rotation: PreparedVaultPassphraseRotation): boolean {
+export async function applyVaultPassphraseRotation(
+  rotation: VaultPassphraseRotation,
+  value: unknown,
+  canCommit: () => boolean,
+): Promise<boolean> {
+  const next: VaultStorage = {
+    salt: rotation.salt,
+    payload: await encryptVaultPayload(rotation.key, value),
+  };
+  if (!canCommit()) return false;
   recoverPendingVaultRotation();
   const previous = currentVaultStorage();
   if (!previous) return false;
   try {
-    const journal: VaultRotationJournal = { version: 1, previous, next: rotation.next };
+    const journal: VaultRotationJournal = { version: 1, previous, next };
     // `journal` contains only AES-GCM ciphertext and a public KDF salt. It is
     // a recovery transaction, never a plaintext copy of vault data.
     // codeql[js/clear-text-storage-of-sensitive-information]
-    window.localStorage.setItem(VAULT_REKEY_JOURNAL_STORAGE, JSON.stringify(journal));
+    window.localStorage.setItem(VAULT_TRANSACTION_JOURNAL_STORAGE, JSON.stringify(journal));
     // codeql[js/clear-text-storage-of-sensitive-information]
-    window.localStorage.setItem(SALT_KEY, rotation.next.salt);
+    window.localStorage.setItem(SALT_KEY, next.salt);
     // codeql[js/clear-text-storage-of-sensitive-information]
-    window.localStorage.setItem(VAULT_KEY, JSON.stringify(rotation.next.payload));
-    window.localStorage.removeItem(VAULT_REKEY_JOURNAL_STORAGE);
+    window.localStorage.setItem(VAULT_KEY, JSON.stringify(next.payload));
+    window.localStorage.removeItem(VAULT_TRANSACTION_JOURNAL_STORAGE);
     return true;
   } catch {
     recoverPendingVaultRotation();
@@ -339,7 +341,7 @@ export function importVaultBackup(serialized: string): VaultBackupImportResult {
     if (!backup) return "invalid_backup";
     window.localStorage.setItem(SALT_KEY, backup.salt);
     window.localStorage.setItem(VAULT_KEY, JSON.stringify(backup.payload));
-    window.localStorage.removeItem(VAULT_REKEY_JOURNAL_STORAGE);
+    window.localStorage.removeItem(VAULT_TRANSACTION_JOURNAL_STORAGE);
     activeKey = null;
     return "imported";
   } catch {

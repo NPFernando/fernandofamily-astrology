@@ -1,5 +1,6 @@
 [Unit]
 Description=Verify Fernando Family Astrology database backup freshness
+OnFailure=fernandofamily-db-backup-alert@%n.service
 
 [Service]
 Type=oneshot

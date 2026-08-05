@@ -94,8 +94,10 @@ healthy until a restore succeeds.
 
 `fernandofamily-db-backup-healthcheck.timer` runs hourly and fails when any
 local/off-site backup or restore-drill marker exceeds the configured age. A
-failed unit is intentionally actionable operational evidence: route it through
-the host's existing systemd failure alerting, or inspect it with
+failed unit invokes the checked-in HTTPS operations-webhook notifier. Set
+`ALERT_WEBHOOK_URL_FILE` in the same restricted environment file to a
+root-owned `0600` file containing that URL; the notifier sends only the unit
+name and a generic failure summary. You can also inspect it with
 `systemctl status fernandofamily-db-backup-healthcheck.service`. It never
 prints a DSN, archive name, provider credential, or Restic repository URL.
 

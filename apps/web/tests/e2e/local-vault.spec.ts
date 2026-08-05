@@ -97,6 +97,7 @@ test("local vault migrates sensitive legacy values, restores them after unlock, 
   await expect(page.locator('input[type="time"]')).toHaveValue(BIRTH_TIME);
 
   await page.goto("/en/privacy");
+  page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Clear saved preferences" }).click();
   const cleared = await page.evaluate((keys) => ({
     vault: window.localStorage.getItem("ff_private_vault_v1"),

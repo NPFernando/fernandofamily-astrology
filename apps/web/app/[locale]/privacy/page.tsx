@@ -27,6 +27,7 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
       <ClearPreferencesButton
         label={dict.ui.clearSavedPreferences}
         clearedMessage={dict.pages.privacy.clearAction}
+        confirmationMessage={dict.pages.privacy.clearConfirmation}
       />
       <VaultBackupControls />
     </article>

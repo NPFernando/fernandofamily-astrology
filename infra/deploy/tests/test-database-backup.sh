@@ -10,6 +10,7 @@ FAKE_BIN="$WORK_DIR/bin"
 BACKUP_DIR="$WORK_DIR/backups"
 STATE_FILE="$WORK_DIR/restore-state"
 RESTIC_STATE_FILE="$WORK_DIR/restic-state"
+ALERT_STATE_FILE="$WORK_DIR/alert-state"
 mkdir -p "$FAKE_BIN"
 
 cat > "$FAKE_BIN/pg_dump" <<'EOF'
@@ -65,7 +66,13 @@ if [[ "$1" == "restore" ]]; then
 fi
 EOF
 
-chmod 700 "$FAKE_BIN/pg_dump" "$FAKE_BIN/pg_restore" "$FAKE_BIN/psql" "$FAKE_BIN/restic"
+cat > "$FAKE_BIN/curl" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "$*" > "$TEST_ALERT_STATE"
+EOF
+
+chmod 700 "$FAKE_BIN/pg_dump" "$FAKE_BIN/pg_restore" "$FAKE_BIN/psql" "$FAKE_BIN/restic" "$FAKE_BIN/curl"
 
 export PATH="$FAKE_BIN:$PATH"
 export ASTROLOGY_DATABASE_URL="postgresql://example/production"
@@ -74,6 +81,7 @@ export ASTROLOGY_BACKUP_DIR="$BACKUP_DIR"
 export ASTROLOGY_BACKUP_RETENTION_DAYS=14
 export TEST_RESTORE_STATE="$STATE_FILE"
 export TEST_RESTIC_STATE="$RESTIC_STATE_FILE"
+export TEST_ALERT_STATE="$ALERT_STATE_FILE"
 export RESTIC_REPOSITORY="s3:https://object.example.invalid/fernandofamily-astrology"
 export RESTIC_PASSWORD_FILE="$WORK_DIR/restic-password"
 printf 'test-restic-password' > "$RESTIC_PASSWORD_FILE"
@@ -97,6 +105,12 @@ bash "$REPO_ROOT/infra/deploy/database-offsite-restore-drill.sh"
 grep -Fxq restore "$RESTIC_STATE_FILE"
 
 bash "$REPO_ROOT/infra/deploy/database-backup-healthcheck.sh"
+
+export ALERT_WEBHOOK_URL_FILE="$WORK_DIR/alert-webhook-url"
+printf 'https://alerts.example.invalid/operations' > "$ALERT_WEBHOOK_URL_FILE"
+chmod 600 "$ALERT_WEBHOOK_URL_FILE"
+bash "$REPO_ROOT/infra/deploy/database-backup-alert.sh" fernandofamily-db-backup-healthcheck.service
+grep -Fq 'DatabaseBackupFreshnessFailed' "$ALERT_STATE_FILE"
 
 if RESTORE_DRILL_DATABASE_URL="$ASTROLOGY_DATABASE_URL" bash "$REPO_ROOT/infra/deploy/database-restore-drill.sh" "$backup"; then
   echo "restore drill accepted the production database" >&2

@@ -78,7 +78,9 @@ It also performs a redacted Git-history credential scan. Configure the
 `CodeQL` matrix checks and `Secret scan` as required branch-protection checks
 for `main`; workflow files alone cannot prevent an administrator from merging
 around a failed check. CodeQL uses its documented no-build mode for these
-interpreted languages. [CodeQL action guidance](https://github.com/github/codeql-action)
+interpreted languages. GitHub's repository-level CodeQL **default setup must
+remain disabled**: it cannot accept SARIF from this advanced configuration.
+[CodeQL action guidance](https://github.com/github/codeql-action)
 
 ### Why no self-hosted runner
 

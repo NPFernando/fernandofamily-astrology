@@ -9,6 +9,16 @@ umask 077
 : "${RESTORE_DRILL_DATABASE_URL:?RESTORE_DRILL_DATABASE_URL must be set}"
 
 REPO_ROOT="$(pwd -P)"
+BACKUP_DIR_INPUT="${ASTROLOGY_BACKUP_DIR:-$REPO_ROOT/.backups/postgres}"
+if [[ ! -d "$BACKUP_DIR_INPUT" ]]; then
+  echo "Backup directory does not exist; run database-backup.sh first" >&2
+  exit 1
+fi
+BACKUP_DIR="$(realpath -e -- "$BACKUP_DIR_INPUT")"
+if [[ "$BACKUP_DIR" == "/" || "$BACKUP_DIR" == "$REPO_ROOT" ]]; then
+  echo "Refusing unsafe backup directory" >&2
+  exit 1
+fi
 RESTIC_TAG="${RESTIC_DATABASE_BACKUP_TAG:-fernandofamily-astrology-postgres}"
 STAGE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/fernandofamily-restic-drill.XXXXXX")"
 
@@ -37,3 +47,4 @@ RESTORE_DRILL_ALLOW_EXTERNAL_ARCHIVE=1 \
   bash "$REPO_ROOT/infra/deploy/database-restore-drill.sh" "$archive"
 
 echo "Off-site database restore drill succeeded"
+touch "$BACKUP_DIR/.offsite-restore-drill-last-success"

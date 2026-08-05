@@ -50,3 +50,4 @@ restic forget \
 restic check
 
 echo "Off-site database backup replicated: $(basename -- "$latest_backup")"
+touch "$BACKUP_DIR/.offsite-backup-last-success"

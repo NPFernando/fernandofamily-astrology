@@ -96,6 +96,8 @@ bash "$REPO_ROOT/infra/deploy/database-offsite-restore-drill.sh"
 [[ "$(grep -Fc restore "$STATE_FILE")" == "2" ]]
 grep -Fxq restore "$RESTIC_STATE_FILE"
 
+bash "$REPO_ROOT/infra/deploy/database-backup-healthcheck.sh"
+
 if RESTORE_DRILL_DATABASE_URL="$ASTROLOGY_DATABASE_URL" bash "$REPO_ROOT/infra/deploy/database-restore-drill.sh" "$backup"; then
   echo "restore drill accepted the production database" >&2
   exit 1

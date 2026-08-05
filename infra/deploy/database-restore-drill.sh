@@ -88,3 +88,4 @@ if [[ "$required_tables" != "4" ]]; then
 fi
 
 echo "Database restore drill succeeded: $(basename -- "$backup_path") -> $drill_database"
+touch "$BACKUP_DIR/.restore-drill-last-success"

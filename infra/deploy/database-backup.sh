@@ -66,3 +66,4 @@ chmod 600 -- "$final_path"
 find "$BACKUP_DIR" -maxdepth 1 -type f -name 'astrology-*.dump' -mtime "+$RETENTION_DAYS" -delete
 
 echo "Database backup created: $(basename -- "$final_path")"
+touch "$BACKUP_DIR/.backup-last-success"

@@ -24,18 +24,25 @@ Birth data and precise coordinates are never:
 - Sent to any analytics or error-monitoring service.
 - Used as, or embedded in, a cache key that's visible outside the server.
 
-## What's stored in your browser (and only there)
+## What's stored in your browser
 
-- Your language and theme preference.
-- Your selected/direct bird choice, if you use that input method.
-- A short list of recently used locations (name, latitude, longitude,
-  timezone — never birth date/time).
-- The most recently successfully calculated schedule, so it can be shown
-  (clearly labeled as cached, with its original generation time) if you open
-  the app while offline.
+Language, theme, and the derived saved-profile choices you explicitly create
+(label, bird or nakshatra/paksha, and optional Moon sign) remain ordinary
+browser preferences. They never contain a raw birth date, birth time, or
+precise location. The Privacy-page clear action removes them.
 
-All of the above lives only in your browser's local storage. A "clear saved
-preferences" action on the Privacy page removes all of it.
+Raw birth details, selected/direct bird, precise recent locations, cached
+schedules, live schedule requests, and derived identity seeds are sensitive
+calculator state. They are stored only in the passphrase-protected local vault
+using AES-GCM encryption; its derived key exists only in the current tab's
+memory. Locking the vault clears those in-memory values and a new tab must be
+unlocked again. The vault backup/download contains only encrypted ciphertext
+and its salt—never the passphrase or plaintext—and can be restored only with
+the original passphrase.
+
+The vault's encrypted ciphertext and salt remain in browser storage so the
+user can unlock later. Use **Clear saved preferences** to remove both the
+vault and the ordinary preferences from this browser.
 
 ## Location
 

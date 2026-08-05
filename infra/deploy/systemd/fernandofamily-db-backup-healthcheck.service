@@ -1,0 +1,8 @@
+[Unit]
+Description=Verify Fernando Family Astrology database backup freshness
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/ubuntu/workspace/projects/fernandofamily-astrology
+EnvironmentFile=/etc/fernandofamily-astrology/database-backup.env
+ExecStart=/usr/bin/env bash infra/deploy/database-backup-healthcheck.sh

@@ -43,6 +43,10 @@ project `.env`, print it to a terminal, or paste it into an incident ticket.
 ASTROLOGY_DATABASE_URL=postgresql://<backup-role>:<password>@<host>:5432/astrology
 RESTORE_DRILL_DATABASE_URL=postgresql://<backup-role>:<password>@<host>:5432/astrology_restore_drill
 ASTROLOGY_BACKUP_RETENTION_DAYS=14
+ASTROLOGY_BACKUP_MAX_AGE_HOURS=30
+ASTROLOGY_OFFSITE_BACKUP_MAX_AGE_HOURS=30
+ASTROLOGY_RESTORE_DRILL_MAX_AGE_DAYS=40
+ASTROLOGY_OFFSITE_RESTORE_DRILL_MAX_AGE_DAYS=40
 RESTIC_REPOSITORY=s3:https://<provider-endpoint>/<bucket>/fernandofamily-astrology
 RESTIC_PASSWORD_FILE=/etc/fernandofamily-astrology/restic-password
 RESTIC_DATABASE_BACKUP_TAG=fernandofamily-astrology-postgres
@@ -73,7 +77,8 @@ sudo systemctl enable --now \
   fernandofamily-db-backup.timer \
   fernandofamily-db-restore-drill.timer \
   fernandofamily-db-offsite-backup.timer \
-  fernandofamily-db-offsite-restore-drill.timer
+  fernandofamily-db-offsite-restore-drill.timer \
+  fernandofamily-db-backup-healthcheck.timer
 sudo systemctl start fernandofamily-db-backup.service
 sudo systemctl start fernandofamily-db-restore-drill.service
 sudo systemctl start fernandofamily-db-offsite-backup.service
@@ -86,6 +91,25 @@ runs on the first Sunday of each month with a longer randomized delay. The
 restore unit intentionally replaces the disposable database's contents. A
 failed drill is an operational incident: do not silence it or call the backup
 healthy until a restore succeeds.
+
+`fernandofamily-db-backup-healthcheck.timer` runs hourly and fails when any
+local/off-site backup or restore-drill marker exceeds the configured age. A
+failed unit is intentionally actionable operational evidence: route it through
+the host's existing systemd failure alerting, or inspect it with
+`systemctl status fernandofamily-db-backup-healthcheck.service`. It never
+prints a DSN, archive name, provider credential, or Restic repository URL.
+
+## Retention and provider immutability
+
+The checked-in Restic policy retains 14 daily, 8 weekly, and 12 monthly
+tagged snapshots by default. The operator must separately enable immutable
+retention at the storage provider before the first production upload—for
+example S3 Object Lock (governance/compliance mode as required) or the
+equivalent retention-lock feature. Verify that the backup role cannot shorten
+or delete objects inside the agreed retention window, then record the bucket,
+region, retention period, and recovery owners in a restricted operations
+runbook. This repository deliberately cannot create or weaken that policy:
+object-store ownership and legal retention requirements are external authority.
 
 The off-site timer runs after the local backup and retains only snapshots with
 the dedicated application tag (14 daily, 8 weekly, and 12 monthly by default)

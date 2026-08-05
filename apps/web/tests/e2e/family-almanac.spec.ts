@@ -1,20 +1,20 @@
 import { expect, test, type Page } from "@playwright/test";
 import { DICTS, watchForBirthDataInUrls, type LocaleKey } from "./helpers";
 
-async function waitForFamilyAlmanac(page: Page) {
+async function waitForFamilyAlmanac(page: Page, locale: LocaleKey) {
   const deadline = Date.now() + 75_000;
   while (Date.now() < deadline) {
     if (await page.locator('[data-testid="family-almanac-result"]').isVisible().catch(() => false)) return;
-    const retry = page.getByRole("button", { name: DICTS.en.ui.retry, exact: true }).first();
+    const retry = page.getByRole("button", { name: DICTS[locale].ui.retry, exact: true }).first();
     if (await retry.isVisible().catch(() => false)) await retry.click();
     await page.waitForTimeout(500);
   }
-  await expect(page.locator('[data-testid="family-almanac-result"]')).toBeVisible();
+  await expect(page.locator('[data-testid="family-almanac-result"]')).toBeVisible({ timeout: 75_000 });
 }
 
 async function openFamilyAlmanac(page: Page, locale: LocaleKey, query = "") {
   await page.goto(`/${locale}/family-almanac${query}`);
-  await waitForFamilyAlmanac(page);
+  await waitForFamilyAlmanac(page, locale);
 }
 
 async function seedFamilyProfiles(page: Page) {
@@ -111,7 +111,7 @@ test("family almanac: quick bird profile creation and selected profiles persist 
   expect(selected).toHaveLength(1);
 
   await page.reload();
-  await waitForFamilyAlmanac(page);
+  await waitForFamilyAlmanac(page, "en");
   await expect(page.locator('[data-testid="family-almanac-profile"]').filter({ hasText: "Aiya" })).toBeVisible();
   await expect(page.locator('[data-testid="family-almanac-profile"]').filter({ hasText: "Aiya" }).getByRole("button").first()).toHaveAttribute(
     "aria-pressed",
@@ -196,7 +196,7 @@ test("family almanac: landing card, nav link, and sitemap are present", async ({
   ).toBeVisible();
   await page.getByRole("link", { name: DICTS.en.nav.familyAlmanac }).first().click();
   await expect(page).toHaveURL(/\/en\/family-almanac$/);
-  await waitForFamilyAlmanac(page);
+  await waitForFamilyAlmanac(page, "en");
 
   const res = await request.get("/sitemap.xml");
   const body = await res.text();

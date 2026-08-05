@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { getDictionary, resolveKey, translateEnum } from "@/lib/i18n";
 import {
@@ -633,15 +633,18 @@ function MuhurtaMonthPanel({
   const [data, setData] = useState<MuhurtaMonthResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const latestRequestId = useRef(0);
 
   const run = useCallback(
     async (nextMonth: { year: number; month: number }, preferredDate?: string) => {
+      const requestId = ++latestRequestId.current;
       setLoading(true);
       setError(null);
       try {
         const result = await fetchMuhurtaMonth(
           toMuhurtaMonthRequest(request, nextMonth.year, nextMonth.month, location, purpose, minEffect),
         );
+        if (requestId !== latestRequestId.current) return;
         setData(result);
         const preferred = preferredDate && result.days.some((day) => day.date === preferredDate) ? preferredDate : null;
         setSelectedDate(
@@ -652,9 +655,10 @@ function MuhurtaMonthPanel({
             "",
         );
       } catch (e) {
+        if (requestId !== latestRequestId.current) return;
         setError(e instanceof ApiError ? dict.ui.error : dict.ui.error);
       } finally {
-        setLoading(false);
+        if (requestId === latestRequestId.current) setLoading(false);
       }
     },
     [dict.ui.error, location, minEffect, purpose, request],

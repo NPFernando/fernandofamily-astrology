@@ -42,6 +42,7 @@ export function PlannerClient() {
   const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
   const [exportMessage, setExportMessage] = useState<string | null>(null);
   const [weekExportMessage, setWeekExportMessage] = useState<string | null>(null);
+  const [copyMessage, setCopyMessage] = useState<string | null>(null);
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
 
   const plans = useMemo(() => (data.plans ?? []).filter((plan) => plan.date === date).sort(planSort), [data.plans, date]);
@@ -113,6 +114,13 @@ export function PlannerClient() {
     await update((current) => ({ ...current, plans: (current.plans ?? []).filter((plan) => plan.id !== id) }));
   }
 
+  async function copyPlanToNextDay(plan: VaultPlan) {
+    const copiedDate = addDays(plan.date, 1);
+    const copy: VaultPlan = { ...plan, id: crypto.randomUUID(), date: copiedDate, created_at: new Date().toISOString() };
+    await update((current) => ({ ...current, plans: [...(current.plans ?? []), copy] }));
+    setCopyMessage(dict.dailyGuide.planCopied.replace("{date}", formatWeekDate(copiedDate, locale)));
+  }
+
   async function removeGroup(id: string) {
     await update((current) => ({ ...current, familyGroups: (current.familyGroups ?? []).filter((group) => group.id !== id) }));
   }
@@ -178,8 +186,9 @@ export function PlannerClient() {
           <section data-testid="planner-agenda" className="rounded-xl border border-black/10 p-4 dark:border-white/10">
             <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-semibold">{dict.dailyGuide.agendaTitle}</h2><button type="button" onClick={downloadAgenda} className="rounded-lg border border-accent/40 px-3 py-1.5 text-sm font-semibold text-accent">{dict.dailyGuide.exportAgenda}</button></div>
             <p className="mt-1 text-xs opacity-70">{dict.dailyGuide.agendaExportHelp}</p>
-            {plans.length === 0 ? <p className="mt-2 text-sm opacity-70">{dict.dailyGuide.agendaEmpty}</p> : <ul className="mt-3 space-y-2">{plans.map((plan) => <li key={plan.id} className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-black/10 p-3 text-sm dark:border-white/10"><div><p className="font-semibold">{plan.starts_at ? `${plan.starts_at}${plan.ends_at ? `–${plan.ends_at}` : ""} · ` : ""}{plan.title}</p>{plan.notes && <p className="mt-1 opacity-70">{plan.notes}</p>}</div><div className="flex gap-3"><button type="button" onClick={() => editPlan(plan)} className="text-xs text-accent underline">{dict.dailyGuide.editPlan}</button><button type="button" onClick={() => { void removePlan(plan.id); }} className="text-xs text-accent underline">{dict.ui.deleteProfile}</button></div></li>)}</ul>}
+            {plans.length === 0 ? <p className="mt-2 text-sm opacity-70">{dict.dailyGuide.agendaEmpty}</p> : <ul className="mt-3 space-y-2">{plans.map((plan) => <li key={plan.id} className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-black/10 p-3 text-sm dark:border-white/10"><div><p className="font-semibold">{plan.starts_at ? `${plan.starts_at}${plan.ends_at ? `–${plan.ends_at}` : ""} · ` : ""}{plan.title}</p>{plan.notes && <p className="mt-1 opacity-70">{plan.notes}</p>}</div><div className="flex flex-wrap gap-3"><button type="button" onClick={() => { void copyPlanToNextDay(plan); }} className="text-xs text-accent underline">{dict.dailyGuide.copyPlan}</button><button type="button" onClick={() => editPlan(plan)} className="text-xs text-accent underline">{dict.dailyGuide.editPlan}</button><button type="button" onClick={() => { void removePlan(plan.id); }} className="text-xs text-accent underline">{dict.ui.deleteProfile}</button></div></li>)}</ul>}
             {exportMessage && <p role="status" className="mt-2 text-sm text-accent">{exportMessage}</p>}
+            {copyMessage && <p role="status" className="mt-2 text-sm text-accent">{copyMessage}</p>}
           </section>
 
           <section data-testid="planner-week" className="rounded-xl border border-black/10 p-4 dark:border-white/10">

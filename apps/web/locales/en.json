@@ -851,6 +851,8 @@
     "planEnd": "End",
     "planNotes": "Private notes",
     "addPlan": "Add to agenda",
+    "copyPlan": "Copy to next day",
+    "planCopied": "Copied to {date}.",
     "editPlan": "Edit",
     "savePlan": "Save changes",
     "cancelPlanEdit": "Cancel editing",

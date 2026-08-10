@@ -49,6 +49,10 @@ test("daily planner keeps manual plans and family groups inside the encrypted va
   await page.getByTestId("planner-week").getByRole("button", { name: DICTS.en.dailyGuide.plannerWeekExport }).click();
   const weekDownload = await weekDownloadPromise;
   expect(weekDownload.suggestedFilename()).toMatch(/^weekly-agenda-\d{4}-\d{2}-\d{2}\.ics$/);
+  await page.getByRole("button", { name: DICTS.en.dailyGuide.copyPlan }).click();
+  await expect(page.getByRole("status")).toContainText("Copied to");
+  await dateControls.getByRole("button", { name: DICTS.en.ui.nextDay }).click();
+  await expect(page.getByTestId("planner-agenda")).toContainText("Temple visit revised");
   const selectedDate = await page.getByLabel(DICTS.en.ui.pickDate).inputValue();
   await page.getByTestId("planner-week").getByRole("button").nth(2).click();
   await expect(page.getByLabel(DICTS.en.ui.pickDate)).not.toHaveValue(selectedDate);

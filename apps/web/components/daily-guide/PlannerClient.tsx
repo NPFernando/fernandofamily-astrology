@@ -55,6 +55,14 @@ export function PlannerClient() {
     setSelectedProfiles((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]);
   }
 
+  function selectGroup(group: VaultFamilyGroup) {
+    setSelectedProfiles(group.profile_ids);
+  }
+
+  function groupIsSelected(group: VaultFamilyGroup) {
+    return group.profile_ids.length === selectedProfiles.length && group.profile_ids.every((id) => selectedProfiles.includes(id));
+  }
+
   async function savePlan(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!unlocked || !title.trim()) return;
@@ -178,6 +186,7 @@ export function PlannerClient() {
                 <label className="text-sm font-medium">{dict.dailyGuide.planEnd}<input type="time" value={end} onChange={(event) => setEnd(event.target.value)} className="mt-1 w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" /></label>
               </div>
               <label className="text-sm font-medium lg:col-span-2">{dict.dailyGuide.planNotes}<textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={2} className="mt-1 w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" /></label>
+              {groups.length > 0 && <fieldset data-testid="planner-group-picker" className="lg:col-span-2"><legend className="text-sm font-medium">{dict.dailyGuide.useGroupForPlan}</legend><div className="mt-2 flex flex-wrap gap-2">{groups.map((group) => <button key={group.id} type="button" aria-pressed={groupIsSelected(group)} onClick={() => selectGroup(group)} className="rounded-full border border-accent/40 px-3 py-1.5 text-sm font-semibold text-accent">{group.label} · {group.profile_ids.length}</button>)}</div></fieldset>}
               <div className="lg:col-span-2"><ProfileChoices profiles={profiles} selected={selectedProfiles} onToggle={toggleProfile} dict={dict} /></div>
               <div className="flex flex-wrap gap-3 lg:col-span-2"><button type="submit" className="w-fit rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white">{editingPlanId ? dict.dailyGuide.savePlan : dict.dailyGuide.addPlan}</button>{editingPlanId && <button type="button" onClick={cancelPlanEdit} className="w-fit rounded-lg border border-black/15 px-4 py-2 text-sm font-semibold dark:border-white/20">{dict.dailyGuide.cancelPlanEdit}</button>}</div>
             </form>

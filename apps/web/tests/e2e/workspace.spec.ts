@@ -20,6 +20,14 @@ test("daily planner keeps manual plans and family groups inside the encrypted va
   await expect(page.getByTestId("planner-locked")).toBeVisible();
   await createVault(page);
 
+  await page.getByLabel("Amma").check();
+  await page.getByPlaceholder(DICTS.en.dailyGuide.groupNamePlaceholder).fill("Weekend family");
+  await page.getByRole("button", { name: DICTS.en.dailyGuide.saveGroup }).click();
+  await expect(page.getByTestId("planner-group-picker")).toContainText("Weekend family");
+  await page.getByLabel("Amma").uncheck();
+  await page.getByTestId("planner-group-picker").getByRole("button", { name: /Weekend family/ }).click();
+  await expect(page.getByLabel("Amma")).toBeChecked();
+
   await page.getByLabel(DICTS.en.dailyGuide.planTitle).fill("Temple visit");
   await page.getByLabel(DICTS.en.dailyGuide.planStart).fill("09:30");
   await page.getByRole("button", { name: DICTS.en.dailyGuide.addPlan }).click();
@@ -56,11 +64,6 @@ test("daily planner keeps manual plans and family groups inside the encrypted va
   const selectedDate = await page.getByLabel(DICTS.en.ui.pickDate).inputValue();
   await page.getByTestId("planner-week").getByRole("button").nth(2).click();
   await expect(page.getByLabel(DICTS.en.ui.pickDate)).not.toHaveValue(selectedDate);
-
-  await page.getByLabel("Amma").check();
-  await page.getByPlaceholder(DICTS.en.dailyGuide.groupNamePlaceholder).fill("Weekend family");
-  await page.getByRole("button", { name: DICTS.en.dailyGuide.saveGroup }).click();
-  await expect(page.getByText("Weekend family", { exact: false })).toBeVisible();
 
   const vault = await page.evaluate(() => window.localStorage.getItem("ff_private_vault_v1"));
   expect(vault).toContain("ciphertext");

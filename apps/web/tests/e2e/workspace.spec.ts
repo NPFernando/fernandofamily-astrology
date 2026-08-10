@@ -55,6 +55,10 @@ test("roadmap feedback remains a local draft while votes persist on this device"
   await expect(roadmap).toContainText(DICTS.en.roadmap.calendar);
   await expect(roadmap).not.toContainText(DICTS.en.roadmap.planner);
   await page.getByLabel(DICTS.en.roadmap.search).fill("");
+  await roadmap.getByRole("article").filter({ hasText: DICTS.en.roadmap.week }).getByRole("button", { name: new RegExp(DICTS.en.roadmap.draftForItem.replace("{item}", "")) }).click();
+  const feedbackFor = page.getByLabel(DICTS.en.roadmap.feedbackFor);
+  await expect(feedbackFor).toHaveValue("week");
+  await expect(feedbackFor).toBeFocused();
   const vote = roadmap.getByRole("button", { name: new RegExp(`${DICTS.en.roadmap.vote}.*0`) }).first();
   await vote.click();
   await expect(roadmap.getByRole("button", { name: new RegExp(`${DICTS.en.roadmap.voted}.*1`) }).first()).toHaveAttribute("aria-pressed", "true");

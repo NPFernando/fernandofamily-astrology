@@ -611,6 +611,8 @@
     "feedbackTitle": "Give roadmap feedback",
     "feedbackBody": "Draft feedback here, then copy it or open a prefilled issue yourself. Nothing is submitted automatically.",
     "feedbackFor": "Roadmap item",
+    "giveFeedback": "Give feedback",
+    "draftForItem": "Draft a note about {item}",
     "feedbackLabel": "Feedback",
     "feedbackSubject": "Roadmap feedback",
     "copyFeedback": "Copy feedback",

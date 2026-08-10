@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { PUBLIC_REPOSITORY_URL } from "@/lib/site-config";
 
@@ -34,6 +34,7 @@ export function RoadmapFeedbackClient() {
   const [copyState, setCopyState] = useState<CopyState>("idle");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
+  const feedbackSelectRef = useRef<HTMLSelectElement>(null);
   const items = useMemo<RoadmapItem[]>(() => [
     { id: "readiness", label: dict.roadmap.readiness, category: dict.roadmap.categoryReliability, status: "released" },
     { id: "planner", label: dict.roadmap.planner, category: dict.roadmap.categoryPrivacy, status: "released" },
@@ -77,6 +78,12 @@ export function RoadmapFeedbackClient() {
     }
   }
 
+  function startFeedback(id: ItemId) {
+    setSelected(id);
+    setCopyState("idle");
+    window.requestAnimationFrame(() => feedbackSelectRef.current?.focus());
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <header className="rounded-2xl border border-black/10 bg-gradient-to-br from-accent/10 to-transparent p-5 dark:border-white/10">
@@ -101,14 +108,14 @@ export function RoadmapFeedbackClient() {
       <section data-testid="roadmap-items" className="grid gap-4 xl:grid-cols-3">
         {statuses.map((status) => {
           const statusItems = filtered.filter((item) => item.status === status);
-          return <section key={status} className="rounded-xl border border-black/10 bg-white/35 p-3 dark:border-white/10 dark:bg-white/[.03]"><div className="flex items-center justify-between gap-3 border-b border-black/10 pb-2 dark:border-white/10"><h2 className="font-semibold">{dict.roadmap[status]}</h2><span className="rounded-full border border-black/10 px-2 py-0.5 text-xs dark:border-white/20">{statusItems.length}</span></div><div className="mt-3 space-y-3">{statusItems.length ? statusItems.map((item) => { const voted = votes[item.id] === 1; return <article key={item.id} className="rounded-lg border border-black/10 bg-background/50 p-3 dark:border-white/10"><p className="font-semibold">{item.label}</p><p className="mt-1 text-xs uppercase tracking-wide opacity-65">{item.category}</p><button type="button" aria-pressed={voted} onClick={() => vote(item.id)} className="mt-3 rounded-lg border border-accent/40 px-3 py-1.5 text-sm font-semibold text-accent">{voted ? dict.roadmap.voted : dict.roadmap.vote} · {voted ? 1 : 0}</button></article>; }) : <p className="py-6 text-center text-sm opacity-65">{dict.roadmap.noMatches}</p>}</div></section>;
+          return <section key={status} className="rounded-xl border border-black/10 bg-white/35 p-3 dark:border-white/10 dark:bg-white/[.03]"><div className="flex items-center justify-between gap-3 border-b border-black/10 pb-2 dark:border-white/10"><h2 className="font-semibold">{dict.roadmap[status]}</h2><span className="rounded-full border border-black/10 px-2 py-0.5 text-xs dark:border-white/20">{statusItems.length}</span></div><div className="mt-3 space-y-3">{statusItems.length ? statusItems.map((item) => { const voted = votes[item.id] === 1; return <article key={item.id} className="rounded-lg border border-black/10 bg-background/50 p-3 dark:border-white/10"><p className="font-semibold">{item.label}</p><p className="mt-1 text-xs uppercase tracking-wide opacity-65">{item.category}</p><div className="mt-3 flex flex-wrap gap-2"><button type="button" aria-pressed={voted} onClick={() => vote(item.id)} className="rounded-lg border border-accent/40 px-3 py-1.5 text-sm font-semibold text-accent">{voted ? dict.roadmap.voted : dict.roadmap.vote} · {voted ? 1 : 0}</button><button type="button" aria-label={dict.roadmap.draftForItem.replace("{item}", item.label)} onClick={() => startFeedback(item.id)} className="rounded-lg border border-black/10 px-3 py-1.5 text-sm font-semibold dark:border-white/20">{dict.roadmap.giveFeedback}</button></div></article>; }) : <p className="py-6 text-center text-sm opacity-65">{dict.roadmap.noMatches}</p>}</div></section>;
         })}
       </section>
 
       <section className="rounded-xl border border-black/10 p-4 dark:border-white/10">
         <h2 className="text-lg font-semibold">{dict.roadmap.feedbackTitle}</h2>
         <p className="mt-1 text-sm opacity-80">{dict.roadmap.feedbackBody}</p>
-        <label className="mt-4 block text-sm font-medium">{dict.roadmap.feedbackFor}<select value={selected} onChange={(event) => { setSelected(event.target.value as ItemId); setCopyState("idle"); }} className="mt-1 block w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20">{items.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
+        <label className="mt-4 block text-sm font-medium">{dict.roadmap.feedbackFor}<select ref={feedbackSelectRef} value={selected} onChange={(event) => { setSelected(event.target.value as ItemId); setCopyState("idle"); }} className="mt-1 block w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20">{items.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
         <label className="mt-3 block text-sm font-medium">{dict.roadmap.feedbackLabel}<textarea value={feedback} onChange={(event) => { setFeedback(event.target.value); setCopyState("idle"); }} rows={4} className="mt-1 w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" /></label>
         <div className="mt-3 flex flex-wrap items-center gap-3"><button type="button" onClick={() => { void copyFeedback(); }} className="rounded-lg border border-black/10 px-4 py-2 text-sm font-semibold dark:border-white/20">{dict.roadmap.copyFeedback}</button><a href={issueHref} target="_blank" rel="noreferrer" className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white">{dict.roadmap.openIssue}</a><p aria-live="polite" className="text-sm opacity-75">{copyState === "copied" ? dict.roadmap.copiedFeedback : copyState === "error" ? dict.roadmap.copyFeedbackError : null}</p></div>
       </section>

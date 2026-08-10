@@ -101,6 +101,10 @@ test("roadmap feedback remains a local draft while votes persist on this device"
   await expect(privacyFilter).toHaveAttribute("aria-pressed", "true");
 
   await page.getByLabel(DICTS.en.roadmap.feedbackLabel).fill("Please add a compact week view.");
+  await feedbackFor.selectOption("planner");
+  await page.getByLabel(DICTS.en.roadmap.feedbackLabel).fill("Keep planner feedback private.");
+  await feedbackFor.selectOption("week");
+  await expect(page.getByLabel(DICTS.en.roadmap.feedbackLabel)).toHaveValue("Please add a compact week view.");
   await page.getByRole("button", { name: DICTS.en.roadmap.copyFeedback }).click();
   await expect(page.getByText(DICTS.en.roadmap.copiedFeedback)).toBeVisible();
   await expect.poll(() => page.evaluate(() => window.sessionStorage.getItem("copied-roadmap-feedback"))).toContain("Please add a compact week view.");

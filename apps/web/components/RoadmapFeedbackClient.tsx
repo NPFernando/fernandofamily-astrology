@@ -30,7 +30,7 @@ export function RoadmapFeedbackClient() {
   const { dict } = useLocale();
   const [votes, setVotes] = useState<Record<string, 1>>(() => typeof window === "undefined" ? {} : loadVotes());
   const [selected, setSelected] = useState<ItemId>("planner");
-  const [feedback, setFeedback] = useState("");
+  const [feedbackByItem, setFeedbackByItem] = useState<Partial<Record<ItemId, string>>>({});
   const [copyState, setCopyState] = useState<CopyState>("idle");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
@@ -65,6 +65,7 @@ export function RoadmapFeedbackClient() {
   }
 
   const selectedLabel = items.find((item) => item.id === selected)?.label ?? "";
+  const feedback = feedbackByItem[selected] ?? "";
   const draft = `${dict.roadmap.feedbackSubject}: ${selectedLabel}\n\n${feedback.trim()}`;
   const issueHref = `${PUBLIC_REPOSITORY_URL}/issues/new?title=${encodeURIComponent(`${dict.roadmap.feedbackSubject}: ${selectedLabel}`)}&body=${encodeURIComponent(draft)}`;
 
@@ -116,7 +117,7 @@ export function RoadmapFeedbackClient() {
         <h2 className="text-lg font-semibold">{dict.roadmap.feedbackTitle}</h2>
         <p className="mt-1 text-sm opacity-80">{dict.roadmap.feedbackBody}</p>
         <label className="mt-4 block text-sm font-medium">{dict.roadmap.feedbackFor}<select ref={feedbackSelectRef} value={selected} onChange={(event) => { setSelected(event.target.value as ItemId); setCopyState("idle"); }} className="mt-1 block w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20">{items.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
-        <label className="mt-3 block text-sm font-medium">{dict.roadmap.feedbackLabel}<textarea value={feedback} onChange={(event) => { setFeedback(event.target.value); setCopyState("idle"); }} rows={4} className="mt-1 w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" /></label>
+        <label className="mt-3 block text-sm font-medium">{dict.roadmap.feedbackLabel}<textarea value={feedback} onChange={(event) => { setFeedbackByItem((current) => ({ ...current, [selected]: event.target.value })); setCopyState("idle"); }} rows={4} className="mt-1 w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" /></label>
         <div className="mt-3 flex flex-wrap items-center gap-3"><button type="button" onClick={() => { void copyFeedback(); }} className="rounded-lg border border-black/10 px-4 py-2 text-sm font-semibold dark:border-white/20">{dict.roadmap.copyFeedback}</button><a href={issueHref} target="_blank" rel="noreferrer" className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white">{dict.roadmap.openIssue}</a><p aria-live="polite" className="text-sm opacity-75">{copyState === "copied" ? dict.roadmap.copiedFeedback : copyState === "error" ? dict.roadmap.copyFeedbackError : null}</p></div>
       </section>
     </div>

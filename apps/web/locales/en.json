@@ -614,6 +614,8 @@
     "feedbackLabel": "Feedback",
     "feedbackSubject": "Roadmap feedback",
     "copyFeedback": "Copy feedback",
+    "copiedFeedback": "Copied to clipboard.",
+    "copyFeedbackError": "Could not copy feedback. Select and copy it manually.",
     "openIssue": "Open GitHub issue"
   },
   "pages": {

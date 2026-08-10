@@ -41,6 +41,12 @@ test("daily planner keeps manual plans and family groups inside the encrypted va
 });
 
 test("roadmap feedback remains a local draft while votes persist on this device", async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: async (text: string) => window.sessionStorage.setItem("copied-roadmap-feedback", text) },
+    });
+  });
   await page.goto("/en/roadmap");
   const roadmap = page.getByTestId("roadmap-items");
   await expect(roadmap).toContainText(DICTS.en.roadmap.planner);
@@ -59,6 +65,9 @@ test("roadmap feedback remains a local draft while votes persist on this device"
   await expect(privacyFilter).toHaveAttribute("aria-pressed", "true");
 
   await page.getByLabel(DICTS.en.roadmap.feedbackLabel).fill("Please add a compact week view.");
+  await page.getByRole("button", { name: DICTS.en.roadmap.copyFeedback }).click();
+  await expect(page.getByText(DICTS.en.roadmap.copiedFeedback)).toBeVisible();
+  await expect.poll(() => page.evaluate(() => window.sessionStorage.getItem("copied-roadmap-feedback"))).toContain("Please add a compact week view.");
   const issue = page.getByRole("link", { name: DICTS.en.roadmap.openIssue });
   await expect(issue).toHaveAttribute("href", /Please%20add%20a%20compact%20week%20view/);
   await expect.poll(() => page.evaluate(() => window.localStorage.getItem("ff_roadmap_votes_v1"))).toBe("{}");

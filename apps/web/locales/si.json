@@ -614,6 +614,8 @@
     "feedbackLabel": "ප්‍රතිචාර",
     "feedbackSubject": "මාර්ගසටහන් ප්‍රතිචාර",
     "copyFeedback": "ප්‍රතිචාර පිටපත් කරන්න",
+    "copiedFeedback": "පසුරු පුවරුවට පිටපත් කරන ලදී.",
+    "copyFeedbackError": "ප්‍රතිචාර පිටපත් කළ නොහැකි විය. එය තෝරා අතින් පිටපත් කරන්න.",
     "openIssue": "GitHub ගැටලුව විවෘත කරන්න"
   },
   "pages": {

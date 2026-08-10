@@ -41,10 +41,12 @@ export function PlannerClient() {
   const [groupLabel, setGroupLabel] = useState("");
   const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
   const [exportMessage, setExportMessage] = useState<string | null>(null);
+  const [weekExportMessage, setWeekExportMessage] = useState<string | null>(null);
 
   const plans = useMemo(() => (data.plans ?? []).filter((plan) => plan.date === date).sort(planSort), [data.plans, date]);
   const weekDates = useMemo(() => Array.from({ length: 7 }, (_, offset) => addDays(date, offset)), [date]);
   const weekPlans = useMemo(() => new Map(weekDates.map((day) => [day, (data.plans ?? []).filter((plan) => plan.date === day).sort(planSort)])), [data.plans, weekDates]);
+  const allWeekPlans = useMemo(() => Array.from(weekPlans.values()).flat(), [weekPlans]);
   const groups = data.familyGroups ?? [];
 
   function toggleProfile(id: string) {
@@ -103,6 +105,16 @@ export function PlannerClient() {
     setExportMessage(null);
   }
 
+  function downloadWeekAgenda() {
+    const events = plansToIcsEvents(allWeekPlans);
+    if (events.length === 0) {
+      setWeekExportMessage(dict.dailyGuide.plannerWeekExportUnavailable);
+      return;
+    }
+    downloadIcs(`weekly-agenda-${date}.ics`, buildIcs(events));
+    setWeekExportMessage(null);
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <header className="max-w-3xl">
@@ -142,8 +154,12 @@ export function PlannerClient() {
           </section>
 
           <section data-testid="planner-week" className="rounded-xl border border-black/10 p-4 dark:border-white/10">
-            <h2 className="text-lg font-semibold">{dict.dailyGuide.plannerWeekTitle}</h2>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-lg font-semibold">{dict.dailyGuide.plannerWeekTitle}</h2>
+              <button type="button" onClick={downloadWeekAgenda} className="rounded-lg border border-accent/40 px-3 py-1.5 text-sm font-semibold text-accent">{dict.dailyGuide.plannerWeekExport}</button>
+            </div>
             <p className="mt-1 text-sm opacity-80">{dict.dailyGuide.plannerWeekDescription}</p>
+            {weekExportMessage && <p role="status" className="mt-2 text-sm text-accent">{weekExportMessage}</p>}
             <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               {weekDates.map((day) => {
                 const dayPlans = weekPlans.get(day) ?? [];

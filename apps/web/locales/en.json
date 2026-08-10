@@ -860,6 +860,8 @@
     "plannerWeekDescription": "A private seven-day overview from the selected day. Plans remain in this browser's encrypted vault.",
     "plannerWeekEmpty": "No plans",
     "plannerOpenDay": "Open {date}",
+    "plannerWeekExport": "Download timed week",
+    "plannerWeekExportUnavailable": "Add a start time to at least one plan in this week before exporting.",
     "groupTitle": "Family groups",
     "groupDescription": "Save reusable groups of derived profiles for planning. Group names stay in the encrypted vault.",
     "groupNamePlaceholder": "Group name",

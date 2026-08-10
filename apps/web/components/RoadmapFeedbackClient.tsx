@@ -53,7 +53,7 @@ export function RoadmapFeedbackClient() {
     { id: "alerts", label: dict.roadmap.alerts, category: dict.roadmap.categoryReliability, status: "released" },
     { id: "commands", label: dict.roadmap.commands, category: dict.roadmap.categoryExperience, status: "released" },
     { id: "icons", label: dict.roadmap.icons, category: dict.roadmap.categoryExperience, status: "released" },
-    { id: "week", label: dict.roadmap.week, category: dict.roadmap.categoryPlanning, status: "planned" },
+    { id: "week", label: dict.roadmap.week, category: dict.roadmap.categoryPlanning, status: "released" },
     { id: "calendar", label: dict.roadmap.calendar, category: dict.roadmap.categoryPrivacy, status: "planned" },
   ], [dict]);
   const categories = [...new Set(items.map((item) => item.category))];

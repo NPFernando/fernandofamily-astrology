@@ -82,6 +82,7 @@ test("roadmap feedback remains a local draft while votes persist on this device"
   await page.goto("/en/roadmap");
   const roadmap = page.getByTestId("roadmap-items");
   await expect(roadmap).toContainText(DICTS.en.roadmap.planner);
+  await expect(roadmap.getByRole("heading", { name: DICTS.en.roadmap.released }).locator("..").locator("..")).toContainText(DICTS.en.roadmap.week);
   await expect(page.getByTestId("roadmap-safety-notice")).toContainText(DICTS.en.roadmap.safetyTitle);
   await page.getByLabel(DICTS.en.roadmap.search).fill("calendar");
   await expect(roadmap).toContainText(DICTS.en.roadmap.calendar);

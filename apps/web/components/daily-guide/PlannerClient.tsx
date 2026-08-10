@@ -14,6 +14,21 @@ function initialDate() {
   return nowAsTargetDateTime("Asia/Colombo").date;
 }
 
+function addDays(date: string, offset: number) {
+  const [year, month, day] = date.split("-").map(Number);
+  const next = new Date(year, month - 1, day + offset, 12);
+  return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}-${String(next.getDate()).padStart(2, "0")}`;
+}
+
+function formatWeekDate(date: string, locale: string) {
+  const [year, month, day] = date.split("-").map(Number);
+  return new Intl.DateTimeFormat(locale === "si" ? "si-LK" : "en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  }).format(new Date(year, month - 1, day, 12));
+}
+
 export function PlannerClient() {
   const { dict, locale } = useLocale();
   const { data, unlocked, update } = useLocalVault();
@@ -28,6 +43,8 @@ export function PlannerClient() {
   const [exportMessage, setExportMessage] = useState<string | null>(null);
 
   const plans = useMemo(() => (data.plans ?? []).filter((plan) => plan.date === date).sort(planSort), [data.plans, date]);
+  const weekDates = useMemo(() => Array.from({ length: 7 }, (_, offset) => addDays(date, offset)), [date]);
+  const weekPlans = useMemo(() => new Map(weekDates.map((day) => [day, (data.plans ?? []).filter((plan) => plan.date === day).sort(planSort)])), [data.plans, weekDates]);
   const groups = data.familyGroups ?? [];
 
   function toggleProfile(id: string) {
@@ -122,6 +139,26 @@ export function PlannerClient() {
             <p className="mt-1 text-xs opacity-70">{dict.dailyGuide.agendaExportHelp}</p>
             {plans.length === 0 ? <p className="mt-2 text-sm opacity-70">{dict.dailyGuide.agendaEmpty}</p> : <ul className="mt-3 space-y-2">{plans.map((plan) => <li key={plan.id} className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-black/10 p-3 text-sm dark:border-white/10"><div><p className="font-semibold">{plan.starts_at ? `${plan.starts_at}${plan.ends_at ? `–${plan.ends_at}` : ""} · ` : ""}{plan.title}</p>{plan.notes && <p className="mt-1 opacity-70">{plan.notes}</p>}</div><button type="button" onClick={() => { void removePlan(plan.id); }} className="text-xs text-accent underline">{dict.ui.deleteProfile}</button></li>)}</ul>}
             {exportMessage && <p role="status" className="mt-2 text-sm text-accent">{exportMessage}</p>}
+          </section>
+
+          <section data-testid="planner-week" className="rounded-xl border border-black/10 p-4 dark:border-white/10">
+            <h2 className="text-lg font-semibold">{dict.dailyGuide.plannerWeekTitle}</h2>
+            <p className="mt-1 text-sm opacity-80">{dict.dailyGuide.plannerWeekDescription}</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {weekDates.map((day) => {
+                const dayPlans = weekPlans.get(day) ?? [];
+                const formattedDate = formatWeekDate(day, locale);
+                return (
+                  <article key={day} className={`rounded-lg border p-3 ${day === date ? "border-accent bg-accent/5" : "border-black/10 dark:border-white/10"}`}>
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="font-semibold">{formattedDate}</h3>
+                      <button type="button" aria-label={dict.dailyGuide.plannerOpenDay.replace("{date}", formattedDate)} onClick={() => setDate(day)} className="text-xs font-semibold text-accent underline">{dict.dailyGuide.plannerOpenDay.replace("{date}", formattedDate)}</button>
+                    </div>
+                    {dayPlans.length === 0 ? <p className="mt-3 text-sm opacity-65">{dict.dailyGuide.plannerWeekEmpty}</p> : <ul className="mt-3 space-y-2 text-sm">{dayPlans.map((plan) => <li key={plan.id}><span className="font-medium">{plan.starts_at ? `${plan.starts_at} · ` : ""}{plan.title}</span>{plan.notes && <p className="mt-0.5 opacity-65">{plan.notes}</p>}</li>)}</ul>}
+                  </article>
+                );
+              })}
+            </div>
           </section>
 
           <section className="rounded-xl border border-black/10 p-4 dark:border-white/10">

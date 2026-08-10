@@ -49,6 +49,7 @@ export function PlannerClient() {
   const weekDates = useMemo(() => Array.from({ length: 7 }, (_, offset) => addDays(date, offset)), [date]);
   const weekPlans = useMemo(() => new Map(weekDates.map((day) => [day, (data.plans ?? []).filter((plan) => plan.date === day).sort(planSort)])), [data.plans, weekDates]);
   const allWeekPlans = useMemo(() => Array.from(weekPlans.values()).flat(), [weekPlans]);
+  const profileLabels = useMemo(() => new Map(profiles.map((profile) => [profile.id, profile.label])), [profiles]);
   const groups = data.familyGroups ?? [];
 
   function toggleProfile(id: string) {
@@ -61,6 +62,11 @@ export function PlannerClient() {
 
   function groupIsSelected(group: VaultFamilyGroup) {
     return group.profile_ids.length === selectedProfiles.length && group.profile_ids.every((id) => selectedProfiles.includes(id));
+  }
+
+  function planProfileSummary(plan: VaultPlan) {
+    const labels = plan.profile_ids.map((id) => profileLabels.get(id)).filter((label): label is string => Boolean(label));
+    return labels.length > 0 ? dict.dailyGuide.planFor.replace("{profiles}", labels.join(", ")) : null;
   }
 
   async function savePlan(event: FormEvent<HTMLFormElement>) {
@@ -195,7 +201,7 @@ export function PlannerClient() {
           <section data-testid="planner-agenda" className="rounded-xl border border-black/10 p-4 dark:border-white/10">
             <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-semibold">{dict.dailyGuide.agendaTitle}</h2><button type="button" onClick={downloadAgenda} className="rounded-lg border border-accent/40 px-3 py-1.5 text-sm font-semibold text-accent">{dict.dailyGuide.exportAgenda}</button></div>
             <p className="mt-1 text-xs opacity-70">{dict.dailyGuide.agendaExportHelp}</p>
-            {plans.length === 0 ? <p className="mt-2 text-sm opacity-70">{dict.dailyGuide.agendaEmpty}</p> : <ul className="mt-3 space-y-2">{plans.map((plan) => <li key={plan.id} className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-black/10 p-3 text-sm dark:border-white/10"><div><p className="font-semibold">{plan.starts_at ? `${plan.starts_at}${plan.ends_at ? `–${plan.ends_at}` : ""} · ` : ""}{plan.title}</p>{plan.notes && <p className="mt-1 opacity-70">{plan.notes}</p>}</div><div className="flex flex-wrap gap-3"><button type="button" onClick={() => { void copyPlanToNextDay(plan); }} className="text-xs text-accent underline">{dict.dailyGuide.copyPlan}</button><button type="button" onClick={() => editPlan(plan)} className="text-xs text-accent underline">{dict.dailyGuide.editPlan}</button><button type="button" onClick={() => { void removePlan(plan.id); }} className="text-xs text-accent underline">{dict.ui.deleteProfile}</button></div></li>)}</ul>}
+            {plans.length === 0 ? <p className="mt-2 text-sm opacity-70">{dict.dailyGuide.agendaEmpty}</p> : <ul className="mt-3 space-y-2">{plans.map((plan) => { const profileSummary = planProfileSummary(plan); return <li key={plan.id} className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-black/10 p-3 text-sm dark:border-white/10"><div><p className="font-semibold">{plan.starts_at ? `${plan.starts_at}${plan.ends_at ? `–${plan.ends_at}` : ""} · ` : ""}{plan.title}</p>{profileSummary && <p className="mt-1 opacity-70">{profileSummary}</p>}{plan.notes && <p className="mt-1 opacity-70">{plan.notes}</p>}</div><div className="flex flex-wrap gap-3"><button type="button" onClick={() => { void copyPlanToNextDay(plan); }} className="text-xs text-accent underline">{dict.dailyGuide.copyPlan}</button><button type="button" onClick={() => editPlan(plan)} className="text-xs text-accent underline">{dict.dailyGuide.editPlan}</button><button type="button" onClick={() => { void removePlan(plan.id); }} className="text-xs text-accent underline">{dict.ui.deleteProfile}</button></div></li>; })}</ul>}
             {exportMessage && <p role="status" className="mt-2 text-sm text-accent">{exportMessage}</p>}
             {copyMessage && <p role="status" className="mt-2 text-sm text-accent">{copyMessage}</p>}
           </section>
@@ -217,7 +223,7 @@ export function PlannerClient() {
                       <h3 className="font-semibold">{formattedDate}</h3>
                       <button type="button" aria-label={dict.dailyGuide.plannerOpenDay.replace("{date}", formattedDate)} onClick={() => setDate(day)} className="text-xs font-semibold text-accent underline">{dict.dailyGuide.plannerOpenDay.replace("{date}", formattedDate)}</button>
                     </div>
-                    {dayPlans.length === 0 ? <p className="mt-3 text-sm opacity-65">{dict.dailyGuide.plannerWeekEmpty}</p> : <ul className="mt-3 space-y-2 text-sm">{dayPlans.map((plan) => <li key={plan.id}><span className="font-medium">{plan.starts_at ? `${plan.starts_at} · ` : ""}{plan.title}</span>{plan.notes && <p className="mt-0.5 opacity-65">{plan.notes}</p>}</li>)}</ul>}
+                    {dayPlans.length === 0 ? <p className="mt-3 text-sm opacity-65">{dict.dailyGuide.plannerWeekEmpty}</p> : <ul className="mt-3 space-y-2 text-sm">{dayPlans.map((plan) => { const profileSummary = planProfileSummary(plan); return <li key={plan.id}><span className="font-medium">{plan.starts_at ? `${plan.starts_at} · ` : ""}{plan.title}</span>{profileSummary && <p className="mt-0.5 opacity-65">{profileSummary}</p>}{plan.notes && <p className="mt-0.5 opacity-65">{plan.notes}</p>}</li>; })}</ul>}
                   </article>
                 );
               })}

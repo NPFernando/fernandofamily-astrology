@@ -32,6 +32,7 @@ test("daily planner keeps manual plans and family groups inside the encrypted va
   await page.getByLabel(DICTS.en.dailyGuide.planStart).fill("09:30");
   await page.getByRole("button", { name: DICTS.en.dailyGuide.addPlan }).click();
   await expect(page.getByTestId("planner-agenda")).toContainText("Temple visit");
+  await expect(page.getByTestId("planner-agenda")).toContainText("For: Amma");
   await expect(page.getByTestId("planner-week")).toContainText("Temple visit");
   const plannerDate = page.getByLabel(DICTS.en.ui.pickDate);
   const today = await plannerDate.inputValue();

@@ -850,6 +850,7 @@
     "planStart": "Start",
     "planEnd": "End",
     "planNotes": "Private notes",
+    "planFor": "For: {profiles}",
     "addPlan": "Add to agenda",
     "useGroupForPlan": "Use a saved family group",
     "copyPlan": "Copy to next day",

@@ -618,6 +618,7 @@
     "copyFeedback": "Copy feedback",
     "copiedFeedback": "Copied to clipboard.",
     "copyFeedbackError": "Could not copy feedback. Select and copy it manually.",
+    "sensitiveFeedbackWarning": "Remove sensitive details before opening a public issue. This draft appears to contain credentials, labelled birth details, or precise coordinates.",
     "openIssue": "Open GitHub issue"
   },
   "pages": {

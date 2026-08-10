@@ -1,10 +1,15 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { type MouseEvent, useMemo, useRef, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { PUBLIC_REPOSITORY_URL } from "@/lib/site-config";
 
 const VOTES_KEY = "ff_roadmap_votes_v1";
+const SENSITIVE_FEEDBACK_PATTERNS = [
+  /\b(?:passphrase|password|api[\s_-]?key|private[\s_-]?key|access[\s_-]?token|bearer\s+token)\s*[:=]/i,
+  /\b(?:birth\s*(?:date|time|details)|date\s+of\s+birth)\s*[:=]/i,
+  /\b-?\d{1,2}\.\d{3,}\s*,\s*-?\d{1,3}\.\d{3,}\b/,
+];
 
 type ItemId = "readiness" | "planner" | "groups" | "agenda" | "changes" | "alerts" | "commands" | "icons" | "week" | "calendar";
 type Status = "released" | "inProgress" | "planned";
@@ -24,6 +29,10 @@ function loadVotes(): Record<string, 1> {
   } catch {
     return {};
   }
+}
+
+function containsSensitiveFeedback(value: string) {
+  return SENSITIVE_FEEDBACK_PATTERNS.some((pattern) => pattern.test(value));
 }
 
 export function RoadmapFeedbackClient() {
@@ -66,8 +75,13 @@ export function RoadmapFeedbackClient() {
 
   const selectedLabel = items.find((item) => item.id === selected)?.label ?? "";
   const feedback = feedbackByItem[selected] ?? "";
+  const hasSensitiveFeedback = containsSensitiveFeedback(feedback);
   const draft = `${dict.roadmap.feedbackSubject}: ${selectedLabel}\n\n${feedback.trim()}`;
   const issueHref = `${PUBLIC_REPOSITORY_URL}/issues/new?title=${encodeURIComponent(`${dict.roadmap.feedbackSubject}: ${selectedLabel}`)}&body=${encodeURIComponent(draft)}`;
+
+  function blockSensitiveIssue(event: MouseEvent<HTMLAnchorElement>) {
+    if (hasSensitiveFeedback) event.preventDefault();
+  }
 
   async function copyFeedback() {
     try {
@@ -91,7 +105,7 @@ export function RoadmapFeedbackClient() {
         <p className="text-xs font-semibold uppercase tracking-wider text-accent">{dict.roadmap.kicker}</p>
         <h1 className="mt-2 text-2xl font-bold">{dict.roadmap.title}</h1>
         <p className="mt-2 max-w-3xl leading-relaxed opacity-80">{dict.roadmap.body}</p>
-        <div className="mt-4 flex flex-wrap gap-3"><a href={PUBLIC_REPOSITORY_URL} target="_blank" rel="noreferrer" className="rounded-lg border border-black/10 px-3 py-1.5 text-sm font-semibold dark:border-white/20">{dict.roadmap.viewGithub}</a><a href={issueHref} target="_blank" rel="noreferrer" className="rounded-lg bg-accent px-3 py-1.5 text-sm font-semibold text-white">{dict.roadmap.submitIdea}</a></div>
+        <div className="mt-4 flex flex-wrap gap-3"><a href={PUBLIC_REPOSITORY_URL} target="_blank" rel="noreferrer" className="rounded-lg border border-black/10 px-3 py-1.5 text-sm font-semibold dark:border-white/20">{dict.roadmap.viewGithub}</a><a href={hasSensitiveFeedback ? undefined : issueHref} onClick={blockSensitiveIssue} aria-disabled={hasSensitiveFeedback || undefined} target="_blank" rel="noreferrer" className={`rounded-lg bg-accent px-3 py-1.5 text-sm font-semibold text-white ${hasSensitiveFeedback ? "cursor-not-allowed opacity-50" : ""}`}>{dict.roadmap.submitIdea}</a></div>
       </header>
 
       <aside className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm" data-testid="roadmap-safety-notice"><h2 className="font-semibold">{dict.roadmap.safetyTitle}</h2><p className="mt-1 opacity-90">{dict.roadmap.safetyBody}</p></aside>
@@ -118,7 +132,8 @@ export function RoadmapFeedbackClient() {
         <p className="mt-1 text-sm opacity-80">{dict.roadmap.feedbackBody}</p>
         <label className="mt-4 block text-sm font-medium">{dict.roadmap.feedbackFor}<select ref={feedbackSelectRef} value={selected} onChange={(event) => { setSelected(event.target.value as ItemId); setCopyState("idle"); }} className="mt-1 block w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20">{items.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
         <label className="mt-3 block text-sm font-medium">{dict.roadmap.feedbackLabel}<textarea value={feedback} onChange={(event) => { setFeedbackByItem((current) => ({ ...current, [selected]: event.target.value })); setCopyState("idle"); }} rows={4} className="mt-1 w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" /></label>
-        <div className="mt-3 flex flex-wrap items-center gap-3"><button type="button" onClick={() => { void copyFeedback(); }} className="rounded-lg border border-black/10 px-4 py-2 text-sm font-semibold dark:border-white/20">{dict.roadmap.copyFeedback}</button><a href={issueHref} target="_blank" rel="noreferrer" className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white">{dict.roadmap.openIssue}</a><p aria-live="polite" className="text-sm opacity-75">{copyState === "copied" ? dict.roadmap.copiedFeedback : copyState === "error" ? dict.roadmap.copyFeedbackError : null}</p></div>
+        {hasSensitiveFeedback && <p role="alert" data-testid="roadmap-sensitive-feedback" className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm">{dict.roadmap.sensitiveFeedbackWarning}</p>}
+        <div className="mt-3 flex flex-wrap items-center gap-3"><button type="button" onClick={() => { void copyFeedback(); }} className="rounded-lg border border-black/10 px-4 py-2 text-sm font-semibold dark:border-white/20">{dict.roadmap.copyFeedback}</button><a data-testid="roadmap-open-issue" href={hasSensitiveFeedback ? undefined : issueHref} onClick={blockSensitiveIssue} aria-disabled={hasSensitiveFeedback || undefined} target="_blank" rel="noreferrer" className={`rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white ${hasSensitiveFeedback ? "cursor-not-allowed opacity-50" : ""}`}>{dict.roadmap.openIssue}</a><p aria-live="polite" className="text-sm opacity-75">{copyState === "copied" ? dict.roadmap.copiedFeedback : copyState === "error" ? dict.roadmap.copyFeedbackError : null}</p></div>
       </section>
     </div>
   );

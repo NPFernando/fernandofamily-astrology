@@ -108,8 +108,12 @@ test("roadmap feedback remains a local draft while votes persist on this device"
   await page.getByRole("button", { name: DICTS.en.roadmap.copyFeedback }).click();
   await expect(page.getByText(DICTS.en.roadmap.copiedFeedback)).toBeVisible();
   await expect.poll(() => page.evaluate(() => window.sessionStorage.getItem("copied-roadmap-feedback"))).toContain("Please add a compact week view.");
-  const issue = page.getByRole("link", { name: DICTS.en.roadmap.openIssue });
+  const issue = page.getByTestId("roadmap-open-issue");
   await expect(issue).toHaveAttribute("href", /Please%20add%20a%20compact%20week%20view/);
+  await page.getByLabel(DICTS.en.roadmap.feedbackLabel).fill("API key: do-not-share");
+  await expect(page.getByTestId("roadmap-sensitive-feedback")).toContainText(DICTS.en.roadmap.sensitiveFeedbackWarning);
+  await expect(issue).toHaveAttribute("aria-disabled", "true");
+  await expect(issue).not.toHaveAttribute("href", /./);
   await expect.poll(() => page.evaluate(() => window.localStorage.getItem("ff_roadmap_votes_v1"))).toBe("{}");
 });
 

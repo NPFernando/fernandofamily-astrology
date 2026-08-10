@@ -42,6 +42,7 @@ export function PlannerClient() {
   const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
   const [exportMessage, setExportMessage] = useState<string | null>(null);
   const [weekExportMessage, setWeekExportMessage] = useState<string | null>(null);
+  const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
 
   const plans = useMemo(() => (data.plans ?? []).filter((plan) => plan.date === date).sort(planSort), [data.plans, date]);
   const weekDates = useMemo(() => Array.from({ length: 7 }, (_, offset) => addDays(date, offset)), [date]);
@@ -56,18 +57,39 @@ export function PlannerClient() {
   async function savePlan(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!unlocked || !title.trim()) return;
-    const plan: VaultPlan = {
-      id: crypto.randomUUID(),
+    const planDetails = {
       title: title.trim(),
       date,
       starts_at: start || null,
       ends_at: end || null,
       profile_ids: selectedProfiles,
       notes: notes.trim(),
-      source: "manual",
-      created_at: new Date().toISOString(),
     };
-    await update((current) => ({ ...current, plans: [...(current.plans ?? []), plan] }));
+    if (editingPlanId) {
+      await update((current) => ({ ...current, plans: (current.plans ?? []).map((plan) => plan.id === editingPlanId ? { ...plan, ...planDetails } : plan) }));
+      setEditingPlanId(null);
+    } else {
+      const plan: VaultPlan = { id: crypto.randomUUID(), ...planDetails, source: "manual", created_at: new Date().toISOString() };
+      await update((current) => ({ ...current, plans: [...(current.plans ?? []), plan] }));
+    }
+    setTitle("");
+    setStart("");
+    setEnd("");
+    setNotes("");
+  }
+
+  function editPlan(plan: VaultPlan) {
+    setEditingPlanId(plan.id);
+    setTitle(plan.title);
+    setDate(plan.date);
+    setStart(plan.starts_at ?? "");
+    setEnd(plan.ends_at ?? "");
+    setNotes(plan.notes);
+    setSelectedProfiles(plan.profile_ids);
+  }
+
+  function cancelPlanEdit() {
+    setEditingPlanId(null);
     setTitle("");
     setStart("");
     setEnd("");
@@ -142,14 +164,14 @@ export function PlannerClient() {
               </div>
               <label className="text-sm font-medium lg:col-span-2">{dict.dailyGuide.planNotes}<textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={2} className="mt-1 w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" /></label>
               <div className="lg:col-span-2"><ProfileChoices profiles={profiles} selected={selectedProfiles} onToggle={toggleProfile} dict={dict} /></div>
-              <button type="submit" className="w-fit rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white">{dict.dailyGuide.addPlan}</button>
+              <div className="flex flex-wrap gap-3 lg:col-span-2"><button type="submit" className="w-fit rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white">{editingPlanId ? dict.dailyGuide.savePlan : dict.dailyGuide.addPlan}</button>{editingPlanId && <button type="button" onClick={cancelPlanEdit} className="w-fit rounded-lg border border-black/15 px-4 py-2 text-sm font-semibold dark:border-white/20">{dict.dailyGuide.cancelPlanEdit}</button>}</div>
             </form>
           </section>
 
           <section data-testid="planner-agenda" className="rounded-xl border border-black/10 p-4 dark:border-white/10">
             <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-semibold">{dict.dailyGuide.agendaTitle}</h2><button type="button" onClick={downloadAgenda} className="rounded-lg border border-accent/40 px-3 py-1.5 text-sm font-semibold text-accent">{dict.dailyGuide.exportAgenda}</button></div>
             <p className="mt-1 text-xs opacity-70">{dict.dailyGuide.agendaExportHelp}</p>
-            {plans.length === 0 ? <p className="mt-2 text-sm opacity-70">{dict.dailyGuide.agendaEmpty}</p> : <ul className="mt-3 space-y-2">{plans.map((plan) => <li key={plan.id} className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-black/10 p-3 text-sm dark:border-white/10"><div><p className="font-semibold">{plan.starts_at ? `${plan.starts_at}${plan.ends_at ? `–${plan.ends_at}` : ""} · ` : ""}{plan.title}</p>{plan.notes && <p className="mt-1 opacity-70">{plan.notes}</p>}</div><button type="button" onClick={() => { void removePlan(plan.id); }} className="text-xs text-accent underline">{dict.ui.deleteProfile}</button></li>)}</ul>}
+            {plans.length === 0 ? <p className="mt-2 text-sm opacity-70">{dict.dailyGuide.agendaEmpty}</p> : <ul className="mt-3 space-y-2">{plans.map((plan) => <li key={plan.id} className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-black/10 p-3 text-sm dark:border-white/10"><div><p className="font-semibold">{plan.starts_at ? `${plan.starts_at}${plan.ends_at ? `–${plan.ends_at}` : ""} · ` : ""}{plan.title}</p>{plan.notes && <p className="mt-1 opacity-70">{plan.notes}</p>}</div><div className="flex gap-3"><button type="button" onClick={() => editPlan(plan)} className="text-xs text-accent underline">{dict.dailyGuide.editPlan}</button><button type="button" onClick={() => { void removePlan(plan.id); }} className="text-xs text-accent underline">{dict.ui.deleteProfile}</button></div></li>)}</ul>}
             {exportMessage && <p role="status" className="mt-2 text-sm text-accent">{exportMessage}</p>}
           </section>
 

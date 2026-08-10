@@ -152,10 +152,17 @@ export function PlannerClient() {
       ) : (
         <>
           <section className="rounded-xl border border-black/10 bg-white/35 p-4 dark:border-white/10 dark:bg-white/[.03]">
-            <label className="block max-w-xs text-sm font-medium">
-              {dict.ui.pickDate}
-              <input type="date" value={date} onChange={(event) => setDate(event.target.value)} className="mt-1 w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" />
-            </label>
+            <div data-testid="planner-date-controls" className="flex flex-wrap items-end justify-between gap-3">
+              <label className="block max-w-xs text-sm font-medium">
+                {dict.ui.pickDate}
+                <input type="date" value={date} onChange={(event) => setDate(event.target.value)} className="mt-1 w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" />
+              </label>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" onClick={() => setDate(addDays(date, -1))} className="rounded-lg border border-black/15 px-3 py-2 text-sm font-semibold dark:border-white/20">{dict.ui.previousDay}</button>
+                <button type="button" onClick={() => setDate(initialDate())} className="rounded-lg border border-black/15 px-3 py-2 text-sm font-semibold dark:border-white/20">{dict.ui.backToToday}</button>
+                <button type="button" onClick={() => setDate(addDays(date, 1))} className="rounded-lg border border-black/15 px-3 py-2 text-sm font-semibold dark:border-white/20">{dict.ui.nextDay}</button>
+              </div>
+            </div>
             <form onSubmit={savePlan} className="mt-4 grid gap-3 lg:grid-cols-2">
               <label className="text-sm font-medium">{dict.dailyGuide.planTitle}<input required value={title} onChange={(event) => setTitle(event.target.value)} className="mt-1 w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" /></label>
               <div className="grid grid-cols-2 gap-3">

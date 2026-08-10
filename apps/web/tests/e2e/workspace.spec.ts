@@ -25,6 +25,13 @@ test("daily planner keeps manual plans and family groups inside the encrypted va
   await page.getByRole("button", { name: DICTS.en.dailyGuide.addPlan }).click();
   await expect(page.getByTestId("planner-agenda")).toContainText("Temple visit");
   await expect(page.getByTestId("planner-week")).toContainText("Temple visit");
+  const plannerDate = page.getByLabel(DICTS.en.ui.pickDate);
+  const today = await plannerDate.inputValue();
+  const dateControls = page.getByTestId("planner-date-controls");
+  await dateControls.getByRole("button", { name: DICTS.en.ui.nextDay }).click();
+  await expect(plannerDate).not.toHaveValue(today);
+  await dateControls.getByRole("button", { name: DICTS.en.ui.backToToday }).click();
+  await expect(plannerDate).toHaveValue(today);
   await page.getByRole("button", { name: DICTS.en.dailyGuide.editPlan }).click();
   await expect(page.getByLabel(DICTS.en.dailyGuide.planTitle)).toHaveValue("Temple visit");
   await page.getByLabel(DICTS.en.dailyGuide.planTitle).fill("Temple visit revised");

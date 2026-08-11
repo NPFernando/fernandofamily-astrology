@@ -589,6 +589,7 @@
     "allCategories": "All categories",
     "filterStatus": "Filter status",
     "allStatuses": "All statuses",
+    "clearFilters": "Clear filters",
     "itemsShown": "{n} roadmap items shown.",
     "noMatches": "No matching items.",
     "categoryPrivacy": "Privacy",

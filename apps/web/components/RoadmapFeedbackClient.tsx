@@ -59,6 +59,7 @@ export function RoadmapFeedbackClient() {
     { id: "calendar", label: dict.roadmap.calendar, category: dict.roadmap.categoryPrivacy, status: "planned" },
   ], [dict]);
   const categories = [...new Set(items.map((item) => item.category))];
+  const hasActiveFilters = Boolean(query.trim() || category || statusFilter);
   const filtered = items.filter((item) => {
     const matchesQuery = `${item.label} ${item.category}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase());
     return matchesQuery && (!category || item.category === category) && (!statusFilter || item.status === statusFilter);
@@ -80,6 +81,12 @@ export function RoadmapFeedbackClient() {
     window.localStorage.removeItem(VOTES_KEY);
     setVotes({});
     setVotesCleared(true);
+  }
+
+  function clearFilters() {
+    setQuery("");
+    setCategory("");
+    setStatusFilter("");
   }
 
   const selectedLabel = items.find((item) => item.id === selected)?.label ?? "";
@@ -128,7 +135,7 @@ export function RoadmapFeedbackClient() {
         <label className="text-sm font-medium">{dict.roadmap.filterCategory}<select value={category} onChange={(event) => setCategory(event.target.value)} className="mt-1 block w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20"><option value="">{dict.roadmap.allCategories}</option>{categories.map((entry) => <option key={entry} value={entry}>{entry}</option>)}</select></label>
         <label className="text-sm font-medium">{dict.roadmap.filterStatus}<select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as Status | "")} className="mt-1 block w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20"><option value="">{dict.roadmap.allStatuses}</option>{statuses.map((status) => <option key={status} value={status}>{dict.roadmap[status]}</option>)}</select></label>
       </section>
-      <div className="flex flex-wrap items-center gap-3 text-sm opacity-75"><p>{dict.roadmap.itemsShown.replace("{n}", String(filtered.length))} {dict.roadmap.localVoteNote}</p>{Object.keys(votes).length > 0 && <button type="button" onClick={clearVotes} className="font-semibold text-accent underline">{dict.roadmap.clearVotes}</button>}{votesCleared && <p role="status">{dict.roadmap.votesCleared}</p>}</div>
+      <div className="flex flex-wrap items-center gap-3 text-sm opacity-75"><p>{dict.roadmap.itemsShown.replace("{n}", String(filtered.length))} {dict.roadmap.localVoteNote}</p>{hasActiveFilters && <button type="button" onClick={clearFilters} className="font-semibold text-accent underline">{dict.roadmap.clearFilters}</button>}{Object.keys(votes).length > 0 && <button type="button" onClick={clearVotes} className="font-semibold text-accent underline">{dict.roadmap.clearVotes}</button>}{votesCleared && <p role="status">{dict.roadmap.votesCleared}</p>}</div>
 
       <section data-testid="roadmap-items" className="grid gap-4 xl:grid-cols-3">
         {statuses.map((status) => {

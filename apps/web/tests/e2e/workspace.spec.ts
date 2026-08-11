@@ -32,6 +32,7 @@ test("daily planner keeps manual plans and family groups inside the encrypted va
   await expect(page.getByLabel(DICTS.en.dailyGuide.planTitle)).toHaveValue(DICTS.en.dailyGuide.plannerTemplatePuja);
   await page.getByLabel(DICTS.en.dailyGuide.planTitle).fill("Temple visit");
   await page.getByLabel(DICTS.en.dailyGuide.planStart).fill("09:30");
+  await page.getByLabel(DICTS.en.dailyGuide.planRepeatYearly).check();
   await page.getByRole("button", { name: DICTS.en.dailyGuide.addPlan }).click();
   await expect(page.getByTestId("planner-agenda")).toContainText("Temple visit");
   await expect(page.getByTestId("planner-agenda")).toContainText("For: Amma");
@@ -56,6 +57,7 @@ test("daily planner keeps manual plans and family groups inside the encrypted va
   let downloadedCalendar = "";
   if (downloadStream) for await (const chunk of downloadStream) downloadedCalendar += chunk.toString();
   expect(downloadedCalendar).toContain("SUMMARY:Temple visit revised");
+  expect(downloadedCalendar).toContain("RRULE:FREQ=YEARLY");
   const weekDownloadPromise = page.waitForEvent("download");
   await page.getByTestId("planner-week").getByRole("button", { name: DICTS.en.dailyGuide.plannerWeekExport }).click();
   const weekDownload = await weekDownloadPromise;
@@ -106,6 +108,8 @@ test("roadmap feedback remains a local draft while votes persist on this device"
   const vote = roadmap.getByRole("button", { name: new RegExp(`${DICTS.en.roadmap.vote}.*0`) }).first();
   await vote.click();
   await expect(roadmap.getByRole("button", { name: new RegExp(`${DICTS.en.roadmap.voted}.*1`) }).first()).toHaveAttribute("aria-pressed", "true");
+  await page.getByLabel(DICTS.en.roadmap.sortVotedFirst).check();
+  await expect(page.getByLabel(DICTS.en.roadmap.sortVotedFirst)).toBeChecked();
   await page.getByRole("button", { name: DICTS.en.roadmap.clearVotes }).click();
   await expect(page.getByRole("status")).toContainText(DICTS.en.roadmap.votesCleared);
   await expect(roadmap.getByRole("button", { name: new RegExp(`${DICTS.en.roadmap.vote}.*0`) }).first()).toHaveAttribute("aria-pressed", "false");

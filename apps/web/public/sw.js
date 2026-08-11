@@ -2,7 +2,7 @@
 // so the site is reachable offline. The app may separately read an encrypted
 // vault-owned cached schedule and labels it as cached rather than live; this
 // worker neither stores schedules nor attempts astronomical calculation.
-const CACHE_NAME = "ff-astrology-shell-v9";
+const CACHE_NAME = "ff-astrology-shell-v10";
 // Locale data is bundled into the page JS (imported at build time, not
 // fetched from a public URL), so it's cached automatically once the page
 // itself is cached below — no separate /locales/*.json entries needed here.
@@ -111,6 +111,19 @@ self.addEventListener("fetch", (event) => {
   // Never intercept API calls — the app itself handles online/offline
   // fallback for calculation requests explicitly and labels cached data.
   if (url.pathname.startsWith("/api/")) return;
+
+  // Always read navigation documents from the network when connected. This
+  // prevents an older cached route shell from hiding a newly deployed feature;
+  // only a genuine offline navigation falls back to the local shell below.
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(new Request(request, { cache: "no-store" })).catch(() => {
+        const fallback = url.pathname.startsWith("/en") ? "/en" : "/si";
+        return caches.match(fallback);
+      }),
+    );
+    return;
+  }
 
   event.respondWith(
     fetch(request)

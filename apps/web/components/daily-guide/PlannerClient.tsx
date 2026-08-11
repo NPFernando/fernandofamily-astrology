@@ -38,6 +38,7 @@ export function PlannerClient() {
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
   const [notes, setNotes] = useState("");
+  const [repeatYearly, setRepeatYearly] = useState(false);
   const [groupLabel, setGroupLabel] = useState("");
   const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
   const [exportMessage, setExportMessage] = useState<string | null>(null);
@@ -79,6 +80,7 @@ export function PlannerClient() {
       ends_at: end || null,
       profile_ids: selectedProfiles,
       notes: notes.trim(),
+      recurrence: repeatYearly ? "yearly" as const : undefined,
     };
     if (editingPlanId) {
       await update((current) => ({ ...current, plans: (current.plans ?? []).map((plan) => plan.id === editingPlanId ? { ...plan, ...planDetails } : plan) }));
@@ -91,6 +93,7 @@ export function PlannerClient() {
     setStart("");
     setEnd("");
     setNotes("");
+    setRepeatYearly(false);
   }
 
   function editPlan(plan: VaultPlan) {
@@ -100,6 +103,7 @@ export function PlannerClient() {
     setStart(plan.starts_at ?? "");
     setEnd(plan.ends_at ?? "");
     setNotes(plan.notes);
+    setRepeatYearly(plan.recurrence === "yearly");
     setSelectedProfiles(plan.profile_ids);
   }
 
@@ -109,6 +113,7 @@ export function PlannerClient() {
     setStart("");
     setEnd("");
     setNotes("");
+    setRepeatYearly(false);
   }
 
   function applyTemplate(templateTitle: string) {
@@ -117,6 +122,7 @@ export function PlannerClient() {
     setStart("");
     setEnd("");
     setNotes("");
+    setRepeatYearly(false);
   }
 
   async function saveGroup(event: FormEvent<HTMLFormElement>) {
@@ -200,6 +206,7 @@ export function PlannerClient() {
                 <label className="text-sm font-medium">{dict.dailyGuide.planStart}<input type="time" value={start} onChange={(event) => setStart(event.target.value)} className="mt-1 w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" /></label>
                 <label className="text-sm font-medium">{dict.dailyGuide.planEnd}<input type="time" value={end} onChange={(event) => setEnd(event.target.value)} className="mt-1 w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" /></label>
               </div>
+              <label className="flex items-center gap-2 text-sm lg:col-span-2"><input type="checkbox" checked={repeatYearly} onChange={(event) => setRepeatYearly(event.target.checked)} />{dict.dailyGuide.planRepeatYearly}</label>
               <label className="text-sm font-medium lg:col-span-2">{dict.dailyGuide.planNotes}<textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={2} className="mt-1 w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" /></label>
               {groups.length > 0 && <fieldset data-testid="planner-group-picker" className="lg:col-span-2"><legend className="text-sm font-medium">{dict.dailyGuide.useGroupForPlan}</legend><div className="mt-2 flex flex-wrap gap-2">{groups.map((group) => <button key={group.id} type="button" aria-pressed={groupIsSelected(group)} onClick={() => selectGroup(group)} className="rounded-full border border-accent/40 px-3 py-1.5 text-sm font-semibold text-accent">{group.label} · {group.profile_ids.length}</button>)}</div></fieldset>}
               <div className="lg:col-span-2"><ProfileChoices profiles={profiles} selected={selectedProfiles} onToggle={toggleProfile} dict={dict} /></div>
@@ -210,7 +217,7 @@ export function PlannerClient() {
           <section data-testid="planner-agenda" className="rounded-xl border border-black/10 p-4 dark:border-white/10">
             <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-semibold">{dict.dailyGuide.agendaTitle}</h2><button type="button" onClick={downloadAgenda} className="rounded-lg border border-accent/40 px-3 py-1.5 text-sm font-semibold text-accent">{dict.dailyGuide.exportAgenda}</button></div>
             <p className="mt-1 text-xs opacity-70">{dict.dailyGuide.agendaExportHelp}</p>
-            {plans.length === 0 ? <p className="mt-2 text-sm opacity-70">{dict.dailyGuide.agendaEmpty}</p> : <ul className="mt-3 space-y-2">{plans.map((plan) => { const profileSummary = planProfileSummary(plan); return <li key={plan.id} className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-black/10 p-3 text-sm dark:border-white/10"><div><p className="font-semibold">{plan.starts_at ? `${plan.starts_at}${plan.ends_at ? `–${plan.ends_at}` : ""} · ` : ""}{plan.title}</p>{profileSummary && <p className="mt-1 opacity-70">{profileSummary}</p>}{plan.notes && <p className="mt-1 opacity-70">{plan.notes}</p>}</div><div className="flex flex-wrap gap-3"><button type="button" onClick={() => { void copyPlanToNextDay(plan); }} className="text-xs text-accent underline">{dict.dailyGuide.copyPlan}</button><button type="button" onClick={() => editPlan(plan)} className="text-xs text-accent underline">{dict.dailyGuide.editPlan}</button><button type="button" onClick={() => { void removePlan(plan.id); }} className="text-xs text-accent underline">{dict.ui.deleteProfile}</button></div></li>; })}</ul>}
+            {plans.length === 0 ? <p className="mt-2 text-sm opacity-70">{dict.dailyGuide.agendaEmpty}</p> : <ul className="mt-3 space-y-2">{plans.map((plan) => { const profileSummary = planProfileSummary(plan); return <li key={plan.id} className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-black/10 p-3 text-sm dark:border-white/10"><div><p className="font-semibold">{plan.starts_at ? `${plan.starts_at}${plan.ends_at ? `–${plan.ends_at}` : ""} · ` : ""}{plan.title}</p>{plan.recurrence === "yearly" && <p className="mt-1 text-xs font-medium text-accent">{dict.dailyGuide.planRepeatsYearly}</p>}{profileSummary && <p className="mt-1 opacity-70">{profileSummary}</p>}{plan.notes && <p className="mt-1 opacity-70">{plan.notes}</p>}</div><div className="flex flex-wrap gap-3"><button type="button" onClick={() => { void copyPlanToNextDay(plan); }} className="text-xs text-accent underline">{dict.dailyGuide.copyPlan}</button><button type="button" onClick={() => editPlan(plan)} className="text-xs text-accent underline">{dict.dailyGuide.editPlan}</button><button type="button" onClick={() => { void removePlan(plan.id); }} className="text-xs text-accent underline">{dict.ui.deleteProfile}</button></div></li>; })}</ul>}
             {exportMessage && <p role="status" className="mt-2 text-sm text-accent">{exportMessage}</p>}
             {copyMessage && <p role="status" className="mt-2 text-sm text-accent">{copyMessage}</p>}
           </section>

@@ -15,6 +15,9 @@ const serviceWorker = await readFile(resolve(root, "public/sw.js"), "utf8");
 if (!serviceWorker.includes("CACHE_NAME") || !serviceWorker.includes("/icons/app/icon-192.png")) {
   throw new Error("Service worker is missing its cache identifier or primary app icon.");
 }
+if (!serviceWorker.includes('request.mode === "navigate"') || !serviceWorker.includes('cache: "no-store"')) {
+  throw new Error("Service worker must refresh navigation documents online before falling back offline.");
+}
 for (const route of ["/en/daily-guide/planner", "/en/roadmap", "/en/privacy"]) {
   if (!serviceWorker.includes(route)) throw new Error(`Service worker is missing the offline shell route: ${route}`);
 }

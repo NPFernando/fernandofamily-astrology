@@ -13,6 +13,7 @@ export type VaultPlan = {
   ends_at: string | null;
   profile_ids: string[];
   notes: string;
+  recurrence?: "yearly";
   source: "manual" | "muhurta";
   created_at: string;
 };
@@ -53,6 +54,7 @@ export function plansToIcsEvents(plans: VaultPlan[]): IcsEvent[] {
       end,
       summary: plan.title,
       description: plan.notes || undefined,
+      recurrence: plan.recurrence === "yearly" ? "YEARLY" : undefined,
     }];
   });
 }

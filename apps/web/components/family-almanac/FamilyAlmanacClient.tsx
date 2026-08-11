@@ -86,6 +86,14 @@ const GRADE_STYLE: Record<MuhurtaGrade, string> = {
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
 const FAMILY_SELECTED_STORAGE_KEY = "ff_family_almanac_selected_profile_ids";
 
+async function retryOnce<T>(request: () => Promise<T>): Promise<T> {
+  try {
+    return await request();
+  } catch {
+    return request();
+  }
+}
+
 function formatDate(isoDate: string, locale: string) {
   return new Date(`${isoDate}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
     weekday: "long",
@@ -411,7 +419,7 @@ export function FamilyAlmanacClient() {
 
       const panchangaRequests = Array.from({ length: FAMILY_ALMANAC_DAYS }, (_, index) => addDays(date, index)).map(
         (day) =>
-          fetchPanchanga({
+          () => fetchPanchanga({
             date: day,
             location_name: location.name,
             latitude: location.latitude,
@@ -420,9 +428,9 @@ export function FamilyAlmanacClient() {
           }),
       );
       const [scheduleSettled, muhurtaSettled, panchangaSettled] = await Promise.all([
-        Promise.allSettled(scheduleInputs.map(({ request }) => fetchSchedule(request))),
-        Promise.allSettled(muhurtaInputs.map(({ request }) => fetchMuhurta(request))),
-        Promise.allSettled(panchangaRequests),
+        Promise.allSettled(scheduleInputs.map(({ request }) => retryOnce(() => fetchSchedule(request)))),
+        Promise.allSettled(muhurtaInputs.map(({ request }) => retryOnce(() => fetchMuhurta(request)))),
+        Promise.allSettled(panchangaRequests.map((request) => retryOnce(request))),
       ]);
       if (cancelled) return;
       setFamilyData({

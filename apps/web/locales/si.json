@@ -587,6 +587,8 @@
     "searchPlaceholder": "විශේෂාංග හෝ කාණ්ඩ සොයන්න",
     "filterCategory": "කාණ්ඩය පෙරන්න",
     "allCategories": "සියලු කාණ්ඩ",
+    "filterStatus": "තත්ත්වය පෙරන්න",
+    "allStatuses": "සියලු තත්ත්වයන්",
     "itemsShown": "මාර්ගසටහන් අයිතම {n}ක් පෙන්වයි.",
     "noMatches": "ගැළපෙන අයිතම නැත.",
     "categoryPrivacy": "පෞද්ගලිකත්වය",

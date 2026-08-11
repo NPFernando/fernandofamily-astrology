@@ -587,6 +587,8 @@
     "searchPlaceholder": "Search features or categories",
     "filterCategory": "Filter category",
     "allCategories": "All categories",
+    "filterStatus": "Filter status",
+    "allStatuses": "All statuses",
     "itemsShown": "{n} roadmap items shown.",
     "noMatches": "No matching items.",
     "categoryPrivacy": "Privacy",

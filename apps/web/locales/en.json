@@ -598,6 +598,8 @@
     "planned": "Planned",
     "vote": "Vote",
     "voted": "Voted",
+    "clearVotes": "Clear my local votes",
+    "votesCleared": "Local votes cleared from this browser.",
     "readiness": "Release and device readiness evidence",
     "planner": "Encrypted personal planner",
     "groups": "Encrypted family groups",

@@ -41,6 +41,7 @@ export function RoadmapFeedbackClient() {
   const [selected, setSelected] = useState<ItemId>("planner");
   const [feedbackByItem, setFeedbackByItem] = useState<Partial<Record<ItemId, string>>>({});
   const [copyState, setCopyState] = useState<CopyState>("idle");
+  const [votesCleared, setVotesCleared] = useState(false);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
   const feedbackSelectRef = useRef<HTMLSelectElement>(null);
@@ -64,6 +65,7 @@ export function RoadmapFeedbackClient() {
   const statuses: Status[] = ["released", "inProgress", "planned"];
 
   function vote(id: ItemId) {
+    setVotesCleared(false);
     setVotes((current) => {
       const next = { ...current };
       if (next[id]) delete next[id];
@@ -71,6 +73,12 @@ export function RoadmapFeedbackClient() {
       window.localStorage.setItem(VOTES_KEY, JSON.stringify(next));
       return next;
     });
+  }
+
+  function clearVotes() {
+    window.localStorage.removeItem(VOTES_KEY);
+    setVotes({});
+    setVotesCleared(true);
   }
 
   const selectedLabel = items.find((item) => item.id === selected)?.label ?? "";
@@ -118,7 +126,7 @@ export function RoadmapFeedbackClient() {
         <label className="text-sm font-medium">{dict.roadmap.search}<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={dict.roadmap.searchPlaceholder} className="mt-1 block w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" /></label>
         <label className="text-sm font-medium">{dict.roadmap.filterCategory}<select value={category} onChange={(event) => setCategory(event.target.value)} className="mt-1 block w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20"><option value="">{dict.roadmap.allCategories}</option>{categories.map((entry) => <option key={entry} value={entry}>{entry}</option>)}</select></label>
       </section>
-      <p className="text-sm opacity-75">{dict.roadmap.itemsShown.replace("{n}", String(filtered.length))} {dict.roadmap.localVoteNote}</p>
+      <div className="flex flex-wrap items-center gap-3 text-sm opacity-75"><p>{dict.roadmap.itemsShown.replace("{n}", String(filtered.length))} {dict.roadmap.localVoteNote}</p>{Object.keys(votes).length > 0 && <button type="button" onClick={clearVotes} className="font-semibold text-accent underline">{dict.roadmap.clearVotes}</button>}{votesCleared && <p role="status">{dict.roadmap.votesCleared}</p>}</div>
 
       <section data-testid="roadmap-items" className="grid gap-4 xl:grid-cols-3">
         {statuses.map((status) => {

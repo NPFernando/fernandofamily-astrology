@@ -95,7 +95,8 @@ test("roadmap feedback remains a local draft while votes persist on this device"
   const vote = roadmap.getByRole("button", { name: new RegExp(`${DICTS.en.roadmap.vote}.*0`) }).first();
   await vote.click();
   await expect(roadmap.getByRole("button", { name: new RegExp(`${DICTS.en.roadmap.voted}.*1`) }).first()).toHaveAttribute("aria-pressed", "true");
-  await roadmap.getByRole("button", { name: new RegExp(`${DICTS.en.roadmap.voted}.*1`) }).first().click();
+  await page.getByRole("button", { name: DICTS.en.roadmap.clearVotes }).click();
+  await expect(page.getByRole("status")).toContainText(DICTS.en.roadmap.votesCleared);
   await expect(roadmap.getByRole("button", { name: new RegExp(`${DICTS.en.roadmap.vote}.*0`) }).first()).toHaveAttribute("aria-pressed", "false");
   const privacyFilter = page.getByRole("button", { name: DICTS.en.roadmap.categoryPrivacy, exact: false }).first();
   await privacyFilter.click();
@@ -115,7 +116,7 @@ test("roadmap feedback remains a local draft while votes persist on this device"
   await expect(page.getByTestId("roadmap-sensitive-feedback")).toContainText(DICTS.en.roadmap.sensitiveFeedbackWarning);
   await expect(issue).toHaveAttribute("aria-disabled", "true");
   await expect(issue).not.toHaveAttribute("href", /./);
-  await expect.poll(() => page.evaluate(() => window.localStorage.getItem("ff_roadmap_votes_v1"))).toBe("{}");
+  await expect.poll(() => page.evaluate(() => window.localStorage.getItem("ff_roadmap_votes_v1"))).toBeNull();
 });
 
 test("keyboard command palette finds and opens privacy-aware tools", async ({ page }) => {

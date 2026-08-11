@@ -17,6 +17,14 @@ async function openFamilyAlmanac(page: Page, locale: LocaleKey, query = "") {
   await waitForFamilyAlmanac(page, locale);
 }
 
+async function clearOfflineShell(page: Page) {
+  await page.goto("/en");
+  await page.evaluate(async () => {
+    await Promise.all((await navigator.serviceWorker.getRegistrations()).map((registration) => registration.unregister()));
+    await Promise.all((await caches.keys()).map((cacheName) => caches.delete(cacheName)));
+  });
+}
+
 async function seedFamilyProfiles(page: Page) {
   await page.addInitScript(() => {
     window.localStorage.setItem(
@@ -161,6 +169,7 @@ test("family almanac: a saved derived profile can be duplicated", async ({ page 
 
 test("family almanac: planner export and share action avoid raw birth fields", async ({ page }) => {
   await seedFamilyProfiles(page);
+  await clearOfflineShell(page);
   const watcher = watchForBirthDataInUrls(page);
   let sharePayload: unknown = null;
   await page.route("**/api/share-family-card", async (route) => {
@@ -175,6 +184,23 @@ test("family almanac: planner export and share action avoid raw birth fields", a
   });
   await openFamilyAlmanac(page, "en", "?date=2026-07-23");
   await expect(page.getByTestId("family-almanac-download-ics")).toBeEnabled({ timeout: 60_000 });
+
+  await page.getByRole("button", { name: "Protect private data" }).click();
+  await page.getByLabel("Choose a vault passphrase").fill("correct horse battery staple");
+  await page.getByRole("button", { name: "Create vault" }).click();
+  await expect(page.locator('[title="Private data vault unlocked for this tab"]')).toBeVisible();
+  await expect(page.getByTestId("family-almanac-save-window")).toBeEnabled();
+  await page.getByTestId("family-almanac-save-window").click();
+  await expect(page.getByTestId("family-almanac-action-message")).toContainText(
+    DICTS.en.familyAlmanac.familyWindowSaved,
+  );
+  await page.getByTestId("family-almanac-save-poya").click();
+  await expect(page.getByTestId("family-almanac-action-message")).toContainText(
+    DICTS.en.familyAlmanac.poyaReminderSaved,
+  );
+  const vaultPayload = await page.evaluate(() => window.localStorage.getItem("ff_private_vault_v1") ?? "");
+  expect(vaultPayload).toContain("ciphertext");
+  expect(vaultPayload).not.toContain(DICTS.en.familyAlmanac.sharedWindow);
 
   const [icsDownload] = await Promise.all([
     page.waitForEvent("download"),

@@ -28,6 +28,8 @@ test("daily planner keeps manual plans and family groups inside the encrypted va
   await page.getByTestId("planner-group-picker").getByRole("button", { name: /Weekend family/ }).click();
   await expect(page.getByLabel("Amma")).toBeChecked();
 
+  await page.getByRole("button", { name: DICTS.en.dailyGuide.plannerTemplatePuja }).click();
+  await expect(page.getByLabel(DICTS.en.dailyGuide.planTitle)).toHaveValue(DICTS.en.dailyGuide.plannerTemplatePuja);
   await page.getByLabel(DICTS.en.dailyGuide.planTitle).fill("Temple visit");
   await page.getByLabel(DICTS.en.dailyGuide.planStart).fill("09:30");
   await page.getByRole("button", { name: DICTS.en.dailyGuide.addPlan }).click();
@@ -91,9 +93,12 @@ test("roadmap feedback remains a local draft while votes persist on this device"
   await statusFilter.selectOption("planned");
   await expect(roadmap).toContainText(DICTS.en.roadmap.calendar);
   await expect(roadmap).not.toContainText(DICTS.en.roadmap.week);
+  await expect(page.getByLabel(DICTS.en.roadmap.activeFilters)).toContainText("Search: calendar");
+  await expect(page.getByLabel(DICTS.en.roadmap.activeFilters)).toContainText("Status: Planned");
   await page.getByRole("button", { name: DICTS.en.roadmap.clearFilters }).click();
   await expect(page.getByLabel(DICTS.en.roadmap.search)).toHaveValue("");
   await expect(statusFilter).toHaveValue("");
+  await expect(page.getByLabel(DICTS.en.roadmap.activeFilters)).toHaveCount(0);
   await roadmap.getByRole("article").filter({ hasText: DICTS.en.roadmap.week }).getByRole("button", { name: new RegExp(DICTS.en.roadmap.draftForItem.replace("{item}", "")) }).click();
   const feedbackFor = page.getByLabel(DICTS.en.roadmap.feedbackFor);
   await expect(feedbackFor).toHaveValue("week");

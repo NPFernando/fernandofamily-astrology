@@ -111,6 +111,14 @@ export function PlannerClient() {
     setNotes("");
   }
 
+  function applyTemplate(templateTitle: string) {
+    setEditingPlanId(null);
+    setTitle(templateTitle);
+    setStart("");
+    setEnd("");
+    setNotes("");
+  }
+
   async function saveGroup(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!unlocked || !groupLabel.trim() || selectedProfiles.length === 0) return;
@@ -186,6 +194,7 @@ export function PlannerClient() {
               </div>
             </div>
             <form onSubmit={savePlan} className="mt-4 grid gap-3 lg:grid-cols-2">
+              <fieldset className="lg:col-span-2"><legend className="text-sm font-medium">{dict.dailyGuide.plannerTemplatesTitle}</legend><div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={() => applyTemplate(dict.dailyGuide.plannerTemplatePuja)} className="rounded-full border border-accent/40 px-3 py-1.5 text-sm font-semibold text-accent">{dict.dailyGuide.plannerTemplatePuja}</button><button type="button" onClick={() => applyTemplate(dict.dailyGuide.plannerTemplateFamilyVisit)} className="rounded-full border border-accent/40 px-3 py-1.5 text-sm font-semibold text-accent">{dict.dailyGuide.plannerTemplateFamilyVisit}</button><button type="button" onClick={() => applyTemplate(dict.dailyGuide.plannerTemplatePoya)} className="rounded-full border border-accent/40 px-3 py-1.5 text-sm font-semibold text-accent">{dict.dailyGuide.plannerTemplatePoya}</button></div></fieldset>
               <label className="text-sm font-medium">{dict.dailyGuide.planTitle}<input required value={title} onChange={(event) => setTitle(event.target.value)} className="mt-1 w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" /></label>
               <div className="grid grid-cols-2 gap-3">
                 <label className="text-sm font-medium">{dict.dailyGuide.planStart}<input type="time" value={start} onChange={(event) => setStart(event.target.value)} className="mt-1 w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" /></label>

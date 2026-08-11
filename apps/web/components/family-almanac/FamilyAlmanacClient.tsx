@@ -37,6 +37,7 @@ import {
 import { buildIcs, downloadIcs, type IcsEvent } from "@/lib/ics";
 import { getDictionary, nakshatraName, translateEnum } from "@/lib/i18n";
 import { useLocale } from "@/lib/locale-context";
+import type { VaultPlan } from "@/lib/planner";
 import { addProfile, listProfiles, mergeLocalToServerOnce, removeProfile, updateProfile, type SavedProfile } from "@/lib/profiles";
 import { useSessionProbe } from "@/lib/use-session-probe";
 import { useLocalVault } from "@/components/LocalVaultProvider";
@@ -192,6 +193,17 @@ function eventDescriptionForWindow(window: MuhurtaWindow, dict: Dictionary) {
   )} · ${translateEnum(dict, "activities", window.pancha_pakshi_activity)}`;
 }
 
+function plannerTime(instant: string, timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(instant));
+  const value = (type: "hour" | "minute") => parts.find((part) => part.type === type)?.value ?? "00";
+  return `${value("hour")}:${value("minute")}`;
+}
+
 function plannerEvents(data: FamilyData, startDate: string, dict: Dictionary): IcsEvent[] {
   return Array.from({ length: FAMILY_ALMANAC_DAYS }, (_, index) => {
     const day = addDays(startDate, index);
@@ -239,7 +251,7 @@ async function shareOrDownloadPng(blob: Blob, filename: string) {
 
 export function FamilyAlmanacClient() {
   const { dict, locale } = useLocale();
-  const { unlocked } = useLocalVault();
+  const { unlocked, update } = useLocalVault();
   const vaultLocation = useVaultRecentLocation();
   const searchParams = useSearchParams();
   const requestedDate = validDateParam(searchParams.get("date"));
@@ -535,6 +547,49 @@ export function FamilyAlmanacClient() {
     downloadIcs(`family-almanac-${date}.ics`, buildIcs(events));
   }
 
+  async function saveFamilyWindowToPlanner() {
+    if (!activeFamilyData || !location || !unlocked) return;
+    const shared = sharedWindowsForDay(activeFamilyData.muhurtaRows, date)[0];
+    const individual = shared ? null : individualWindowsForDay(activeFamilyData.muhurtaRows, date)[0] ?? null;
+    if (!shared && !individual) {
+      setActionMessage(dict.familyAlmanac.familyWindowUnavailable);
+      return;
+    }
+    const window = shared ?? individual!.window;
+    const plan: VaultPlan = {
+      id: crypto.randomUUID(),
+      title: shared ? dict.familyAlmanac.sharedWindow : `${dict.familyAlmanac.bestIndividualWindow}: ${individual!.profile.label}`,
+      date,
+      starts_at: plannerTime(window.starts_at, location.iana_tz),
+      ends_at: plannerTime(window.ends_at, location.iana_tz),
+      profile_ids: shared ? selectedProfiles.map((profile) => profile.id) : [individual!.profile.id],
+      notes: shared ? dict.muhurta.grades[shared.grade] : eventDescriptionForWindow(individual!.window, dict),
+      source: "muhurta",
+      created_at: new Date().toISOString(),
+    };
+    await update((current) => ({ ...current, plans: [...(current.plans ?? []), plan] }));
+    setActionMessage(dict.familyAlmanac.familyWindowSaved);
+  }
+
+  async function savePoyaReminderToPlanner() {
+    if (!data || !unlocked) return;
+    const poya = data.panchanga.is_poya_day && data.panchanga.poya ? data.panchanga.poya : data.panchanga.next_poya;
+    const poyaDate = data.panchanga.is_poya_day ? data.panchanga.date : data.panchanga.next_poya.date;
+    const plan: VaultPlan = {
+      id: crypto.randomUUID(),
+      title: `${sinhalaMonthName(dict, poya.month_key)} ${dict.panchanga.poyaFullMoonSuffix}`,
+      date: poyaDate,
+      starts_at: null,
+      ends_at: null,
+      profile_ids: selectedProfiles.map((profile) => profile.id),
+      notes: "",
+      source: "muhurta",
+      created_at: new Date().toISOString(),
+    };
+    await update((current) => ({ ...current, plans: [...(current.plans ?? []), plan] }));
+    setActionMessage(dict.familyAlmanac.poyaReminderSaved);
+  }
+
   async function shareFamilyImage() {
     if (!date || !location || selectedProfiles.length === 0) return;
     setActionMessage(dict.familyAlmanac.sharingFamilyImage);
@@ -727,9 +782,12 @@ export function FamilyAlmanacClient() {
           <FamilyActions
             dict={dict}
             disabled={!activeFamilyData || selectedProfiles.length === 0 || familyLoading}
+            saveDisabled={!unlocked || !activeFamilyData || selectedProfiles.length === 0 || familyLoading}
             message={actionMessage}
             onPrint={() => window.print()}
             onDownloadIcs={downloadFamilyPlanner}
+            onSaveFamilyWindow={() => { void saveFamilyWindowToPlanner(); }}
+            onSavePoyaReminder={() => { void savePoyaReminderToPlanner(); }}
             onShareImage={() => {
               void shareFamilyImage().catch(() => setActionMessage(dict.familyAlmanac.shareFailed));
             }}
@@ -1005,16 +1063,22 @@ function ProfileSelector({
 function FamilyActions({
   dict,
   disabled,
+  saveDisabled,
   message,
   onPrint,
   onDownloadIcs,
+  onSaveFamilyWindow,
+  onSavePoyaReminder,
   onShareImage,
 }: {
   dict: Dictionary;
   disabled: boolean;
+  saveDisabled: boolean;
   message: string | null;
   onPrint: () => void;
   onDownloadIcs: () => void;
+  onSaveFamilyWindow: () => void;
+  onSavePoyaReminder: () => void;
   onShareImage: () => void;
 }) {
   return (
@@ -1027,7 +1091,7 @@ function FamilyActions({
           <h2 className="text-sm font-semibold uppercase text-accent">{dict.familyAlmanac.plannerActionsTitle}</h2>
           <p className="mt-1 text-sm opacity-75">{dict.familyAlmanac.plannerActionsDescription}</p>
         </div>
-        <div className="grid gap-2 sm:grid-cols-3 md:min-w-[28rem]">
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5 md:min-w-[28rem]">
           <button
             type="button"
             onClick={onPrint}
@@ -1043,6 +1107,24 @@ function FamilyActions({
             className="rounded-lg border border-black/10 px-3 py-2 text-sm font-semibold hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/20"
           >
             {dict.familyAlmanac.downloadFamilyIcs}
+          </button>
+          <button
+            type="button"
+            data-testid="family-almanac-save-window"
+            disabled={saveDisabled}
+            onClick={onSaveFamilyWindow}
+            className="rounded-lg border border-black/10 px-3 py-2 text-sm font-semibold hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/20"
+          >
+            {dict.familyAlmanac.saveFamilyWindow}
+          </button>
+          <button
+            type="button"
+            data-testid="family-almanac-save-poya"
+            disabled={saveDisabled}
+            onClick={onSavePoyaReminder}
+            className="rounded-lg border border-black/10 px-3 py-2 text-sm font-semibold hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/20"
+          >
+            {dict.familyAlmanac.savePoyaReminder}
           </button>
           <button
             type="button"

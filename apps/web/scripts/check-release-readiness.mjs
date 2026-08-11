@@ -15,5 +15,8 @@ const serviceWorker = await readFile(resolve(root, "public/sw.js"), "utf8");
 if (!serviceWorker.includes("CACHE_NAME") || !serviceWorker.includes("/icons/app/icon-192.png")) {
   throw new Error("Service worker is missing its cache identifier or primary app icon.");
 }
+for (const route of ["/en/daily-guide/planner", "/en/roadmap", "/en/privacy"]) {
+  if (!serviceWorker.includes(route)) throw new Error(`Service worker is missing the offline shell route: ${route}`);
+}
 
 console.log("Release-readiness files are present. Database migrations still require explicit deployment.");

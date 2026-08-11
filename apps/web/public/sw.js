@@ -2,7 +2,7 @@
 // so the site is reachable offline. The app may separately read an encrypted
 // vault-owned cached schedule and labels it as cached rather than live; this
 // worker neither stores schedules nor attempts astronomical calculation.
-const CACHE_NAME = "ff-astrology-shell-v7";
+const CACHE_NAME = "ff-astrology-shell-v9";
 // Locale data is bundled into the page JS (imported at build time, not
 // fetched from a public URL), so it's cached automatically once the page
 // itself is cached below — no separate /locales/*.json entries needed here.
@@ -17,6 +17,8 @@ const PRECACHE_URLS = [
   "/si/moon-calendar",
   "/en/daily-guide",
   "/si/daily-guide",
+  "/en/daily-guide/planner",
+  "/si/daily-guide/planner",
   "/en/family-almanac",
   "/si/family-almanac",
   "/en/muhurta",
@@ -31,6 +33,10 @@ const PRECACHE_URLS = [
   "/si/birth-chart",
   "/en/dasha",
   "/si/dasha",
+  "/en/roadmap",
+  "/si/roadmap",
+  "/en/privacy",
+  "/si/privacy",
   "/icons/app/icon-192.png",
   "/icons/app/icon-512.png",
   "/icons/app/icon-maskable-512.png",

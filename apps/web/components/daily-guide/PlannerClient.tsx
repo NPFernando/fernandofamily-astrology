@@ -44,6 +44,7 @@ export function PlannerClient() {
   const [exportMessage, setExportMessage] = useState<string | null>(null);
   const [weekExportMessage, setWeekExportMessage] = useState<string | null>(null);
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
+  const [agendaQuery, setAgendaQuery] = useState("");
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
 
   const plans = useMemo(() => (data.plans ?? []).filter((plan) => plan.date === date).sort(planSort), [data.plans, date]);
@@ -52,6 +53,10 @@ export function PlannerClient() {
   const allWeekPlans = useMemo(() => Array.from(weekPlans.values()).flat(), [weekPlans]);
   const profileLabels = useMemo(() => new Map(profiles.map((profile) => [profile.id, profile.label])), [profiles]);
   const groups = data.familyGroups ?? [];
+  const visiblePlans = useMemo(() => {
+    const query = agendaQuery.trim().toLocaleLowerCase();
+    return query ? plans.filter((plan) => `${plan.title} ${plan.notes}`.toLocaleLowerCase().includes(query)) : plans;
+  }, [agendaQuery, plans]);
 
   function toggleProfile(id: string) {
     setSelectedProfiles((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]);
@@ -217,7 +222,8 @@ export function PlannerClient() {
           <section data-testid="planner-agenda" className="rounded-xl border border-black/10 p-4 dark:border-white/10">
             <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-semibold">{dict.dailyGuide.agendaTitle}</h2><button type="button" onClick={downloadAgenda} className="rounded-lg border border-accent/40 px-3 py-1.5 text-sm font-semibold text-accent">{dict.dailyGuide.exportAgenda}</button></div>
             <p className="mt-1 text-xs opacity-70">{dict.dailyGuide.agendaExportHelp}</p>
-            {plans.length === 0 ? <p className="mt-2 text-sm opacity-70">{dict.dailyGuide.agendaEmpty}</p> : <ul className="mt-3 space-y-2">{plans.map((plan) => { const profileSummary = planProfileSummary(plan); return <li key={plan.id} className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-black/10 p-3 text-sm dark:border-white/10"><div><p className="font-semibold">{plan.starts_at ? `${plan.starts_at}${plan.ends_at ? `–${plan.ends_at}` : ""} · ` : ""}{plan.title}</p>{plan.recurrence === "yearly" && <p className="mt-1 text-xs font-medium text-accent">{dict.dailyGuide.planRepeatsYearly}</p>}{profileSummary && <p className="mt-1 opacity-70">{profileSummary}</p>}{plan.notes && <p className="mt-1 opacity-70">{plan.notes}</p>}</div><div className="flex flex-wrap gap-3"><button type="button" onClick={() => { void copyPlanToNextDay(plan); }} className="text-xs text-accent underline">{dict.dailyGuide.copyPlan}</button><button type="button" onClick={() => editPlan(plan)} className="text-xs text-accent underline">{dict.dailyGuide.editPlan}</button><button type="button" onClick={() => { void removePlan(plan.id); }} className="text-xs text-accent underline">{dict.ui.deleteProfile}</button></div></li>; })}</ul>}
+            {plans.length > 0 && <label className="mt-3 block text-sm font-medium">{dict.dailyGuide.agendaSearch}<input value={agendaQuery} onChange={(event) => setAgendaQuery(event.target.value)} placeholder={dict.dailyGuide.agendaSearchPlaceholder} className="mt-1 w-full rounded-lg border border-black/10 bg-transparent px-3 py-2 dark:border-white/20" /></label>}
+            {plans.length === 0 ? <p className="mt-2 text-sm opacity-70">{dict.dailyGuide.agendaEmpty}</p> : visiblePlans.length === 0 ? <p className="mt-3 text-sm opacity-70">{dict.dailyGuide.agendaNoMatches}</p> : <ul className="mt-3 space-y-2">{visiblePlans.map((plan) => { const profileSummary = planProfileSummary(plan); return <li key={plan.id} className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-black/10 p-3 text-sm dark:border-white/10"><div><p className="font-semibold">{plan.starts_at ? `${plan.starts_at}${plan.ends_at ? `–${plan.ends_at}` : ""} · ` : ""}{plan.title}</p>{plan.recurrence === "yearly" && <p className="mt-1 text-xs font-medium text-accent">{dict.dailyGuide.planRepeatsYearly}</p>}{profileSummary && <p className="mt-1 opacity-70">{profileSummary}</p>}{plan.notes && <p className="mt-1 opacity-70">{plan.notes}</p>}</div><div className="flex flex-wrap gap-3"><button type="button" onClick={() => { void copyPlanToNextDay(plan); }} className="text-xs text-accent underline">{dict.dailyGuide.copyPlan}</button><button type="button" onClick={() => editPlan(plan)} className="text-xs text-accent underline">{dict.dailyGuide.editPlan}</button><button type="button" onClick={() => { void removePlan(plan.id); }} className="text-xs text-accent underline">{dict.ui.deleteProfile}</button></div></li>; })}</ul>}
             {exportMessage && <p role="status" className="mt-2 text-sm text-accent">{exportMessage}</p>}
             {copyMessage && <p role="status" className="mt-2 text-sm text-accent">{copyMessage}</p>}
           </section>

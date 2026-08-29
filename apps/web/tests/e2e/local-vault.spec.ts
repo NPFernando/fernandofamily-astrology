@@ -143,7 +143,12 @@ test("vault backup is ciphertext-only and restores only after the original passp
     window.localStorage.setItem("ff_recent_locations", JSON.stringify([location]));
   }, LOCATION);
   await createVault(page);
-  await page.goto("/en/privacy");
+  await page.getByRole("link", { name: "Daily Guide", exact: true }).click();
+  await page.getByRole("link", { name: "Open private planner", exact: true }).click();
+  await page.getByLabel("Plan title").fill("Private temple reminder");
+  await page.getByRole("button", { name: "Add to agenda" }).click();
+  await expect(page.getByTestId("planner-agenda")).toContainText("Private temple reminder");
+  await page.getByRole("link", { name: "Privacy", exact: true }).click();
   await expect(page.locator('[data-testid="vault-recovery-checklist"]')).toContainText("Recovery checklist");
 
   const downloadPromise = page.waitForEvent("download");
@@ -155,6 +160,7 @@ test("vault backup is ciphertext-only and restores only after the original passp
   expect(backup).toContain('"ciphertext"');
   expect(backup).not.toContain(BIRTH_DATE);
   expect(backup).not.toContain(String(LOCATION.latitude));
+  expect(backup).not.toContain("Private temple reminder");
 
   const context = await browser.newContext({ baseURL: "http://127.0.0.1:3199" });
   const restored = await context.newPage();
@@ -174,6 +180,9 @@ test("vault backup is ciphertext-only and restores only after the original passp
   await restored.getByRole("button", { name: "Unlock", exact: true }).click();
   await expect(restored.locator('input[type="date"]')).toHaveValue(BIRTH_DATE);
   await expect(restored.locator('input[type="time"]')).toHaveValue(BIRTH_TIME);
+  await restored.getByRole("link", { name: "Daily Guide", exact: true }).click();
+  await restored.getByRole("link", { name: "Open private planner", exact: true }).click();
+  await expect(restored.getByTestId("planner-agenda")).toContainText("Private temple reminder");
   await context.close();
 });
 

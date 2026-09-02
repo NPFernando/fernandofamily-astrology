@@ -52,6 +52,7 @@ import { ResultNavigation, SourceContext } from "@/components/ui/ResultContext";
 import { EFFECT_COLORS } from "@fernandofamily/design-system";
 import { formatLocalDate, formatLocalDateTime, formatLocalTime } from "@/lib/formatters";
 import { usePrivatePeople } from "@/lib/use-private-people";
+import { PrivatePersonPicker } from "@/components/private-people/PrivatePersonPicker";
 
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
 const FAMILY_BOARD_LIMIT = 8;
@@ -646,6 +647,7 @@ export function DailyGuideClient() {
         </h2>
         <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)]">
           <div className="flex flex-col gap-4">
+            <PrivatePersonPicker people={privatePeople.people} selectedId={privatePeople.selectedId} unlocked={unlocked} onSelect={privatePeople.selectPerson} onDelete={privatePeople.removePerson} />
             {date && <DateNav date={date} onChange={changeDate} />}
             <div>
               <p className="mb-2 text-sm opacity-70">{dict.ui.location}</p>

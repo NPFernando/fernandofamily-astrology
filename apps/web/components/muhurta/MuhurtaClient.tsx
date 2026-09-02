@@ -44,6 +44,7 @@ import { ResultNavigation, SourceContext } from "@/components/ui/ResultContext";
 import type { VaultPlan } from "@/lib/planner";
 import { formatLocalDate, formatLocalTime, localeTag } from "@/lib/formatters";
 import { usePrivatePeople } from "@/lib/use-private-people";
+import { PrivatePersonPicker } from "@/components/private-people/PrivatePersonPicker";
 
 const feature = features.find((f) => f.id === "muhurta")!;
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
@@ -1246,6 +1247,7 @@ export function MuhurtaClient() {
         >
           <h2 className="text-sm font-semibold uppercase text-accent">{dict.muhurta.controlsTitle}</h2>
           <div className="mt-4 flex flex-col gap-4">
+            <PrivatePersonPicker people={privatePeople.people} selectedId={privatePeople.selectedId} unlocked={unlocked} onSelect={privatePeople.selectPerson} onDelete={privatePeople.removePerson} />
             <div>
               <p className="mb-2 text-xs font-semibold uppercase opacity-70">{dict.muhurta.purpose}</p>
               <div className="grid grid-cols-1 gap-2">

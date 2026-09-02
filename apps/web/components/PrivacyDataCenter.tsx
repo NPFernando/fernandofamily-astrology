@@ -98,7 +98,7 @@ export function PrivacyDataCenter() {
         {dict.ui.dataCenterExportProfiles}
       </button>
       {legacyMigrationPending && <p role="status" className="mt-3 text-sm text-accent">{dict.ui.dataCenterMigrationPending}</p>}
-      <section className="mt-6 rounded-lg border border-black/10 p-3 dark:border-white/10" data-testid="private-people-manager">
+      <section id="private-people-manager" className="mt-6 rounded-lg border border-black/10 p-3 dark:border-white/10" data-testid="private-people-manager">
         <div className="flex items-center justify-between gap-2">
           <div><h3 className="font-semibold">{dict.ui.privatePeopleTitle}</h3><p className="mt-1 text-xs opacity-70">{dict.ui.privatePeopleBody}</p></div>
           {unlocked && <button type="button" onClick={() => beginEdit()} className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-white">{dict.ui.addPrivatePerson}</button>}

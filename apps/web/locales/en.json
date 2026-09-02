@@ -426,6 +426,8 @@
     "signInFailed": "Sign-in failed. Please try again.",
     "saveAsProfile": "Save as profile",
     "savePrivatePerson": "Save as private person",
+    "privatePersonPickerLabel": "Saved person",
+    "managePrivatePeople": "Manage saved people",
     "temporaryDetails": "Temporary details",
     "unlockToReusePeople": "Unlock the private vault to reuse saved people.",
     "activePrivatePerson": "Active private person",

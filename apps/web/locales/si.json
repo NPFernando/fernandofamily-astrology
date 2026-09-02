@@ -426,6 +426,8 @@
     "signInFailed": "පිවිසීම අසාර්ථක විය. නැවත උත්සාහ කරන්න.",
     "saveAsProfile": "පැතිකඩක් ලෙස සුරකින්න",
     "savePrivatePerson": "පෞද්ගලික පුද්ගලයෙකු ලෙස සුරකින්න",
+    "privatePersonPickerLabel": "සුරකින ලද පුද්ගලයා",
+    "managePrivatePeople": "සුරකින ලද පුද්ගලයන් කළමනාකරණය",
     "temporaryDetails": "තාවකාලික විස්තර",
     "unlockToReusePeople": "සුරකින ලද පුද්ගලයන් නැවත භාවිත කිරීමට පෞද්ගලික වෝල්ට් එක විවෘත කරන්න.",
     "activePrivatePerson": "සක්‍රිය පෞද්ගලික පුද්ගලයා",

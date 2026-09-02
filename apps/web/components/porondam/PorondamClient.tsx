@@ -16,6 +16,7 @@ import { PorondamIcon } from "@/components/icons/features";
 import { ResultExplanation } from "@/components/ui/ResultExplanation";
 import { usePrivatePeople } from "@/lib/use-private-people";
 import { PrivatePersonPicker } from "@/components/private-people/PrivatePersonPicker";
+import { PrivatePersonSaveButton } from "@/components/private-people/PrivatePersonSaveButton";
 
 // Fixed display order matching repository.py / calculator.compute_porondam.
 const PORONDAM_ORDER = [
@@ -99,6 +100,17 @@ export function PorondamClient() {
     };
   }
 
+  async function savePartyAsPrivatePerson(label: string, party: PartyState) {
+    if (!party.dateTime.date || !party.dateTime.time || !party.location || !privatePeople.unlocked) return;
+    const input = partyToInput(party);
+    await privatePeople.savePerson({
+      label,
+      birth_date: input.birth_date,
+      birth_time: input.birth_time,
+      birthplace: party.location,
+    });
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <header className="max-w-3xl">
@@ -112,8 +124,8 @@ export function PorondamClient() {
       </header>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <PartyForm label={dict.porondam.brideTitle} value={bride} onChange={setBride} people={privatePeople.people} unlocked={privatePeople.unlocked} />
-        <PartyForm label={dict.porondam.groomTitle} value={groom} onChange={setGroom} people={privatePeople.people} unlocked={privatePeople.unlocked} />
+        <PartyForm label={dict.porondam.brideTitle} value={bride} onChange={setBride} people={privatePeople.people} unlocked={privatePeople.unlocked} onSavePerson={savePartyAsPrivatePerson} />
+        <PartyForm label={dict.porondam.groomTitle} value={groom} onChange={setGroom} people={privatePeople.people} unlocked={privatePeople.unlocked} onSavePerson={savePartyAsPrivatePerson} />
       </div>
 
       <button
@@ -209,14 +221,17 @@ function PartyForm({
   onChange,
   people,
   unlocked,
+  onSavePerson,
 }: {
   label: string;
   value: PartyState;
   onChange: Dispatch<SetStateAction<PartyState>>;
   people: import("@/lib/private-people").PrivatePerson[];
   unlocked: boolean;
+  onSavePerson: (label: string, party: PartyState) => Promise<void>;
 }) {
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
+  const canSave = value.dateTime.date !== "" && value.dateTime.time !== "" && value.location !== null;
   return (
     <fieldset className="rounded-xl border border-black/10 bg-white/40 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.04]">
       <legend className="px-1 text-sm font-semibold uppercase tracking-wide text-accent">{label}</legend>
@@ -236,6 +251,7 @@ function PartyForm({
           value={value.location}
           onChange={(location) => onChange((current) => ({ ...current, location }))}
         />
+        {unlocked && <PrivatePersonSaveButton disabled={!canSave} onSave={(personLabel) => onSavePerson(personLabel, value)} />}
       </div>
     </fieldset>
   );

@@ -12,6 +12,7 @@ const files = [
   "divisional-charts/DivisionalChartsClient.tsx",
   "birth-nakshatra/BirthNakshatraClient.tsx",
   "horoscope-report/HoroscopeReportClient.tsx",
+  "porondam/PorondamClient.tsx",
 ];
 
 const violations = [];

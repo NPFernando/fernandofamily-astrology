@@ -8,6 +8,7 @@ import { LocationPicker, DEFAULT_LOCATION, useVaultRecentLocation, type Location
 import { useLocalVault } from "@/components/LocalVaultProvider";
 import { DateNav } from "@/components/pancha-pakshi/DateNav";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
+import { usePrivatePeople } from "@/lib/use-private-people";
 import { PanchangaIcon } from "@/components/icons/features";
 import { FullMoonIcon } from "@/components/icons/moon";
 import { loadAccountPreferences } from "@/lib/account-preferences";
@@ -62,6 +63,7 @@ export function PanchangaClient() {
   const { dict, locale } = useLocale();
   const { unlocked } = useLocalVault();
   const vaultLocation = useVaultRecentLocation();
+  const privatePeople = usePrivatePeople();
   const [date, setDate] = useState<string>(() => todayIso());
   const [location, setLocation] = useState<LocationValue | null>(null);
   const [data, setData] = useState<DailyPanchanga | null>(null);
@@ -107,7 +109,7 @@ export function PanchangaClient() {
     (async () => {
       const account = await loadAccountPreferences();
       if (cancelled) return;
-      const loc = account.preferences?.default_location ?? (unlocked ? vaultLocation : null) ?? DEFAULT_LOCATION;
+      const loc = account.preferences?.default_location ?? (unlocked ? privatePeople.person?.current_location ?? privatePeople.person?.birthplace ?? vaultLocation : null) ?? DEFAULT_LOCATION;
       // "Today" must be resolved in the LOCATION's timezone, not the
       // browser's — otherwise a device whose system clock is in a different
       // zone than the (possibly default Colombo) location can load the
@@ -122,7 +124,7 @@ export function PanchangaClient() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unlocked]);
+  }, [unlocked, privatePeople.person]);
 
   const onDateChange = useCallback(
     (next: string) => {

@@ -988,6 +988,36 @@
         "title": "CompatibilityResponse",
         "type": "object"
       },
+      "CurrentResponse": {
+        "properties": {
+          "current_period": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SubPeriod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "next_period": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SubPeriod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "current_period",
+          "next_period"
+        ],
+        "title": "CurrentResponse",
+        "type": "object"
+      },
       "DailyPanchanga": {
         "properties": {
           "date": {
@@ -4611,9 +4641,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
-                  "title": "Response Current Api V1 Pancha Pakshi Current Post",
-                  "type": "object"
+                  "$ref": "#/components/schemas/CurrentResponse"
                 }
               }
             },

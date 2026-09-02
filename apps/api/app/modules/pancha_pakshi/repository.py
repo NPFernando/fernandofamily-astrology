@@ -97,6 +97,7 @@ _EXPECTED_COLUMNS = [
 ]
 
 _rows_cache: list[list[float]] | None = None
+_matching_rows_cache: dict[tuple[int, int, int], list[list[float]]] | None = None
 
 
 def _to_num(value: str) -> float:
@@ -121,15 +122,14 @@ def load_rows() -> list[list[float]]:
 
 
 def get_matching_rows(bird_1based: int, weekday_1based: int, paksha_1based: int) -> list[list[float]]:
-    target_bird = bird_1based - 1
-    target_week = weekday_1based - 1
-    target_paksha = paksha_1based - 1
-    rows = load_rows()
-    matched = [
-        row
-        for row in rows
-        if int(row[3]) == target_bird and int(row[0]) == target_week and int(row[1]) == target_paksha
-    ]
+    global _matching_rows_cache
+    if _matching_rows_cache is None:
+        index: dict[tuple[int, int, int], list[list[float]]] = {}
+        for row in load_rows():
+            key = (int(row[3]) + 1, int(row[0]) + 1, int(row[1]) + 1)
+            index.setdefault(key, []).append(row)
+        _matching_rows_cache = index
+    matched = _matching_rows_cache.get((bird_1based, weekday_1based, paksha_1based), [])
     if len(matched) != 50:
         raise AssertionError(
             f"expected exactly 50 matching rows for bird={bird_1based} weekday={weekday_1based} "

@@ -69,6 +69,11 @@ def test_current_rejects_invalid_body():
     assert response.status_code == 422
 
 
+def test_current_openapi_response_is_typed():
+    schema = app.openapi()["paths"]["/api/v1/pancha-pakshi/current"]["post"]["responses"]["200"]["content"]["application/json"]["schema"]
+    assert schema["$ref"] == "#/components/schemas/CurrentResponse"
+
+
 def test_birth_bird_returns_the_resolved_bird_and_lords():
     response = client.post("/api/v1/pancha-pakshi/birth-bird", json=BIRTH_DATETIME_BODY)
     assert response.status_code == 200, response.text

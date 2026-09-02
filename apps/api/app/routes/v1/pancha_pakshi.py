@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, Response
 from app.core.config import settings
 from app.core.rate_limit import enforce_rate_limit
 from app.modules.pancha_pakshi import calculator, service
-from app.modules.pancha_pakshi.models import EngineMetadata, ScheduleResponse
+from app.modules.pancha_pakshi.models import CurrentResponse, EngineMetadata, ScheduleResponse
 from app.modules.pancha_pakshi.requests import (
     BirthBirdRequest,
     BirthBirdResponse,
@@ -106,10 +106,10 @@ def schedule(body: ScheduleRequest) -> ScheduleResponse:
     return _resolve_schedule(body)
 
 
-@router.post("/current", dependencies=[Depends(enforce_rate_limit)])
-def current(body: ScheduleRequest) -> dict:
+@router.post("/current", response_model=CurrentResponse, dependencies=[Depends(enforce_rate_limit)])
+def current(body: ScheduleRequest) -> CurrentResponse:
     result = _resolve_schedule(body)
-    return {"current_period": result.current_period, "next_period": result.next_period}
+    return CurrentResponse(current_period=result.current_period, next_period=result.next_period)
 
 
 _WINDOW_EFFECTS = {

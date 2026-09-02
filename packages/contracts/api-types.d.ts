@@ -776,6 +776,11 @@ export interface components {
             /** Variants */
             variants: components["schemas"]["RelationVariant"][];
         };
+        /** CurrentResponse */
+        CurrentResponse: {
+            current_period: components["schemas"]["SubPeriod"] | null;
+            next_period: components["schemas"]["SubPeriod"] | null;
+        };
         /** DailyPanchanga */
         DailyPanchanga: {
             /**
@@ -2422,9 +2427,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["CurrentResponse"];
                 };
             };
             /** @description Validation Error */

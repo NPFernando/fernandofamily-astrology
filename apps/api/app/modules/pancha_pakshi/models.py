@@ -112,3 +112,8 @@ class ScheduleResponse(BaseModel):
     next_period: SubPeriod | None
     major_periods: list[MajorPeriod]
     summary: ScheduleSummary
+
+
+class CurrentResponse(BaseModel):
+    current_period: SubPeriod | None
+    next_period: SubPeriod | None

@@ -9,6 +9,7 @@ import { useLocalVault } from "@/components/LocalVaultProvider";
 import { DateNav } from "@/components/pancha-pakshi/DateNav";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import { usePrivatePeople } from "@/lib/use-private-people";
+import { PrivatePersonPicker } from "@/components/private-people/PrivatePersonPicker";
 import { PanchangaIcon } from "@/components/icons/features";
 import { FullMoonIcon } from "@/components/icons/moon";
 import { loadAccountPreferences } from "@/lib/account-preferences";
@@ -157,6 +158,7 @@ export function PanchangaClient() {
       >
         <h2 className="text-sm font-semibold uppercase tracking-wide text-accent">{dict.ui.dailyDetails}</h2>
         <div className="mt-3 flex flex-col gap-4">
+          <PrivatePersonPicker people={privatePeople.people} selectedId={privatePeople.selectedId} unlocked={unlocked} onSelect={privatePeople.selectPerson} onDelete={privatePeople.removePerson} />
           <DateNav date={date} onChange={onDateChange} />
           <div>
             <p className="mb-2 text-sm opacity-70">{dict.ui.location}</p>

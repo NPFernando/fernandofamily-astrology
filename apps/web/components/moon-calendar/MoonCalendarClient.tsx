@@ -24,6 +24,7 @@ import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFi
 import { MoonCalendarIcon } from "@/components/icons/features";
 import { PoyaDetailCard } from "@/components/panchanga/PoyaDetailCard";
 import { usePrivatePeople } from "@/lib/use-private-people";
+import { PrivatePersonPicker } from "@/components/private-people/PrivatePersonPicker";
 import { formatLocalDate, formatLocalTime, localeTag } from "@/lib/formatters";
 
 function sinhalaMonthName(dict: ReturnType<typeof getDictionary>, key: string): string {
@@ -178,7 +179,10 @@ export function MoonCalendarClient() {
           {dict.moonCalendar.controlsTitle}
         </h2>
         <div className="mt-3 grid gap-4 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
-          <MonthControls month={month} onChange={onMonthChange} />
+          <div className="flex flex-col gap-4">
+            <PrivatePersonPicker people={privatePeople.people} selectedId={privatePeople.selectedId} unlocked={unlocked} onSelect={privatePeople.selectPerson} onDelete={privatePeople.removePerson} />
+            <MonthControls month={month} onChange={onMonthChange} />
+          </div>
           <div>
             <p className="mb-2 text-sm opacity-70">{dict.ui.location}</p>
             <LocationPicker value={location} onChange={onLocationChange} />

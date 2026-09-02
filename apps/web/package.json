@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node scripts/check-i18n-hygiene.mjs && node scripts/check-no-birth-fields-in-urls.mjs && node scripts/check-ics-generator.mjs && node scripts/check-account-location-rounding.mjs && node scripts/check-profiles.mjs && node scripts/check-release-readiness.mjs",
+    "test": "node scripts/check-i18n-hygiene.mjs && node scripts/check-no-birth-fields-in-urls.mjs && node scripts/check-ics-generator.mjs && node scripts/check-account-location-rounding.mjs && node scripts/check-profiles.mjs && node scripts/check-private-person-save.mjs && node scripts/check-release-readiness.mjs",
     "e2e": "API_PROXY_TARGET=http://127.0.0.1:8199 next build --webpack && node scripts/check-standalone-runtime.mjs && playwright test",
     "e2e:only": "playwright test"
   },

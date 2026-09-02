@@ -7,6 +7,7 @@ import { LocationPicker, type LocationValue } from "./LocationPicker";
 import { TargetDateTimeFields, nowAsTargetDateTime, type TargetDateTime } from "./TargetDateTimeFields";
 import { usePrivatePeople } from "@/lib/use-private-people";
 import { PrivatePersonPicker } from "@/components/private-people/PrivatePersonPicker";
+import { PrivatePersonSaveButton } from "@/components/private-people/PrivatePersonSaveButton";
 
 export function BirthInputForm({
   location,
@@ -36,10 +37,8 @@ export function BirthInputForm({
     setConfirmed(null);
   }, [onLocationChange, privatePeople.person]);
 
-  async function savePrivatePerson() {
+  async function savePrivatePerson(label: string) {
     if (!birthDate || !birthTime || !location || !privatePeople.unlocked) return;
-    const label = window.prompt("Name for this person")?.trim();
-    if (!label) return;
     await privatePeople.savePerson({ label, birth_date: birthDate, birth_time: birthTime.length === 5 ? `${birthTime}:00` : birthTime, birthplace: location });
   }
 
@@ -154,7 +153,7 @@ export function BirthInputForm({
       >
         {loading ? dict.ui.loading : dict.ui.confirm}
       </button>
-      {privatePeople.unlocked && <button type="button" disabled={!canConfirm} onClick={savePrivatePerson} className="w-fit rounded-lg border border-accent/40 px-4 py-2 text-sm font-semibold text-accent">{dict.ui.savePrivatePerson}</button>}
+      {privatePeople.unlocked && <PrivatePersonSaveButton disabled={!canConfirm} onSave={savePrivatePerson} />}
     </div>
   );
 }

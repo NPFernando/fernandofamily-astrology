@@ -26,6 +26,14 @@ for (const relative of files) {
   }
 }
 
+const picker = readFileSync(new URL("private-people/PrivatePersonPicker.tsx", root), "utf8");
+if (!picker.includes("useId")) {
+  violations.push("private-people/PrivatePersonPicker.tsx: picker ids must be unique per instance");
+}
+if (picker.includes(">Remove</button>")) {
+  violations.push("private-people/PrivatePersonPicker.tsx: contains the untranslated remove action");
+}
+
 if (violations.length > 0) {
   console.error("Private-person save check FAILED:\n" + violations.join("\n"));
   process.exit(1);

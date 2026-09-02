@@ -50,6 +50,7 @@ import { LoadingCards } from "@/components/ui/ContentStates";
 import { MobileActionBar } from "@/components/ui/MobileActionBar";
 import { ResultNavigation, SourceContext } from "@/components/ui/ResultContext";
 import { EFFECT_COLORS } from "@fernandofamily/design-system";
+import { usePrivatePeople } from "@/lib/use-private-people";
 
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
 const FAMILY_BOARD_LIMIT = 8;
@@ -421,6 +422,7 @@ export function DailyGuideClient() {
   const { dict, locale } = useLocale();
   const { data: vaultData, unlocked, update: updateVault } = useLocalVault();
   const vaultLocation = useVaultRecentLocation();
+  const privatePeople = usePrivatePeople();
   const searchParams = useSearchParams();
   const requestedDate = validDateParam(searchParams.get("date"));
   const [request, setRequest] = useState<ScheduleRequest | null>(null);
@@ -494,7 +496,7 @@ export function DailyGuideClient() {
     let cancelled = false;
     (async () => {
       const initial = await resolveDefaultScheduleRequest({
-        recentLocation: unlocked ? vaultLocation : null,
+        recentLocation: unlocked ? privatePeople.person?.current_location ?? privatePeople.person?.birthplace ?? vaultLocation : null,
         derivedIdentitySeed: unlocked ? vaultData.derivedIdentitySeed ?? null : null,
         selectedBird: unlocked ? vaultData.selectedBird ?? null : null,
       });
@@ -510,7 +512,7 @@ export function DailyGuideClient() {
   // Vault writes also change vaultLocation after a user selects a place; this
   // bootstrap should rerun only for navigation or an unlock transition.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [requestedDate, run, unlocked]);
+  }, [requestedDate, run, unlocked, privatePeople.person]);
 
   const viewingToday = Boolean(location && date === todayFor(location).date);
   const currentPeriod = viewingToday ? data?.schedule.current_period ?? null : null;

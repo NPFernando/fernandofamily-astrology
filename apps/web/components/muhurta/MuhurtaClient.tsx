@@ -42,6 +42,7 @@ import { MobileActionBar } from "@/components/ui/MobileActionBar";
 import { buildIcs, downloadIcs } from "@/lib/ics";
 import { ResultNavigation, SourceContext } from "@/components/ui/ResultContext";
 import type { VaultPlan } from "@/lib/planner";
+import { usePrivatePeople } from "@/lib/use-private-people";
 
 const feature = features.find((f) => f.id === "muhurta")!;
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
@@ -1100,6 +1101,7 @@ export function MuhurtaClient() {
   const { dict, locale } = useLocale();
   const { data: vaultData, unlocked, update: updateVault } = useLocalVault();
   const vaultLocation = useVaultRecentLocation();
+  const privatePeople = usePrivatePeople();
   const [identityRequest, setIdentityRequest] = useState<ScheduleRequest | null>(null);
   const [location, setLocation] = useState<LocationValue | null>(null);
   const [date, setDate] = useState("");
@@ -1147,7 +1149,7 @@ export function MuhurtaClient() {
     let cancelled = false;
     (async () => {
       const initial = await resolveDefaultScheduleRequest({
-        recentLocation: unlocked ? vaultLocation : null,
+        recentLocation: unlocked ? privatePeople.person?.current_location ?? privatePeople.person?.birthplace ?? vaultLocation : null,
         derivedIdentitySeed: unlocked ? vaultData.derivedIdentitySeed ?? null : null,
         selectedBird: unlocked ? vaultData.selectedBird ?? null : null,
       });
@@ -1160,7 +1162,7 @@ export function MuhurtaClient() {
       cancelled = true;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps -- rerun on unlock, not every user location write.
-  }, [run, unlocked]);
+  }, [run, unlocked, privatePeople.person]);
 
   const currentBird = useMemo(() => {
     if (identityRequest?.method === "bird") return identityRequest.bird;

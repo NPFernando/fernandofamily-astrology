@@ -10,6 +10,7 @@ import { LanguageSwitch } from "@/components/layout/LanguageSwitch";
 import { AccountMenu } from "@/components/layout/AccountMenu";
 import { InstallAppButton } from "@/components/layout/InstallAppButton";
 import { LocalVaultControl } from "@/components/layout/LocalVaultControl";
+import { PrivatePersonSwitcher } from "@/components/layout/PrivatePersonSwitcher";
 
 export function Nav() {
   const { locale, dict } = useLocale();
@@ -80,6 +81,7 @@ export function Nav() {
           <ThemeToggle />
           <InstallAppButton />
           <LocalVaultControl />
+          <PrivatePersonSwitcher />
           <AccountMenu />
         </div>
       </nav>

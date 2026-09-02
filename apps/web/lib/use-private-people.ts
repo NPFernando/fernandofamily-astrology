@@ -6,6 +6,7 @@ import type { LocationValue } from "@/components/pancha-pakshi/LocationPicker";
 import { samePrivatePersonDetails, type PrivatePerson } from "@/lib/private-people";
 
 const ACTIVE_PERSON_KEY = "ff_active_private_person_id";
+export const PRIVATE_PERSON_CHANGED_EVENT = "ff-private-person-changed";
 
 function activeId(): string | null {
   if (typeof window === "undefined") return null;
@@ -16,6 +17,7 @@ function setActiveId(id: string | null) {
   if (typeof window === "undefined") return;
   if (id) window.sessionStorage.setItem(ACTIVE_PERSON_KEY, id);
   else window.sessionStorage.removeItem(ACTIVE_PERSON_KEY);
+  window.dispatchEvent(new Event(PRIVATE_PERSON_CHANGED_EVENT));
 }
 
 export function usePrivatePeople() {
@@ -23,6 +25,12 @@ export function usePrivatePeople() {
   const [selectedId, setSelectedId] = useState<string | null>(() => activeId());
   const people = useMemo(() => data.privatePeople ?? [], [data.privatePeople]);
   const selected = useMemo(() => people.find((person) => person.id === selectedId) ?? null, [people, selectedId]);
+
+  useEffect(() => {
+    const sync = () => setSelectedId(activeId());
+    window.addEventListener(PRIVATE_PERSON_CHANGED_EVENT, sync);
+    return () => window.removeEventListener(PRIVATE_PERSON_CHANGED_EVENT, sync);
+  }, []);
 
   useEffect(() => {
     if (selectedId && people.some((person) => person.id === selectedId)) return;

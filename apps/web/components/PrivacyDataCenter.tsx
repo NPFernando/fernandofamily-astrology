@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocalVault } from "@/components/LocalVaultProvider";
 import { listLocalProfiles } from "@/lib/profiles";
 import { useLocale } from "@/lib/locale-context";
+import { usePrivatePeople } from "@/lib/use-private-people";
+import { DEFAULT_LOCATION, LocationPicker, type LocationValue } from "@/components/pancha-pakshi/LocationPicker";
+import type { PrivatePerson } from "@/lib/private-people";
 
 // This is deliberately an inventory, not a second store. It gives a person
 // evidence of what is currently encrypted in this browser without rendering
@@ -11,8 +14,11 @@ import { useLocale } from "@/lib/locale-context";
 export function PrivacyDataCenter() {
   const { dict } = useLocale();
   const { data, ready, unlocked, hasEncryptedData, legacyMigrationPending } = useLocalVault();
+  const privatePeople = usePrivatePeople();
   const localProfileCount = useMemo(() => listLocalProfiles().length, []);
   const [device, setDevice] = useState({ online: false, serviceWorkerReady: false });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draft, setDraft] = useState<Omit<PrivatePerson, "id" | "created_at" | "updated_at"> | null>(null);
 
   useEffect(() => {
     const update = () => setDevice({
@@ -29,6 +35,18 @@ export function PrivacyDataCenter() {
   }, []);
 
   if (!ready) return null;
+
+  function beginEdit(person?: PrivatePerson) {
+    setEditingId(person?.id ?? null);
+    setDraft(person ? { label: person.label, birth_date: person.birth_date, birth_time: person.birth_time, birthplace: person.birthplace, current_location: person.current_location } : { label: "", birth_date: "", birth_time: "", birthplace: DEFAULT_LOCATION });
+  }
+
+  async function savePerson() {
+    if (!draft?.label.trim() || !draft.birth_date || !draft.birth_time || !draft.birthplace.name) return;
+    await privatePeople.savePerson({ ...draft, label: draft.label.trim() }, editingId ?? undefined);
+    setDraft(null);
+    setEditingId(null);
+  }
 
   function downloadDerivedProfiles() {
     // Saved profiles contain only derived bird/nakshatra identifiers. This is
@@ -80,6 +98,25 @@ export function PrivacyDataCenter() {
         {dict.ui.dataCenterExportProfiles}
       </button>
       {legacyMigrationPending && <p role="status" className="mt-3 text-sm text-accent">{dict.ui.dataCenterMigrationPending}</p>}
+      <section className="mt-6 rounded-lg border border-black/10 p-3 dark:border-white/10" data-testid="private-people-manager">
+        <div className="flex items-center justify-between gap-2">
+          <div><h3 className="font-semibold">{dict.ui.privatePeopleTitle}</h3><p className="mt-1 text-xs opacity-70">{dict.ui.privatePeopleBody}</p></div>
+          {unlocked && <button type="button" onClick={() => beginEdit()} className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-white">{dict.ui.addPrivatePerson}</button>}
+        </div>
+        {!unlocked ? <p className="mt-3 text-xs opacity-70">{dict.ui.unlockToManagePeople}</p> : (
+          <div className="mt-3 grid gap-2">
+            {privatePeople.people.map((person) => <div key={person.id} className="flex items-center justify-between gap-2 rounded border border-black/10 px-3 py-2 text-sm dark:border-white/10"><span>{person.label}</span><span className="flex gap-2"><button type="button" onClick={() => beginEdit(person)} className="text-accent underline">{dict.ui.editPrivatePerson}</button><button type="button" onClick={() => void privatePeople.removePerson(person.id)} className="text-red-700 underline dark:text-red-300">{dict.ui.deletePrivatePerson}</button></span></div>)}
+            {privatePeople.people.length === 0 && <p className="text-xs opacity-70">{dict.ui.noPrivatePeople}</p>}
+          </div>
+        )}
+        {draft && unlocked && <div className="mt-4 grid gap-3 border-t border-black/10 pt-3 dark:border-white/10">
+          <input aria-label={dict.ui.personName} value={draft.label} onChange={(e) => setDraft({ ...draft, label: e.target.value })} placeholder={dict.ui.personName} className="rounded border border-black/15 bg-transparent px-2 py-1.5 text-sm dark:border-white/20" />
+          <div className="grid gap-2 sm:grid-cols-2"><input aria-label={dict.ui.birthDate} type="date" value={draft.birth_date} onChange={(e) => setDraft({ ...draft, birth_date: e.target.value })} className="rounded border border-black/15 bg-transparent px-2 py-1.5 text-sm dark:border-white/20" /><input aria-label={dict.ui.birthTime} type="time" value={draft.birth_time.slice(0, 5)} onChange={(e) => setDraft({ ...draft, birth_time: e.target.value })} className="rounded border border-black/15 bg-transparent px-2 py-1.5 text-sm dark:border-white/20" /></div>
+          <div><p className="mb-1 text-xs font-medium opacity-70">{dict.ui.birthplace}</p><LocationPicker value={draft.birthplace as LocationValue} onChange={(location) => setDraft({ ...draft, birthplace: location })} /></div>
+          <div><div className="mb-1 flex items-center justify-between"><p className="text-xs font-medium opacity-70">{dict.ui.currentLocation}</p>{draft.current_location && <button type="button" onClick={() => setDraft({ ...draft, current_location: undefined })} className="text-xs text-accent underline">{dict.ui.clearSavedLocations}</button>}</div><LocationPicker value={draft.current_location ?? null} onChange={(location) => setDraft({ ...draft, current_location: location })} /></div>
+          <div className="flex gap-2"><button type="button" onClick={() => void savePerson()} className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-white">{dict.ui.saveChanges}</button><button type="button" onClick={() => { setDraft(null); setEditingId(null); }} className="rounded-lg border border-black/15 px-3 py-1.5 text-xs dark:border-white/20">{dict.ui.cancel}</button></div>
+        </div>}
+      </section>
     </section>
   );
 }

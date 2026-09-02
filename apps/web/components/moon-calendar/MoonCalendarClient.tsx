@@ -23,6 +23,7 @@ import { useLocalVault } from "@/components/LocalVaultProvider";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import { MoonCalendarIcon } from "@/components/icons/features";
 import { PoyaDetailCard } from "@/components/panchanga/PoyaDetailCard";
+import { usePrivatePeople } from "@/lib/use-private-people";
 
 function sinhalaMonthName(dict: ReturnType<typeof getDictionary>, key: string): string {
   const isAdhi = key.startsWith("adhi-");
@@ -83,6 +84,7 @@ export function MoonCalendarClient() {
   const { dict, locale } = useLocale();
   const { unlocked } = useLocalVault();
   const vaultLocation = useVaultRecentLocation();
+  const privatePeople = usePrivatePeople();
   const searchParams = useSearchParams();
   const requestedDate = validDateParam(searchParams.get("date"));
   const [month, setMonth] = useState(() => monthFromDate(new Date().toISOString().slice(0, 10)));
@@ -123,7 +125,7 @@ export function MoonCalendarClient() {
     (async () => {
       const account = await loadAccountPreferences();
       if (cancelled) return;
-      const loc = account.preferences?.default_location ?? (unlocked ? vaultLocation : null) ?? DEFAULT_LOCATION;
+      const loc = account.preferences?.default_location ?? (unlocked ? privatePeople.person?.current_location ?? privatePeople.person?.birthplace ?? vaultLocation : null) ?? DEFAULT_LOCATION;
       const targetDate = requestedDate ?? todayIsoForLocation(loc);
       const initialMonth = monthFromDate(targetDate);
       setLocation(loc);
@@ -135,7 +137,7 @@ export function MoonCalendarClient() {
       cancelled = true;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps -- rerun on unlock, not every user location write.
-  }, [requestedDate, run, unlocked]);
+  }, [requestedDate, run, unlocked, privatePeople.person]);
 
   const selectedDay = useMemo(
     () => data?.days.find((d) => d.date === selectedDate) ?? data?.days[0] ?? null,

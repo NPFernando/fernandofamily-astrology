@@ -7,6 +7,7 @@ import { ApiError, type ScheduleRequest, type ScheduleResponse, type SubPeriod }
 import { translateEnum } from "@/lib/i18n";
 import { useLocale } from "@/lib/locale-context";
 import { useLocalVault } from "@/components/LocalVaultProvider";
+import { usePrivatePeople } from "@/lib/use-private-people";
 import {
   cachedScheduleFor,
   fetchLiveSchedule,
@@ -38,6 +39,7 @@ function pct(startMs: number, valueMs: number, totalMs: number) {
 export function PanchaPakshiLiveView() {
   const { dict, locale } = useLocale();
   const { data: vaultData, ready: vaultReady, unlocked, update: updateVault } = useLocalVault();
+  const privatePeople = usePrivatePeople();
   const [lastRequest, setLastRequest] = useState<ScheduleRequest | null>(null);
   const [schedule, setSchedule] = useState<ScheduleResponse | null>(null);
   const [serverTime, setServerTime] = useState<Date | null>(null);
@@ -153,7 +155,12 @@ export function PanchaPakshiLiveView() {
     let cancelled = false;
     (async () => {
       const request = await resolveDefaultScheduleRequest({
-        recentLocation: unlocked ? vaultData.recentLocations?.[0] ?? null : null,
+        recentLocation: unlocked
+          ? privatePeople.person?.current_location
+            ?? privatePeople.person?.birthplace
+            ?? vaultData.recentLocations?.[0]
+            ?? null
+          : null,
         derivedIdentitySeed: unlocked ? vaultData.derivedIdentitySeed ?? null : null,
         selectedBird: unlocked ? vaultData.selectedBird ?? null : null,
       });
@@ -162,7 +169,7 @@ export function PanchaPakshiLiveView() {
     return () => {
       cancelled = true;
     };
-  }, [unlocked, vaultData.cachedSchedule, vaultData.derivedIdentitySeed, vaultData.liveScheduleSeed, vaultData.recentLocations, vaultData.selectedBird, vaultReady, runSchedule]);
+  }, [privatePeople.person, unlocked, vaultData.cachedSchedule, vaultData.derivedIdentitySeed, vaultData.liveScheduleSeed, vaultData.recentLocations, vaultData.selectedBird, vaultReady, runSchedule]);
 
   const skewMs = serverTime ? serverTime.getTime() - fetchedAtClientMs : 0;
 

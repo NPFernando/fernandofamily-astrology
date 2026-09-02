@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
+import { formatLocalWeekday } from "@/lib/formatters";
 import { usePushSupport } from "@/lib/use-push-support";
 import type { BirdId, PakshaId } from "@/lib/api-client";
 
@@ -219,7 +220,7 @@ export function NotificationOptIn({
                     checked={allowedWeekdays.includes(weekday)}
                     onChange={() => setAllowedWeekdays((current) => current.includes(weekday) ? current.filter((value) => value !== weekday) : [...current, weekday].sort())}
                   />
-                  {new Intl.DateTimeFormat(locale === "si" ? "si-LK" : "en-US", { weekday: "short" }).format(new Date(2024, 0, weekday))}
+                  {formatLocalWeekday(new Date(2024, 0, weekday), locale)}
                 </label>
               ))}
             </div>

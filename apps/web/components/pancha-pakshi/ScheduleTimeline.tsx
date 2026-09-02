@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
+import { formatLocalTime } from "@/lib/formatters";
 import { translateEnum } from "@/lib/i18n";
 import type { MajorPeriod, ScheduleResponse, SubPeriod } from "@/lib/api-client";
 import { ACTIVITY_COLORS } from "./activityColors";
@@ -14,10 +15,7 @@ import type { ScheduleRequest } from "@/lib/api-client";
 import { activityGuidance } from "@/lib/pancha-guidance";
 
 function formatTime(iso: string, locale: string) {
-  return new Date(iso).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatLocalTime(iso, locale);
 }
 
 export function ScheduleTimeline({

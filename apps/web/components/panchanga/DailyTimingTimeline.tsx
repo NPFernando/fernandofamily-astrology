@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { getDictionary, translateEnum } from "@/lib/i18n";
 import type { DailyPanchanga, EffectId, KalamRange, ScheduleResponse } from "@/lib/api-client";
+import { formatLocalTime } from "@/lib/formatters";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
@@ -39,10 +40,7 @@ const ROW_STYLES: Record<TimelineTone, { border: string; bg: string; text: strin
 };
 
 function formatTime(iso: string, locale: string) {
-  return new Date(iso).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatLocalTime(iso, locale);
 }
 
 function percentBetween(value: number, start: number, end: number) {

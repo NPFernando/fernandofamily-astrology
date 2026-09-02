@@ -20,6 +20,7 @@ import { BIRD_ICONS } from "@/components/icons/birds";
 import { ACTIVITY_ICONS } from "@/components/icons/activities";
 import { ACTIVITY_COLORS } from "@/components/pancha-pakshi/activityColors";
 import { EFFECT_COLORS } from "@fernandofamily/design-system";
+import { formatLocalDateTime, localeTag } from "@/lib/formatters";
 
 function formatDuration(ms: number) {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
@@ -196,11 +197,11 @@ export function PanchaPakshiLiveView() {
     }
   }, [isStale, loading, refetch, remainingMs]);
 
-  const timeFormat = new Intl.DateTimeFormat(locale === "si" ? "si-LK" : "en-US", {
+  const timeFormat = new Intl.DateTimeFormat(localeTag(locale), {
     hour: "2-digit",
     minute: "2-digit",
   });
-  const dateFormat = new Intl.DateTimeFormat(locale === "si" ? "si-LK" : "en-US", {
+  const dateFormat = new Intl.DateTimeFormat(localeTag(locale), {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -239,7 +240,7 @@ export function PanchaPakshiLiveView() {
           <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs font-medium">
             {dict.ui.offlineCachedNotice}
             {cachedAtIso
-              ? ` ${dict.ui.generatedAt}: ${new Date(cachedAtIso).toLocaleString(locale === "si" ? "si-LK" : "en-US")}`
+              ? ` ${dict.ui.generatedAt}: ${formatLocalDateTime(cachedAtIso, locale)}`
               : ""}
           </p>
         )}
@@ -336,7 +337,7 @@ function LiveCurrentPanel({
   const SubBirdIcon = BIRD_ICONS[current.sub_bird];
   const SubActivityIcon = ACTIVITY_ICONS[current.sub_activity];
   const inFinalMinute = remainingMs > 0 && remainingMs <= 60_000 && !isStale;
-  const timeFormat = new Intl.DateTimeFormat(locale === "si" ? "si-LK" : "en-US", {
+  const timeFormat = new Intl.DateTimeFormat(localeTag(locale), {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -435,7 +436,7 @@ function LiveDayProgressBar({ schedule, nowMs }: { schedule: ScheduleResponse; n
   if (totalMs <= 0) return null;
   const dayPct = pct(startMs, sunsetMs, totalMs);
   const nowPct = nowMs >= startMs && nowMs < endMs ? pct(startMs, nowMs, totalMs) : null;
-  const timeFormat = new Intl.DateTimeFormat(locale === "si" ? "si-LK" : "en-US", {
+  const timeFormat = new Intl.DateTimeFormat(localeTag(locale), {
     hour: "2-digit",
     minute: "2-digit",
   });

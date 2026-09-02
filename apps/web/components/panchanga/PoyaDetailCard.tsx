@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { getDictionary, translateEnum } from "@/lib/i18n";
 import { FullMoonIcon } from "@/components/icons/moon";
+import { formatLocalDate, formatLocalNumber, formatLocalTime } from "@/lib/formatters";
 
 type TithiSummary = {
   key: string;
@@ -41,7 +42,7 @@ function poyaSignificance(dict: ReturnType<typeof getDictionary>, key: string): 
 }
 
 function formatDate(date: string, locale: string) {
-  return new Date(`${date}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+  return formatLocalDate(date, locale, {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -51,10 +52,7 @@ function formatDate(date: string, locale: string) {
 
 function formatTime(iso: string | null | undefined, locale: string, fallback: string) {
   if (!iso) return fallback;
-  return new Date(iso).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatLocalTime(iso, locale);
 }
 
 function daysUntil(date: string) {
@@ -69,7 +67,7 @@ function countdownText(dict: ReturnType<typeof getDictionary>, locale: string, d
   const count = daysUntil(date);
   if (count === 0) return dict.dailyGuide.poyaTodayCountdown;
   const template = count === 1 ? dict.dailyGuide.poyaTomorrowCountdown : dict.dailyGuide.poyaDaysCountdown;
-  return template.replace("{count}", new Intl.NumberFormat(locale === "si" ? "si-LK" : "en-US").format(count));
+  return template.replace("{count}", formatLocalNumber(count, locale));
 }
 
 export function PoyaDetailCard({

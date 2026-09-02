@@ -50,6 +50,7 @@ import { LoadingCards } from "@/components/ui/ContentStates";
 import { MobileActionBar } from "@/components/ui/MobileActionBar";
 import { ResultNavigation, SourceContext } from "@/components/ui/ResultContext";
 import { EFFECT_COLORS } from "@fernandofamily/design-system";
+import { formatLocalDate, formatLocalDateTime, formatLocalTime } from "@/lib/formatters";
 import { usePrivatePeople } from "@/lib/use-private-people";
 
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
@@ -109,14 +110,11 @@ function sinhalaMonthName(dict: ReturnType<typeof getDictionary>, key: string): 
 }
 
 function formatTime(iso: string, locale: string) {
-  return new Date(iso).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatLocalTime(iso, locale);
 }
 
 function formatDate(isoDate: string, locale: string) {
-  return new Date(`${isoDate}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+  return formatLocalDate(isoDate, locale, {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -753,7 +751,7 @@ export function DailyGuideClient() {
       {isStale && data && (
         <p role="status" data-testid="daily-guide-offline-cache" className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs font-medium">
           {dict.ui.offlineCachedNotice}
-          {cachedAtIso ? ` ${new Date(cachedAtIso).toLocaleString(locale === "si" ? "si-LK" : "en-US")}` : ""}
+          {cachedAtIso ? ` ${formatLocalDateTime(cachedAtIso, locale)}` : ""}
         </p>
       )}
 
@@ -1272,7 +1270,7 @@ function FamilyWeekDayCard({
     >
       <div>
         <p className="text-xs font-semibold uppercase opacity-70">
-          {new Date(`${date}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", { weekday: "short" })}
+          {formatLocalDate(date, locale, { weekday: "short" })}
         </p>
         <h3 className="mt-1 font-semibold">{formatDate(date, locale)}</h3>
         {panchanga ? (

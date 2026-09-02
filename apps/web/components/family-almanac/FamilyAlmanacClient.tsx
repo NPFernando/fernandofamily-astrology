@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { EFFECT_COLORS } from "@fernandofamily/design-system";
+import { formatLocalDate, formatLocalTime } from "@/lib/formatters";
 import {
   ApiError,
   fetchMuhurta,
@@ -95,7 +96,7 @@ async function retryOnce<T>(request: () => Promise<T>): Promise<T> {
 }
 
 function formatDate(isoDate: string, locale: string) {
-  return new Date(`${isoDate}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+  return formatLocalDate(isoDate, locale, {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -104,7 +105,7 @@ function formatDate(isoDate: string, locale: string) {
 }
 
 function formatShortDate(isoDate: string, locale: string) {
-  return new Date(`${isoDate}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+  return formatLocalDate(isoDate, locale, {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -112,10 +113,7 @@ function formatShortDate(isoDate: string, locale: string) {
 }
 
 function formatTime(iso: string, locale: string) {
-  return new Date(iso).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatLocalTime(iso, locale);
 }
 
 function durationText(seconds: number, dict: Dictionary) {

@@ -42,6 +42,7 @@ import { MobileActionBar } from "@/components/ui/MobileActionBar";
 import { buildIcs, downloadIcs } from "@/lib/ics";
 import { ResultNavigation, SourceContext } from "@/components/ui/ResultContext";
 import type { VaultPlan } from "@/lib/planner";
+import { formatLocalDate, formatLocalTime, localeTag } from "@/lib/formatters";
 import { usePrivatePeople } from "@/lib/use-private-people";
 
 const feature = features.find((f) => f.id === "muhurta")!;
@@ -203,7 +204,7 @@ function withBird(request: ScheduleRequest | null, bird: BirdId, date: string, l
 }
 
 function formatDate(date: string, locale: string) {
-  return new Date(`${date}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+  return formatLocalDate(date, locale, {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -211,7 +212,7 @@ function formatDate(date: string, locale: string) {
 }
 
 function formatLongDate(date: string, locale: string) {
-  return new Date(`${date}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+  return formatLocalDate(date, locale, {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -220,17 +221,14 @@ function formatLongDate(date: string, locale: string) {
 }
 
 function formatMonthName(year: number, month: number, locale: string) {
-  return new Date(year, month - 1, 1).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+  return formatLocalDate(new Date(year, month - 1, 1), locale, {
     month: "long",
     year: "numeric",
   });
 }
 
 function formatTime(iso: string, locale: string) {
-  return new Date(iso).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatLocalTime(iso, locale);
 }
 
 function durationText(seconds: number, dict: ReturnType<typeof getDictionary>) {
@@ -889,7 +887,7 @@ function MuhurtaMonthGrid({
 }) {
   const firstDate = new Date(`${days[0].date}T12:00:00`);
   const leadingBlanks = firstDate.getDay();
-  const weekdayFormatter = new Intl.DateTimeFormat(locale === "si" ? "si-LK" : "en-US", { weekday: "short" });
+  const weekdayFormatter = new Intl.DateTimeFormat(localeTag(locale), { weekday: "short" });
   const weekdayHeaders = Array.from({ length: 7 }, (_, i) => weekdayFormatter.format(new Date(2026, 1, 1 + i)));
   return (
     <div data-testid="muhurta-month-grid" className="hidden md:flex md:flex-col md:gap-2">

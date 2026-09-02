@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
+import { formatLocalDate } from "@/lib/formatters";
 import { translateEnum } from "@/lib/i18n";
 import type { MahadashaPeriod } from "@/lib/api-client";
 
 function formatDate(date: string, locale: string) {
-  return new Date(`${date}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+  return formatLocalDate(date, locale, {
     year: "numeric",
     month: "long",
     day: "numeric",

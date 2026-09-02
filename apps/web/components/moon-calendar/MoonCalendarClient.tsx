@@ -24,6 +24,7 @@ import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFi
 import { MoonCalendarIcon } from "@/components/icons/features";
 import { PoyaDetailCard } from "@/components/panchanga/PoyaDetailCard";
 import { usePrivatePeople } from "@/lib/use-private-people";
+import { formatLocalDate, formatLocalTime, localeTag } from "@/lib/formatters";
 
 function sinhalaMonthName(dict: ReturnType<typeof getDictionary>, key: string): string {
   const isAdhi = key.startsWith("adhi-");
@@ -57,7 +58,7 @@ function validDateParam(value: string | null): string | null {
 }
 
 function formatDate(date: string, locale: string) {
-  return new Date(`${date}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+  return formatLocalDate(date, locale, {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -67,10 +68,7 @@ function formatDate(date: string, locale: string) {
 
 function formatTime(iso: string | null, locale: string, fallback: string) {
   if (!iso) return fallback;
-  return new Date(iso).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatLocalTime(iso, locale);
 }
 
 function phaseTone(phase: MoonPhaseKey, isPoya: boolean): string {
@@ -223,7 +221,7 @@ export function MoonCalendarClient() {
               <div>
                 <p className="text-xs font-semibold uppercase text-accent">{dict.moonCalendar.monthLabel}</p>
                 <h2 className="text-xl font-semibold">
-                  {new Date(data.year, data.month - 1, 1).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+                  {formatLocalDate(new Date(data.year, data.month - 1, 1), locale, {
                     month: "long",
                     year: "numeric",
                   })}
@@ -262,7 +260,7 @@ function MonthControls({
   onChange: (month: { year: number; month: number }) => void;
 }) {
   const { dict, locale } = useLocale();
-  const display = new Date(month.year, month.month - 1, 1).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+  const display = formatLocalDate(new Date(month.year, month.month - 1, 1), locale, {
     month: "long",
     year: "numeric",
   });
@@ -322,7 +320,7 @@ function CalendarGrid({
 }) {
   const firstDate = new Date(`${days[0].date}T12:00:00`);
   const leadingBlanks = firstDate.getDay();
-  const weekdayFormatter = new Intl.DateTimeFormat(locale === "si" ? "si-LK" : "en-US", { weekday: "short" });
+  const weekdayFormatter = new Intl.DateTimeFormat(localeTag(locale), { weekday: "short" });
   const weekdayHeaders = Array.from({ length: 7 }, (_, i) => weekdayFormatter.format(new Date(2026, 1, 1 + i)));
   return (
     <div data-testid="moon-calendar-grid" className="hidden md:flex md:flex-col md:gap-2">

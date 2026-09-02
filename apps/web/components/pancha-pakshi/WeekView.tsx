@@ -14,15 +14,13 @@ import { BIRD_ICONS } from "@/components/icons/birds";
 import { ACTIVITY_ICONS } from "@/components/icons/activities";
 import { ACTIVITY_COLORS } from "./activityColors";
 import { buildIcs, downloadIcs, type IcsEvent } from "@/lib/ics";
+import { formatLocalDate, formatLocalTime } from "@/lib/formatters";
 
 const ALL_ACTIVITIES: ActivityId[] = ["ruling", "eating", "walking", "sleeping", "dying"];
 const DURATION_CHOICES = [0, 900, 1800, 3600] as const;
 
 function formatTime(iso: string, locale: string) {
-  return new Date(iso).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatLocalTime(iso, locale);
 }
 
 // 7-day overview of good/very_good windows via POST /windows. Absence of
@@ -221,10 +219,7 @@ export function WeekView({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-7 lg:gap-2">
         {days.map((date) => {
           const entries = byDate.get(date) ?? [];
-          const heading = new Date(`${date}T12:00:00`).toLocaleDateString(
-            locale === "si" ? "si-LK" : "en-US",
-            { weekday: "short", month: "short", day: "numeric" },
-          );
+          const heading = formatLocalDate(date, locale, { weekday: "short", month: "short", day: "numeric" });
           return (
             <div
               key={date}

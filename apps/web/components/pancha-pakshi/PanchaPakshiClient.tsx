@@ -22,6 +22,7 @@ import { DateNav } from "@/components/pancha-pakshi/DateNav";
 import { ExportControls } from "@/components/pancha-pakshi/ExportControls";
 import { EFFECT_COLORS } from "@fernandofamily/design-system";
 import { PrintSheet, type ExportDetail } from "@/components/pancha-pakshi/PrintSheet";
+import { formatLocalDateTime } from "@/lib/formatters";
 import { Legend } from "@/components/pancha-pakshi/Legend";
 import { StickyCurrentBar } from "@/components/pancha-pakshi/StickyCurrentBar";
 import { PanchaPakshiIcon } from "@/components/icons/features";
@@ -322,7 +323,7 @@ export function PanchaPakshiClient() {
               {isStale && cachedAtIso && (
                 <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs">
                   {dict.ui.offlineCachedNotice} — {dict.ui.generatedAt}:{" "}
-                  {new Date(cachedAtIso).toLocaleString(locale === "si" ? "si-LK" : "en-US")} ·{" "}
+                  {formatLocalDateTime(cachedAtIso, locale)} ·{" "}
                   {schedule.location.name}
                 </p>
               )}

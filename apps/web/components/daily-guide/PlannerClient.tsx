@@ -5,6 +5,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { useLocalVault } from "@/components/LocalVaultProvider";
 import { buildIcs, downloadIcs } from "@/lib/ics";
 import { useLocale } from "@/lib/locale-context";
+import { localeTag } from "@/lib/formatters";
 import { getDictionary } from "@/lib/i18n";
 import { listLocalProfiles, type SavedProfile } from "@/lib/profiles";
 import { plansToIcsEvents, planSort, type VaultFamilyGroup, type VaultPlan } from "@/lib/planner";
@@ -22,7 +23,7 @@ function addDays(date: string, offset: number) {
 
 function formatWeekDate(date: string, locale: string) {
   const [year, month, day] = date.split("-").map(Number);
-  return new Intl.DateTimeFormat(locale === "si" ? "si-LK" : "en-US", {
+  return new Intl.DateTimeFormat(localeTag(locale), {
     weekday: "short",
     month: "short",
     day: "numeric",

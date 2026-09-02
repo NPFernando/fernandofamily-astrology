@@ -14,6 +14,7 @@ import { FullMoonIcon } from "@/components/icons/moon";
 import { loadAccountPreferences } from "@/lib/account-preferences";
 import { SkyTodayPanel } from "@/components/panchanga/SkyTodayPanel";
 import { DailyTimingTimeline } from "@/components/panchanga/DailyTimingTimeline";
+import { formatLocalDate, formatLocalDateTime, formatLocalTime } from "@/lib/formatters";
 
 // Sinhala Poya-cycle month names (bak, vesak, ... madin) live under
 // enums.sinhalaMonths; the API's "adhi-" prefix (leap month) is not itself a
@@ -40,17 +41,14 @@ function todayIso(): string {
 }
 
 function formatTime(iso: string, locale: string) {
-  return new Date(iso).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatLocalTime(iso, locale);
 }
 
 // Eclipse contact times can fall months away from the requested date (unlike
 // every other panchanga element, which is always same-day) — always show the
 // date alongside the time.
 function formatDateTime(iso: string, locale: string) {
-  return new Date(iso).toLocaleString(locale === "si" ? "si-LK" : "en-US", {
+  return formatLocalDateTime(iso, locale, {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -198,7 +196,7 @@ export function PanchangaClient() {
       {data && (
         <div data-testid="panchanga-result" className="flex flex-col gap-6">
           <p className="text-sm opacity-80">
-            {new Date(`${data.date}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+            {formatLocalDate(data.date, locale, {
               weekday: "long",
               year: "numeric",
               month: "long",
@@ -226,10 +224,7 @@ export function PanchangaClient() {
           <p className="text-xs opacity-70" data-testid="panchanga-next-poya">
             {dict.panchanga.nextPoyaLabel}:{" "}
             {sinhalaMonthName(dict, data.next_poya.month_key)}{" "}
-            {new Date(`${data.next_poya.date}T12:00:00`).toLocaleDateString(
-              locale === "si" ? "si-LK" : "en-US",
-              { month: "long", day: "numeric" },
-            )}
+            {formatLocalDate(data.next_poya.date, locale, { month: "long", day: "numeric" })}
           </p>
 
           <SkyTodayPanel panchanga={data} testId="panchanga-sky-today" />

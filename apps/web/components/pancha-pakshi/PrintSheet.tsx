@@ -6,18 +6,16 @@ import { translateEnum } from "@/lib/i18n";
 import type { MajorPeriod, ScheduleResponse } from "@/lib/api-client";
 import { ACTIVITY_COLORS } from "./activityColors";
 import { BIRD_ICONS } from "@/components/icons/birds";
+import { formatLocalDate, formatLocalDateTime, formatLocalTime } from "@/lib/formatters";
 
 export type ExportDetail = "full" | "major";
 
 function fmtTime(iso: string, locale: string) {
-  return new Date(iso).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatLocalTime(iso, locale);
 }
 
 function fmtDate(iso: string, locale: string) {
-  return new Date(iso).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+  return formatLocalDate(iso, locale, {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -72,7 +70,7 @@ export function PrintSheet({
 
       <footer style={{ marginTop: "12px", borderTop: "1px solid #999", paddingTop: "6px" }}>
         <p style={{ fontSize: "8pt", color: "#555", margin: 0 }}>
-          {dict.ui.generatedAt}: {new Date().toLocaleString(locale === "si" ? "si-LK" : "en-US")} ·
+          {dict.ui.generatedAt}: {formatLocalDateTime(new Date(), locale)} ·
           astrology.fernandofamily.com
         </p>
         <p style={{ fontSize: "7.5pt", color: "#666", margin: "4px 0 0" }}>{dict.disclaimer.text}</p>

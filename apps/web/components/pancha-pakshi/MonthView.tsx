@@ -5,6 +5,7 @@ import { useLocale } from "@/lib/locale-context";
 import { translateEnum } from "@/lib/i18n";
 import { fetchSummary, type ScheduleRequest, type SummaryResponse } from "@/lib/api-client";
 import { EFFECT_COLORS } from "@fernandofamily/design-system";
+import { localeTag } from "@/lib/formatters";
 
 // 31-day favourable-density heat-map via POST /summary. Same degradation
 // contract as WeekView: any failure shows a friendly notice and the day
@@ -75,7 +76,7 @@ export function MonthView({
   const firstDate = new Date(`${data.per_day[0].date}T12:00:00`);
   const leadingBlanks = firstDate.getDay();
 
-  const weekdayFormatter = new Intl.DateTimeFormat(locale === "si" ? "si-LK" : "en-US", {
+  const weekdayFormatter = new Intl.DateTimeFormat(localeTag(locale), {
     weekday: "narrow",
   });
   const weekdayHeaders = Array.from({ length: 7 }, (_, i) =>
@@ -100,7 +101,7 @@ export function MonthView({
           const hours = seconds / 3600;
           const isToday = day.date === todayIso;
           const label = `${new Date(`${day.date}T12:00:00`).toLocaleDateString(
-            locale === "si" ? "si-LK" : "en-US",
+            localeTag(locale),
             { weekday: "short", month: "short", day: "numeric" },
           )} · ${day.window_count} ${dict.ui.monthWindows} · ${hours.toFixed(1)}h`;
           return (

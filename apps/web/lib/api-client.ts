@@ -6,10 +6,14 @@
 // JSON body. Never build a URL by interpolating any of these fields — that's
 // enforced by tests/no-birth-fields-in-url.test.ts.
 
+import type { components } from "@fernandofamily/contracts";
+
 const API_BASE = "/api/v1/pancha-pakshi";
 const COMPATIBILITY_API_BASE = "/api/v1/compatibility";
 const BIRTH_NAKSHATRA_API_BASE = "/api/v1/birth-nakshatra";
 const MUHURTA_API_BASE = "/api/v1/muhurta";
+
+type ApiSchemas = components["schemas"];
 
 export type BirdId = "vulture" | "owl" | "crow" | "cock" | "peacock";
 export type ActivityId = "ruling" | "eating" | "walking" | "sleeping" | "dying";
@@ -57,6 +61,7 @@ export type BirdSelectionInput = TargetAndLocation & {
 
 export type ScheduleRequest = BirthDateTimeInput | NakshatraPakshaInput | BirdSelectionInput;
 export type BirthBirdRequest = BirthDateTimeInput | NakshatraPakshaInput;
+export type MultiDayScheduleRequest = ScheduleRequest & { days: number };
 
 export type BirthBirdResponse = {
   birth_bird: BirdId;
@@ -183,10 +188,14 @@ export type ScheduleResponse = {
   summary: { major_period_count: number; sub_period_count: number };
 };
 
-export type CurrentResponse = {
-  current_period: SubPeriod | null;
-  next_period: SubPeriod | null;
-};
+// These response shapes are generated from FastAPI's OpenAPI schema. Keeping
+// the endpoint boundary on generated types means a server-side response
+// change fails the web type-check instead of silently widening a hand-written
+// client model. The nested generated schemas remain structurally identical to
+// the domain types above and can be consumed by existing callers unchanged.
+export type CurrentResponse = ApiSchemas["CurrentResponse"];
+
+export type MultiDayScheduleResponse = ApiSchemas["MultiDayScheduleResponse"];
 
 export type CompatibilityRequest = {
   bird_a: BirdId;
@@ -755,6 +764,10 @@ export function fetchBirthNakshatra(
 
 export function fetchSchedule(body: ScheduleRequest): Promise<ScheduleResponse> {
   return postJson<ScheduleResponse>("/schedule", body);
+}
+
+export function fetchScheduleRange(body: MultiDayScheduleRequest): Promise<MultiDayScheduleResponse> {
+  return postJson<MultiDayScheduleResponse>("/schedule-range", body);
 }
 
 export function fetchScheduleWithServerTime(

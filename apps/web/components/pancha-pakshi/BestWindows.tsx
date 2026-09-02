@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
+import { formatLocalTime } from "@/lib/formatters";
 import { translateEnum } from "@/lib/i18n";
 import type { ScheduleResponse, SubPeriod } from "@/lib/api-client";
 import { BIRD_ICONS } from "@/components/icons/birds";
@@ -10,10 +11,7 @@ import { ACTIVITY_COLORS } from "./activityColors";
 import { activityGuidance } from "@/lib/pancha-guidance";
 
 function formatTime(iso: string, locale: string) {
-  return new Date(iso).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatLocalTime(iso, locale);
 }
 
 const EFFECT_RANK = { very_good: 0, good: 1 } as const;

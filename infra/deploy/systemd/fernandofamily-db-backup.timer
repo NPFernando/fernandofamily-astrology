@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily Fernando Family Astrology PostgreSQL backup
+
+[Timer]
+OnCalendar=*-*-* 03:17:00
+RandomizedDelaySec=15m
+Persistent=true
+Unit=fernandofamily-db-backup.service
+
+[Install]
+WantedBy=timers.target

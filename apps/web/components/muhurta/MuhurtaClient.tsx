@@ -27,7 +27,6 @@ import { useSessionProbe } from "@/lib/use-session-probe";
 import {
   DEFAULT_LOCATION,
   LocationPicker,
-  mostRecentLocation,
   useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
@@ -37,6 +36,15 @@ import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFi
 import { resolveDefaultScheduleRequest } from "@/lib/pancha-schedule-state";
 import { BIRD_ICONS } from "@/components/icons/birds";
 import { MuhurtaIcon } from "@/components/icons/features";
+import { SavedProfiles } from "@/components/pancha-pakshi/SavedProfiles";
+import { LoadingCards } from "@/components/ui/ContentStates";
+import { MobileActionBar } from "@/components/ui/MobileActionBar";
+import { buildIcs, downloadIcs } from "@/lib/ics";
+import { ResultNavigation, SourceContext } from "@/components/ui/ResultContext";
+import type { VaultPlan } from "@/lib/planner";
+import { formatLocalDate, formatLocalTime, localeTag } from "@/lib/formatters";
+import { usePrivatePeople } from "@/lib/use-private-people";
+import { PrivatePersonPicker } from "@/components/private-people/PrivatePersonPicker";
 
 const feature = features.find((f) => f.id === "muhurta")!;
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
@@ -197,7 +205,7 @@ function withBird(request: ScheduleRequest | null, bird: BirdId, date: string, l
 }
 
 function formatDate(date: string, locale: string) {
-  return new Date(`${date}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+  return formatLocalDate(date, locale, {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -205,7 +213,7 @@ function formatDate(date: string, locale: string) {
 }
 
 function formatLongDate(date: string, locale: string) {
-  return new Date(`${date}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+  return formatLocalDate(date, locale, {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -214,17 +222,14 @@ function formatLongDate(date: string, locale: string) {
 }
 
 function formatMonthName(year: number, month: number, locale: string) {
-  return new Date(year, month - 1, 1).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+  return formatLocalDate(new Date(year, month - 1, 1), locale, {
     month: "long",
     year: "numeric",
   });
 }
 
 function formatTime(iso: string, locale: string) {
-  return new Date(iso).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatLocalTime(iso, locale);
 }
 
 function durationText(seconds: number, dict: ReturnType<typeof getDictionary>) {
@@ -342,6 +347,75 @@ function bestIndividualWindow(response: MuhurtaSearchResponse | null): MuhurtaWi
     if (a.duration_seconds !== b.duration_seconds) return b.duration_seconds - a.duration_seconds;
     return new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime();
   })[0];
+}
+
+function MuhurtaDateComparison({
+  data,
+  locale,
+  dict,
+  onUseDate,
+}: {
+  data: MuhurtaSearchResponse;
+  locale: string;
+  dict: Dictionary;
+  onUseDate: (date: string) => void;
+}) {
+  const candidates = data.per_day
+    .map((day) => {
+      const top = data.windows
+        .filter((window) => window.effective_date === day.date)
+        .sort((a, b) => {
+          const grade = GRADE_RANK[a.grade] - GRADE_RANK[b.grade];
+          return grade || b.score - a.score || b.duration_seconds - a.duration_seconds;
+        })[0] ?? null;
+      return { day, top };
+    })
+    .filter((candidate): candidate is { day: MuhurtaSearchResponse["per_day"][number]; top: MuhurtaWindow } => Boolean(candidate.top))
+    .sort((a, b) => {
+      const grade = GRADE_RANK[a.top.grade] - GRADE_RANK[b.top.grade];
+      return grade || b.top.score - a.top.score || b.day.total_seconds - a.day.total_seconds;
+    })
+    .slice(0, 3);
+
+  if (candidates.length < 2) return null;
+  return (
+    <section data-testid="muhurta-date-comparison" className="rounded-xl border border-black/10 bg-white/25 p-4 dark:border-white/10 dark:bg-white/[.03]">
+      <h2 className="text-sm font-semibold uppercase text-accent">{dict.muhurta.compareDatesTitle}</h2>
+      <p className="mt-1 text-sm opacity-75">{dict.muhurta.compareDatesBody}</p>
+      <div className="mt-4 grid gap-3 lg:grid-cols-3">
+        {candidates.map(({ day, top }) => (
+          <article key={day.date} className="rounded-lg border border-black/10 p-3 dark:border-white/10">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="font-semibold">{formatDate(day.date, locale)}</p>
+                <p className="mt-1 text-sm tabular-nums">
+                  {formatTime(top.starts_at, locale)} - {formatTime(top.ends_at, locale)}
+                </p>
+              </div>
+              <span className={`shrink-0 rounded-full border px-2 py-1 text-xs font-semibold ${GRADE_STYLE[top.grade]}`}>
+                {dict.muhurta.grades[top.grade]}
+              </span>
+            </div>
+            <p className="mt-3 text-xs opacity-75">
+              {dict.muhurta.compareReason}: {top.reasons.map((reason) => sourceLabel(reason, dict)).join(", ")}
+            </p>
+            <p className="mt-1 text-xs opacity-75">
+              {top.cautions.length
+                ? `${dict.muhurta.compareCautions}: ${top.cautions.map((caution) => cautionValue(caution, dict)).join(", ")}`
+                : dict.muhurta.compareNoCautions}
+            </p>
+            <button
+              type="button"
+              onClick={() => onUseDate(day.date)}
+              className="mt-3 w-full rounded-lg border border-accent/40 px-3 py-1.5 text-sm font-semibold text-accent hover:bg-accent/10"
+            >
+              {dict.muhurta.compareUseDate}
+            </button>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 function profileIdentityText(profile: SavedProfile, dict: Dictionary) {
@@ -714,7 +788,7 @@ function MuhurtaMonthPanel({
         <div role="status" className="grid gap-2 md:grid-cols-7">
           <span className="sr-only">{dict.ui.loading}</span>
           {Array.from({ length: 14 }).map((_, i) => (
-            <div key={i} className="h-24 rounded-lg border border-black/10 motion-safe:animate-pulse dark:border-white/10" />
+            <div key={i} className="h-24 rounded-lg skeleton-shimmer" />
           ))}
         </div>
       )}
@@ -814,7 +888,7 @@ function MuhurtaMonthGrid({
 }) {
   const firstDate = new Date(`${days[0].date}T12:00:00`);
   const leadingBlanks = firstDate.getDay();
-  const weekdayFormatter = new Intl.DateTimeFormat(locale === "si" ? "si-LK" : "en-US", { weekday: "short" });
+  const weekdayFormatter = new Intl.DateTimeFormat(localeTag(locale), { weekday: "short" });
   const weekdayHeaders = Array.from({ length: 7 }, (_, i) => weekdayFormatter.format(new Date(2026, 1, 1 + i)));
   return (
     <div data-testid="muhurta-month-grid" className="hidden md:flex md:flex-col md:gap-2">
@@ -1024,8 +1098,9 @@ function Fact({ label, value }: { label: string; value: string }) {
 
 export function MuhurtaClient() {
   const { dict, locale } = useLocale();
-  const { data: vaultData, unlocked } = useLocalVault();
+  const { data: vaultData, unlocked, update: updateVault } = useLocalVault();
   const vaultLocation = useVaultRecentLocation();
+  const privatePeople = usePrivatePeople();
   const [identityRequest, setIdentityRequest] = useState<ScheduleRequest | null>(null);
   const [location, setLocation] = useState<LocationValue | null>(null);
   const [date, setDate] = useState("");
@@ -1037,6 +1112,8 @@ export function MuhurtaClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [usedDefaults, setUsedDefaults] = useState(false);
+  const [comparedWindows, setComparedWindows] = useState<MuhurtaWindow[]>([]);
+  const [savedPlanKeys, setSavedPlanKeys] = useState<string[]>([]);
 
   const run = useCallback(
     async (
@@ -1052,6 +1129,7 @@ export function MuhurtaClient() {
       setLocation(nextLocation);
       setLoading(true);
       setError(null);
+      setComparedWindows([]);
       try {
         const result = await fetchMuhurta(
           toMuhurtaRequest(baseRequest, nextDate, nextLocation, nextPurpose, nextDays, nextMinEffect),
@@ -1070,8 +1148,9 @@ export function MuhurtaClient() {
     let cancelled = false;
     (async () => {
       const initial = await resolveDefaultScheduleRequest({
-        recentLocation: unlocked ? vaultLocation : null,
+        recentLocation: unlocked ? privatePeople.person?.current_location ?? privatePeople.person?.birthplace ?? vaultLocation : null,
         derivedIdentitySeed: unlocked ? vaultData.derivedIdentitySeed ?? null : null,
+        selectedBird: unlocked ? vaultData.selectedBird ?? null : null,
       });
       if (cancelled) return;
       const initialLocation = locationFromRequest(initial);
@@ -1082,7 +1161,7 @@ export function MuhurtaClient() {
       cancelled = true;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps -- rerun on unlock, not every user location write.
-  }, [run, unlocked]);
+  }, [run, unlocked, privatePeople.person]);
 
   const currentBird = useMemo(() => {
     if (identityRequest?.method === "bird") return identityRequest.bird;
@@ -1097,7 +1176,7 @@ export function MuhurtaClient() {
     days?: number;
     minEffect?: "good" | "very_good";
   }) {
-    const nextLocation = next.location ?? location ?? mostRecentLocation() ?? DEFAULT_LOCATION;
+    const nextLocation = next.location ?? location ?? vaultLocation ?? DEFAULT_LOCATION;
     const nextDate = next.date ?? (date || todayFor(nextLocation));
     const nextRequest =
       next.request ??
@@ -1162,11 +1241,13 @@ export function MuhurtaClient() {
 
       <div className="grid gap-6 lg:grid-cols-[22rem_minmax(0,1fr)] lg:items-start">
         <aside
+          id="muhurta-controls"
           className="rounded-xl border border-black/10 bg-white/35 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.03]"
           data-testid="muhurta-controls"
         >
           <h2 className="text-sm font-semibold uppercase text-accent">{dict.muhurta.controlsTitle}</h2>
           <div className="mt-4 flex flex-col gap-4">
+            <PrivatePersonPicker people={privatePeople.people} selectedId={privatePeople.selectedId} unlocked={unlocked} onSelect={privatePeople.selectPerson} onDelete={privatePeople.removePerson} />
             <div>
               <p className="mb-2 text-xs font-semibold uppercase opacity-70">{dict.muhurta.purpose}</p>
               <div className="grid grid-cols-1 gap-2">
@@ -1260,6 +1341,17 @@ export function MuhurtaClient() {
             </label>
 
             <LocationPicker value={location} onChange={(nextLocation) => rerun({ location: nextLocation })} />
+            <div className="border-t border-black/10 pt-4 dark:border-white/10">
+              <SavedProfiles
+                onPick={(profile) => {
+                  const loc = location ?? vaultLocation ?? DEFAULT_LOCATION;
+                  const nextDate = date || todayFor(loc);
+                  const nextRequest = requestFromProfile(profile, nextDate, loc);
+                  if (nextRequest) rerun({ request: nextRequest });
+                }}
+                saveCandidate={null}
+              />
+            </div>
           </div>
         </aside>
 
@@ -1270,11 +1362,7 @@ export function MuhurtaClient() {
             </p>
           )}
 
-          {loading && (
-            <p className="rounded-lg border border-black/10 p-4 text-sm opacity-80 dark:border-white/10">
-              {dict.ui.loading}
-            </p>
-          )}
+          {loading && <LoadingCards label={dict.ui.loading} count={4} />}
 
           {error && (
             <div role="alert" className="rounded-lg border border-red-500/40 bg-red-500/10 p-4 text-sm">
@@ -1291,6 +1379,13 @@ export function MuhurtaClient() {
 
           {data && !loading && !error && activeView === "recommendations" && (
             <div data-testid="muhurta-result" className="flex flex-col gap-5">
+              <ResultNavigation
+                label={dict.ui.resultNavigation}
+                items={[
+                  { href: "#muhurta-windows", label: dict.muhurta.summaryTitle },
+                  { href: "#muhurta-family-panel", label: dict.muhurta.familyTitle },
+                ]}
+              />
               <section className="rounded-xl border border-black/10 bg-white/25 p-4 dark:border-white/10 dark:bg-white/[.03]">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
@@ -1319,6 +1414,21 @@ export function MuhurtaClient() {
                 </div>
               </section>
 
+              <MuhurtaDateComparison
+                data={data}
+                locale={locale}
+                dict={dict}
+                onUseDate={(nextDate) => rerun({ date: nextDate })}
+              />
+
+              <MobileActionBar
+                label={dict.muhurta.quickActions}
+                actions={[
+                  { label: dict.ui.changeDetails, href: "#muhurta-controls" },
+                  { label: dict.muhurta.openDailyGuide, href: `/${locale}/daily-guide?date=${date}`, primary: true },
+                ]}
+              />
+
               {date && location ? (
                 <FamilyMuhurtaPanel
                   date={date}
@@ -1334,7 +1444,18 @@ export function MuhurtaClient() {
               {topWindows.length ? (
                 <section className="flex flex-col gap-3" data-testid="muhurta-windows">
                   {topWindows.map((window) => (
-                    <WindowCard key={`${window.starts_at}-${window.ends_at}-${window.score}`} window={window} />
+                    <WindowCard
+                      key={`${window.starts_at}-${window.ends_at}-${window.score}`}
+                      window={window}
+                      compared={comparedWindows.some((candidate) => candidate.starts_at === window.starts_at && candidate.ends_at === window.ends_at)}
+                      onCompare={() => {
+                        setComparedWindows((current) => {
+                          const exists = current.some((candidate) => candidate.starts_at === window.starts_at && candidate.ends_at === window.ends_at);
+                          if (exists) return current.filter((candidate) => candidate.starts_at !== window.starts_at || candidate.ends_at !== window.ends_at);
+                          return [...current.slice(-1), window];
+                        });
+                      }}
+                    />
                   ))}
                 </section>
               ) : (
@@ -1342,6 +1463,13 @@ export function MuhurtaClient() {
                   {dict.muhurta.noWindows}
                 </p>
               )}
+              {comparedWindows.length === 2 && <DecisionComparison windows={comparedWindows} dict={dict} locale={locale} onClear={() => setComparedWindows([])} />}
+              <SourceContext
+                title={dict.ui.sourceContextTitle}
+                body={dict.ui.sourceContextBody}
+                methodologyHref={`/${locale}/methodology`}
+                methodologyLabel={dict.ui.sourceContextLink}
+              />
             </div>
           )}
 
@@ -1365,7 +1493,57 @@ export function MuhurtaClient() {
     </div>
   );
 
-  function WindowCard({ window }: { window: MuhurtaWindow }) {
+  function WindowCard({ window, compared, onCompare }: { window: MuhurtaWindow; compared: boolean; onCompare: () => void }) {
+    async function saveToPlanner() {
+      if (!unlocked) return;
+      const title = globalThis.window.prompt(dict.dailyGuide.planTitle, `${dict.muhurta.decisionBriefTitle}: ${dict.muhurta.grades[window.grade]}`)?.trim();
+      if (!title) return;
+      const plan: VaultPlan = {
+        id: crypto.randomUUID(),
+        title,
+        date: window.effective_date,
+        starts_at: formatTime(window.starts_at, locale),
+        ends_at: formatTime(window.ends_at, locale),
+        profile_ids: [],
+        notes: `${dict.muhurta.decisionBriefReasons}: ${window.reasons.map((reason) => sourceLabel(reason, dict)).join(", ")}`,
+        source: "muhurta",
+        created_at: new Date().toISOString(),
+      };
+      await updateVault((current) => ({ ...current, plans: [...(current.plans ?? []), plan] }));
+      setSavedPlanKeys((current) => [...current, `${window.starts_at}-${window.ends_at}`]);
+    }
+    function downloadDecisionBrief() {
+      downloadIcs(
+        `muhurta-decision-${window.effective_date}.ics`,
+        buildIcs([
+          {
+            uid: `muhurta-decision-${new Date(window.starts_at).getTime()}`,
+            start: new Date(window.starts_at),
+            end: new Date(window.ends_at),
+            summary: `${dict.muhurta.decisionBriefTitle}: ${dict.muhurta.grades[window.grade]}`,
+            description: `${dict.muhurta.decisionBriefReasons}: ${window.reasons.map((reason) => sourceLabel(reason, dict)).join(", ")}`,
+          },
+        ]),
+      );
+    }
+
+    async function shareDecisionBrief() {
+      const text = [
+        `${dict.muhurta.decisionBriefTitle}: ${formatDate(window.effective_date, locale)}`,
+        `${formatTime(window.starts_at, locale)} - ${formatTime(window.ends_at, locale)} · ${dict.muhurta.grades[window.grade]}`,
+        `${dict.muhurta.decisionBriefReasons}: ${window.reasons.map((reason) => sourceLabel(reason, dict)).join(", ")}`,
+      ].join("\n");
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: dict.muhurta.decisionBriefTitle, text });
+          return;
+        }
+      } catch {
+        // A dismissed native share sheet is not an application error.
+      }
+      await navigator.clipboard?.writeText(text);
+    }
+
     return (
       <article className="rounded-xl border border-black/10 bg-white/35 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.03]">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -1389,6 +1567,41 @@ export function MuhurtaClient() {
               {sourceLabel(reason, dict)}
             </span>
           ))}
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2 print:hidden">
+          <button
+            type="button"
+            onClick={downloadDecisionBrief}
+            className="rounded-lg border border-accent/40 px-3 py-1.5 text-xs font-semibold text-accent hover:bg-accent/10"
+          >
+            {dict.muhurta.downloadDecisionBrief}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              void shareDecisionBrief();
+            }}
+            className="rounded-lg border border-black/10 px-3 py-1.5 text-xs font-semibold hover:border-accent dark:border-white/20"
+          >
+            {dict.muhurta.shareDecisionBrief}
+          </button>
+          <button
+            type="button"
+            aria-pressed={compared}
+            onClick={onCompare}
+            className={`rounded-lg border px-3 py-1.5 text-xs font-semibold ${compared ? "border-accent bg-accent/10 text-accent" : "border-black/10 hover:border-accent dark:border-white/20"}`}
+          >
+            {compared ? dict.muhurta.removeFromComparison : dict.muhurta.compareWindow}
+          </button>
+          <button
+            type="button"
+            disabled={!unlocked || savedPlanKeys.includes(`${window.starts_at}-${window.ends_at}`)}
+            onClick={() => { void saveToPlanner(); }}
+            className="rounded-lg border border-black/10 px-3 py-1.5 text-xs font-semibold hover:border-accent disabled:opacity-40 dark:border-white/20"
+          >
+            {savedPlanKeys.includes(`${window.starts_at}-${window.ends_at}`) ? dict.dailyGuide.planSaved : dict.dailyGuide.saveToPlanner}
+          </button>
         </div>
 
         <div
@@ -1420,4 +1633,44 @@ export function MuhurtaClient() {
       </article>
     );
   }
+}
+
+function DecisionComparison({
+  windows,
+  dict,
+  locale,
+  onClear,
+}: {
+  windows: MuhurtaWindow[];
+  dict: Dictionary;
+  locale: "en" | "si";
+  onClear: () => void;
+}) {
+  return (
+    <section data-testid="muhurta-window-comparison" className="rounded-xl border border-accent/35 bg-accent/5 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold uppercase text-accent">{dict.muhurta.windowComparisonTitle}</h2>
+          <p className="mt-1 text-sm opacity-80">{dict.muhurta.windowComparisonBody}</p>
+        </div>
+        <button type="button" onClick={onClear} className="rounded-lg border border-black/10 px-3 py-1.5 text-xs font-semibold dark:border-white/20">
+          {dict.muhurta.clearComparison}
+        </button>
+      </div>
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        {windows.map((window) => (
+          <article key={`${window.starts_at}-${window.ends_at}`} className="rounded-lg border border-black/10 bg-background p-3 text-sm dark:border-white/10">
+            <p className="font-semibold">{formatDate(window.effective_date, locale)}</p>
+            <p className="mt-1 text-lg font-bold tabular-nums">{formatTime(window.starts_at, locale)} - {formatTime(window.ends_at, locale)}</p>
+            <dl className="mt-3 space-y-2">
+              <Fact label={dict.muhurta.gradeLabel} value={dict.muhurta.grades[window.grade]} />
+              <Fact label={dict.muhurta.scoreLabel} value={String(window.score)} />
+              <Fact label={dict.muhurta.decisionBriefReasons} value={window.reasons.map((reason) => sourceLabel(reason, dict)).join(", ")} />
+            </dl>
+            {window.cautions.length > 0 && <p className="mt-3 text-xs text-amber-800 dark:text-amber-200">{window.cautions.map((caution) => `${dict.muhurta.cautions[caution.key]}: ${cautionValue(caution, dict)}`).join(" · ")}</p>}
+          </article>
+        ))}
+      </div>
+    </section>
+  );
 }

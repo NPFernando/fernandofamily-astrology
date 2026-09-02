@@ -122,6 +122,87 @@
         "title": "BirdSelectionInput",
         "type": "object"
       },
+      "BirdSelectionMultiDayInput": {
+        "properties": {
+          "as_of_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Date"
+          },
+          "as_of_time": {
+            "anyOf": [
+              {
+                "format": "time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Time"
+          },
+          "bird": {
+            "$ref": "#/components/schemas/BirdId"
+          },
+          "days": {
+            "default": 7,
+            "maximum": 7.0,
+            "minimum": 1.0,
+            "title": "Days",
+            "type": "integer"
+          },
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "method": {
+            "const": "bird",
+            "title": "Method",
+            "type": "string"
+          },
+          "target_date": {
+            "format": "date",
+            "title": "Target Date",
+            "type": "string"
+          },
+          "target_time": {
+            "format": "time",
+            "title": "Target Time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_date",
+          "target_time",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz",
+          "method",
+          "bird"
+        ],
+        "title": "BirdSelectionMultiDayInput",
+        "type": "object"
+      },
       "BirdSelectionSummaryInput": {
         "properties": {
           "as_of_date": {
@@ -582,6 +663,95 @@
         "title": "BirthDateTimeInput",
         "type": "object"
       },
+      "BirthDateTimeMultiDayInput": {
+        "properties": {
+          "as_of_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Date"
+          },
+          "as_of_time": {
+            "anyOf": [
+              {
+                "format": "time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Time"
+          },
+          "birth_date": {
+            "format": "date",
+            "title": "Birth Date",
+            "type": "string"
+          },
+          "birth_time": {
+            "format": "time",
+            "title": "Birth Time",
+            "type": "string"
+          },
+          "days": {
+            "default": 7,
+            "maximum": 7.0,
+            "minimum": 1.0,
+            "title": "Days",
+            "type": "integer"
+          },
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "method": {
+            "const": "birth_datetime",
+            "title": "Method",
+            "type": "string"
+          },
+          "target_date": {
+            "format": "date",
+            "title": "Target Date",
+            "type": "string"
+          },
+          "target_time": {
+            "format": "time",
+            "title": "Target Time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_date",
+          "target_time",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz",
+          "method",
+          "birth_date",
+          "birth_time"
+        ],
+        "title": "BirthDateTimeMultiDayInput",
+        "type": "object"
+      },
       "BirthDateTimeSummaryInput": {
         "properties": {
           "as_of_date": {
@@ -986,6 +1156,36 @@
           "variants"
         ],
         "title": "CompatibilityResponse",
+        "type": "object"
+      },
+      "CurrentResponse": {
+        "properties": {
+          "current_period": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SubPeriod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "next_period": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SubPeriod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "current_period",
+          "next_period"
+        ],
+        "title": "CurrentResponse",
         "type": "object"
       },
       "DailyPanchanga": {
@@ -2894,6 +3094,33 @@
         "title": "MuhurtaWindow",
         "type": "object"
       },
+      "MultiDayScheduleResponse": {
+        "properties": {
+          "days": {
+            "title": "Days",
+            "type": "integer"
+          },
+          "from_date": {
+            "format": "date",
+            "title": "From Date",
+            "type": "string"
+          },
+          "schedules": {
+            "items": {
+              "$ref": "#/components/schemas/ScheduleResponse"
+            },
+            "title": "Schedules",
+            "type": "array"
+          }
+        },
+        "required": [
+          "from_date",
+          "days",
+          "schedules"
+        ],
+        "title": "MultiDayScheduleResponse",
+        "type": "object"
+      },
       "NakshatraPakshaInput": {
         "properties": {
           "as_of_date": {
@@ -2984,6 +3211,105 @@
           "paksha"
         ],
         "title": "NakshatraPakshaInput",
+        "type": "object"
+      },
+      "NakshatraPakshaMultiDayInput": {
+        "properties": {
+          "as_of_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Date"
+          },
+          "as_of_time": {
+            "anyOf": [
+              {
+                "format": "time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Time"
+          },
+          "days": {
+            "default": 7,
+            "maximum": 7.0,
+            "minimum": 1.0,
+            "title": "Days",
+            "type": "integer"
+          },
+          "iana_tz": {
+            "title": "Iana Tz",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "location_name": {
+            "title": "Location Name",
+            "type": "string"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "method": {
+            "const": "nakshatra_paksha",
+            "title": "Method",
+            "type": "string"
+          },
+          "moon_rashi_index": {
+            "anyOf": [
+              {
+                "maximum": 12.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moon Rashi Index"
+          },
+          "nakshatra_index": {
+            "title": "Nakshatra Index",
+            "type": "integer"
+          },
+          "paksha": {
+            "$ref": "#/components/schemas/PakshaId"
+          },
+          "target_date": {
+            "format": "date",
+            "title": "Target Date",
+            "type": "string"
+          },
+          "target_time": {
+            "format": "time",
+            "title": "Target Time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_date",
+          "target_time",
+          "location_name",
+          "latitude",
+          "longitude",
+          "iana_tz",
+          "method",
+          "nakshatra_index",
+          "paksha"
+        ],
+        "title": "NakshatraPakshaMultiDayInput",
         "type": "object"
       },
       "NakshatraPakshaSummaryInput": {
@@ -4611,9 +4937,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
-                  "title": "Response Current Api V1 Pancha Pakshi Current Post",
-                  "type": "object"
+                  "$ref": "#/components/schemas/CurrentResponse"
                 }
               }
             },
@@ -4712,6 +5036,66 @@
           }
         },
         "summary": "Schedule",
+        "tags": [
+          "pancha-pakshi"
+        ]
+      }
+    },
+    "/api/v1/pancha-pakshi/schedule-range": {
+      "post": {
+        "operationId": "schedule_range_api_v1_pancha_pakshi_schedule_range_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "discriminator": {
+                  "mapping": {
+                    "bird": "#/components/schemas/BirdSelectionMultiDayInput",
+                    "birth_datetime": "#/components/schemas/BirthDateTimeMultiDayInput",
+                    "nakshatra_paksha": "#/components/schemas/NakshatraPakshaMultiDayInput"
+                  },
+                  "propertyName": "method"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/BirthDateTimeMultiDayInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/NakshatraPakshaMultiDayInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/BirdSelectionMultiDayInput"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MultiDayScheduleResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Schedule Range",
         "tags": [
           "pancha-pakshi"
         ]

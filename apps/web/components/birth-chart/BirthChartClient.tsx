@@ -6,7 +6,6 @@ import { ApiError, fetchBirthChart, type BirthChart as BirthChartData } from "@/
 import {
   DEFAULT_LOCATION,
   LocationPicker,
-  mostRecentLocation,
   useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
@@ -15,10 +14,15 @@ import { BirthChartIcon } from "@/components/icons/features";
 import { BirthChartChart } from "@/components/birth-chart/BirthChartChart";
 import { YogataraTable } from "@/components/birth-chart/YogataraTable";
 import { useRecentBirthDetails } from "@/lib/recent-birth-details";
+import { ResultExplanation } from "@/components/ui/ResultExplanation";
+import { usePrivatePeople } from "@/lib/use-private-people";
+import { PrivatePersonPicker } from "@/components/private-people/PrivatePersonPicker";
+import { PrivatePersonSaveButton } from "@/components/private-people/PrivatePersonSaveButton";
 
 export function BirthChartClient() {
   const { dict } = useLocale();
   const { recent, saveRecentBirthDetails } = useRecentBirthDetails();
+  const privatePeople = usePrivatePeople();
   const vaultLocation = useVaultRecentLocation();
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
@@ -30,9 +34,8 @@ export function BirthChartClient() {
 
   useEffect(() => {
     // Hydrate after mount because recent locations/birth details live in
-    // localStorage.
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
-    setLocation(vaultLocation ?? mostRecentLocation() ?? DEFAULT_LOCATION);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate only from the unlocked vault.
+    setLocation(vaultLocation ?? DEFAULT_LOCATION);
     if (recent) {
 
       setBirthDate(recent.birth_date);
@@ -40,6 +43,20 @@ export function BirthChartClient() {
       setBirthTime(recent.birth_time);
     }
   }, [recent, vaultLocation]);
+
+  useEffect(() => {
+    if (!privatePeople.person) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate form fields when the active encrypted person changes.
+    setBirthDate(privatePeople.person.birth_date);
+    setBirthTime(privatePeople.person.birth_time);
+    setLocation(privatePeople.person.birthplace);
+    setResult(null);
+  }, [privatePeople.person]);
+
+  async function savePrivatePerson(label: string) {
+    if (!birthDate || !birthTime || !location || !privatePeople.unlocked) return;
+    await privatePeople.savePerson({ label, birth_date: birthDate, birth_time: birthTime.length === 5 ? `${birthTime}:00` : birthTime, birthplace: location });
+  }
 
   const canCalculate = birthDate !== "" && birthTime !== "" && location !== null;
 
@@ -84,6 +101,7 @@ export function BirthChartClient() {
           {dict.birthChart.birthDetailsTitle}
         </h2>
         <div className="mt-4 flex flex-col gap-4">
+          <PrivatePersonPicker people={privatePeople.people} selectedId={privatePeople.selectedId} unlocked={privatePeople.unlocked} onSelect={privatePeople.selectPerson} onDelete={privatePeople.removePerson} />
           <TargetDateTimeFields
             value={{ date: birthDate, time: birthTime }}
             onChange={(value) => {
@@ -105,6 +123,7 @@ export function BirthChartClient() {
           >
             {loading ? dict.ui.loading : dict.birthChart.calculate}
           </button>
+          {privatePeople.unlocked && <PrivatePersonSaveButton disabled={!canCalculate} onSave={savePrivatePerson} />}
         </div>
       </section>
 
@@ -117,7 +136,7 @@ export function BirthChartClient() {
       {loading && !result && (
         <div role="status" className="flex flex-col gap-3">
           <span className="sr-only">{dict.ui.loading}</span>
-          <div aria-hidden className="flex flex-col gap-3 motion-safe:animate-pulse">
+          <div aria-hidden className="flex flex-col gap-3 skeleton-shimmer">
             <div className="aspect-square max-w-md rounded-xl border border-black/10 bg-black/[.04] dark:border-white/10 dark:bg-white/[.06]" />
             <div className="h-40 rounded-xl border border-black/10 bg-black/[.04] dark:border-white/10 dark:bg-white/[.06]" />
           </div>
@@ -142,6 +161,7 @@ export function BirthChartClient() {
               {dict.birthChart.starsToggle}
             </button>
           </div>
+          <ResultExplanation title={dict.ui.resultGuideTitle} body={dict.ui.resultGuideBody} />
           <BirthChartChart chart={result} showStars={showStars} />
           <YogataraTable rows={result.graha_yogataras} />
         </section>

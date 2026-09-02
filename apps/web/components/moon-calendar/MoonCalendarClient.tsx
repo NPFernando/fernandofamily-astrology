@@ -16,7 +16,6 @@ import { loadAccountPreferences } from "@/lib/account-preferences";
 import {
   DEFAULT_LOCATION,
   LocationPicker,
-  mostRecentLocation,
   useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
@@ -24,6 +23,9 @@ import { useLocalVault } from "@/components/LocalVaultProvider";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import { MoonCalendarIcon } from "@/components/icons/features";
 import { PoyaDetailCard } from "@/components/panchanga/PoyaDetailCard";
+import { usePrivatePeople } from "@/lib/use-private-people";
+import { PrivatePersonPicker } from "@/components/private-people/PrivatePersonPicker";
+import { formatLocalDate, formatLocalTime, localeTag } from "@/lib/formatters";
 
 function sinhalaMonthName(dict: ReturnType<typeof getDictionary>, key: string): string {
   const isAdhi = key.startsWith("adhi-");
@@ -57,7 +59,7 @@ function validDateParam(value: string | null): string | null {
 }
 
 function formatDate(date: string, locale: string) {
-  return new Date(`${date}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+  return formatLocalDate(date, locale, {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -67,10 +69,7 @@ function formatDate(date: string, locale: string) {
 
 function formatTime(iso: string | null, locale: string, fallback: string) {
   if (!iso) return fallback;
-  return new Date(iso).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatLocalTime(iso, locale);
 }
 
 function phaseTone(phase: MoonPhaseKey, isPoya: boolean): string {
@@ -84,6 +83,7 @@ export function MoonCalendarClient() {
   const { dict, locale } = useLocale();
   const { unlocked } = useLocalVault();
   const vaultLocation = useVaultRecentLocation();
+  const privatePeople = usePrivatePeople();
   const searchParams = useSearchParams();
   const requestedDate = validDateParam(searchParams.get("date"));
   const [month, setMonth] = useState(() => monthFromDate(new Date().toISOString().slice(0, 10)));
@@ -124,7 +124,7 @@ export function MoonCalendarClient() {
     (async () => {
       const account = await loadAccountPreferences();
       if (cancelled) return;
-      const loc = account.preferences?.default_location ?? (unlocked ? vaultLocation : null) ?? mostRecentLocation() ?? DEFAULT_LOCATION;
+      const loc = account.preferences?.default_location ?? (unlocked ? privatePeople.person?.current_location ?? privatePeople.person?.birthplace ?? vaultLocation : null) ?? DEFAULT_LOCATION;
       const targetDate = requestedDate ?? todayIsoForLocation(loc);
       const initialMonth = monthFromDate(targetDate);
       setLocation(loc);
@@ -136,7 +136,7 @@ export function MoonCalendarClient() {
       cancelled = true;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps -- rerun on unlock, not every user location write.
-  }, [requestedDate, run, unlocked]);
+  }, [requestedDate, run, unlocked, privatePeople.person]);
 
   const selectedDay = useMemo(
     () => data?.days.find((d) => d.date === selectedDate) ?? data?.days[0] ?? null,
@@ -179,7 +179,10 @@ export function MoonCalendarClient() {
           {dict.moonCalendar.controlsTitle}
         </h2>
         <div className="mt-3 grid gap-4 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
-          <MonthControls month={month} onChange={onMonthChange} />
+          <div className="flex flex-col gap-4">
+            <PrivatePersonPicker people={privatePeople.people} selectedId={privatePeople.selectedId} unlocked={unlocked} onSelect={privatePeople.selectPerson} onDelete={privatePeople.removePerson} />
+            <MonthControls month={month} onChange={onMonthChange} />
+          </div>
           <div>
             <p className="mb-2 text-sm opacity-70">{dict.ui.location}</p>
             <LocationPicker value={location} onChange={onLocationChange} />
@@ -210,7 +213,7 @@ export function MoonCalendarClient() {
         <div role="status" className="grid gap-3 md:grid-cols-7">
           <span className="sr-only">{dict.ui.loading}</span>
           {Array.from({ length: 14 }).map((_, i) => (
-            <div key={i} className="h-20 rounded-xl border border-black/10 motion-safe:animate-pulse dark:border-white/10" />
+            <div key={i} className="h-20 rounded-xl skeleton-shimmer" />
           ))}
         </div>
       )}
@@ -222,7 +225,7 @@ export function MoonCalendarClient() {
               <div>
                 <p className="text-xs font-semibold uppercase text-accent">{dict.moonCalendar.monthLabel}</p>
                 <h2 className="text-xl font-semibold">
-                  {new Date(data.year, data.month - 1, 1).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+                  {formatLocalDate(new Date(data.year, data.month - 1, 1), locale, {
                     month: "long",
                     year: "numeric",
                   })}
@@ -261,7 +264,7 @@ function MonthControls({
   onChange: (month: { year: number; month: number }) => void;
 }) {
   const { dict, locale } = useLocale();
-  const display = new Date(month.year, month.month - 1, 1).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+  const display = formatLocalDate(new Date(month.year, month.month - 1, 1), locale, {
     month: "long",
     year: "numeric",
   });
@@ -321,7 +324,7 @@ function CalendarGrid({
 }) {
   const firstDate = new Date(`${days[0].date}T12:00:00`);
   const leadingBlanks = firstDate.getDay();
-  const weekdayFormatter = new Intl.DateTimeFormat(locale === "si" ? "si-LK" : "en-US", { weekday: "short" });
+  const weekdayFormatter = new Intl.DateTimeFormat(localeTag(locale), { weekday: "short" });
   const weekdayHeaders = Array.from({ length: 7 }, (_, i) => weekdayFormatter.format(new Date(2026, 1, 1 + i)));
   return (
     <div data-testid="moon-calendar-grid" className="hidden md:flex md:flex-col md:gap-2">

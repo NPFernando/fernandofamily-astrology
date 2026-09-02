@@ -1,19 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { ApiError, fetchPorondamMatch, type PorondamResponse } from "@/lib/api-client";
 import { nakshatraName, translateEnum } from "@/lib/i18n";
 import {
   DEFAULT_LOCATION,
   LocationPicker,
-  mostRecentLocation,
   useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
 import { TargetDateTimeFields, type TargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import { useRecentBirthDetails } from "@/lib/recent-birth-details";
 import { PorondamIcon } from "@/components/icons/features";
+import { ResultExplanation } from "@/components/ui/ResultExplanation";
+import { usePrivatePeople } from "@/lib/use-private-people";
+import { PrivatePersonPicker } from "@/components/private-people/PrivatePersonPicker";
+import { PrivatePersonSaveButton } from "@/components/private-people/PrivatePersonSaveButton";
 
 // Fixed display order matching repository.py / calculator.compute_porondam.
 const PORONDAM_ORDER = [
@@ -39,6 +42,7 @@ export function PorondamClient() {
   const { dict } = useLocale();
   const { saveRecentBirthDetails } = useRecentBirthDetails();
   const vaultLocation = useVaultRecentLocation();
+  const privatePeople = usePrivatePeople();
   const [bride, setBride] = useState<PartyState>(emptyParty());
   const [groom, setGroom] = useState<PartyState>(emptyParty());
   const [result, setResult] = useState<PorondamResponse | null>(null);
@@ -46,8 +50,8 @@ export function PorondamClient() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Hydrate after mount because recent locations live in localStorage.
-    const recent = vaultLocation ?? mostRecentLocation() ?? DEFAULT_LOCATION;
+    // Hydrate only from the unlocked vault, or the safe public default.
+    const recent = vaultLocation ?? DEFAULT_LOCATION;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
     setBride((b) => (b.location ? b : { ...b, location: recent }));
     setGroom((g) => (g.location ? g : { ...g, location: recent }));
@@ -96,6 +100,17 @@ export function PorondamClient() {
     };
   }
 
+  async function savePartyAsPrivatePerson(label: string, party: PartyState) {
+    if (!party.dateTime.date || !party.dateTime.time || !party.location || !privatePeople.unlocked) return;
+    const input = partyToInput(party);
+    await privatePeople.savePerson({
+      label,
+      birth_date: input.birth_date,
+      birth_time: input.birth_time,
+      birthplace: party.location,
+    });
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <header className="max-w-3xl">
@@ -109,8 +124,8 @@ export function PorondamClient() {
       </header>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <PartyForm label={dict.porondam.brideTitle} value={bride} onChange={setBride} />
-        <PartyForm label={dict.porondam.groomTitle} value={groom} onChange={setGroom} />
+        <PartyForm label={dict.porondam.brideTitle} value={bride} onChange={setBride} people={privatePeople.people} unlocked={privatePeople.unlocked} onSavePerson={savePartyAsPrivatePerson} />
+        <PartyForm label={dict.porondam.groomTitle} value={groom} onChange={setGroom} people={privatePeople.people} unlocked={privatePeople.unlocked} onSavePerson={savePartyAsPrivatePerson} />
       </div>
 
       <button
@@ -131,7 +146,7 @@ export function PorondamClient() {
       {loading && !result && (
         <div role="status" className="flex flex-col gap-3">
           <span className="sr-only">{dict.ui.loading}</span>
-          <div aria-hidden className="flex flex-col gap-3 motion-safe:animate-pulse">
+          <div aria-hidden className="flex flex-col gap-3 skeleton-shimmer">
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="h-16 rounded-lg border border-black/10 bg-black/[.04] dark:border-white/10 dark:bg-white/[.06]" />
               <div className="h-16 rounded-lg border border-black/10 bg-black/[.04] dark:border-white/10 dark:bg-white/[.06]" />
@@ -149,6 +164,7 @@ export function PorondamClient() {
       {result && (
         <section data-testid="porondam-result" className="flex flex-col gap-4">
           <h2 className="text-sm font-semibold uppercase text-accent">{dict.porondam.resultTitle}</h2>
+          <ResultExplanation title={dict.ui.resultGuideTitle} body={dict.ui.resultGuideBody} />
 
           <div className="grid gap-3 sm:grid-cols-2">
             <PartySummary label={dict.porondam.brideLabel} data={result.bride} />
@@ -203,25 +219,39 @@ function PartyForm({
   label,
   value,
   onChange,
+  people,
+  unlocked,
+  onSavePerson,
 }: {
   label: string;
   value: PartyState;
-  onChange: (next: PartyState) => void;
+  onChange: Dispatch<SetStateAction<PartyState>>;
+  people: import("@/lib/private-people").PrivatePerson[];
+  unlocked: boolean;
+  onSavePerson: (label: string, party: PartyState) => Promise<void>;
 }) {
+  const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
+  const canSave = value.dateTime.date !== "" && value.dateTime.time !== "" && value.location !== null;
   return (
     <fieldset className="rounded-xl border border-black/10 bg-white/40 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.04]">
       <legend className="px-1 text-sm font-semibold uppercase tracking-wide text-accent">{label}</legend>
       <div className="mt-3 flex flex-col gap-4">
+        <PrivatePersonPicker people={people} selectedId={selectedPersonId} unlocked={unlocked} onSelect={(id) => {
+          setSelectedPersonId(id);
+          const person = people.find((candidate) => candidate.id === id);
+          if (person) onChange({ dateTime: { date: person.birth_date, time: person.birth_time }, location: person.birthplace });
+        }} />
         <TargetDateTimeFields
           value={value.dateTime}
-          onChange={(dateTime) => onChange({ ...value, dateTime })}
+          onChange={(dateTime) => onChange((current) => ({ ...current, dateTime }))}
           dateLabelKey="birthDate"
           timeLabelKey="birthTime"
         />
         <LocationPicker
           value={value.location}
-          onChange={(location) => onChange({ ...value, location })}
+          onChange={(location) => onChange((current) => ({ ...current, location }))}
         />
+        {unlocked && <PrivatePersonSaveButton disabled={!canSave} onSave={(personLabel) => onSavePerson(personLabel, value)} />}
       </div>
     </fieldset>
   );

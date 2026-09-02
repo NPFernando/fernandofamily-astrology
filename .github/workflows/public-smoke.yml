@@ -1,0 +1,59 @@
+name: Public smoke
+
+on:
+  schedule:
+    # Offset from the hour to reduce contention with common GitHub schedules.
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-smoke
+  cancel-in-progress: false
+
+jobs:
+  public-smoke:
+    name: Public HTTPS checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      # A repository variable can override this for a future canonical domain
+      # change without putting configuration or credentials in the workflow.
+      PUBLIC_BASE_URL: ${{ vars.PUBLIC_SMOKE_BASE_URL || 'https://astrology.fernandofamily.com' }}
+    steps:
+      - name: Require exact HTTPS success responses
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "$PUBLIC_BASE_URL" != https://* ]]; then
+            echo "::error title=Public smoke configuration::PUBLIC_SMOKE_BASE_URL must use HTTPS"
+            exit 1
+          fi
+          PUBLIC_BASE_URL="${PUBLIC_BASE_URL%/}"
+
+          require_status_200() {
+            local label="$1"
+            local url="$2"
+            local destination="$RUNNER_TEMP/$label"
+            local status
+
+            status="$(curl --silent --show-error --output "$destination" \
+              --write-out '%{http_code}' --connect-timeout 10 --max-time 20 \
+              --retry 2 --retry-all-errors "$url")"
+            if [[ "$status" != "200" ]]; then
+              echo "::error title=Public smoke failed::$label returned HTTP $status"
+              return 1
+            fi
+          }
+
+          require_status_200 homepage "$PUBLIC_BASE_URL/en"
+          require_status_200 health "$PUBLIC_BASE_URL/api/v1/health/ready"
+          require_status_200 manifest "$PUBLIC_BASE_URL/manifest.webmanifest"
+          require_status_200 service-worker "$PUBLIC_BASE_URL/sw.js"
+
+          grep -Fq '<html' "$RUNNER_TEMP/homepage"
+          grep -Fq '"name"' "$RUNNER_TEMP/manifest"
+          grep -Fq 'CACHE_NAME' "$RUNNER_TEMP/service-worker"

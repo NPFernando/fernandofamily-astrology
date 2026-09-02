@@ -1,6 +1,6 @@
 import hashlib
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from datetime import time as time_type
 from functools import lru_cache
 from zoneinfo import ZoneInfo
@@ -10,11 +10,12 @@ from fastapi import APIRouter, Depends, Response
 from app.core.config import settings
 from app.core.rate_limit import enforce_rate_limit
 from app.modules.pancha_pakshi import calculator, service
-from app.modules.pancha_pakshi.models import EngineMetadata, ScheduleResponse
+from app.modules.pancha_pakshi.models import CurrentResponse, EngineMetadata, MultiDayScheduleResponse, ScheduleResponse
 from app.modules.pancha_pakshi.requests import (
     BirthBirdRequest,
     BirthBirdResponse,
     BirthDateTimeInput,
+    MultiDayScheduleRequest,
     NakshatraPakshaInput,
     ScheduleRequest,
     SummaryRequest,
@@ -106,10 +107,29 @@ def schedule(body: ScheduleRequest) -> ScheduleResponse:
     return _resolve_schedule(body)
 
 
-@router.post("/current", dependencies=[Depends(enforce_rate_limit)])
-def current(body: ScheduleRequest) -> dict:
+@router.post("/schedule-range", response_model=MultiDayScheduleResponse, dependencies=[Depends(enforce_rate_limit)])
+def schedule_range(body: MultiDayScheduleRequest) -> MultiDayScheduleResponse:
+    schedules = [
+        _resolve_schedule(
+            body.model_copy(
+                update={
+                    "target_date": body.target_date + timedelta(days=offset),
+                    # An as-of moment is meaningful for one live schedule, not
+                    # for a date range; each returned day is a normal schedule.
+                    "as_of_date": None,
+                    "as_of_time": None,
+                },
+            ),
+        )
+        for offset in range(body.days)
+    ]
+    return MultiDayScheduleResponse(from_date=body.target_date, days=body.days, schedules=schedules)
+
+
+@router.post("/current", response_model=CurrentResponse, dependencies=[Depends(enforce_rate_limit)])
+def current(body: ScheduleRequest) -> CurrentResponse:
     result = _resolve_schedule(body)
-    return {"current_period": result.current_period, "next_period": result.next_period}
+    return CurrentResponse(current_period=result.current_period, next_period=result.next_period)
 
 
 _WINDOW_EFFECTS = {

@@ -11,6 +11,8 @@ import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { PUBLIC_BASE_URL } from "@/lib/site-config";
 import { DEFAULT_OG_IMAGE } from "@/lib/feature-assets";
 import { LocalVaultProvider } from "@/components/LocalVaultProvider";
+import { CommandPalette } from "@/components/layout/CommandPalette";
+import { FeatureMasthead } from "@/components/layout/FeatureMasthead";
 
 const bodyFont = Inter({ variable: "--font-body", subsets: ["latin"] });
 const sinhalaFont = Noto_Sans_Sinhala({ variable: "--font-sinhala", subsets: ["sinhala"] });
@@ -94,8 +96,10 @@ export default async function LocaleLayout({
         <ThemeProvider>
           <LocaleProvider locale={locale}>
             <LocalVaultProvider>
-              <ServiceWorkerRegister />
               <Nav />
+              <CommandPalette />
+              <ServiceWorkerRegister />
+              <FeatureMasthead />
               <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">{children}</main>
               <Footer />
             </LocalVaultProvider>

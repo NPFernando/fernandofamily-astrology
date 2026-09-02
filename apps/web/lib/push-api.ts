@@ -45,6 +45,10 @@ export type SubscribeBody = {
   iana_tz?: unknown;
   min_effect?: unknown;
   lead_minutes?: unknown;
+  quiet_start_hour?: unknown;
+  quiet_end_hour?: unknown;
+  allowed_weekdays?: unknown;
+  max_alerts_per_day?: unknown;
   locale?: unknown;
 };
 
@@ -60,6 +64,10 @@ export type ValidSubscription = {
   iana_tz: string;
   min_effect: string;
   lead_minutes: number;
+  quiet_start_hour: number | null;
+  quiet_end_hour: number | null;
+  allowed_weekdays: number[];
+  max_alerts_per_day: number;
   locale: string;
 };
 
@@ -118,6 +126,24 @@ export function validateSubscribeBody(
   if (!Number.isInteger(lead) || lead < 5 || lead > 60) {
     return { ok: false, message: "lead_minutes must be 5..60" };
   }
+  const quietStart = body.quiet_start_hour == null ? null : Number(body.quiet_start_hour);
+  const quietEnd = body.quiet_end_hour == null ? null : Number(body.quiet_end_hour);
+  if (
+    (quietStart === null) !== (quietEnd === null) ||
+    (quietStart !== null && (!Number.isInteger(quietStart) || quietStart < 0 || quietStart > 23)) ||
+    (quietEnd !== null && (!Number.isInteger(quietEnd) || quietEnd < 0 || quietEnd > 23)) ||
+    (quietStart !== null && quietStart === quietEnd)
+  ) {
+    return { ok: false, message: "quiet hours must be a distinct 0..23 start and end pair" };
+  }
+  const weekdays = Array.isArray(body.allowed_weekdays) ? body.allowed_weekdays.map(Number) : [1, 2, 3, 4, 5, 6, 7];
+  if (!weekdays.length || weekdays.length > 7 || weekdays.some((day) => !Number.isInteger(day) || day < 1 || day > 7) || new Set(weekdays).size !== weekdays.length) {
+    return { ok: false, message: "allowed_weekdays must contain unique values from 1..7" };
+  }
+  const maxAlertsPerDay = body.max_alerts_per_day == null ? 3 : Number(body.max_alerts_per_day);
+  if (!Number.isInteger(maxAlertsPerDay) || maxAlertsPerDay < 1 || maxAlertsPerDay > 5) {
+    return { ok: false, message: "max_alerts_per_day must be 1..5" };
+  }
   const locale = body.locale == null ? "si" : String(body.locale);
   if (!(LOCALES as readonly string[]).includes(locale)) {
     return { ok: false, message: "invalid locale" };
@@ -137,13 +163,28 @@ export function validateSubscribeBody(
       iana_tz: tz,
       min_effect: minEffect,
       lead_minutes: lead,
+      quiet_start_hour: quietStart,
+      quiet_end_hour: quietEnd,
+      allowed_weekdays: weekdays,
+      max_alerts_per_day: maxAlertsPerDay,
       locale,
     },
   };
 }
 
-// Postgres "relation does not exist" — the push migration hasn't been
-// applied yet. Surfaced as the same clean 503 as "no DB configured".
-export function isMissingTableError(e: unknown): boolean {
-  return typeof e === "object" && e !== null && (e as { code?: string }).code === "42P01";
+// A push route is optional infrastructure: a missing migration or an
+// unavailable database is a temporary service dependency, not an application
+// crash. Surface both as the same clean 503 and retain unexpected query
+// failures as 500s for investigation.
+export function isPushStorageUnavailableError(e: unknown): boolean {
+  if (typeof e !== "object" || e === null) return false;
+  const code = (e as { code?: string }).code;
+  return (
+    code === "42P01" ||
+    // A deployment can briefly receive app code before its additive push
+    // preference migration. Treat the missing column as optional storage
+    // infrastructure, returning a clean retryable 503 rather than a 500.
+    code === "42703" ||
+    ["28P01", "ECONNREFUSED", "ECONNRESET", "ENETUNREACH", "EHOSTUNREACH", "ETIMEDOUT"].includes(code ?? "")
+  );
 }

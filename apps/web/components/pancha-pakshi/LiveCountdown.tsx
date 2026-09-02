@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
+import { formatLocalTime } from "@/lib/formatters";
 import { translateEnum } from "@/lib/i18n";
 import type { SubPeriod } from "@/lib/api-client";
 import { BIRD_ICONS } from "@/components/icons/birds";
@@ -145,7 +146,7 @@ export function LiveCountdown({
         {translateEnum(dict, "activities", current.sub_activity)}
       </p>
       <p className="text-xs opacity-70">
-        {dict.ui.endsAt}: {new Date(current.ends_at).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US")}
+        {dict.ui.endsAt}: {formatLocalTime(current.ends_at, locale)}
       </p>
       <div
         data-testid="live-guidance"
@@ -160,7 +161,7 @@ export function LiveCountdown({
         <p className="mt-2 text-xs opacity-70">
           {dict.ui.nextPeriod}: {translateEnum(dict, "birds", next.sub_bird)} ·{" "}
           {translateEnum(dict, "activities", next.sub_activity)} @{" "}
-          {new Date(next.starts_at).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US")}
+          {formatLocalTime(next.starts_at, locale)}
         </p>
       )}
     </div>

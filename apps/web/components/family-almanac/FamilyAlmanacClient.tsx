@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { EFFECT_COLORS } from "@fernandofamily/design-system";
+import { formatLocalDate, formatLocalTime } from "@/lib/formatters";
 import {
   ApiError,
   fetchMuhurta,
@@ -37,6 +38,7 @@ import {
 import { buildIcs, downloadIcs, type IcsEvent } from "@/lib/ics";
 import { getDictionary, nakshatraName, translateEnum } from "@/lib/i18n";
 import { useLocale } from "@/lib/locale-context";
+import type { VaultPlan } from "@/lib/planner";
 import { addProfile, listProfiles, mergeLocalToServerOnce, removeProfile, updateProfile, type SavedProfile } from "@/lib/profiles";
 import { useSessionProbe } from "@/lib/use-session-probe";
 import { useLocalVault } from "@/components/LocalVaultProvider";
@@ -44,7 +46,6 @@ import { DateNav } from "@/components/pancha-pakshi/DateNav";
 import {
   DEFAULT_LOCATION,
   LocationPicker,
-  mostRecentLocation,
   useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
@@ -86,8 +87,16 @@ const GRADE_STYLE: Record<MuhurtaGrade, string> = {
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
 const FAMILY_SELECTED_STORAGE_KEY = "ff_family_almanac_selected_profile_ids";
 
+async function retryOnce<T>(request: () => Promise<T>): Promise<T> {
+  try {
+    return await request();
+  } catch {
+    return request();
+  }
+}
+
 function formatDate(isoDate: string, locale: string) {
-  return new Date(`${isoDate}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+  return formatLocalDate(isoDate, locale, {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -96,7 +105,7 @@ function formatDate(isoDate: string, locale: string) {
 }
 
 function formatShortDate(isoDate: string, locale: string) {
-  return new Date(`${isoDate}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+  return formatLocalDate(isoDate, locale, {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -104,10 +113,7 @@ function formatShortDate(isoDate: string, locale: string) {
 }
 
 function formatTime(iso: string, locale: string) {
-  return new Date(iso).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatLocalTime(iso, locale);
 }
 
 function durationText(seconds: number, dict: Dictionary) {
@@ -193,6 +199,17 @@ function eventDescriptionForWindow(window: MuhurtaWindow, dict: Dictionary) {
   )} · ${translateEnum(dict, "activities", window.pancha_pakshi_activity)}`;
 }
 
+function plannerTime(instant: string, timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(instant));
+  const value = (type: "hour" | "minute") => parts.find((part) => part.type === type)?.value ?? "00";
+  return `${value("hour")}:${value("minute")}`;
+}
+
 function plannerEvents(data: FamilyData, startDate: string, dict: Dictionary): IcsEvent[] {
   return Array.from({ length: FAMILY_ALMANAC_DAYS }, (_, index) => {
     const day = addDays(startDate, index);
@@ -240,7 +257,7 @@ async function shareOrDownloadPng(blob: Blob, filename: string) {
 
 export function FamilyAlmanacClient() {
   const { dict, locale } = useLocale();
-  const { unlocked } = useLocalVault();
+  const { unlocked, update } = useLocalVault();
   const vaultLocation = useVaultRecentLocation();
   const searchParams = useSearchParams();
   const requestedDate = validDateParam(searchParams.get("date"));
@@ -297,7 +314,7 @@ export function FamilyAlmanacClient() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const initialLocation = (unlocked ? vaultLocation : null) ?? mostRecentLocation() ?? DEFAULT_LOCATION;
+      const initialLocation = (unlocked ? vaultLocation : null) ?? DEFAULT_LOCATION;
       const initialDate = requestedDate ?? todayFor(initialLocation).date;
       if (!cancelled) void run(defaultRequest(initialDate, initialLocation));
     })();
@@ -400,7 +417,7 @@ export function FamilyAlmanacClient() {
 
       const panchangaRequests = Array.from({ length: FAMILY_ALMANAC_DAYS }, (_, index) => addDays(date, index)).map(
         (day) =>
-          fetchPanchanga({
+          () => fetchPanchanga({
             date: day,
             location_name: location.name,
             latitude: location.latitude,
@@ -409,9 +426,9 @@ export function FamilyAlmanacClient() {
           }),
       );
       const [scheduleSettled, muhurtaSettled, panchangaSettled] = await Promise.all([
-        Promise.allSettled(scheduleInputs.map(({ request }) => fetchSchedule(request))),
-        Promise.allSettled(muhurtaInputs.map(({ request }) => fetchMuhurta(request))),
-        Promise.allSettled(panchangaRequests),
+        Promise.allSettled(scheduleInputs.map(({ request }) => retryOnce(() => fetchSchedule(request)))),
+        Promise.allSettled(muhurtaInputs.map(({ request }) => retryOnce(() => fetchMuhurta(request)))),
+        Promise.allSettled(panchangaRequests.map((request) => retryOnce(request))),
       ]);
       if (cancelled) return;
       setFamilyData({
@@ -449,7 +466,7 @@ export function FamilyAlmanacClient() {
   }, [date, familyKey, loadingProfiles, location, selectedProfiles]);
 
   function changeDate(nextDate: string) {
-    const loc = location ?? mostRecentLocation() ?? DEFAULT_LOCATION;
+    const loc = location ?? vaultLocation ?? DEFAULT_LOCATION;
     const base = request ?? defaultRequest(nextDate, loc);
     void run(withDateLocation(base, nextDate, loc));
   }
@@ -503,6 +520,22 @@ export function FamilyAlmanacClient() {
     setActionMessage(dict.familyAlmanac.profileRenamed);
   }
 
+  async function duplicateSavedProfile(profile: SavedProfile) {
+    const label = window.prompt(dict.familyAlmanac.duplicateProfilePrompt, `${profile.label} (${dict.familyAlmanac.profileCopy})`)?.trim();
+    if (!label) return;
+    const duplicated = await addProfile(signedIn, {
+      label,
+      bird: profile.bird,
+      nakshatra_index: profile.nakshatra_index,
+      paksha: profile.paksha,
+      moon_rashi_index: profile.moon_rashi_index,
+    });
+    await refreshProfiles(
+      selectedIds.length >= FAMILY_ALMANAC_PROFILE_LIMIT ? selectedIds : [...selectedIds, duplicated.id],
+    );
+    setActionMessage(dict.familyAlmanac.profileDuplicated);
+  }
+
   async function deleteSavedProfile(profile: SavedProfile) {
     await removeProfile(signedIn, profile.id);
     const nextSelected = selectedIds.filter((id) => id !== profile.id);
@@ -518,6 +551,49 @@ export function FamilyAlmanacClient() {
       return;
     }
     downloadIcs(`family-almanac-${date}.ics`, buildIcs(events));
+  }
+
+  async function saveFamilyWindowToPlanner() {
+    if (!activeFamilyData || !location || !unlocked) return;
+    const shared = sharedWindowsForDay(activeFamilyData.muhurtaRows, date)[0];
+    const individual = shared ? null : individualWindowsForDay(activeFamilyData.muhurtaRows, date)[0] ?? null;
+    if (!shared && !individual) {
+      setActionMessage(dict.familyAlmanac.familyWindowUnavailable);
+      return;
+    }
+    const window = shared ?? individual!.window;
+    const plan: VaultPlan = {
+      id: crypto.randomUUID(),
+      title: shared ? dict.familyAlmanac.sharedWindow : `${dict.familyAlmanac.bestIndividualWindow}: ${individual!.profile.label}`,
+      date,
+      starts_at: plannerTime(window.starts_at, location.iana_tz),
+      ends_at: plannerTime(window.ends_at, location.iana_tz),
+      profile_ids: shared ? selectedProfiles.map((profile) => profile.id) : [individual!.profile.id],
+      notes: shared ? dict.muhurta.grades[shared.grade] : eventDescriptionForWindow(individual!.window, dict),
+      source: "muhurta",
+      created_at: new Date().toISOString(),
+    };
+    await update((current) => ({ ...current, plans: [...(current.plans ?? []), plan] }));
+    setActionMessage(dict.familyAlmanac.familyWindowSaved);
+  }
+
+  async function savePoyaReminderToPlanner() {
+    if (!data || !unlocked) return;
+    const poya = data.panchanga.is_poya_day && data.panchanga.poya ? data.panchanga.poya : data.panchanga.next_poya;
+    const poyaDate = data.panchanga.is_poya_day ? data.panchanga.date : data.panchanga.next_poya.date;
+    const plan: VaultPlan = {
+      id: crypto.randomUUID(),
+      title: `${sinhalaMonthName(dict, poya.month_key)} ${dict.panchanga.poyaFullMoonSuffix}`,
+      date: poyaDate,
+      starts_at: null,
+      ends_at: null,
+      profile_ids: selectedProfiles.map((profile) => profile.id),
+      notes: "",
+      source: "muhurta",
+      created_at: new Date().toISOString(),
+    };
+    await update((current) => ({ ...current, plans: [...(current.plans ?? []), plan] }));
+    setActionMessage(dict.familyAlmanac.poyaReminderSaved);
   }
 
   async function shareFamilyImage() {
@@ -592,6 +668,7 @@ export function FamilyAlmanacClient() {
             onToggle={toggleProfile}
             onCreateDirectBird={createDirectBirdProfile}
             onRename={renameSavedProfile}
+            onDuplicate={duplicateSavedProfile}
             onDelete={deleteSavedProfile}
           />
         </div>
@@ -616,7 +693,7 @@ export function FamilyAlmanacClient() {
         <div role="status" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <span className="sr-only">{dict.ui.loading}</span>
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-28 rounded-xl border border-black/10 motion-safe:animate-pulse dark:border-white/10" />
+            <div key={i} className="h-28 rounded-xl skeleton-shimmer" />
           ))}
         </div>
       )}
@@ -711,9 +788,12 @@ export function FamilyAlmanacClient() {
           <FamilyActions
             dict={dict}
             disabled={!activeFamilyData || selectedProfiles.length === 0 || familyLoading}
+            saveDisabled={!unlocked || !activeFamilyData || selectedProfiles.length === 0 || familyLoading}
             message={actionMessage}
             onPrint={() => window.print()}
             onDownloadIcs={downloadFamilyPlanner}
+            onSaveFamilyWindow={() => { void saveFamilyWindowToPlanner(); }}
+            onSavePoyaReminder={() => { void savePoyaReminderToPlanner(); }}
             onShareImage={() => {
               void shareFamilyImage().catch(() => setActionMessage(dict.familyAlmanac.shareFailed));
             }}
@@ -741,7 +821,7 @@ export function FamilyAlmanacClient() {
                   Array.from({ length: Math.max(selectedProfiles.length, 1) }).map((_, index) => (
                     <div
                       key={index}
-                      className="min-h-44 rounded-lg border border-black/10 motion-safe:animate-pulse dark:border-white/10"
+                      className="min-h-44 rounded-lg skeleton-shimmer"
                     />
                   ))}
               </div>
@@ -816,6 +896,7 @@ function ProfileSelector({
   onToggle,
   onCreateDirectBird,
   onRename,
+  onDuplicate,
   onDelete,
 }: {
   dict: Dictionary;
@@ -827,6 +908,7 @@ function ProfileSelector({
   onToggle: (profileId: string) => void;
   onCreateDirectBird: (label: string, bird: BirdId) => Promise<void>;
   onRename: (profile: SavedProfile) => Promise<void>;
+  onDuplicate: (profile: SavedProfile) => Promise<void>;
   onDelete: (profile: SavedProfile) => Promise<void>;
 }) {
   const [quickLabel, setQuickLabel] = useState("");
@@ -952,6 +1034,15 @@ function ProfileSelector({
                       <button
                         type="button"
                         onClick={() => {
+                          void onDuplicate(profile);
+                        }}
+                        className="rounded-md border border-black/10 px-2 py-1 text-[11px] font-semibold hover:border-accent dark:border-white/15"
+                      >
+                        {dict.familyAlmanac.duplicateProfile}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
                           void onDelete(profile);
                         }}
                         className="rounded-md border border-red-500/40 px-2 py-1 text-[11px] font-semibold text-red-700 hover:bg-red-500/10 dark:text-red-300"
@@ -978,16 +1069,22 @@ function ProfileSelector({
 function FamilyActions({
   dict,
   disabled,
+  saveDisabled,
   message,
   onPrint,
   onDownloadIcs,
+  onSaveFamilyWindow,
+  onSavePoyaReminder,
   onShareImage,
 }: {
   dict: Dictionary;
   disabled: boolean;
+  saveDisabled: boolean;
   message: string | null;
   onPrint: () => void;
   onDownloadIcs: () => void;
+  onSaveFamilyWindow: () => void;
+  onSavePoyaReminder: () => void;
   onShareImage: () => void;
 }) {
   return (
@@ -1000,7 +1097,7 @@ function FamilyActions({
           <h2 className="text-sm font-semibold uppercase text-accent">{dict.familyAlmanac.plannerActionsTitle}</h2>
           <p className="mt-1 text-sm opacity-75">{dict.familyAlmanac.plannerActionsDescription}</p>
         </div>
-        <div className="grid gap-2 sm:grid-cols-3 md:min-w-[28rem]">
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5 md:min-w-[28rem]">
           <button
             type="button"
             onClick={onPrint}
@@ -1016,6 +1113,24 @@ function FamilyActions({
             className="rounded-lg border border-black/10 px-3 py-2 text-sm font-semibold hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/20"
           >
             {dict.familyAlmanac.downloadFamilyIcs}
+          </button>
+          <button
+            type="button"
+            data-testid="family-almanac-save-window"
+            disabled={saveDisabled}
+            onClick={onSaveFamilyWindow}
+            className="rounded-lg border border-black/10 px-3 py-2 text-sm font-semibold hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/20"
+          >
+            {dict.familyAlmanac.saveFamilyWindow}
+          </button>
+          <button
+            type="button"
+            data-testid="family-almanac-save-poya"
+            disabled={saveDisabled}
+            onClick={onSavePoyaReminder}
+            className="rounded-lg border border-black/10 px-3 py-2 text-sm font-semibold hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/20"
+          >
+            {dict.familyAlmanac.savePoyaReminder}
           </button>
           <button
             type="button"

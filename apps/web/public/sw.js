@@ -1,9 +1,8 @@
 // Minimal app-shell service worker. Caches the shell, locale data, and icons
-// so the site is reachable offline; the schedule itself is cached separately
-// in localStorage by the app (see app/[locale]/pancha-pakshi/page.tsx) and
-// re-rendered there with an explicit "cached, not live" label — this worker
-// does not attempt any astronomical calculation of its own.
-const CACHE_NAME = "ff-astrology-shell-v6";
+// so the site is reachable offline. The app may separately read an encrypted
+// vault-owned cached schedule and labels it as cached rather than live; this
+// worker neither stores schedules nor attempts astronomical calculation.
+const CACHE_NAME = "ff-astrology-shell-v10";
 // Locale data is bundled into the page JS (imported at build time, not
 // fetched from a public URL), so it's cached automatically once the page
 // itself is cached below — no separate /locales/*.json entries needed here.
@@ -18,6 +17,8 @@ const PRECACHE_URLS = [
   "/si/moon-calendar",
   "/en/daily-guide",
   "/si/daily-guide",
+  "/en/daily-guide/planner",
+  "/si/daily-guide/planner",
   "/en/family-almanac",
   "/si/family-almanac",
   "/en/muhurta",
@@ -32,6 +33,10 @@ const PRECACHE_URLS = [
   "/si/birth-chart",
   "/en/dasha",
   "/si/dasha",
+  "/en/roadmap",
+  "/si/roadmap",
+  "/en/privacy",
+  "/si/privacy",
   "/icons/app/icon-192.png",
   "/icons/app/icon-512.png",
   "/icons/app/icon-maskable-512.png",
@@ -79,9 +84,14 @@ self.addEventListener("install", (event) => {
     caches
       .open(CACHE_NAME)
       .then((cache) => cache.addAll(PRECACHE_URLS.map((url) => new Request(url, { cache: "reload" }))))
-      .catch(() => undefined)
-      .then(() => self.skipWaiting()),
+      .catch(() => undefined),
   );
+});
+
+// Do not replace an active app while somebody is using it. The page sends
+// this message only after its visitor chooses Refresh from the update notice.
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
@@ -101,6 +111,19 @@ self.addEventListener("fetch", (event) => {
   // Never intercept API calls — the app itself handles online/offline
   // fallback for calculation requests explicitly and labels cached data.
   if (url.pathname.startsWith("/api/")) return;
+
+  // Always read navigation documents from the network when connected. This
+  // prevents an older cached route shell from hiding a newly deployed feature;
+  // only a genuine offline navigation falls back to the local shell below.
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(new Request(request, { cache: "no-store" })).catch(() => {
+        const fallback = url.pathname.startsWith("/en") ? "/en" : "/si";
+        return caches.match(fallback);
+      }),
+    );
+    return;
+  }
 
   event.respondWith(
     fetch(request)

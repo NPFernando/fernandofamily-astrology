@@ -54,6 +54,8 @@ for (const locale of ["en", "si"] as const) {
     await expect(page.getByRole("button", { name: DICTS[locale].muhurta.purposes.vehicle_purchase })).toBeVisible();
     await expect(page.getByRole("button", { name: DICTS[locale].muhurta.purposes.wedding_engagement })).toBeVisible();
     await expect(page.locator('[data-testid="muhurta-day-summary"]')).toBeVisible();
+    await expect(page.locator('[data-testid="muhurta-date-comparison"]')).toBeVisible();
+    await expect(page.locator('[data-testid="muhurta-date-comparison"]')).toContainText(DICTS[locale].muhurta.compareDatesTitle);
     await expect(page.locator('[data-testid="muhurta-windows"]')).toBeVisible();
     await expect(page.locator('[data-testid="muhurta-source-overlaps"]').first()).toBeVisible();
     await expect(page.getByText(DICTS[locale].muhurta.sourceOverlapsTitle).first()).toBeVisible();
@@ -65,6 +67,29 @@ test("muhurta: travel purpose shows direction caution", async ({ page }) => {
   await openMuhurta(page, "en");
   await page.getByRole("button", { name: DICTS.en.muhurta.purposes.travel }).click();
   await expect(page.getByText(DICTS.en.muhurta.cautions.disha_shool).first()).toBeVisible({ timeout: 20_000 });
+});
+
+test("muhurta: a decision brief downloads as a calendar event without birth data", async ({ page }) => {
+  const watcher = watchForBirthDataInUrls(page);
+  await openMuhurta(page, "en");
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("button", { name: DICTS.en.muhurta.downloadDecisionBrief }).first().click(),
+  ]);
+  expect(download.suggestedFilename()).toMatch(/^muhurta-decision-\d{4}-\d{2}-\d{2}\.ics$/);
+  watcher.assertClean();
+});
+
+test("muhurta: two candidate windows can be compared side by side", async ({ page }) => {
+  await openMuhurta(page, "en");
+  const compare = page.getByRole("button", { name: DICTS.en.muhurta.compareWindow });
+  await expect(compare.nth(1)).toBeVisible();
+  await compare.nth(0).click();
+  await compare.nth(1).click();
+  const comparison = page.locator('[data-testid="muhurta-window-comparison"]');
+  await expect(comparison).toBeVisible();
+  await expect(comparison).toContainText(DICTS.en.muhurta.windowComparisonTitle);
+  await expect(comparison).toContainText(DICTS.en.muhurta.gradeLabel);
 });
 
 test("muhurta: event presets show purpose-specific advisories", async ({ page }) => {

@@ -2,13 +2,11 @@
 
 import { nakshatraName, translateEnum } from "@/lib/i18n";
 import { useLocale } from "@/lib/locale-context";
+import { formatLocalTime } from "@/lib/formatters";
 import type { DailyPanchanga, GrahaPosition } from "@/lib/api-client";
 
 function formatTime(iso: string, locale: string) {
-  return new Date(iso).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatLocalTime(iso, locale);
 }
 
 function untilText(iso: string, date: string, locale: string, untilLabel: string, nextDayLabel: string) {

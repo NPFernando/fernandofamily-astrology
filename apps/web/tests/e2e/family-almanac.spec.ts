@@ -1,20 +1,28 @@
 import { expect, test, type Page } from "@playwright/test";
 import { DICTS, watchForBirthDataInUrls, type LocaleKey } from "./helpers";
 
-async function waitForFamilyAlmanac(page: Page) {
+async function waitForFamilyAlmanac(page: Page, locale: LocaleKey) {
   const deadline = Date.now() + 75_000;
   while (Date.now() < deadline) {
     if (await page.locator('[data-testid="family-almanac-result"]').isVisible().catch(() => false)) return;
-    const retry = page.getByRole("button", { name: DICTS.en.ui.retry, exact: true }).first();
+    const retry = page.getByRole("button", { name: DICTS[locale].ui.retry, exact: true }).first();
     if (await retry.isVisible().catch(() => false)) await retry.click();
     await page.waitForTimeout(500);
   }
-  await expect(page.locator('[data-testid="family-almanac-result"]')).toBeVisible();
+  await expect(page.locator('[data-testid="family-almanac-result"]')).toBeVisible({ timeout: 75_000 });
 }
 
 async function openFamilyAlmanac(page: Page, locale: LocaleKey, query = "") {
   await page.goto(`/${locale}/family-almanac${query}`);
-  await waitForFamilyAlmanac(page);
+  await waitForFamilyAlmanac(page, locale);
+}
+
+async function clearOfflineShell(page: Page) {
+  await page.goto("/en");
+  await page.evaluate(async () => {
+    await Promise.all((await navigator.serviceWorker.getRegistrations()).map((registration) => registration.unregister()));
+    await Promise.all((await caches.keys()).map((cacheName) => caches.delete(cacheName)));
+  });
 }
 
 async function seedFamilyProfiles(page: Page) {
@@ -111,7 +119,7 @@ test("family almanac: quick bird profile creation and selected profiles persist 
   expect(selected).toHaveLength(1);
 
   await page.reload();
-  await waitForFamilyAlmanac(page);
+  await waitForFamilyAlmanac(page, "en");
   await expect(page.locator('[data-testid="family-almanac-profile"]').filter({ hasText: "Aiya" })).toBeVisible();
   await expect(page.locator('[data-testid="family-almanac-profile"]').filter({ hasText: "Aiya" }).getByRole("button").first()).toHaveAttribute(
     "aria-pressed",
@@ -142,8 +150,26 @@ test("family almanac: saved profiles can be renamed and removed", async ({ page 
   await expect(page.locator('[data-testid="family-almanac-profile"]').filter({ hasText: "Duwa" })).toHaveCount(0);
 });
 
+test("family almanac: a saved derived profile can be duplicated", async ({ page }) => {
+  await seedFamilyProfiles(page);
+  await openFamilyAlmanac(page, "en", "?date=2026-07-23");
+
+  const amma = page.locator('[data-testid="family-almanac-profile"]').filter({ hasText: "Amma" });
+  page.once("dialog", async (dialog) => {
+    expect(dialog.message()).toContain(DICTS.en.familyAlmanac.duplicateProfilePrompt);
+    await dialog.accept("Amma copy");
+  });
+  await amma.getByRole("button", { name: DICTS.en.familyAlmanac.duplicateProfile }).click();
+  await expect(page.locator('[data-testid="family-almanac-profile"]').filter({ hasText: "Amma copy" })).toBeVisible();
+
+  const storage = await page.evaluate(() => window.localStorage.getItem("ff_saved_profiles") ?? "");
+  expect(storage).not.toContain("birth_date");
+  expect(storage).not.toContain("birth_time");
+});
+
 test("family almanac: planner export and share action avoid raw birth fields", async ({ page }) => {
   await seedFamilyProfiles(page);
+  await clearOfflineShell(page);
   const watcher = watchForBirthDataInUrls(page);
   let sharePayload: unknown = null;
   await page.route("**/api/share-family-card", async (route) => {
@@ -158,6 +184,23 @@ test("family almanac: planner export and share action avoid raw birth fields", a
   });
   await openFamilyAlmanac(page, "en", "?date=2026-07-23");
   await expect(page.getByTestId("family-almanac-download-ics")).toBeEnabled({ timeout: 60_000 });
+
+  await page.getByRole("button", { name: "Protect private data" }).click();
+  await page.getByLabel("Choose a vault passphrase").fill("correct horse battery staple");
+  await page.getByRole("button", { name: "Create vault" }).click();
+  await expect(page.locator('[title="Private data vault unlocked for this tab"]')).toBeVisible();
+  await expect(page.getByTestId("family-almanac-save-window")).toBeEnabled();
+  await page.getByTestId("family-almanac-save-window").click();
+  await expect(page.getByTestId("family-almanac-action-message")).toContainText(
+    DICTS.en.familyAlmanac.familyWindowSaved,
+  );
+  await page.getByTestId("family-almanac-save-poya").click();
+  await expect(page.getByTestId("family-almanac-action-message")).toContainText(
+    DICTS.en.familyAlmanac.poyaReminderSaved,
+  );
+  const vaultPayload = await page.evaluate(() => window.localStorage.getItem("ff_private_vault_v1") ?? "");
+  expect(vaultPayload).toContain("ciphertext");
+  expect(vaultPayload).not.toContain(DICTS.en.familyAlmanac.sharedWindow);
 
   const [icsDownload] = await Promise.all([
     page.waitForEvent("download"),
@@ -196,7 +239,7 @@ test("family almanac: landing card, nav link, and sitemap are present", async ({
   ).toBeVisible();
   await page.getByRole("link", { name: DICTS.en.nav.familyAlmanac }).first().click();
   await expect(page).toHaveURL(/\/en\/family-almanac$/);
-  await waitForFamilyAlmanac(page);
+  await waitForFamilyAlmanac(page, "en");
 
   const res = await request.get("/sitemap.xml");
   const body = await res.text();

@@ -57,5 +57,6 @@ export function isFeatureVisualId(value: string): value is FeatureVisualId {
 
 export function featureVisualFromPath(path: string): FeatureVisualId | null {
   const normalized = path.replace(/^\/+|\/+$/g, "");
-  return isFeatureVisualId(normalized) ? normalized : null;
+  const rootFeature = normalized.split("/", 1)[0];
+  return isFeatureVisualId(rootFeature) ? rootFeature : null;
 }

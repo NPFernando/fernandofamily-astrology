@@ -6,6 +6,7 @@ function featureIcon(feature: FeatureVisualId, props: GeneratedIconProps) {
   return (
     <GeneratedIcon
       {...props}
+      className={["rounded-full bg-accent/10 p-1 ring-1 ring-accent/15", props.className].filter(Boolean).join(" ")}
       name={feature}
       src={`${base}-64.png`}
       srcSet={`${base}-64.png 1x, ${base}-128.png 2x, ${base}-256.png 4x`}

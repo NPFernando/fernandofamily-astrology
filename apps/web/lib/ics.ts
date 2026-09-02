@@ -9,6 +9,7 @@ export type IcsEvent = {
   end: Date;
   summary: string;
   description?: string;
+  recurrence?: "YEARLY";
 };
 
 // TEXT values: backslash, semicolon, comma and newlines must be escaped
@@ -73,6 +74,7 @@ export function buildIcs(events: IcsEvent[]): string {
       `SUMMARY:${escapeText(ev.summary)}`,
     );
     if (ev.description) lines.push(`DESCRIPTION:${escapeText(ev.description)}`);
+    if (ev.recurrence) lines.push(`RRULE:FREQ=${ev.recurrence}`);
     lines.push("END:VEVENT");
   }
   lines.push("END:VCALENDAR");

@@ -32,6 +32,12 @@ test("landing page uses generated hero, feature posters, and nonblank icons", as
     return {
       hasHero: images.some((img) => img.src.includes("landing-almanac")),
       posterCount: images.filter((img) => img.src.includes("/posters/features/") || img.src.includes("%2Fposters%2Ffeatures%2F")).length,
+      posterRatios: [...document.images]
+        .filter((img) => (img.currentSrc || img.src).includes("/posters/features/") || (img.currentSrc || img.src).includes("%2Fposters%2Ffeatures%2F"))
+        .map((img) => {
+          const box = img.getBoundingClientRect();
+          return box.width / box.height;
+        }),
       missingIcons: features.filter((feature) => !images.some((img) => img.dataIcon === feature && img.naturalWidth > 0 && img.naturalHeight > 0)),
       brokenImages: images.filter((img) => img.complete && (img.naturalWidth === 0 || img.naturalHeight === 0)).map((img) => img.src),
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -40,6 +46,7 @@ test("landing page uses generated hero, feature posters, and nonblank icons", as
 
   expect(visualState.hasHero).toBe(true);
   expect(visualState.posterCount).toBeGreaterThanOrEqual(FEATURES.length);
+  expect(visualState.posterRatios.every((ratio) => Math.abs(ratio - 16 / 7) < 0.03)).toBe(true);
   expect(visualState.missingIcons).toEqual([]);
   expect(visualState.brokenImages).toEqual([]);
   expect(visualState.overflow).toBeLessThanOrEqual(2);
@@ -63,6 +70,20 @@ test("generated feature assets and per-page OG images are served", async ({ page
     const ogImage = await page.locator('meta[property="og:image"]').getAttribute("content");
     expect(ogImage).toContain(`/og/${feature}.png`);
   }
+
+  await page.goto("/en/pancha-pakshi/live");
+  const liveOgImage = await page.locator('meta[property="og:image"]').getAttribute("content");
+  expect(liveOgImage).toContain("/og/pancha-pakshi.png");
+});
+
+test("top-level feature pages use their matching decorative poster masthead", async ({ page }) => {
+  await page.goto("/en/daily-guide");
+  const masthead = page.getByTestId("feature-masthead");
+  await expect(masthead).toBeVisible();
+  await expect(masthead.locator("img")).toHaveAttribute("src", /daily-guide/);
+
+  await page.goto("/en/pancha-pakshi/live");
+  await expect(page.getByTestId("feature-masthead")).toHaveCount(0);
 });
 
 test("@mobile landing generated visuals fit at 360px", async ({ page }) => {

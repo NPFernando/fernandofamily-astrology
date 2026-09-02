@@ -24,11 +24,10 @@ import { DateNav } from "@/components/pancha-pakshi/DateNav";
 import {
   DEFAULT_LOCATION,
   LocationPicker,
-  mostRecentLocation,
   useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
-import { useLocalVault } from "@/components/LocalVaultProvider";
+import { useLocalVault, type CachedDailyGuide } from "@/components/LocalVaultProvider";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import { resolveDefaultScheduleRequest } from "@/lib/pancha-schedule-state";
 import {
@@ -46,7 +45,14 @@ import { activityGuidance } from "@/lib/pancha-guidance";
 import { SkyTodayPanel } from "@/components/panchanga/SkyTodayPanel";
 import { DailyTimingTimeline } from "@/components/panchanga/DailyTimingTimeline";
 import { PoyaDetailCard } from "@/components/panchanga/PoyaDetailCard";
+import { SavedProfiles } from "@/components/pancha-pakshi/SavedProfiles";
+import { LoadingCards } from "@/components/ui/ContentStates";
+import { MobileActionBar } from "@/components/ui/MobileActionBar";
+import { ResultNavigation, SourceContext } from "@/components/ui/ResultContext";
 import { EFFECT_COLORS } from "@fernandofamily/design-system";
+import { formatLocalDate, formatLocalDateTime, formatLocalTime } from "@/lib/formatters";
+import { usePrivatePeople } from "@/lib/use-private-people";
+import { PrivatePersonPicker } from "@/components/private-people/PrivatePersonPicker";
 
 const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
 const FAMILY_BOARD_LIMIT = 8;
@@ -105,14 +111,11 @@ function sinhalaMonthName(dict: ReturnType<typeof getDictionary>, key: string): 
 }
 
 function formatTime(iso: string, locale: string) {
-  return new Date(iso).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatLocalTime(iso, locale);
 }
 
 function formatDate(isoDate: string, locale: string) {
-  return new Date(`${isoDate}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+  return formatLocalDate(isoDate, locale, {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -200,6 +203,32 @@ function requestFromProfile(profile: SavedProfile, date: string, location: Locat
     };
   }
   return null;
+}
+
+function dailyGuideCacheFor(request: ScheduleRequest, data: GuideData): CachedDailyGuide {
+  return {
+    request,
+    panchanga: data.panchanga,
+    schedule: data.schedule,
+    referenceAt: data.referenceAt,
+    cachedAtIso: new Date().toISOString(),
+  };
+}
+
+function cachedGuideMatches(cache: CachedDailyGuide, request: ScheduleRequest): boolean {
+  return (
+    cache.request.method === request.method &&
+    cache.request.target_date === request.target_date &&
+    cache.request.location_name === request.location_name &&
+    cache.request.latitude === request.latitude &&
+    cache.request.longitude === request.longitude &&
+    cache.request.iana_tz === request.iana_tz &&
+    (request.method !== "bird" || (cache.request.method === "bird" && cache.request.bird === request.bird)) &&
+    (request.method !== "nakshatra_paksha" ||
+      (cache.request.method === "nakshatra_paksha" &&
+        cache.request.nakshatra_index === request.nakshatra_index &&
+        cache.request.paksha === request.paksha))
+  );
 }
 
 function muhurtaRequestFromProfile(profile: SavedProfile, date: string, location: LocationValue) {
@@ -337,10 +366,62 @@ function requestReferenceIso(request: ScheduleRequest, panchanga: DailyPanchanga
   return `${request.target_date}T${request.target_time}${offsetSuffix(panchanga.sunrise)}`;
 }
 
+function TodayCommandCenter({
+  date,
+  locationName,
+  hasCurrentPeriod,
+}: {
+  date: string;
+  locationName: string;
+  hasCurrentPeriod: boolean;
+}) {
+  const { dict, locale } = useLocale();
+  const actions = [
+    { href: `/${locale}/pancha-pakshi`, label: dict.dailyGuide.openPanchaPakshi },
+    { href: `/${locale}/muhurta`, label: dict.dailyGuide.openMuhurta },
+    { href: `/${locale}/panchanga?date=${date}`, label: dict.dailyGuide.openPanchanga },
+    { href: `/${locale}/moon-calendar?date=${date}`, label: dict.dailyGuide.openMoonCalendar },
+  ];
+  return (
+    <section
+      data-testid="daily-guide-command-center"
+      className="rounded-xl border border-accent/30 bg-accent/5 p-4 dark:bg-accent/10"
+    >
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-sm font-semibold uppercase text-accent">{dict.dailyGuide.todayCommandCenterTitle}</h2>
+          <p className="mt-1 text-sm leading-relaxed opacity-80">
+            {dict.dailyGuide.todayCommandCenterBody
+              .replace("{location}", locationName)
+              .replace("{period}", hasCurrentPeriod ? dict.dailyGuide.currentPeriodReady : dict.dailyGuide.currentPeriodUnavailable)}
+          </p>
+        </div>
+        <span className="w-fit rounded-full border border-accent/30 px-3 py-1 text-xs font-semibold text-accent">
+          {date}
+        </span>
+      </div>
+      <div className="mt-4 flex flex-wrap gap-2">
+        {actions.map((action, index) => (
+          <Link
+            key={action.href}
+            href={action.href}
+            className={`rounded-lg px-3 py-2 text-sm font-semibold ${
+              index === 0 ? "bg-accent text-white" : "border border-accent/40 text-accent hover:bg-accent/10"
+            }`}
+          >
+            {action.label}
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function DailyGuideClient() {
   const { dict, locale } = useLocale();
-  const { data: vaultData, unlocked } = useLocalVault();
+  const { data: vaultData, unlocked, update: updateVault } = useLocalVault();
   const vaultLocation = useVaultRecentLocation();
+  const privatePeople = usePrivatePeople();
   const searchParams = useSearchParams();
   const requestedDate = validDateParam(searchParams.get("date"));
   const [request, setRequest] = useState<ScheduleRequest | null>(null);
@@ -353,6 +434,8 @@ export function DailyGuideClient() {
   const [knownNakshatraIndex, setKnownNakshatraIndex] = useState(1);
   const [knownPaksha, setKnownPaksha] = useState<PakshaId>("waxing");
   const [activeView, setActiveView] = useState<"today" | "week">("today");
+  const [isStale, setIsStale] = useState(false);
+  const [cachedAtIso, setCachedAtIso] = useState<string | null>(null);
 
   const run = useCallback(async (nextRequest: ScheduleRequest) => {
     if (nextRequest.method === "nakshatra_paksha") {
@@ -375,26 +458,46 @@ export function DailyGuideClient() {
         }),
         fetchScheduleWithServerTime(nextRequest),
       ]);
-      setData({
+      const nextData: GuideData = {
         panchanga,
         schedule: scheduleResult.data,
         serverTime: scheduleResult.serverTime,
         fetchedAtClientMs: Date.now(),
         referenceAt: requestReferenceIso(nextRequest, panchanga),
-      });
+      };
+      setData(nextData);
+      setIsStale(false);
+      setCachedAtIso(null);
+      if (unlocked) {
+        void updateVault((current) => ({ ...current, cachedDailyGuide: dailyGuideCacheFor(nextRequest, nextData) }));
+      }
     } catch (e) {
-      setError(e instanceof ApiError ? dict.ui.error : dict.ui.error);
+      const cached = unlocked ? vaultData.cachedDailyGuide : null;
+      if (cached && cachedGuideMatches(cached, nextRequest)) {
+        setData({
+          panchanga: cached.panchanga,
+          schedule: cached.schedule,
+          serverTime: null,
+          fetchedAtClientMs: Date.now(),
+          referenceAt: cached.referenceAt,
+        });
+        setIsStale(true);
+        setCachedAtIso(cached.cachedAtIso);
+      } else {
+        setError(e instanceof ApiError ? dict.ui.error : dict.ui.error);
+      }
     } finally {
       setLoading(false);
     }
-  }, [dict.ui.error]);
+  }, [dict.ui.error, unlocked, updateVault, vaultData.cachedDailyGuide]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const initial = await resolveDefaultScheduleRequest({
-        recentLocation: unlocked ? vaultLocation : null,
+        recentLocation: unlocked ? privatePeople.person?.current_location ?? privatePeople.person?.birthplace ?? vaultLocation : null,
         derivedIdentitySeed: unlocked ? vaultData.derivedIdentitySeed ?? null : null,
+        selectedBird: unlocked ? vaultData.selectedBird ?? null : null,
       });
       if (cancelled) return;
       const initialLocation = locationFromRequest(initial);
@@ -408,14 +511,14 @@ export function DailyGuideClient() {
   // Vault writes also change vaultLocation after a user selects a place; this
   // bootstrap should rerun only for navigation or an unlock transition.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [requestedDate, run, unlocked]);
+  }, [requestedDate, run, unlocked, privatePeople.person]);
 
   const viewingToday = Boolean(location && date === todayFor(location).date);
   const currentPeriod = viewingToday ? data?.schedule.current_period ?? null : null;
   const windows = useMemo(() => (data ? bestWindows(data.schedule) : []), [data]);
 
   function changeDate(nextDate: string) {
-    const loc = location ?? mostRecentLocation() ?? DEFAULT_LOCATION;
+    const loc = location ?? vaultLocation ?? DEFAULT_LOCATION;
     const base = request ?? {
       method: "bird",
       bird: "peacock",
@@ -507,6 +610,9 @@ export function DailyGuideClient() {
         <p className="mt-1 text-sm leading-relaxed opacity-80 sm:text-base">
           {dict.dailyGuide.description}
         </p>
+        <Link href={`/${locale}/daily-guide/planner`} className="mt-3 inline-block text-sm font-semibold text-accent underline">
+          {dict.dailyGuide.openPlanner}
+        </Link>
       </header>
 
       <div
@@ -532,6 +638,7 @@ export function DailyGuideClient() {
       </div>
 
       <section
+        id="daily-guide-controls"
         data-testid="daily-guide-controls"
         className="rounded-xl border border-black/10 bg-white/40 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.04]"
       >
@@ -540,6 +647,7 @@ export function DailyGuideClient() {
         </h2>
         <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)]">
           <div className="flex flex-col gap-4">
+            <PrivatePersonPicker people={privatePeople.people} selectedId={privatePeople.selectedId} unlocked={unlocked} onSelect={privatePeople.selectPerson} onDelete={privatePeople.removePerson} />
             {date && <DateNav date={date} onChange={changeDate} />}
             <div>
               <p className="mb-2 text-sm opacity-70">{dict.ui.location}</p>
@@ -631,11 +739,21 @@ export function DailyGuideClient() {
             </div>
           </div>
         </div>
+        <div className="mt-4 border-t border-black/10 pt-4 dark:border-white/10">
+          <SavedProfiles onPick={pickProfile} saveCandidate={null} />
+        </div>
       </section>
 
       {usedDefaults && data && (
         <p className="rounded-lg border border-sky-500/40 bg-sky-500/10 px-3 py-2 text-xs">
           {dict.dailyGuide.showingDefaults}
+        </p>
+      )}
+
+      {isStale && data && (
+        <p role="status" data-testid="daily-guide-offline-cache" className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs font-medium">
+          {dict.ui.offlineCachedNotice}
+          {cachedAtIso ? ` ${formatLocalDateTime(cachedAtIso, locale)}` : ""}
         </p>
       )}
 
@@ -654,14 +772,7 @@ export function DailyGuideClient() {
         </div>
       )}
 
-      {loading && !data && (
-        <div role="status" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <span className="sr-only">{dict.ui.loading}</span>
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-28 rounded-xl border border-black/10 motion-safe:animate-pulse dark:border-white/10" />
-          ))}
-        </div>
-      )}
+      {loading && !data && <LoadingCards label={dict.ui.loading} count={6} className="lg:grid-cols-3" />}
 
       {data && activeView === "week" && location && date && (
         <FamilyWeekPlanner startDate={date} location={location} onUseDate={useWeekDate} />
@@ -669,6 +780,19 @@ export function DailyGuideClient() {
 
       {data && activeView === "today" && (
         <div data-testid="daily-guide-result" className="flex flex-col gap-5">
+          <ResultNavigation
+            label={dict.ui.resultNavigation}
+            items={[
+              { href: "#daily-guide-current", label: dict.dailyGuide.currentTitle },
+              { href: "#daily-guide-good-windows", label: dict.dailyGuide.goodWindowsTitle },
+              { href: "#daily-guide-avoid-times", label: dict.dailyGuide.avoidTitle },
+            ]}
+          />
+          <TodayCommandCenter
+            date={data.panchanga.date}
+            locationName={data.schedule.location.name}
+            hasCurrentPeriod={Boolean(currentPeriod)}
+          />
           <section
             data-testid="daily-guide-summary"
             className="rounded-xl border border-black/10 bg-white/35 p-4 dark:border-white/10 dark:bg-white/[.03]"
@@ -702,6 +826,15 @@ export function DailyGuideClient() {
               </div>
             </div>
           </section>
+          {request && <WhatChangedPanel request={request} current={data} />}
+          <MobileActionBar
+            label={dict.dailyGuide.todayCommandCenterTitle}
+            actions={[
+              { label: dict.ui.changeDetails, href: "#daily-guide-controls" },
+              { label: dict.dailyGuide.openPanchaPakshi, href: `/${locale}/pancha-pakshi`, primary: true },
+              { label: dict.dailyGuide.openMuhurta, href: `/${locale}/muhurta` },
+            ]}
+          />
 
           <PoyaDetailCard
             locale={locale}
@@ -872,11 +1005,51 @@ export function DailyGuideClient() {
               <p className="rounded-xl border border-black/10 p-4 text-xs leading-relaxed opacity-70 dark:border-white/10">
                 {dict.guidance.disclaimer}
               </p>
+              <SourceContext
+                title={dict.ui.sourceContextTitle}
+                body={dict.ui.sourceContextBody}
+                methodologyHref={`/${locale}/methodology`}
+                methodologyLabel={dict.ui.sourceContextLink}
+              />
             </aside>
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+function WhatChangedPanel({ request, current }: { request: ScheduleRequest; current: GuideData }) {
+  const { dict, locale } = useLocale();
+  const [previous, setPrevious] = useState<{ panchanga: DailyPanchanga; schedule: ScheduleResponse } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const previousDate = addDays(current.panchanga.date, -1);
+    const previousRequest = { ...request, target_date: previousDate, target_time: targetTimeFor(previousDate, locationFromRequest(request)) } as ScheduleRequest;
+    void Promise.all([
+      fetchPanchanga({ date: previousDate, location_name: request.location_name, latitude: request.latitude, longitude: request.longitude, iana_tz: request.iana_tz }),
+      fetchScheduleWithServerTime(previousRequest),
+    ]).then(([panchanga, schedule]) => {
+      if (!cancelled) setPrevious({ panchanga, schedule: schedule.data });
+    }).catch(() => {
+      if (!cancelled) setPrevious(null);
+    });
+    return () => { cancelled = true; };
+  }, [current.panchanga.date, request]);
+
+  if (!previous) return null;
+  const rows = [
+    [dict.panchanga.tithi, translateEnum(dict, "tithis", previous.panchanga.tithi[0]?.key ?? ""), translateEnum(dict, "tithis", current.panchanga.tithi[0]?.key ?? "")],
+    [dict.panchanga.nakshatra, previous.panchanga.nakshatra[0] ? nakshatraName(previous.panchanga.nakshatra[0].index, locale) : "", current.panchanga.nakshatra[0] ? nakshatraName(current.panchanga.nakshatra[0].index, locale) : ""],
+    [dict.ui.bestWindowsToday, String(bestWindows(previous.schedule).length), String(bestWindows(current.schedule).length)],
+  ] as const;
+  return (
+    <section data-testid="daily-guide-what-changed" className="rounded-xl border border-black/10 bg-white/35 p-4 dark:border-white/10 dark:bg-white/[.03]">
+      <h2 className="text-sm font-semibold uppercase text-accent">{dict.dailyGuide.whatChangedTitle}</h2>
+      <p className="mt-1 text-sm opacity-75">{dict.dailyGuide.whatChangedBody}</p>
+      <div className="mt-3 grid gap-2 sm:grid-cols-3">{rows.map(([label, before, after]) => <div key={label} className="rounded-lg border border-black/10 p-3 text-sm dark:border-white/10"><p className="text-xs uppercase opacity-70">{label}</p><p className="mt-1 opacity-70">{dict.dailyGuide.previousDay}: {before}</p><p className="font-semibold">{dict.dailyGuide.thisDay}: {after}</p></div>)}</div>
+    </section>
   );
 }
 
@@ -1052,7 +1225,7 @@ function FamilyWeekPlanner({
             <div role="status" className="grid gap-3 md:grid-cols-2 xl:grid-cols-7">
               <span className="sr-only">{dict.ui.loading}</span>
               {dates.map((day) => (
-                <div key={day} className="h-36 rounded-lg border border-black/10 motion-safe:animate-pulse dark:border-white/10" />
+                <div key={day} className="h-36 rounded-lg skeleton-shimmer" />
               ))}
             </div>
           ) : null}
@@ -1099,7 +1272,7 @@ function FamilyWeekDayCard({
     >
       <div>
         <p className="text-xs font-semibold uppercase opacity-70">
-          {new Date(`${date}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", { weekday: "short" })}
+          {formatLocalDate(date, locale, { weekday: "short" })}
         </p>
         <h3 className="mt-1 font-semibold">{formatDate(date, locale)}</h3>
         {panchanga ? (

@@ -2,13 +2,13 @@ import { readFileSync } from "node:fs";
 import { defineConfig, devices } from "@playwright/test";
 import webpush from "web-push";
 
-// E2E suite: real browser against the production build (`next start`) and
+// E2E suite: real browser against the production standalone build and
 // the real FastAPI backend (apps/api/.venv must exist — see apps/api README).
 // Run with `pnpm e2e` (which builds first — rewrites bake API_PROXY_TARGET
 // at build time, so the build must happen with the E2E port env too).
 const WEB_PORT = 3199;
 const API_PORT = 8199;
-// A second `next start` of the SAME build with throwaway VAPID keys in its
+// A second standalone server of the SAME build with throwaway VAPID keys in its
 // env — the push flag is read at request time, so one build serves both the
 // "push off" (3199) and "push on" (3197) servers. push.spec.ts targets the
 // push port explicitly; every other spec keeps the flag-off baseURL.
@@ -37,7 +37,7 @@ export const PUSH_E2E = {
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  fullyParallel: false, // shared next start instance; specs are fast enough serially
+  fullyParallel: false, // shared standalone instances; specs are fast enough serially
   retries: process.env.CI ? 2 : 1,
   reporter: process.env.CI ? "github" : "list",
   timeout: 90_000,
@@ -61,14 +61,14 @@ export default defineConfig({
       timeout: 30_000,
     },
     {
-      command: `pnpm start --port ${WEB_PORT}`,
+      command: `bash -c "mkdir -p .next/standalone/apps/web/.next/static .next/standalone/apps/web/public && cp -a .next/static/. .next/standalone/apps/web/.next/static/ && cp -a public/. .next/standalone/apps/web/public/ && PORT=${WEB_PORT} node .next/standalone/apps/web/server.js"`,
       url: `http://127.0.0.1:${WEB_PORT}/en`,
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
       env: { API_PROXY_TARGET: `http://127.0.0.1:${API_PORT}` },
     },
     {
-      command: `pnpm start --port ${PUSH_WEB_PORT}`,
+      command: `bash -c "mkdir -p .next/standalone/apps/web/.next/static .next/standalone/apps/web/public && cp -a .next/static/. .next/standalone/apps/web/.next/static/ && cp -a public/. .next/standalone/apps/web/public/ && PORT=${PUSH_WEB_PORT} node .next/standalone/apps/web/server.js"`,
       url: `http://127.0.0.1:${PUSH_WEB_PORT}/en`,
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,

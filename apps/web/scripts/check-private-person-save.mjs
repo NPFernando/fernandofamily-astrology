@@ -35,6 +35,11 @@ if (picker.includes(">Remove</button>")) {
   violations.push("private-people/PrivatePersonPicker.tsx: contains the untranslated remove action");
 }
 
+const saveButton = readFileSync(new URL("private-people/PrivatePersonSaveButton.tsx", root), "utf8");
+if (!saveButton.includes("await onSave(trimmed);") || !saveButton.includes("resetForm();")) {
+  violations.push("private-people/PrivatePersonSaveButton.tsx: successful saves must reset the form");
+}
+
 if (violations.length > 0) {
   console.error("Private-person save check FAILED:\n" + violations.join("\n"));
   process.exit(1);

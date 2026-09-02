@@ -22,11 +22,15 @@ export function PrivatePersonSaveButton({ disabled = false, onSave }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
 
-  function close() {
-    if (saving) return;
+  function resetForm() {
     setOpen(false);
     setLabel("");
     setError(false);
+  }
+
+  function close() {
+    if (saving) return;
+    resetForm();
   }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -40,7 +44,9 @@ export function PrivatePersonSaveButton({ disabled = false, onSave }: Props) {
     setError(false);
     try {
       await onSave(trimmed);
-      close();
+      // `saving` is still true in this render's closure, so use the reset
+      // path directly rather than the user-cancel guard in `close`.
+      resetForm();
     } catch {
       setError(true);
     } finally {

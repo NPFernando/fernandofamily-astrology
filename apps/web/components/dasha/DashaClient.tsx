@@ -14,10 +14,13 @@ import { DashaIcon } from "@/components/icons/features";
 import { DashaTimeline } from "@/components/dasha/DashaTimeline";
 import { useRecentBirthDetails } from "@/lib/recent-birth-details";
 import { ResultExplanation } from "@/components/ui/ResultExplanation";
+import { usePrivatePeople } from "@/lib/use-private-people";
+import { PrivatePersonPicker } from "@/components/private-people/PrivatePersonPicker";
 
 export function DashaClient() {
   const { dict } = useLocale();
   const { recent, saveRecentBirthDetails } = useRecentBirthDetails();
+  const privatePeople = usePrivatePeople();
   const vaultLocation = useVaultRecentLocation();
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
@@ -37,6 +40,22 @@ export function DashaClient() {
       setBirthTime(recent.birth_time);
     }
   }, [recent, vaultLocation]);
+
+  useEffect(() => {
+    if (!privatePeople.person) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate form fields when the active encrypted person changes.
+    setBirthDate(privatePeople.person.birth_date);
+    setBirthTime(privatePeople.person.birth_time);
+    setLocation(privatePeople.person.birthplace);
+    setResult(null);
+  }, [privatePeople.person]);
+
+  async function savePrivatePerson() {
+    if (!birthDate || !birthTime || !location || !privatePeople.unlocked) return;
+    const label = window.prompt("Name for this person")?.trim();
+    if (!label) return;
+    await privatePeople.savePerson({ label, birth_date: birthDate, birth_time: birthTime.length === 5 ? `${birthTime}:00` : birthTime, birthplace: location });
+  }
 
   const canCalculate = birthDate !== "" && birthTime !== "" && location !== null;
 
@@ -81,6 +100,7 @@ export function DashaClient() {
           {dict.dasha.birthDetailsTitle}
         </h2>
         <div className="mt-4 flex flex-col gap-4">
+          <PrivatePersonPicker people={privatePeople.people} selectedId={privatePeople.selectedId} unlocked={privatePeople.unlocked} onSelect={privatePeople.selectPerson} onDelete={privatePeople.removePerson} />
           <TargetDateTimeFields
             value={{ date: birthDate, time: birthTime }}
             onChange={(value) => {
@@ -102,6 +122,7 @@ export function DashaClient() {
           >
             {loading ? dict.ui.loading : dict.dasha.calculate}
           </button>
+          {privatePeople.unlocked && <button type="button" disabled={!canCalculate} onClick={savePrivatePerson} className="w-fit rounded-lg border border-accent/40 px-4 py-2 text-sm font-semibold text-accent">{dict.ui.savePrivatePerson}</button>}
         </div>
       </section>
 

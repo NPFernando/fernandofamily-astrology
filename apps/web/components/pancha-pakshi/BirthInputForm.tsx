@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { fetchBirthBird, ApiError, type BirdSelectionInput, type BirthBirdResponse } from "@/lib/api-client";
 import { LocationPicker, type LocationValue } from "./LocationPicker";
 import { TargetDateTimeFields, nowAsTargetDateTime, type TargetDateTime } from "./TargetDateTimeFields";
+import { usePrivatePeople } from "@/lib/use-private-people";
+import { PrivatePersonPicker } from "@/components/private-people/PrivatePersonPicker";
 
 export function BirthInputForm({
   location,
@@ -16,6 +18,7 @@ export function BirthInputForm({
   onSubmit: (input: BirdSelectionInput) => void;
 }) {
   const { dict } = useLocale();
+  const privatePeople = usePrivatePeople();
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
   const [target, setTarget] = useState<TargetDateTime | null>(null);
@@ -23,6 +26,22 @@ export function BirthInputForm({
   const [confirmed, setConfirmed] = useState<BirthBirdResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!privatePeople.person) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate form fields when the active encrypted person changes.
+    setBirthDate(privatePeople.person.birth_date);
+    setBirthTime(privatePeople.person.birth_time);
+    onLocationChange(privatePeople.person.birthplace);
+    setConfirmed(null);
+  }, [onLocationChange, privatePeople.person]);
+
+  async function savePrivatePerson() {
+    if (!birthDate || !birthTime || !location || !privatePeople.unlocked) return;
+    const label = window.prompt("Name for this person")?.trim();
+    if (!label) return;
+    await privatePeople.savePerson({ label, birth_date: birthDate, birth_time: birthTime.length === 5 ? `${birthTime}:00` : birthTime, birthplace: location });
+  }
 
   const effectiveTarget = target ?? nowAsTargetDateTime(location?.iana_tz);
 
@@ -96,6 +115,7 @@ export function BirthInputForm({
 
   return (
     <div className="flex flex-col gap-4">
+      <PrivatePersonPicker people={privatePeople.people} selectedId={privatePeople.selectedId} unlocked={privatePeople.unlocked} onSelect={privatePeople.selectPerson} onDelete={privatePeople.removePerson} />
       <TargetDateTimeFields
         value={{ date: birthDate, time: birthTime }}
         onChange={(v) => {
@@ -134,6 +154,7 @@ export function BirthInputForm({
       >
         {loading ? dict.ui.loading : dict.ui.confirm}
       </button>
+      {privatePeople.unlocked && <button type="button" disabled={!canConfirm} onClick={savePrivatePerson} className="w-fit rounded-lg border border-accent/40 px-4 py-2 text-sm font-semibold text-accent">{dict.ui.savePrivatePerson}</button>}
     </div>
   );
 }

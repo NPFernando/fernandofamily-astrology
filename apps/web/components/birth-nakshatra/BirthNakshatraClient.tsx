@@ -22,12 +22,15 @@ import { addProfile } from "@/lib/profiles";
 import { useSessionProbe } from "@/lib/use-session-probe";
 import { useLocalVault } from "@/components/LocalVaultProvider";
 import { derivedIdentitySeedFor, setEphemeralDerivedIdentitySeed } from "@/lib/pancha-schedule-state";
+import { usePrivatePeople } from "@/lib/use-private-people";
+import { PrivatePersonPicker } from "@/components/private-people/PrivatePersonPicker";
 
 export function BirthNakshatraClient() {
   const { dict, locale } = useLocale();
   const router = useRouter();
   const probe = useSessionProbe();
   const { unlocked, update: updateVault } = useLocalVault();
+  const privatePeople = usePrivatePeople();
   const vaultLocation = useVaultRecentLocation();
   const signedIn = Boolean(probe.user?.email);
   const [birthDate, setBirthDate] = useState("");
@@ -43,6 +46,15 @@ export function BirthNakshatraClient() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate only from the unlocked vault.
     setLocation(vaultLocation ?? DEFAULT_LOCATION);
   }, [vaultLocation]);
+
+  useEffect(() => {
+    if (!privatePeople.person) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate form fields when the active encrypted person changes.
+    setBirthDate(privatePeople.person.birth_date);
+    setBirthTime(privatePeople.person.birth_time);
+    setLocation(privatePeople.person.birthplace);
+    setResult(null);
+  }, [privatePeople.person]);
 
   const canCalculate = birthDate !== "" && birthTime !== "" && location !== null;
 
@@ -107,6 +119,13 @@ export function BirthNakshatraClient() {
     }
   }
 
+  async function savePrivatePerson() {
+    if (!birthDate || !birthTime || !location || !privatePeople.unlocked) return;
+    const label = window.prompt("Name for this person")?.trim();
+    if (!label) return;
+    await privatePeople.savePerson({ label, birth_date: birthDate, birth_time: birthTime.length === 5 ? `${birthTime}:00` : birthTime, birthplace: location });
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <header className="max-w-3xl">
@@ -127,6 +146,7 @@ export function BirthNakshatraClient() {
           {dict.birthNakshatra.birthDetailsTitle}
         </h2>
         <div className="mt-4 flex flex-col gap-4">
+          <PrivatePersonPicker people={privatePeople.people} selectedId={privatePeople.selectedId} unlocked={privatePeople.unlocked} onSelect={privatePeople.selectPerson} onDelete={privatePeople.removePerson} />
           <TargetDateTimeFields
             value={{ date: birthDate, time: birthTime }}
             onChange={(value) => {
@@ -148,6 +168,7 @@ export function BirthNakshatraClient() {
           >
             {loading ? dict.ui.loading : dict.birthNakshatra.calculate}
           </button>
+          {privatePeople.unlocked && <button type="button" disabled={!canCalculate} onClick={savePrivatePerson} className="w-fit rounded-lg border border-accent/40 px-4 py-2 text-sm font-semibold text-accent">{dict.ui.savePrivatePerson}</button>}
         </div>
       </section>
 

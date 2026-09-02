@@ -14,6 +14,8 @@ import { TargetDateTimeFields, type TargetDateTime } from "@/components/pancha-p
 import { useRecentBirthDetails } from "@/lib/recent-birth-details";
 import { PorondamIcon } from "@/components/icons/features";
 import { ResultExplanation } from "@/components/ui/ResultExplanation";
+import { usePrivatePeople } from "@/lib/use-private-people";
+import { PrivatePersonPicker } from "@/components/private-people/PrivatePersonPicker";
 
 // Fixed display order matching repository.py / calculator.compute_porondam.
 const PORONDAM_ORDER = [
@@ -39,6 +41,7 @@ export function PorondamClient() {
   const { dict } = useLocale();
   const { saveRecentBirthDetails } = useRecentBirthDetails();
   const vaultLocation = useVaultRecentLocation();
+  const privatePeople = usePrivatePeople();
   const [bride, setBride] = useState<PartyState>(emptyParty());
   const [groom, setGroom] = useState<PartyState>(emptyParty());
   const [result, setResult] = useState<PorondamResponse | null>(null);
@@ -109,8 +112,8 @@ export function PorondamClient() {
       </header>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <PartyForm label={dict.porondam.brideTitle} value={bride} onChange={setBride} />
-        <PartyForm label={dict.porondam.groomTitle} value={groom} onChange={setGroom} />
+        <PartyForm label={dict.porondam.brideTitle} value={bride} onChange={setBride} people={privatePeople.people} unlocked={privatePeople.unlocked} />
+        <PartyForm label={dict.porondam.groomTitle} value={groom} onChange={setGroom} people={privatePeople.people} unlocked={privatePeople.unlocked} />
       </div>
 
       <button
@@ -204,15 +207,25 @@ function PartyForm({
   label,
   value,
   onChange,
+  people,
+  unlocked,
 }: {
   label: string;
   value: PartyState;
   onChange: Dispatch<SetStateAction<PartyState>>;
+  people: import("@/lib/private-people").PrivatePerson[];
+  unlocked: boolean;
 }) {
+  const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
   return (
     <fieldset className="rounded-xl border border-black/10 bg-white/40 p-4 shadow-sm dark:border-white/10 dark:bg-white/[.04]">
       <legend className="px-1 text-sm font-semibold uppercase tracking-wide text-accent">{label}</legend>
       <div className="mt-3 flex flex-col gap-4">
+        <PrivatePersonPicker people={people} selectedId={selectedPersonId} unlocked={unlocked} onSelect={(id) => {
+          setSelectedPersonId(id);
+          const person = people.find((candidate) => candidate.id === id);
+          if (person) onChange({ dateTime: { date: person.birth_date, time: person.birth_time }, location: person.birthplace });
+        }} />
         <TargetDateTimeFields
           value={value.dateTime}
           onChange={(dateTime) => onChange((current) => ({ ...current, dateTime }))}

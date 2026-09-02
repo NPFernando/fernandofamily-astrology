@@ -137,7 +137,7 @@ export function BirthChartClient() {
       {loading && !result && (
         <div role="status" className="flex flex-col gap-3">
           <span className="sr-only">{dict.ui.loading}</span>
-          <div aria-hidden className="flex flex-col gap-3 motion-safe:animate-pulse">
+          <div aria-hidden className="flex flex-col gap-3 skeleton-shimmer">
             <div className="aspect-square max-w-md rounded-xl border border-black/10 bg-black/[.04] dark:border-white/10 dark:bg-white/[.06]" />
             <div className="h-40 rounded-xl border border-black/10 bg-black/[.04] dark:border-white/10 dark:bg-white/[.06]" />
           </div>

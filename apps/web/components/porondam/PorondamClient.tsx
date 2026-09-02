@@ -134,7 +134,7 @@ export function PorondamClient() {
       {loading && !result && (
         <div role="status" className="flex flex-col gap-3">
           <span className="sr-only">{dict.ui.loading}</span>
-          <div aria-hidden className="flex flex-col gap-3 motion-safe:animate-pulse">
+          <div aria-hidden className="flex flex-col gap-3 skeleton-shimmer">
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="h-16 rounded-lg border border-black/10 bg-black/[.04] dark:border-white/10 dark:bg-white/[.06]" />
               <div className="h-16 rounded-lg border border-black/10 bg-black/[.04] dark:border-white/10 dark:bg-white/[.06]" />

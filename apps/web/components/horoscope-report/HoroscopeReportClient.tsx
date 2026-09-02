@@ -274,7 +274,7 @@ export function HoroscopeReportClient() {
             <div
               key={i}
               aria-hidden
-              className="h-24 rounded-xl border border-black/10 bg-black/[.04] motion-safe:animate-pulse dark:border-white/10 dark:bg-white/[.06]"
+              className="h-24 rounded-xl skeleton-shimmer"
             />
           ))}
         </div>

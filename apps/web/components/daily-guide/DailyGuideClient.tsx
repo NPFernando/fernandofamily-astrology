@@ -1225,7 +1225,7 @@ function FamilyWeekPlanner({
             <div role="status" className="grid gap-3 md:grid-cols-2 xl:grid-cols-7">
               <span className="sr-only">{dict.ui.loading}</span>
               {dates.map((day) => (
-                <div key={day} className="h-36 rounded-lg border border-black/10 motion-safe:animate-pulse dark:border-white/10" />
+                <div key={day} className="h-36 rounded-lg skeleton-shimmer" />
               ))}
             </div>
           ) : null}

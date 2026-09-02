@@ -211,7 +211,7 @@ export function MoonCalendarClient() {
         <div role="status" className="grid gap-3 md:grid-cols-7">
           <span className="sr-only">{dict.ui.loading}</span>
           {Array.from({ length: 14 }).map((_, i) => (
-            <div key={i} className="h-20 rounded-xl border border-black/10 motion-safe:animate-pulse dark:border-white/10" />
+            <div key={i} className="h-20 rounded-xl skeleton-shimmer" />
           ))}
         </div>
       )}

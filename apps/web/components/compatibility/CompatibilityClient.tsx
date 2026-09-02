@@ -130,7 +130,7 @@ export function CompatibilityClient() {
           {loading && !data && !error && (
             <div
               role="status"
-              className="mt-4 h-28 rounded-lg border border-black/10 motion-safe:animate-pulse dark:border-white/10"
+              className="mt-4 h-28 rounded-lg skeleton-shimmer"
             >
               <span className="sr-only">{dict.ui.loading}</span>
             </div>

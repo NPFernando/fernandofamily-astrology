@@ -185,7 +185,7 @@ export function BirthNakshatraClient() {
             <div
               key={i}
               aria-hidden
-              className="h-20 rounded-lg border border-black/10 bg-black/[.04] motion-safe:animate-pulse dark:border-white/10 dark:bg-white/[.06]"
+              className="h-20 rounded-lg skeleton-shimmer"
             />
           ))}
         </div>

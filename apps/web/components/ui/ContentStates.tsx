@@ -1,5 +1,7 @@
 "use client";
 
+import { Skeleton, SkeletonRegion } from "@/components/ui/Skeleton";
+
 export function LoadingCards({
   label,
   count = 4,
@@ -10,15 +12,13 @@ export function LoadingCards({
   className?: string;
 }) {
   return (
-    <div role="status" className={`grid gap-3 sm:grid-cols-2 ${className}`}>
-      <span className="sr-only">{label}</span>
+    <SkeletonRegion label={label} className={`grid gap-3 sm:grid-cols-2 ${className}`}>
       {Array.from({ length: count }, (_, index) => (
-        <div
+        <Skeleton
           key={index}
-          aria-hidden
-          className="h-28 rounded-xl border border-black/10 bg-white/25 motion-safe:animate-pulse dark:border-white/10 dark:bg-white/[.04]"
+          className="h-28 rounded-xl"
         />
       ))}
-    </div>
+    </SkeletonRegion>
   );
 }

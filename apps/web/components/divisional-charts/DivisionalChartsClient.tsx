@@ -137,7 +137,7 @@ export function DivisionalChartsClient() {
       {loading && !result && (
         <div role="status" className="flex flex-col gap-3">
           <span className="sr-only">{dict.ui.loading}</span>
-          <div aria-hidden className="motion-safe:animate-pulse">
+          <div aria-hidden className="skeleton-shimmer">
             <div className="aspect-square max-w-md rounded-xl border border-black/10 bg-black/[.04] dark:border-white/10 dark:bg-white/[.06]" />
           </div>
         </div>

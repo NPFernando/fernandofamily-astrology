@@ -135,7 +135,7 @@ export function DashaClient() {
       {loading && !result && (
         <div role="status" className="flex flex-col gap-2">
           <span className="sr-only">{dict.ui.loading}</span>
-          <div aria-hidden className="flex flex-col gap-2 motion-safe:animate-pulse">
+          <div aria-hidden className="flex flex-col gap-2 skeleton-shimmer">
             {Array.from({ length: 9 }, (_, i) => (
               <div
                 key={i}

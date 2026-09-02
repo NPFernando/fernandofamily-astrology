@@ -18,6 +18,8 @@ import type {
   SubPeriod,
   MajorPeriod,
   ScheduleResponse,
+  CurrentResponse,
+  MultiDayScheduleResponse,
   EngineMetadata,
   BirthNakshatraRequest,
   BirthNakshatraResponse,
@@ -72,6 +74,12 @@ export type _CheckSubPeriod = Expect<Generated["SubPeriod"] extends SubPeriod ? 
 export type _CheckMajorPeriod = Expect<Generated["MajorPeriod"] extends MajorPeriod ? true : false>;
 export type _CheckSchedule = Expect<
   Generated["ScheduleResponse"] extends ScheduleResponse ? true : false
+>;
+export type _CheckCurrentResponse = Expect<
+  Generated["CurrentResponse"] extends CurrentResponse ? true : false
+>;
+export type _CheckMultiDayScheduleResponse = Expect<
+  Generated["MultiDayScheduleResponse"] extends MultiDayScheduleResponse ? true : false
 >;
 export type _CheckEngine = Expect<
   Generated["EngineMetadata"] extends EngineMetadata ? true : false

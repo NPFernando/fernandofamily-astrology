@@ -5,7 +5,7 @@ performance, ops), prioritized. Effort: S (&lt; half a day), M (a day or two),
 L (multi-day). Items reference real code as it exists today — re-verify
 against the current tree before acting on an old copy of this document.
 
-## Status (updated after the round-4 implementation pass)
+## Status (updated after the round-5 implementation pass)
 
 **Round 4 additions:** windows activity/min-duration filters, per-day summary
 endpoint (`POST /summary`) + month heat-map view, opt-in web-push alerts
@@ -29,90 +29,64 @@ invite-only auth scaffold, an image-level ephemeris trim
 hunt (pool crash guard, stale-closure refetch, profile merge races, search
 debounce/abort, skew-consistent timeline, sw.js cache hygiene, and more).
 
-**Still open:** remaining P2 items (per-page OG variants) and everything in
-`docs/roadmap.md`'s backlog.
+**Round 5 additions:** pre-indexed Pancha Pakshi lookups, the typed
+multi-day schedule endpoint, standardized skeleton loading states, a typed
+`/current` response, the one-shot dev script, generated contract artifacts
+with a web-client boundary check, and the shared locale date/number formatter.
+
+**Still open:** i18n dictionary code-splitting and promotion of shared UI
+primitives into the design-system package once another app needs them. The
+product roadmap currently has no selected backlog module.
 
 ## P0 — quick wins / genuine defects
 
-1. **Rate limiter counts all users as one client** (S) —
-   `apps/api/app/core/rate_limit.py` keys on `request.client.host`, which
-   behind nginx + Docker is always the proxy/bridge address. In production
-   every visitor currently shares a single 40 req/min bucket: one heavy user
-   can 429 everyone. Fix: run uvicorn with `--proxy-headers
-   --forwarded-allow-ips` scoped to the proxy address, or parse the first
-   hop of `X-Forwarded-For` in `_client_key` (nginx already sets it), and
-   add a regression test that two distinct forwarded IPs get independent
-   buckets.
-2. **Per-request engine-metadata disk reads** (S) —
-   `_engine_metadata()` in `apps/api/app/routes/v1/pancha_pakshi.py`
-   re-reads `pin.json` and re-hashes `MANIFEST.sha256` on every schedule /
-   birth-bird / current request. The data is immutable for the life of the
-   container — compute once at module import (or `functools.lru_cache`).
+1. ~~**Rate limiter counts all users as one client**~~ — **shipped.**
+   Proxy-aware client keys and independent forwarded-IP buckets are covered
+   by the API rate-limit regression tests.
+2. ~~**Per-request engine-metadata disk reads**~~ — **shipped.** Engine
+   metadata and integrity hashes are cached for the container lifetime.
 3. ~~**No per-page titles or descriptions**~~ — **shipped.** Locale-scoped
    server page wrappers use `localizedPageMetadata`, with canonical/hreflang,
    localized title/description, and per-feature social imagery.
-4. **Rate-limit `_hits` dict never evicts idle IPs** (S) — unbounded slow
-   memory growth in a long-lived container. Sweep empty buckets when they
-   drain, or cap the dict size.
+4. ~~**Rate-limit `_hits` dict never evicts idle IPs**~~ — **shipped.** Idle
+   buckets are removed as they drain, preventing unbounded memory growth.
 
 ## P1 — high value
 
-1. **Convert static content pages to server components** (M) —
-   `about/disclaimer/privacy/licensing/methodology` and the landing page are
-   all `"use client"` but render static locale text. Make them server
-   components taking `params.locale`, pass the dictionary down, and add
-   per-page `generateMetadata` (fixes P0-3, shrinks client JS, improves
-   first paint). The interactive calculator page stays client.
-5. **Visual design pass** (M/L) — the spec called for sunrise/moon-phase/
-   peacock-feather/Sri Lankan palette influences; what shipped is clean but
-   generic Tailwind. Concrete steps: a warm sunrise-gradient hero on the
-   landing page; per-bird original SVG iconography (5 simple line icons —
-   commission or draw, never copy); activity icons next to the existing
-   color coding (color is currently the only signal beyond text); a
-   peacock-feather-derived accent palette documented in
-   `packages/design-system` (currently an empty stub).
-6. **True proportional timeline visualization** (M) — the "timeline" view is
-   a card list. A horizontal 24h bar (sunrise→sunrise) with proportional
-   period widths, a "now" marker that moves, and tap-to-inspect would make
-   the core product dramatically more scannable, especially on mobile.
-7. **Tasteful motion** (S/M) — animate countdown digit transitions, a subtle
-   pulse on the live "now" marker, and an ease-in on period change
-   (old current fades, new current highlights). All behind
-   `@media (prefers-reduced-motion: no-preference)`. No library needed —
-   CSS transitions cover all of it.
+1. ~~**Convert static content pages to server components**~~ — **shipped.**
+   Static locale pages use server wrappers and localized metadata; the
+   interactive calculator remains client-rendered.
+5. ~~**Visual design pass**~~ — **shipped.** The landing hero, bird/activity
+   icons, and shared palette tokens are implemented in the design system.
+6. ~~**True proportional timeline visualization**~~ — **shipped.** The
+   schedule timeline uses sunrise-to-sunrise proportional widths with a live
+   marker and period inspection.
+7. ~~**Tasteful motion**~~ — **shipped.** Countdown and current-period
+   transitions are CSS-based and disabled for reduced-motion users.
 8. ~~**OG/social images + structured data**~~ — **shipped.** The generated
    default and per-feature 1200×630 social cards are mapped by
    `feature-assets.ts` into OpenGraph/Twitter metadata and are covered by
    Playwright; the locale layout provides `WebApplication` JSON-LD.
-9. **Auspicious-window endpoint** (M) — "when is the next `very_good`
-   sub-period for my bird?" is the question the tool exists to answer, and
-   users currently have to expand periods and scan. The engine already
-   computes everything needed: add `POST /api/v1/pancha-pakshi/windows`
-   (bird + location + date range ≤ 7 days + minimum effect filter),
-   and surface it as a "Best times today/this week" card above the timeline.
-10. **Real E2E tests** (M) — `apps/web` has only two grep-check scripts; the
-   15 E2E scenarios from the spec (§33) were validated manually with
-   Playwright but never committed as a suite. Add `apps/web/e2e/` with
-   Playwright covering: full direct-bird flow, locale switch retaining
-   result (regression for the bug just fixed), no-birth-data-in-URL,
-   countdown tick, offline cached-schedule label. Wire into CI against the
-   compose stack.
+9. ~~**Auspicious-window endpoint**~~ — **shipped.** `/windows`, filters,
+   and the "Best times" cards power the timeline and week view.
+10. ~~**Real E2E tests**~~ — **shipped.** The committed Playwright suite
+   covers the core calculation, locale, privacy, countdown, and offline
+   scenarios and runs in CI.
 
 ## P2 — nice to have
 
-1. **Pre-index CSV lookups** (S) — `get_matching_rows` linearly scans 3 500
-   rows per request. Build a `dict[(bird, weekday, paksha)] → rows` index at
-   load; micro-optimization but free.
-2. **Multi-day / week schedule endpoint** (M) — batch variant of `/schedule`
+1. ~~**Pre-index CSV lookups**~~ — **shipped.** `get_matching_rows` uses a
+   `(bird, weekday, paksha)` index built at load time.
+2. ~~**Multi-day / week schedule endpoint**~~ — **shipped.** The batch variant
    returning up to 7 consecutive sunrise-days; enables a week-view UI and
    halves round-trips for the windows feature above.
-3. **Skeleton loading states** (S) — the calculator shows a bare "Loading…"
-   string; add skeleton cards for the schedule area so layout doesn't jump.
+3. ~~**Skeleton loading states**~~ — **shipped.** Shared skeleton cards keep
+   schedule layouts stable while data loads.
 4. ~~**Install prompt + iOS PWA guidance**~~ — **shipped.** The install
    affordance, iOS instruction sheet, Apple touch icon, offline shell status,
    and user-controlled service-worker refresh flow are covered by Playwright.
-5. **`/current` response model** (S) — the route returns a bare `dict`;
-   give it a typed response model so OpenAPI documents it properly.
+5. ~~**`/current` response model**~~ — **shipped.** The route and generated
+   OpenAPI schema expose a typed response model.
 6. ~~**Request-ID propagation to clients**~~ — **shipped.** Every response
    carries `X-Request-ID` (`app/core/logging.py`'s `access_log_middleware`
    generates it and sets the header, matching what's logged), making
@@ -128,30 +102,27 @@ debounce/abort, skew-consistent timeline, sw.js cache hygiene, and more).
    Grafana dashboard; an hourly GitHub-hosted public smoke workflow adds an
    off-host check. See
    `docs/deployment/monitoring.md`.
-8. **Dev one-shot script** (S) — a `make dev` / root `package.json` script
-   that starts API venv + web dev server together; today it's two manual
-   terminals with an env var.
+8. ~~**Dev one-shot script**~~ — **shipped.** `make dev` starts the API and
+   web development servers together.
 
 ## P3 — future / structural
 
-1. **Populate `packages/contracts`** (M) — API request/response TypeScript
-   types live in `apps/web/lib/api-client.ts`; the contracts package is an
-   empty README. Before module #2 (Panchanga etc.), move shared types there
-   (ideally generated from the FastAPI OpenAPI schema so they can't drift).
-2. **Populate `packages/design-system`** (M) — extract the recurring
-   Tailwind patterns (TabButton appears twice already, Fact cards, pill
-   buttons) into shared components before a second module copies them a
-   third time.
+1. ~~**Populate `packages/contracts`**~~ — **shipped.** OpenAPI artifacts are
+   generated in CI and the web client uses generated response types at
+   endpoint boundaries, with assignability checks for the remaining client
+   models.
+2. **Populate `packages/design-system`** (M) — tokens are shared today;
+   extract recurring Tailwind patterns (TabButton, fact cards, and pill
+   buttons) only when a second app/module needs the same primitives.
 3. **i18n scaling** (M) — both full locale dictionaries are statically
    imported into one bundle via `lib/i18n.ts`; fine at today's size, but
    per-locale dynamic imports (or `next-intl`) will be worth it once a
    second module doubles the dictionary.
-4. **Locale-aware number/date formatting helper** (S) — `si-LK`/`en-US`
-   ternaries are scattered through components; centralize.
-5. **Weekly-view UI, notifications** (L) — "notify me before my next
-   very_good window" via Web Push; needs the windows endpoint plus a service
-   worker push handler; no server storage of anything personal beyond a push
-   subscription endpoint.
+4. ~~**Locale-aware number/date formatting helper**~~ — **shipped.**
+   `apps/web/lib/formatters.ts` centralizes locale-aware display formatting.
+5. ~~**Weekly-view UI, notifications**~~ — **shipped.** The week view and
+   opt-in web-push alerts are live, with only privacy-preserving subscription
+   metadata stored server-side.
 6. **In-memory rate-limiter and metrics are per-process** (documented
    limitation, not a bug) — `app/core/rate_limit.py`'s `_hits` dict and
    `app/core/metrics.py`'s counters are plain module-level state, reset on

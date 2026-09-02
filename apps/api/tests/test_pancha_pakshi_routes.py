@@ -74,6 +74,40 @@ def test_current_openapi_response_is_typed():
     assert schema["$ref"] == "#/components/schemas/CurrentResponse"
 
 
+def test_schedule_range_returns_consecutive_typed_schedules():
+    body = {
+        "method": "bird",
+        "bird": "peacock",
+        "target_date": "2026-07-12",
+        "target_time": "12:00:00",
+        "days": 3,
+        **COLOMBO,
+    }
+    response = client.post("/api/v1/pancha-pakshi/schedule-range", json=body)
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data["from_date"] == "2026-07-12"
+    assert data["days"] == 3
+    assert len(data["schedules"]) == 3
+    assert [schedule["sunrise"][:10] for schedule in data["schedules"]] == [
+        "2026-07-12", "2026-07-13", "2026-07-14",
+    ]
+    assert all(schedule["birth_bird"] == "peacock" for schedule in data["schedules"])
+
+
+def test_schedule_range_rejects_more_than_seven_days():
+    body = {
+        "method": "bird",
+        "bird": "peacock",
+        "target_date": "2026-07-12",
+        "target_time": "12:00:00",
+        "days": 8,
+        **COLOMBO,
+    }
+    response = client.post("/api/v1/pancha-pakshi/schedule-range", json=body)
+    assert response.status_code == 422
+
+
 def test_birth_bird_returns_the_resolved_bird_and_lords():
     response = client.post("/api/v1/pancha-pakshi/birth-bird", json=BIRTH_DATETIME_BODY)
     assert response.status_code == 200, response.text

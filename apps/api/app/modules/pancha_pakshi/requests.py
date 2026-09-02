@@ -47,6 +47,28 @@ ScheduleRequest = Annotated[
     BirthDateTimeInput | NakshatraPakshaInput | BirdSelectionInput, Field(discriminator="method")
 ]
 
+
+class _MultiDayParams(BaseModel):
+    days: int = Field(default=7, ge=1, le=7)
+
+
+class BirthDateTimeMultiDayInput(BirthDateTimeInput, _MultiDayParams):
+    pass
+
+
+class NakshatraPakshaMultiDayInput(NakshatraPakshaInput, _MultiDayParams):
+    pass
+
+
+class BirdSelectionMultiDayInput(BirdSelectionInput, _MultiDayParams):
+    pass
+
+
+MultiDayScheduleRequest = Annotated[
+    BirthDateTimeMultiDayInput | NakshatraPakshaMultiDayInput | BirdSelectionMultiDayInput,
+    Field(discriminator="method"),
+]
+
 # The birth-bird endpoint only makes sense for the two methods that actually
 # resolve a bird from birth information — "bird" is direct selection, there is
 # nothing to compute.

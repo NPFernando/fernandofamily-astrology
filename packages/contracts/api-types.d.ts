@@ -242,6 +242,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pancha-pakshi/schedule-range": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Schedule Range */
+        post: operations["schedule_range_api_v1_pancha_pakshi_schedule_range_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pancha-pakshi/summary": {
         parameters: {
             query?: never;
@@ -380,6 +397,42 @@ export interface components {
             /** As Of Time */
             as_of_time?: string | null;
             bird: components["schemas"]["BirdId"];
+            /** Iana Tz */
+            iana_tz: string;
+            /** Latitude */
+            latitude: number;
+            /** Location Name */
+            location_name: string;
+            /** Longitude */
+            longitude: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            method: "bird";
+            /**
+             * Target Date
+             * Format: date
+             */
+            target_date: string;
+            /**
+             * Target Time
+             * Format: time
+             */
+            target_time: string;
+        };
+        /** BirdSelectionMultiDayInput */
+        BirdSelectionMultiDayInput: {
+            /** As Of Date */
+            as_of_date?: string | null;
+            /** As Of Time */
+            as_of_time?: string | null;
+            bird: components["schemas"]["BirdId"];
+            /**
+             * Days
+             * @default 7
+             */
+            days: number;
             /** Iana Tz */
             iana_tz: string;
             /** Latitude */
@@ -575,6 +628,51 @@ export interface components {
              * Format: time
              */
             birth_time: string;
+            /** Iana Tz */
+            iana_tz: string;
+            /** Latitude */
+            latitude: number;
+            /** Location Name */
+            location_name: string;
+            /** Longitude */
+            longitude: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            method: "birth_datetime";
+            /**
+             * Target Date
+             * Format: date
+             */
+            target_date: string;
+            /**
+             * Target Time
+             * Format: time
+             */
+            target_time: string;
+        };
+        /** BirthDateTimeMultiDayInput */
+        BirthDateTimeMultiDayInput: {
+            /** As Of Date */
+            as_of_date?: string | null;
+            /** As Of Time */
+            as_of_time?: string | null;
+            /**
+             * Birth Date
+             * Format: date
+             */
+            birth_date: string;
+            /**
+             * Birth Time
+             * Format: time
+             */
+            birth_time: string;
+            /**
+             * Days
+             * @default 7
+             */
+            days: number;
             /** Iana Tz */
             iana_tz: string;
             /** Latitude */
@@ -1578,12 +1676,64 @@ export interface components {
              */
             starts_at: string;
         };
+        /** MultiDayScheduleResponse */
+        MultiDayScheduleResponse: {
+            /** Days */
+            days: number;
+            /**
+             * From Date
+             * Format: date
+             */
+            from_date: string;
+            /** Schedules */
+            schedules: components["schemas"]["ScheduleResponse"][];
+        };
         /** NakshatraPakshaInput */
         NakshatraPakshaInput: {
             /** As Of Date */
             as_of_date?: string | null;
             /** As Of Time */
             as_of_time?: string | null;
+            /** Iana Tz */
+            iana_tz: string;
+            /** Latitude */
+            latitude: number;
+            /** Location Name */
+            location_name: string;
+            /** Longitude */
+            longitude: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            method: "nakshatra_paksha";
+            /** Moon Rashi Index */
+            moon_rashi_index?: number | null;
+            /** Nakshatra Index */
+            nakshatra_index: number;
+            paksha: components["schemas"]["PakshaId"];
+            /**
+             * Target Date
+             * Format: date
+             */
+            target_date: string;
+            /**
+             * Target Time
+             * Format: time
+             */
+            target_time: string;
+        };
+        /** NakshatraPakshaMultiDayInput */
+        NakshatraPakshaMultiDayInput: {
+            /** As Of Date */
+            as_of_date?: string | null;
+            /** As Of Time */
+            as_of_time?: string | null;
+            /**
+             * Days
+             * @default 7
+             */
+            days: number;
             /** Iana Tz */
             iana_tz: string;
             /** Latitude */
@@ -2481,6 +2631,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ScheduleResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    schedule_range_api_v1_pancha_pakshi_schedule_range_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BirthDateTimeMultiDayInput"] | components["schemas"]["NakshatraPakshaMultiDayInput"] | components["schemas"]["BirdSelectionMultiDayInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MultiDayScheduleResponse"];
                 };
             };
             /** @description Validation Error */

@@ -57,6 +57,7 @@ export type BirdSelectionInput = TargetAndLocation & {
 
 export type ScheduleRequest = BirthDateTimeInput | NakshatraPakshaInput | BirdSelectionInput;
 export type BirthBirdRequest = BirthDateTimeInput | NakshatraPakshaInput;
+export type MultiDayScheduleRequest = ScheduleRequest & { days: number };
 
 export type BirthBirdResponse = {
   birth_bird: BirdId;
@@ -186,6 +187,12 @@ export type ScheduleResponse = {
 export type CurrentResponse = {
   current_period: SubPeriod | null;
   next_period: SubPeriod | null;
+};
+
+export type MultiDayScheduleResponse = {
+  from_date: string;
+  days: number;
+  schedules: ScheduleResponse[];
 };
 
 export type CompatibilityRequest = {
@@ -755,6 +762,10 @@ export function fetchBirthNakshatra(
 
 export function fetchSchedule(body: ScheduleRequest): Promise<ScheduleResponse> {
   return postJson<ScheduleResponse>("/schedule", body);
+}
+
+export function fetchScheduleRange(body: MultiDayScheduleRequest): Promise<MultiDayScheduleResponse> {
+  return postJson<MultiDayScheduleResponse>("/schedule-range", body);
 }
 
 export function fetchScheduleWithServerTime(

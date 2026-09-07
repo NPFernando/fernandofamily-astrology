@@ -57,7 +57,7 @@ export function RoadmapFeedbackClient() {
     { id: "commands", label: dict.roadmap.commands, category: dict.roadmap.categoryExperience, status: "released" },
     { id: "icons", label: dict.roadmap.icons, category: dict.roadmap.categoryExperience, status: "released" },
     { id: "week", label: dict.roadmap.week, category: dict.roadmap.categoryPlanning, status: "released" },
-    { id: "calendar", label: dict.roadmap.calendar, category: dict.roadmap.categoryPrivacy, status: "planned" },
+    { id: "calendar", label: dict.roadmap.calendar, category: dict.roadmap.categoryPrivacy, status: "released" },
   ], [dict]);
   const categories = [...new Set(items.map((item) => item.category))];
   const hasActiveFilters = Boolean(query.trim() || category || statusFilter);

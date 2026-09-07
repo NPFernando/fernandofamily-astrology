@@ -92,11 +92,10 @@ test("roadmap feedback remains a local draft while votes persist on this device"
   await expect(roadmap).toContainText(DICTS.en.roadmap.calendar);
   await expect(roadmap).not.toContainText(DICTS.en.roadmap.planner);
   const statusFilter = page.getByLabel(DICTS.en.roadmap.filterStatus);
-  await statusFilter.selectOption("planned");
+  await statusFilter.selectOption("released");
   await expect(roadmap).toContainText(DICTS.en.roadmap.calendar);
-  await expect(roadmap).not.toContainText(DICTS.en.roadmap.week);
   await expect(page.getByLabel(DICTS.en.roadmap.activeFilters)).toContainText("Search: calendar");
-  await expect(page.getByLabel(DICTS.en.roadmap.activeFilters)).toContainText("Status: Planned");
+  await expect(page.getByLabel(DICTS.en.roadmap.activeFilters)).toContainText("Status: Released");
   await page.getByRole("button", { name: DICTS.en.roadmap.clearFilters }).click();
   await expect(page.getByLabel(DICTS.en.roadmap.search)).toHaveValue("");
   await expect(statusFilter).toHaveValue("");

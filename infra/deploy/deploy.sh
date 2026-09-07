@@ -33,6 +33,10 @@ smoke_check() {
     echo "Release smoke check failed: service worker is unavailable" >&2
     return 1
   fi
+  if ! curl -fsS --max-time 5 "$WEB_URL/en/roadmap" | grep -Fq "<html"; then
+    echo "Release smoke check failed: roadmap route is unavailable" >&2
+    return 1
+  fi
   if ! metadata="$(curl -fsS --max-time 5 "$METADATA_URL")"; then
     echo "Release smoke check failed: API metadata endpoint is unavailable" >&2
     return 1
@@ -41,6 +45,15 @@ smoke_check() {
     echo "Release smoke check failed: API metadata does not report image tag $IMAGE_TAG" >&2
     return 1
   fi
+  # These are the oldest and newest entries in the current public registry;
+  # checking both catches a stale image that reports a valid commit but still
+  # exposes only the earlier three-feature metadata projection.
+  for feature_id in '"id":"porondam"' '"id":"dasha"'; do
+    if ! printf '%s' "$metadata" | grep -Fq "$feature_id"; then
+      echo "Release smoke check failed: public feature registry is incomplete ($feature_id)" >&2
+      return 1
+    fi
+  done
 }
 
 wait_for_release() {

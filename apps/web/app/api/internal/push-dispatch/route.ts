@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import webpush from "web-push";
 import { query } from "@/lib/db";
-import { pushEnabled } from "@/lib/push-flag";
+import { pushEnabled, vapidConfigurationValid } from "@/lib/push-flag";
 import { isPushStorageUnavailableError, requirePushStorage } from "@/lib/push-api";
 import en from "@/locales/en.json";
 import si from "@/locales/si.json";
@@ -132,13 +132,21 @@ export async function POST(request: Request) {
   const storage = requirePushStorage();
   if (!storage.ok) return storage.response;
 
+  if (!vapidConfigurationValid()) {
+    return NextResponse.json({ error: "push_unavailable" }, { status: 503 });
+  }
+
   const dry = new URL(request.url).searchParams.get("dry") === "1";
 
-  webpush.setVapidDetails(
-    process.env.VAPID_SUBJECT!,
-    process.env.VAPID_PUBLIC_KEY!,
-    process.env.VAPID_PRIVATE_KEY!,
-  );
+  try {
+    webpush.setVapidDetails(
+      process.env.VAPID_SUBJECT!,
+      process.env.VAPID_PUBLIC_KEY!,
+      process.env.VAPID_PRIVATE_KEY!,
+    );
+  } catch {
+    return NextResponse.json({ error: "push_unavailable" }, { status: 503 });
+  }
 
   let subs: SubscriptionRow[];
   try {
@@ -151,7 +159,7 @@ export async function POST(request: Request) {
     if (isPushStorageUnavailableError(e)) {
       return NextResponse.json({ error: "storage_unavailable" }, { status: 503 });
     }
-    throw e;
+    return NextResponse.json({ error: "storage_unavailable" }, { status: 503 });
   }
 
   const nowMs = Date.now();

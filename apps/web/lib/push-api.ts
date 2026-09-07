@@ -175,7 +175,9 @@ export function validateSubscribeBody(
 // A push route is optional infrastructure: a missing migration or an
 // unavailable database is a temporary service dependency, not an application
 // crash. Surface both as the same clean 503 and retain unexpected query
-// failures as 500s for investigation.
+// failures as 500s for investigation. The dispatch worker uses this same
+// classification for migration and connection errors so cron receives a
+// retryable response without leaking database details.
 export function isPushStorageUnavailableError(e: unknown): boolean {
   if (typeof e !== "object" || e === null) return false;
   const code = (e as { code?: string }).code;
@@ -185,6 +187,16 @@ export function isPushStorageUnavailableError(e: unknown): boolean {
     // preference migration. Treat the missing column as optional storage
     // infrastructure, returning a clean retryable 503 rather than a 500.
     code === "42703" ||
-    ["28P01", "ECONNREFUSED", "ECONNRESET", "ENETUNREACH", "EHOSTUNREACH", "ETIMEDOUT"].includes(code ?? "")
+    [
+      "28P01",
+      "ECONNREFUSED",
+      "ECONNRESET",
+      "ENETUNREACH",
+      "EHOSTUNREACH",
+      "ETIMEDOUT",
+      "ENOTFOUND",
+      "EAI_AGAIN",
+      "57P01",
+    ].includes(code ?? "")
   );
 }

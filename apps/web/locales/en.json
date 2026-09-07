@@ -3,6 +3,16 @@
     "name": "Fernando Family Astrology",
     "tagline": "Traditional astrology tools, calculated precisely."
   },
+  "landing": {
+    "journeysTitle": "Start with what you need today",
+    "journeysBody": "Choose a simple path, then keep exploring every tool below. Your private details stay on this device unless you explicitly use an account feature.",
+    "todayTitle": "Plan today",
+    "todayBody": "See the daily guide, Panchanga context and favourable windows.",
+    "personTitle": "Understand a birth profile",
+    "personBody": "Calculate Nakshatra first, then open a private chart or report.",
+    "familyTitle": "Plan with family",
+    "familyBody": "Use saved profiles and local calendar exports for shared planning."
+  },
   "features": {
     "birthNakshatra": {
       "title": "Birth Nakshatra Helper",
@@ -634,7 +644,7 @@
     "commands": "Keyboard command palette",
     "icons": "Complete accessible icon-system decision",
     "week": "Private weekly planning board",
-    "calendar": "Optional encrypted calendar connection",
+    "calendar": "Private local calendar export",
     "feedbackTitle": "Give roadmap feedback",
     "feedbackBody": "Draft feedback here, then copy it or open a prefilled issue yourself. Nothing is submitted automatically.",
     "feedbackFor": "Roadmap item",

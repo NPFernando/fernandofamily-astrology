@@ -12,6 +12,13 @@ for (const migration of migrations) {
 }
 
 const serviceWorker = await readFile(resolve(root, "public/sw.js"), "utf8");
+const manifest = await readFile(resolve(root, "app/manifest.ts"), "utf8");
+if (!manifest.includes('display_override: ["window-controls-overlay", "standalone"]')) {
+  throw new Error("PWA manifest is missing its modern display fallback.");
+}
+for (const shortcut of ["/si/pancha-pakshi", "/si/daily-guide", "/si/moon-calendar"]) {
+  if (!manifest.includes(`url: "${shortcut}"`)) throw new Error(`PWA manifest is missing launcher shortcut: ${shortcut}`);
+}
 if (!serviceWorker.includes("CACHE_NAME") || !serviceWorker.includes("/icons/app/icon-192.png")) {
   throw new Error("Service worker is missing its cache identifier or primary app icon.");
 }

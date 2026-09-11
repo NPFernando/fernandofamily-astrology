@@ -2,7 +2,7 @@ from threading import Lock
 
 from fastapi import APIRouter, Response
 
-from scripts.verify_vendor import run_verification
+from scripts.verify_vendor import VerificationError, run_verification
 
 router = APIRouter(prefix="/api/v1/health", tags=["health"])
 
@@ -24,7 +24,7 @@ def initialize_readiness() -> None:
             return
         try:
             _readiness_result = run_verification("fast")
-        except Exception:
+        except VerificationError:
             # The endpoint deliberately exposes only a stable readiness state.
             _readiness_failed = True
 

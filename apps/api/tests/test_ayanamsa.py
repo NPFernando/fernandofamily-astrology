@@ -15,12 +15,12 @@ silently regresses.
 from datetime import datetime, timedelta, timezone
 
 import swisseph as swe
+from fastapi.testclient import TestClient
+
 from app.main import app
 from app.modules.panchanga import adapter
 from app.routes.v1 import health
 from scripts.verify_vendor import VerificationError
-
-from fastapi.testclient import TestClient
 
 COLOMBO_TZ = timezone(timedelta(hours=5, minutes=30))
 

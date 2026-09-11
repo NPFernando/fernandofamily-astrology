@@ -10,7 +10,12 @@ from fastapi import APIRouter, Depends, Response
 from app.core.config import settings
 from app.core.rate_limit import enforce_rate_limit
 from app.modules.pancha_pakshi import calculator, service
-from app.modules.pancha_pakshi.models import CurrentResponse, EngineMetadata, MultiDayScheduleResponse, ScheduleResponse
+from app.modules.pancha_pakshi.models import (
+    CurrentResponse,
+    EngineMetadata,
+    MultiDayScheduleResponse,
+    ScheduleResponse,
+)
 from app.modules.pancha_pakshi.requests import (
     BirthBirdRequest,
     BirthBirdResponse,

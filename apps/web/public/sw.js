@@ -93,6 +93,8 @@ self.addEventListener("install", (event) => {
 self.addEventListener("message", (event) => {
   event.waitUntil(
     (async () => {
+      if (event.origin && event.origin !== self.location.origin) return;
+
       const source = event.source;
       if (!source || !source.id) return;
 
@@ -102,7 +104,7 @@ self.addEventListener("message", (event) => {
       const clientOrigin = new URL(client.url).origin;
       if (clientOrigin !== self.location.origin) return;
 
-      if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
+      if (event.data && typeof event.data === "object" && event.data.type === "SKIP_WAITING") self.skipWaiting();
     })(),
   );
 });

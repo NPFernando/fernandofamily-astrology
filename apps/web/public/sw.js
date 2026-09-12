@@ -91,7 +91,20 @@ self.addEventListener("install", (event) => {
 // Do not replace an active app while somebody is using it. The page sends
 // this message only after its visitor chooses Refresh from the update notice.
 self.addEventListener("message", (event) => {
-  if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
+  event.waitUntil(
+    (async () => {
+      const source = event.source;
+      if (!source || !source.id) return;
+
+      const client = await self.clients.get(source.id);
+      if (!client) return;
+
+      const clientOrigin = new URL(client.url).origin;
+      if (clientOrigin !== self.location.origin) return;
+
+      if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
+    })(),
+  );
 });
 
 self.addEventListener("activate", (event) => {

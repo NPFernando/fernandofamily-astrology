@@ -6,15 +6,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError, type ScheduleRequest, type ScheduleResponse, type SubPeriod } from "@/lib/api-client";
 import { translateEnum } from "@/lib/i18n";
 import { useLocale } from "@/lib/locale-context";
+import { useLocalVault } from "@/components/LocalVaultProvider";
 import {
+  cachedScheduleFor,
   fetchLiveSchedule,
-  loadCachedSchedule,
-  loadLiveSeed,
+  liveScheduleSeedFor,
   requestFromSchedule,
   resolveDefaultScheduleRequest,
-  saveCachedSchedule,
-  saveLiveSeed,
-  saveSessionSchedule,
+  sessionScheduleFor,
 } from "@/lib/pancha-schedule-state";
 import { subPeriodGuidance } from "@/lib/pancha-guidance";
 import { BIRD_ICONS } from "@/components/icons/birds";
@@ -37,6 +36,7 @@ function pct(startMs: number, valueMs: number, totalMs: number) {
 
 export function PanchaPakshiLiveView() {
   const { dict, locale } = useLocale();
+  const { data: vaultData, ready: vaultReady, unlocked, update: updateVault } = useLocalVault();
   const [lastRequest, setLastRequest] = useState<ScheduleRequest | null>(null);
   const [schedule, setSchedule] = useState<ScheduleResponse | null>(null);
   const [serverTime, setServerTime] = useState<Date | null>(null);
@@ -48,6 +48,7 @@ export function PanchaPakshiLiveView() {
   const [isOnline, setIsOnline] = useState(true);
   const [now, setNow] = useState(() => Date.now());
   const expiredRef = useRef(false);
+  const initializedForUnlock = useRef<boolean | null>(null);
 
   useEffect(() => {
     document.body.classList.add("pancha-live-active");
@@ -81,11 +82,16 @@ export function PanchaPakshiLiveView() {
         setNow(Date.now() + (result.serverTime ? result.serverTime.getTime() - result.fetchedAtClientMs : 0));
         setIsStale(false);
         setCachedAtIso(null);
-        saveCachedSchedule(result.data);
-        saveSessionSchedule(result.data, result.serverTime, result.fetchedAtClientMs);
-        saveLiveSeed(result.data, result.serverTime, result.fetchedAtClientMs);
+        if (unlocked) {
+          void updateVault((current) => ({
+            ...current,
+            cachedSchedule: cachedScheduleFor(result.data),
+            sessionSchedule: sessionScheduleFor(result.data, result.serverTime, result.fetchedAtClientMs),
+            liveScheduleSeed: liveScheduleSeedFor(result.data, result.serverTime, result.fetchedAtClientMs),
+          }));
+        }
       } catch (e) {
-        const cached = loadCachedSchedule();
+        const cached = unlocked ? vaultData.cachedSchedule ?? null : null;
         if (cached) {
           setSchedule(cached.schedule);
           setLastRequest(requestFromSchedule(cached.schedule));
@@ -101,7 +107,7 @@ export function PanchaPakshiLiveView() {
         setLoading(false);
       }
     },
-    [dict.ui.error],
+    [dict.ui.error, unlocked, updateVault, vaultData.cachedSchedule],
   );
 
   const refetch = useCallback(() => {
@@ -110,7 +116,9 @@ export function PanchaPakshiLiveView() {
   }, [isOnline, lastRequest, runSchedule, schedule]);
 
   useEffect(() => {
-    const seed = loadLiveSeed();
+    if (!vaultReady || initializedForUnlock.current === unlocked) return;
+    initializedForUnlock.current = unlocked;
+    const seed = unlocked ? vaultData.liveScheduleSeed ?? null : null;
     if (seed) {
       /* eslint-disable react-hooks/set-state-in-effect -- one-time hydration from sessionStorage. */
       setSchedule(seed.schedule);
@@ -126,7 +134,7 @@ export function PanchaPakshiLiveView() {
     }
 
     if (navigator.onLine === false) {
-      const cached = loadCachedSchedule();
+      const cached = unlocked ? vaultData.cachedSchedule ?? null : null;
       if (cached) {
         setSchedule(cached.schedule);
         setLastRequest(requestFromSchedule(cached.schedule));
@@ -143,13 +151,16 @@ export function PanchaPakshiLiveView() {
 
     let cancelled = false;
     (async () => {
-      const request = await resolveDefaultScheduleRequest();
+      const request = await resolveDefaultScheduleRequest({
+        recentLocation: unlocked ? vaultData.recentLocations?.[0] ?? null : null,
+        derivedIdentitySeed: unlocked ? vaultData.derivedIdentitySeed ?? null : null,
+      });
       if (!cancelled) void runSchedule(request);
     })();
     return () => {
       cancelled = true;
     };
-  }, [runSchedule]);
+  }, [unlocked, vaultData.cachedSchedule, vaultData.derivedIdentitySeed, vaultData.liveScheduleSeed, vaultData.recentLocations, vaultReady, runSchedule]);
 
   const skewMs = serverTime ? serverTime.getTime() - fetchedAtClientMs : 0;
 

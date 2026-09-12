@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { NAKSHATRAS, nakshatraName } from "@/lib/i18n";
 import type { NakshatraPakshaInput, PakshaId } from "@/lib/api-client";
-import { LocationPicker, mostRecentLocation, type LocationValue } from "./LocationPicker";
+import { LocationPicker, mostRecentLocation, useVaultRecentLocation, type LocationValue } from "./LocationPicker";
 import { TargetDateTimeFields, nowAsTargetDateTime, type TargetDateTime } from "./TargetDateTimeFields";
 
 export function NakshatraPakshaForm({
@@ -13,6 +13,7 @@ export function NakshatraPakshaForm({
   onSubmit: (input: NakshatraPakshaInput) => void;
 }) {
   const { dict, locale } = useLocale();
+  const vaultLocation = useVaultRecentLocation();
   const [nakshatraId, setNakshatraId] = useState<number | null>(null);
   const [paksha, setPaksha] = useState<PakshaId | null>(null);
   const [target, setTarget] = useState<TargetDateTime>(nowAsTargetDateTime());
@@ -25,13 +26,13 @@ export function NakshatraPakshaForm({
     // post-mount (not a lazy initializer) since mostRecentLocation() reads
     // localStorage — matching the hydration-safe pattern LocationPicker
     // itself and PanchangaClient already use.
-    const recent = mostRecentLocation();
+    const recent = vaultLocation ?? mostRecentLocation();
     if (recent) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
       setLocation(recent);
       setTarget(nowAsTargetDateTime(recent.iana_tz));
     }
-  }, []);
+  }, [vaultLocation]);
 
   const canSubmit = nakshatraId !== null && paksha !== null && location !== null;
   function chooseLocation(next: LocationValue) {

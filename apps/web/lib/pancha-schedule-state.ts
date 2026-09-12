@@ -9,13 +9,7 @@ import {
 } from "@/lib/api-client";
 import { loadAccountPreferences } from "@/lib/account-preferences";
 import { listLocalProfiles } from "@/lib/profiles";
-import { DEFAULT_LOCATION, mostRecentLocation } from "@/components/pancha-pakshi/LocationPicker";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
-
-const SCHEDULE_CACHE_KEY = "ff_last_schedule_cache";
-const SESSION_SCHEDULE_KEY = "ff_session_schedule";
-const LIVE_SEED_KEY = "ff_live_schedule_seed";
-const DERIVED_IDENTITY_SEED_KEY = "ff_derived_identity_seed";
 
 export type CachedSchedule = { schedule: ScheduleResponse; cachedAtIso: string };
 export type SessionSchedule = { schedule: ScheduleResponse; serverTimeIso: string | null; fetchedAtClientMs: number };
@@ -28,48 +22,57 @@ export type DerivedIdentitySeed = {
   savedAtIso: string;
 };
 
-export function loadCachedSchedule(): CachedSchedule | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(SCHEDULE_CACHE_KEY);
-    return raw ? (JSON.parse(raw) as CachedSchedule) : null;
-  } catch {
-    return null;
-  }
+// A derived bird/nakshatra result is not raw birth data or a precise
+// location. Preserve the existing same-tab quick-action flow while locked,
+// but never serialize it outside the encrypted vault.
+let ephemeralDerivedIdentitySeed: DerivedIdentitySeed | null = null;
+
+export type VaultLocation = {
+  name: string;
+  latitude: number;
+  longitude: number;
+  iana_tz: string;
+};
+
+export function cachedScheduleFor(schedule: ScheduleResponse): CachedSchedule {
+  return { schedule, cachedAtIso: new Date().toISOString() };
 }
 
-export function saveCachedSchedule(schedule: ScheduleResponse) {
-  window.localStorage.setItem(
-    SCHEDULE_CACHE_KEY,
-    JSON.stringify({ schedule, cachedAtIso: new Date().toISOString() } satisfies CachedSchedule),
-  );
+export function sessionScheduleFor(
+  schedule: ScheduleResponse,
+  serverTime: Date | null,
+  fetchedAtClientMs: number,
+): SessionSchedule {
+  return {
+    schedule,
+    serverTimeIso: serverTime ? serverTime.toISOString() : null,
+    fetchedAtClientMs,
+  };
 }
 
-// Separate from the localStorage PWA offline cache above: this survives a
-// client-side route change within the same browser tab (e.g. switching
-// language, which navigates from /en/pancha-pakshi to /si/pancha-pakshi and
-// remounts this page under the new [locale] segment, wiping normal React
-// state) but not a new tab/session. Holds only the computed schedule response,
-// never the birth-data request that produced it.
-export function loadSessionSchedule(): SessionSchedule | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.sessionStorage.getItem(SESSION_SCHEDULE_KEY);
-    return raw ? (JSON.parse(raw) as SessionSchedule) : null;
-  } catch {
-    return null;
-  }
+export function liveScheduleSeedFor(
+  schedule: ScheduleResponse,
+  serverTime: Date | null,
+  fetchedAtClientMs: number,
+): LiveScheduleSeed {
+  return {
+    ...sessionScheduleFor(schedule, serverTime, fetchedAtClientMs),
+    request: requestFromSchedule(schedule),
+  };
 }
 
-export function saveSessionSchedule(schedule: ScheduleResponse, serverTime: Date | null, fetchedAtClientMs: number) {
-  window.sessionStorage.setItem(
-    SESSION_SCHEDULE_KEY,
-    JSON.stringify({
-      schedule,
-      serverTimeIso: serverTime ? serverTime.toISOString() : null,
-      fetchedAtClientMs,
-    } satisfies SessionSchedule),
-  );
+export function derivedIdentitySeedFor(
+  seed: Omit<DerivedIdentitySeed, "savedAtIso">,
+): DerivedIdentitySeed {
+  return { ...seed, savedAtIso: new Date().toISOString() };
+}
+
+export function setEphemeralDerivedIdentitySeed(seed: DerivedIdentitySeed): void {
+  ephemeralDerivedIdentitySeed = seed;
+}
+
+export function clearEphemeralDerivedIdentitySeed(): void {
+  ephemeralDerivedIdentitySeed = null;
 }
 
 export function requestFromSchedule(schedule: ScheduleResponse): ScheduleRequest {
@@ -86,57 +89,23 @@ export function requestFromSchedule(schedule: ScheduleResponse): ScheduleRequest
   };
 }
 
-export function loadLiveSeed(): LiveScheduleSeed | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.sessionStorage.getItem(LIVE_SEED_KEY);
-    return raw ? (JSON.parse(raw) as LiveScheduleSeed) : null;
-  } catch {
-    return null;
-  }
-}
-
-export function saveLiveSeed(schedule: ScheduleResponse, serverTime: Date | null, fetchedAtClientMs: number) {
-  window.sessionStorage.setItem(
-    LIVE_SEED_KEY,
-    JSON.stringify({
-      schedule,
-      request: requestFromSchedule(schedule),
-      serverTimeIso: serverTime ? serverTime.toISOString() : null,
-      fetchedAtClientMs,
-    } satisfies LiveScheduleSeed),
-  );
-}
-
-export function hasDerivedIdentitySeed(): boolean {
-  if (typeof window === "undefined") return false;
-  return Boolean(window.sessionStorage.getItem(DERIVED_IDENTITY_SEED_KEY));
-}
-
-export function saveDerivedIdentitySeed(seed: Omit<DerivedIdentitySeed, "savedAtIso">) {
-  window.sessionStorage.setItem(
-    DERIVED_IDENTITY_SEED_KEY,
-    JSON.stringify({ ...seed, savedAtIso: new Date().toISOString() } satisfies DerivedIdentitySeed),
-  );
-}
-
-function loadDerivedIdentitySeed(): DerivedIdentitySeed | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.sessionStorage.getItem(DERIVED_IDENTITY_SEED_KEY);
-    return raw ? (JSON.parse(raw) as DerivedIdentitySeed) : null;
-  } catch {
-    return null;
-  }
-}
-
-export async function resolveDefaultScheduleRequest(): Promise<ScheduleRequest> {
+export async function resolveDefaultScheduleRequest({
+  recentLocation,
+  derivedIdentitySeed,
+}: {
+  recentLocation?: VaultLocation | null;
+  derivedIdentitySeed?: DerivedIdentitySeed | null;
+} = {}): Promise<ScheduleRequest> {
   const account = await loadAccountPreferences();
   const localProfiles = listLocalProfiles();
   const newest = localProfiles[localProfiles.length - 1];
   const storedBird = window.localStorage.getItem("ff_selected_bird") as BirdId | null;
-  const derivedSeed = loadDerivedIdentitySeed();
-  const location = account.preferences?.default_location ?? mostRecentLocation() ?? DEFAULT_LOCATION;
+  const location = account.preferences?.default_location ?? recentLocation ?? {
+    name: "Colombo, Sri Lanka",
+    latitude: 6.9271,
+    longitude: 79.8612,
+    iana_tz: "Asia/Colombo",
+  };
   const target = nowAsTargetDateTime(location.iana_tz);
   const base = {
     target_date: target.date,
@@ -147,17 +116,19 @@ export async function resolveDefaultScheduleRequest(): Promise<ScheduleRequest> 
     iana_tz: location.iana_tz,
   };
 
-  if (derivedSeed?.nakshatra_index && derivedSeed.paksha) {
+  const identitySeed = derivedIdentitySeed ?? ephemeralDerivedIdentitySeed;
+
+  if (identitySeed?.nakshatra_index && identitySeed.paksha) {
     return {
       ...base,
       method: "nakshatra_paksha",
-      nakshatra_index: derivedSeed.nakshatra_index,
-      paksha: derivedSeed.paksha,
-      moon_rashi_index: derivedSeed.moon_rashi_index ?? null,
+      nakshatra_index: identitySeed.nakshatra_index,
+      paksha: identitySeed.paksha,
+      moon_rashi_index: identitySeed.moon_rashi_index ?? null,
     };
   }
-  if (derivedSeed?.bird) {
-    return { ...base, method: "bird", bird: derivedSeed.bird };
+  if (identitySeed?.bird) {
+    return { ...base, method: "bird", bird: identitySeed.bird };
   }
   if (account.preferences?.default_bird) {
     return { ...base, method: "bird", bird: account.preferences.default_bird };

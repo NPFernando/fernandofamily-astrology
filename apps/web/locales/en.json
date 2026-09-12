@@ -667,12 +667,12 @@
     "privacy": {
       "title": "Privacy",
       "noAccounts": "Accounts are optional. Everything works without signing in, with all data kept on your device. An invite-only Google sign-in exists for syncing saved profiles and account defaults across devices.",
-      "birthDataHandling": "Birth details and precise location you enter are used only to compute the result you asked for. They are never stored on the server, never written to logs, never sent to analytics, and never included in a shareable link.",
+      "birthDataHandling": "Birth details and precise location are sent in POST request bodies to calculate your requested result. They are not retained afterward, written to application logs, sent to analytics, or included in shareable links. If an older version saved an account default location on the server, it is moved into your encrypted private vault and the server copy is cleared after a successful vault unlock.",
       "localStorageTitle": "What's stored in your browser",
       "localStorageBody": "Only non-sensitive preferences are saved in clear text on your device: your chosen language, light/dark theme, and last-selected bird. If you create the private-data vault, recent birth details, precise locations, and cached schedules are encrypted with your passphrase and are unavailable until you unlock it. Your passphrase is never stored. You can download or restore only the encrypted vault data; the backup cannot be opened without its original passphrase.",
       "clearAction": "You can remove everything saved locally at any time.",
       "clearConfirmation": "This permanently removes this device's encrypted vault and saved preferences. Download an encrypted vault backup first if you may need this data again. Continue?",
-      "accountsBody": "If you sign in (currently invite-only), your saved profiles and preferences sync to the server so they follow you across devices. Profiles store only a label plus the derived bird — or nakshatra and paksha. Account defaults may store language, theme, default bird, and a default location you chose. Raw birth date, time, and event-specific coordinates are never stored on the server, signed in or not.",
+      "accountsBody": "If you sign in (currently invite-only), saved profiles and some preferences sync to the server. Profiles store a label and derived astrology fields, not raw birth details. New account defaults store language, theme, and default bird; your default location is saved in the encrypted local vault. A default location saved by an older version remains on the server until your next successful vault unlock, when it is copied into the vault (unless a vault location is already set) and the server copy is cleared. Raw birth date, time, and event-specific coordinates are not persisted to account storage.",
       "pushBody": "If you enable period alerts, our server stores this device's push address, your bird (or nakshatra and paksha), a location rounded to roughly 1 km, and your alert settings — never your birth date, time or exact coordinates. Disabling alerts deletes all of it immediately.",
       "locationBody": "If you use \"Use my location,\" your coordinates are read by your browser after you explicitly grant permission and resolved to a timezone on your device. To show a readable place name instead of a generic label, those coordinates are also sent to OpenStreetMap's Nominatim service to look up a name — this only happens after your click, and only for that lookup; if it fails, a generic label is shown instead. Searching for a place by name sends only the text you typed to a different geocoding service (Open-Meteo), never your device's location."
     },
@@ -724,7 +724,7 @@
     },
     "privacy": {
       "title": "Privacy",
-      "description": "No accounts required; birth details are never stored, logged or shared."
+      "description": "No account required. Birth details are processed for your calculation, not retained on our server or placed in shareable links."
     },
     "licensing": {
       "title": "Licence",
@@ -871,7 +871,7 @@
     "openPanchaPakshi": "Use in Pancha Pakshi",
     "openDailyGuide": "Open Daily Guide",
     "openMuhurta": "Find favourable times",
-    "privacyNote": "Only the derived Nakshatra, Paksha, Moon sign and birth bird are used for these actions or saved profiles. Birth date, time and exact birth location are not stored."
+      "privacyNote": "These actions and saved profiles use derived astrology fields. Raw birth details are not retained on our server; you can save them locally in your encrypted vault."
   },
   "dailyGuide": {
     "title": "Sinhala Daily Astrology Guide",
@@ -1207,7 +1207,7 @@
     "openDasha": "Open Dasha",
     "openDailyGuide": "Open Daily Guide",
     "openPanchaPakshi": "Open Pancha Pakshi",
-    "privacyNote": "Birth date, time and exact birth location are sent only in POST request bodies for calculation. Saved profiles and share images use only derived astrology fields.",
+    "privacyNote": "Birth date, time and exact birth location are sent in POST request bodies for calculation, not in URLs. Saved profiles and share images contain derived astrology fields, not raw birth details.",
     "identityLine": "{nakshatra} Pada {pada} · {paksha} · Moon sign {moonRashi} · Birth bird {bird}"
   },
   "dasha": {

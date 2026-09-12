@@ -8,10 +8,11 @@ import {
   DEFAULT_LOCATION,
   LocationPicker,
   mostRecentLocation,
+  useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
 import { TargetDateTimeFields, type TargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
-import { saveRecentBirthDetails } from "@/lib/recent-birth-details";
+import { useRecentBirthDetails } from "@/lib/recent-birth-details";
 import { PorondamIcon } from "@/components/icons/features";
 
 // Fixed display order matching repository.py / calculator.compute_porondam.
@@ -36,6 +37,8 @@ function emptyParty(): PartyState {
 
 export function PorondamClient() {
   const { dict } = useLocale();
+  const { saveRecentBirthDetails } = useRecentBirthDetails();
+  const vaultLocation = useVaultRecentLocation();
   const [bride, setBride] = useState<PartyState>(emptyParty());
   const [groom, setGroom] = useState<PartyState>(emptyParty());
   const [result, setResult] = useState<PorondamResponse | null>(null);
@@ -44,11 +47,11 @@ export function PorondamClient() {
 
   useEffect(() => {
     // Hydrate after mount because recent locations live in localStorage.
-    const recent = mostRecentLocation() ?? DEFAULT_LOCATION;
+    const recent = vaultLocation ?? mostRecentLocation() ?? DEFAULT_LOCATION;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
     setBride((b) => (b.location ? b : { ...b, location: recent }));
     setGroom((g) => (g.location ? g : { ...g, location: recent }));
-  }, []);
+  }, [vaultLocation]);
 
   const canCalculate =
     bride.dateTime.date !== "" &&
@@ -73,8 +76,8 @@ export function PorondamClient() {
       // deliberately does NOT auto-fill from it on mount, since bride and
       // groom are two different people and there's no way to know which
       // saved entry maps to which role.
-      saveRecentBirthDetails({ birth_date: bride.dateTime.date, birth_time: partyToInput(bride).birth_time });
-      saveRecentBirthDetails({ birth_date: groom.dateTime.date, birth_time: partyToInput(groom).birth_time });
+      void saveRecentBirthDetails({ birth_date: bride.dateTime.date, birth_time: partyToInput(bride).birth_time });
+      void saveRecentBirthDetails({ birth_date: groom.dateTime.date, birth_time: partyToInput(groom).birth_time });
     } catch (e) {
       setError(e instanceof ApiError ? dict.ui.error : dict.ui.error);
     } finally {

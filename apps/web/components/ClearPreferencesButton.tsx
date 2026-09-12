@@ -10,9 +10,11 @@ import { clearEphemeralDerivedIdentitySeed } from "@/lib/pancha-schedule-state";
 export function ClearPreferencesButton({
   label,
   clearedMessage,
+  confirmationMessage,
 }: {
   label: string;
   clearedMessage: string;
+  confirmationMessage: string;
 }) {
   const [cleared, setCleared] = useState(false);
   const { clear } = useLocalVault();
@@ -21,6 +23,7 @@ export function ClearPreferencesButton({
       <button
         type="button"
         onClick={() => {
+          if (!window.confirm(confirmationMessage)) return;
           clearSavedPreferences();
           clearEphemeralDerivedIdentitySeed();
           clear();

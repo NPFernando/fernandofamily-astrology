@@ -5,6 +5,7 @@ import { useLocale } from "@/lib/locale-context";
 import { translateEnum } from "@/lib/i18n";
 import type { ScheduleResponse } from "@/lib/api-client";
 import { ACTIVITY_COLORS } from "./activityColors";
+import { localeTag } from "@/lib/formatters";
 
 function pct(fromMs: number, toMs: number, totalMs: number) {
   return ((toMs - fromMs) / totalMs) * 100;
@@ -47,7 +48,7 @@ export function DayTimelineBar({
   const dayPct = pct(startMs, sunsetMs, totalMs);
   const nowPct = nowMs >= startMs && nowMs < endMs ? pct(startMs, nowMs, totalMs) : null;
 
-  const timeFormat = new Intl.DateTimeFormat(locale === "si" ? "si-LK" : "en-US", {
+  const timeFormat = new Intl.DateTimeFormat(localeTag(locale), {
     hour: "2-digit",
     minute: "2-digit",
   });

@@ -10,7 +10,33 @@ export default function manifest(): MetadataRoute.Manifest {
     id: "/",
     start_url: "/",
     scope: "/",
+    lang: "si",
+    dir: "ltr",
+    display_override: ["window-controls-overlay", "standalone"],
     display: "standalone",
+    shortcuts: [
+      {
+        name: "Pancha Pakshi",
+        short_name: "Pakshi",
+        description: "Open the live Pancha Pakshi calculator.",
+        url: "/si/pancha-pakshi",
+        icons: [{ src: "/icons/app/icon-192.png", sizes: "192x192", type: "image/png" }],
+      },
+      {
+        name: "Daily Guide",
+        short_name: "Guide",
+        description: "Open today's Sinhala astrology guide.",
+        url: "/si/daily-guide",
+        icons: [{ src: "/icons/app/icon-192.png", sizes: "192x192", type: "image/png" }],
+      },
+      {
+        name: "Moon Calendar",
+        short_name: "Moon",
+        description: "Open the Sri Lankan Poya and moon calendar.",
+        url: "/si/moon-calendar",
+        icons: [{ src: "/icons/app/icon-192.png", sizes: "192x192", type: "image/png" }],
+      },
+    ],
     background_color: "#fffaf3",
     theme_color: "#b45309",
     icons: [

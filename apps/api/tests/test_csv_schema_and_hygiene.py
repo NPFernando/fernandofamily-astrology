@@ -30,6 +30,26 @@ def test_get_matching_rows_always_returns_exactly_50():
                 assert len(rows) == 50
 
 
+def test_matching_row_index_matches_csv_filter_and_is_cached():
+    repository._matching_rows_cache = None
+    first = repository.get_matching_rows(5, 2, 1)
+    cached = repository._matching_rows_cache
+    assert cached is not None
+    second = repository.get_matching_rows(5, 2, 1)
+    assert repository._matching_rows_cache is cached
+    expected = [row for row in repository.load_rows() if int(row[3]) == 4 and int(row[0]) == 1 and int(row[1]) == 0]
+    assert first == expected == second
+
+
+def test_matching_row_index_preserves_missing_key_assertion():
+    try:
+        repository.get_matching_rows(6, 1, 1)
+    except AssertionError as error:
+        assert "expected exactly 50" in str(error)
+    else:
+        raise AssertionError("missing lookup key should preserve the row-count assertion")
+
+
 def test_calculator_and_adapter_never_call_localized_resource_strings_or_image_paths():
     # Structural guard for the "no upstream display strings" adapter rule.
     # Checks actual usage/call patterns, not explanatory prose in comments or

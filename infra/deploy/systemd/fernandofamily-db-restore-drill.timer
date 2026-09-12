@@ -1,0 +1,11 @@
+[Unit]
+Description=Monthly Fernando Family Astrology PostgreSQL restore drill
+
+[Timer]
+OnCalendar=Sun *-*-01..07 04:05:00
+RandomizedDelaySec=30m
+Persistent=true
+Unit=fernandofamily-db-restore-drill.service
+
+[Install]
+WantedBy=timers.target

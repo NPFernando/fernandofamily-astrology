@@ -8,6 +8,9 @@ import type { BirdId, RashiId } from "@/lib/api-client";
 import {
   listProfiles,
   addProfile,
+  activeProfileId,
+  markProfileUsed,
+  profileLastUsedAt,
   removeProfile,
   mergeLocalToServerOnce,
   type SavedProfile,
@@ -48,6 +51,7 @@ export function SavedProfiles({
   const [profiles, setProfiles] = useState<SavedProfile[]>([]);
   const [saving, setSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(() => activeProfileId());
 
   const refresh = useCallback(async (isSignedIn: boolean) => {
     setProfiles(await listProfiles(isSignedIn));
@@ -82,7 +86,14 @@ export function SavedProfiles({
 
   async function handleRemove(id: string) {
     await removeProfile(signedIn, id);
+    if (activeId === id) setActiveId(null);
     await refresh(signedIn);
+  }
+
+  function pickProfile(profile: SavedProfile) {
+    markProfileUsed(profile.id);
+    setActiveId(profile.id);
+    onPick(profile);
   }
 
   function chipText(p: SavedProfile): string {
@@ -109,16 +120,23 @@ export function SavedProfiles({
             {profiles.map((p) => (
               <span
                 key={p.id}
-                className="flex items-center gap-1 rounded-full border border-black/10 text-sm dark:border-white/20"
+                className={`flex items-center gap-1 rounded-full border text-sm dark:border-white/20 ${
+                  activeId === p.id ? "border-accent bg-accent/10 text-accent" : "border-black/10"
+                }`}
               >
                 <button
                   type="button"
-                  onClick={() => onPick(p)}
+                  aria-pressed={activeId === p.id}
+                  onClick={() => pickProfile(p)}
                   className="flex min-h-9 items-center gap-2 rounded-l-full py-1.5 pl-3 pr-1 hover:bg-black/5 dark:hover:bg-white/10"
                 >
                   {p.bird && <ProfileBirdIcon bird={p.bird} />}
                   {chipText(p)}
                 </button>
+                {activeId === p.id && <span className="text-[10px] font-semibold uppercase">{dict.ui.activeProfile}</span>}
+                {profileLastUsedAt(p.id) && activeId !== p.id && (
+                  <span className="text-[10px] opacity-60">{dict.ui.profileLastUsed}</span>
+                )}
                 <button
                   type="button"
                   onClick={() => handleRemove(p.id)}

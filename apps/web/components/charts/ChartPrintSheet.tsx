@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { translateEnum } from "@/lib/i18n";
+import { formatLocalDateTime } from "@/lib/formatters";
 
 // Same 12-rashi order / house-rotation formula as RasiStyleChart.tsx —
 // duplicated rather than imported since the two components render very
@@ -119,7 +120,7 @@ export function ChartPrintSheet({
 
       <footer style={{ marginTop: "12px", borderTop: "1px solid #999", paddingTop: "6px" }}>
         <p style={{ fontSize: "8pt", color: "#555", margin: 0 }}>
-          {dict.ui.generatedAt}: {new Date().toLocaleString(locale === "si" ? "si-LK" : "en-US")} ·
+          {dict.ui.generatedAt}: {formatLocalDateTime(new Date(), locale)} ·
           astrology.fernandofamily.com
         </p>
         <p style={{ fontSize: "7.5pt", color: "#666", margin: "4px 0 0" }}>{dict.disclaimer.text}</p>

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel
 
@@ -112,3 +112,14 @@ class ScheduleResponse(BaseModel):
     next_period: SubPeriod | None
     major_periods: list[MajorPeriod]
     summary: ScheduleSummary
+
+
+class CurrentResponse(BaseModel):
+    current_period: SubPeriod | None
+    next_period: SubPeriod | None
+
+
+class MultiDayScheduleResponse(BaseModel):
+    from_date: date
+    days: int
+    schedules: list[ScheduleResponse]

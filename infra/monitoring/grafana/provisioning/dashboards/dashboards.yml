@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: fernandofamily-astrology
+    orgId: 1
+    folder: Fernando Family Astrology
+    type: file
+    disableDeletion: true
+    editable: false
+    options:
+      path: /var/lib/grafana/dashboards

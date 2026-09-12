@@ -1,17 +1,27 @@
+import json
+from pathlib import Path
+
 from fastapi import APIRouter
 
 from app.core.config import settings
 
 router = APIRouter(prefix="/api/v1", tags=["platform"])
 
-# Hardcoded until packages/feature-registry (Phase 4) exists as the single
-# source of truth for enabled/public features; this must be swapped to read
-# from that registry once it lands, not maintained as a second copy.
-_FEATURES = [
-    {"id": "pancha-pakshi", "enabled": True, "public": True},
-    {"id": "panchanga", "enabled": True, "public": True},
-    {"id": "compatibility", "enabled": True, "public": True},
-]
+def _load_features() -> list[dict]:
+    here = Path(__file__).resolve()
+    candidates = [
+        here.parents[index] / "packages/feature-registry/features.json"
+        for index in (5, 3)
+        if len(here.parents) > index
+    ]
+    for path in candidates:
+        if path.exists():
+            entries = json.loads(path.read_text(encoding="utf-8"))
+            return [{key: entry[key] for key in ("id", "enabled", "public")} for entry in entries]
+    raise RuntimeError("feature registry manifest is missing")
+
+
+_FEATURES = _load_features()
 
 
 @router.get("/metadata")

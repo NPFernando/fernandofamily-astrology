@@ -3,38 +3,50 @@
 import { useEffect, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { fetchBirthBird, ApiError, type BirdSelectionInput, type BirthBirdResponse } from "@/lib/api-client";
-import { LocationPicker, mostRecentLocation, useVaultRecentLocation, type LocationValue } from "./LocationPicker";
+import { LocationPicker, type LocationValue } from "./LocationPicker";
 import { TargetDateTimeFields, nowAsTargetDateTime, type TargetDateTime } from "./TargetDateTimeFields";
+import { usePrivatePeople } from "@/lib/use-private-people";
+import { PrivatePersonPicker } from "@/components/private-people/PrivatePersonPicker";
+import { PrivatePersonSaveButton } from "@/components/private-people/PrivatePersonSaveButton";
 
-export function BirthInputForm({ onSubmit }: { onSubmit: (input: BirdSelectionInput) => void }) {
+export function BirthInputForm({
+  location,
+  onLocationChange,
+  onSubmit,
+}: {
+  location: LocationValue | null;
+  onLocationChange: (location: LocationValue) => void;
+  onSubmit: (input: BirdSelectionInput) => void;
+}) {
   const { dict } = useLocale();
-  const vaultLocation = useVaultRecentLocation();
+  const privatePeople = usePrivatePeople();
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
-  const [location, setLocation] = useState<LocationValue | null>(null);
-  const [target, setTarget] = useState<TargetDateTime>(nowAsTargetDateTime());
+  const [target, setTarget] = useState<TargetDateTime | null>(null);
   const [targetTouched, setTargetTouched] = useState(false);
   const [confirmed, setConfirmed] = useState<BirthBirdResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Carries the last-used location over between method tabs and between
-    // Pancha Pakshi and Panchanga, instead of always starting empty. Seeded
-    // post-mount (not a lazy initializer) since mostRecentLocation() reads
-    // localStorage — matching the hydration-safe pattern LocationPicker
-    // itself and PanchangaClient already use.
-    const recent = vaultLocation ?? mostRecentLocation();
-    if (recent) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
-      setLocation(recent);
-      setTarget(nowAsTargetDateTime(recent.iana_tz));
-    }
-  }, [vaultLocation]);
+    if (!privatePeople.person) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate form fields when the active encrypted person changes.
+    setBirthDate(privatePeople.person.birth_date);
+    setBirthTime(privatePeople.person.birth_time);
+    onLocationChange(privatePeople.person.birthplace);
+    setConfirmed(null);
+  }, [onLocationChange, privatePeople.person]);
+
+  async function savePrivatePerson(label: string) {
+    if (!birthDate || !birthTime || !location || !privatePeople.unlocked) return;
+    await privatePeople.savePerson({ label, birth_date: birthDate, birth_time: birthTime.length === 5 ? `${birthTime}:00` : birthTime, birthplace: location });
+  }
+
+  const effectiveTarget = target ?? nowAsTargetDateTime(location?.iana_tz);
 
   const canConfirm = birthDate && birthTime && location !== null;
   function chooseLocation(next: LocationValue) {
-    setLocation(next);
+    onLocationChange(next);
     if (!targetTouched) setTarget(nowAsTargetDateTime(next.iana_tz));
   }
 
@@ -47,8 +59,8 @@ export function BirthInputForm({ onSubmit }: { onSubmit: (input: BirdSelectionIn
         method: "birth_datetime",
         birth_date: birthDate,
         birth_time: birthTime.length === 5 ? `${birthTime}:00` : birthTime,
-        target_date: target.date,
-        target_time: target.time,
+        target_date: effectiveTarget.date,
+        target_time: effectiveTarget.time,
         location_name: location!.name,
         latitude: location!.latitude,
         longitude: location!.longitude,
@@ -83,8 +95,8 @@ export function BirthInputForm({ onSubmit }: { onSubmit: (input: BirdSelectionIn
               onSubmit({
                 method: "bird",
                 bird: confirmed.birth_bird,
-                target_date: target.date,
-                target_time: target.time,
+                target_date: effectiveTarget.date,
+                target_time: effectiveTarget.time,
                 location_name: location!.name,
                 latitude: location!.latitude,
                 longitude: location!.longitude,
@@ -102,6 +114,7 @@ export function BirthInputForm({ onSubmit }: { onSubmit: (input: BirdSelectionIn
 
   return (
     <div className="flex flex-col gap-4">
+      <PrivatePersonPicker people={privatePeople.people} selectedId={privatePeople.selectedId} unlocked={privatePeople.unlocked} onSelect={privatePeople.selectPerson} onDelete={privatePeople.removePerson} />
       <TargetDateTimeFields
         value={{ date: birthDate, time: birthTime }}
         onChange={(v) => {
@@ -121,7 +134,7 @@ export function BirthInputForm({ onSubmit }: { onSubmit: (input: BirdSelectionIn
         <summary className="cursor-pointer">{dict.ui.targetDate}</summary>
         <div className="mt-2">
           <TargetDateTimeFields
-            value={target}
+            value={effectiveTarget}
             onChange={(next) => {
               setTarget(next);
               setTargetTouched(true);
@@ -140,6 +153,7 @@ export function BirthInputForm({ onSubmit }: { onSubmit: (input: BirdSelectionIn
       >
         {loading ? dict.ui.loading : dict.ui.confirm}
       </button>
+      {privatePeople.unlocked && <PrivatePersonSaveButton disabled={!canConfirm} onSave={savePrivatePerson} />}
     </div>
   );
 }

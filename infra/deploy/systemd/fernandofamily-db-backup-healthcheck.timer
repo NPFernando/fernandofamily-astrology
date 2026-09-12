@@ -1,0 +1,11 @@
+[Unit]
+Description=Check Fernando Family Astrology database backup freshness every hour
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+RandomizedDelaySec=5m
+Unit=fernandofamily-db-backup-healthcheck.service
+
+[Install]
+WantedBy=timers.target

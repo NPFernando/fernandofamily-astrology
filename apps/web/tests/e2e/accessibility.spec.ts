@@ -23,6 +23,15 @@ for (const locale of ["en", "si"] as const) {
     assertNoSevereViolations(results.violations);
   });
 
+  test(`a11y (${locale}): open command palette has no critical/serious violations`, async ({ page }) => {
+    await page.goto(`/${locale}`);
+    await page.keyboard.press("Control+K");
+    const dialog = page.getByRole("dialog", { name: DICTS[locale].ui.commandPalette });
+    await expect(dialog).toBeVisible();
+    const results = await new AxeBuilder({ page }).include('[role="dialog"]').analyze();
+    assertNoSevereViolations(results.violations);
+  });
+
   test(`a11y (${locale}): birth chart (calculated, star overlay on) has no critical/serious violations`, async ({
     page,
   }) => {

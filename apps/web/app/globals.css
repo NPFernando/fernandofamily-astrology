@@ -36,6 +36,11 @@ body {
   font-family: var(--font-body), var(--font-sinhala), sans-serif;
 }
 
+.skeleton-base {
+  border: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
+  background: color-mix(in srgb, var(--foreground) 5%, transparent);
+}
+
 html[lang="si"] body {
   line-height: 1.65;
 }
@@ -52,6 +57,16 @@ html[lang="si"] body {
 /* Motion: every animation lives behind prefers-reduced-motion so the site is
    completely still for users who ask for that. Calm and purposeful only. */
 @media (prefers-reduced-motion: no-preference) {
+  @keyframes skeleton-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  .skeleton-shimmer {
+    background-image: linear-gradient(100deg, color-mix(in srgb, var(--foreground) 6%, transparent) 20%, color-mix(in srgb, var(--foreground) 13%, transparent) 40%, color-mix(in srgb, var(--foreground) 6%, transparent) 60%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.8s ease-in-out infinite;
+  }
+
   /* One soft expanding glow when the current period changes (element is
      remounted with a new key on period change, retriggering this). */
   @keyframes period-glow {

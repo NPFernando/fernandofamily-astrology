@@ -59,6 +59,11 @@ app.include_router(pancha_pakshi.router)
 app.include_router(panchanga.router)
 app.include_router(porondam.router)
 
+# Run vendor verification on the importing process/main thread. The readiness
+# route then serves the cached result instead of mutating Swiss Ephemeris state
+# from a synchronous request worker.
+health.initialize_readiness()
+
 
 @app.exception_handler(InvalidInputError)
 async def invalid_input_handler(request: Request, exc: InvalidInputError) -> JSONResponse:

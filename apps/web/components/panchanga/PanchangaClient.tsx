@@ -4,15 +4,18 @@ import { useCallback, useEffect, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { getDictionary, nakshatraName, translateEnum } from "@/lib/i18n";
 import { ApiError, fetchPanchanga, fetchEclipseForecast, type DailyPanchanga, type EclipseForecast } from "@/lib/api-client";
-import { LocationPicker, DEFAULT_LOCATION, mostRecentLocation, useVaultRecentLocation, type LocationValue } from "@/components/pancha-pakshi/LocationPicker";
+import { LocationPicker, DEFAULT_LOCATION, useVaultRecentLocation, type LocationValue } from "@/components/pancha-pakshi/LocationPicker";
 import { useLocalVault } from "@/components/LocalVaultProvider";
 import { DateNav } from "@/components/pancha-pakshi/DateNav";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
+import { usePrivatePeople } from "@/lib/use-private-people";
+import { PrivatePersonPicker } from "@/components/private-people/PrivatePersonPicker";
 import { PanchangaIcon } from "@/components/icons/features";
 import { FullMoonIcon } from "@/components/icons/moon";
 import { loadAccountPreferences } from "@/lib/account-preferences";
 import { SkyTodayPanel } from "@/components/panchanga/SkyTodayPanel";
 import { DailyTimingTimeline } from "@/components/panchanga/DailyTimingTimeline";
+import { formatLocalDate, formatLocalDateTime, formatLocalTime } from "@/lib/formatters";
 
 // Sinhala Poya-cycle month names (bak, vesak, ... madin) live under
 // enums.sinhalaMonths; the API's "adhi-" prefix (leap month) is not itself a
@@ -39,17 +42,14 @@ function todayIso(): string {
 }
 
 function formatTime(iso: string, locale: string) {
-  return new Date(iso).toLocaleTimeString(locale === "si" ? "si-LK" : "en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatLocalTime(iso, locale);
 }
 
 // Eclipse contact times can fall months away from the requested date (unlike
 // every other panchanga element, which is always same-day) — always show the
 // date alongside the time.
 function formatDateTime(iso: string, locale: string) {
-  return new Date(iso).toLocaleString(locale === "si" ? "si-LK" : "en-US", {
+  return formatLocalDateTime(iso, locale, {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -62,6 +62,7 @@ export function PanchangaClient() {
   const { dict, locale } = useLocale();
   const { unlocked } = useLocalVault();
   const vaultLocation = useVaultRecentLocation();
+  const privatePeople = usePrivatePeople();
   const [date, setDate] = useState<string>(() => todayIso());
   const [location, setLocation] = useState<LocationValue | null>(null);
   const [data, setData] = useState<DailyPanchanga | null>(null);
@@ -107,7 +108,7 @@ export function PanchangaClient() {
     (async () => {
       const account = await loadAccountPreferences();
       if (cancelled) return;
-      const loc = account.preferences?.default_location ?? (unlocked ? vaultLocation : null) ?? mostRecentLocation() ?? DEFAULT_LOCATION;
+      const loc = account.preferences?.default_location ?? (unlocked ? privatePeople.person?.current_location ?? privatePeople.person?.birthplace ?? vaultLocation : null) ?? DEFAULT_LOCATION;
       // "Today" must be resolved in the LOCATION's timezone, not the
       // browser's — otherwise a device whose system clock is in a different
       // zone than the (possibly default Colombo) location can load the
@@ -122,7 +123,7 @@ export function PanchangaClient() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unlocked]);
+  }, [unlocked, privatePeople.person]);
 
   const onDateChange = useCallback(
     (next: string) => {
@@ -157,6 +158,7 @@ export function PanchangaClient() {
       >
         <h2 className="text-sm font-semibold uppercase tracking-wide text-accent">{dict.ui.dailyDetails}</h2>
         <div className="mt-3 flex flex-col gap-4">
+          <PrivatePersonPicker people={privatePeople.people} selectedId={privatePeople.selectedId} unlocked={unlocked} onSelect={privatePeople.selectPerson} onDelete={privatePeople.removePerson} />
           <DateNav date={date} onChange={onDateChange} />
           <div>
             <p className="mb-2 text-sm opacity-70">{dict.ui.location}</p>
@@ -188,7 +190,7 @@ export function PanchangaClient() {
         <div role="status" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <span className="sr-only">{dict.ui.loading}</span>
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-28 rounded-xl border border-black/10 motion-safe:animate-pulse dark:border-white/10" />
+            <div key={i} className="h-28 rounded-xl skeleton-shimmer" />
           ))}
         </div>
       )}
@@ -196,7 +198,7 @@ export function PanchangaClient() {
       {data && (
         <div data-testid="panchanga-result" className="flex flex-col gap-6">
           <p className="text-sm opacity-80">
-            {new Date(`${data.date}T12:00:00`).toLocaleDateString(locale === "si" ? "si-LK" : "en-US", {
+            {formatLocalDate(data.date, locale, {
               weekday: "long",
               year: "numeric",
               month: "long",
@@ -224,10 +226,7 @@ export function PanchangaClient() {
           <p className="text-xs opacity-70" data-testid="panchanga-next-poya">
             {dict.panchanga.nextPoyaLabel}:{" "}
             {sinhalaMonthName(dict, data.next_poya.month_key)}{" "}
-            {new Date(`${data.next_poya.date}T12:00:00`).toLocaleDateString(
-              locale === "si" ? "si-LK" : "en-US",
-              { month: "long", day: "numeric" },
-            )}
+            {formatLocalDate(data.next_poya.date, locale, { month: "long", day: "numeric" })}
           </p>
 
           <SkyTodayPanel panchanga={data} testId="panchanga-sky-today" />

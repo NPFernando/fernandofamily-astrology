@@ -18,6 +18,8 @@ export type SavedProfile = {
 };
 
 const STORAGE_KEY = "ff_saved_profiles";
+const ACTIVE_PROFILE_SESSION_KEY = "ff_active_profile_id";
+const PROFILE_LAST_USED_STORAGE_KEY = "ff_profile_last_used_at";
 
 // Exported (not otherwise needed outside this module) so
 // scripts/check-profiles.mjs can exercise the real identity/normalization
@@ -75,6 +77,10 @@ export function addLocalProfile(
 
 export function removeLocalProfile(id: string) {
   saveLocal(loadLocal().filter((p) => p.id !== id));
+  if (activeProfileId() === id) setActiveProfileId(null);
+  const usage = loadProfileUsage();
+  delete usage[id];
+  saveProfileUsage(usage);
 }
 
 export function updateLocalProfile(
@@ -88,6 +94,49 @@ export function updateLocalProfile(
   profiles[index] = next;
   saveLocal(profiles);
   return next;
+}
+
+function loadProfileUsage(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  try {
+    const value = JSON.parse(window.localStorage.getItem(PROFILE_LAST_USED_STORAGE_KEY) ?? "{}");
+    if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+    return Object.fromEntries(
+      Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === "string" && !Number.isNaN(Date.parse(entry[1]))),
+    );
+  } catch {
+    return {};
+  }
+}
+
+function saveProfileUsage(usage: Record<string, string>) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(PROFILE_LAST_USED_STORAGE_KEY, JSON.stringify(usage));
+}
+
+// Active-profile context is intentionally tab-scoped. It contains only a
+// saved-profile ID; the profile itself remains the existing derived-only
+// record, and neither raw birth details nor a location are carried here.
+export function activeProfileId(): string | null {
+  if (typeof window === "undefined") return null;
+  return window.sessionStorage.getItem(ACTIVE_PROFILE_SESSION_KEY);
+}
+
+export function setActiveProfileId(profileId: string | null): void {
+  if (typeof window === "undefined") return;
+  if (profileId) window.sessionStorage.setItem(ACTIVE_PROFILE_SESSION_KEY, profileId);
+  else window.sessionStorage.removeItem(ACTIVE_PROFILE_SESSION_KEY);
+}
+
+export function markProfileUsed(profileId: string): void {
+  const usage = loadProfileUsage();
+  usage[profileId] = new Date().toISOString();
+  saveProfileUsage(usage);
+  setActiveProfileId(profileId);
+}
+
+export function profileLastUsedAt(profileId: string): string | null {
+  return loadProfileUsage()[profileId] ?? null;
 }
 
 // ---------------------------------------------------------------------------
@@ -164,7 +213,10 @@ export async function addProfile(
 }
 
 export async function removeProfile(signedIn: boolean, id: string): Promise<void> {
-  if (signedIn && (await removeServerProfile(id))) return;
+  if (signedIn && (await removeServerProfile(id))) {
+    if (activeProfileId() === id) setActiveProfileId(null);
+    return;
+  }
   removeLocalProfile(id);
 }
 

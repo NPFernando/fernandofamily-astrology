@@ -107,6 +107,8 @@ test("saved profiles: save → chip → schedule from chip → delete", async ({
   await expect(chip.first()).toBeVisible();
   await chip.first().click();
   await waitForSchedule(page, "en");
+  await expect(chip.first()).toHaveAttribute("aria-pressed", "true");
+  await expect(chip.first().locator("xpath=..")).toContainText(dict.ui.activeProfile);
   // Delete the chip (remove affordance next to it).
   await page.getByRole("button", { name: dict.ui.deleteProfile }).first().click();
   await expect(page.getByText("Amma")).toBeHidden();

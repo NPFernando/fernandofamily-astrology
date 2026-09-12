@@ -1,0 +1,17 @@
+# Public edge probes use direct HTTPS, require status 200, reject redirects,
+# validate the certificate chain, and intentionally require IPv4. The reference
+# deployment publishes only an A record; add a separate ip6 module/target when
+# an AAAA record is made a supported production path.
+modules:
+  public_https:
+    prober: http
+    timeout: 10s
+    http:
+      method: GET
+      valid_status_codes: [200]
+      follow_redirects: false
+      fail_if_not_ssl: true
+      tls_config:
+        insecure_skip_verify: false
+      preferred_ip_protocol: ip4
+      ip_protocol_fallback: false

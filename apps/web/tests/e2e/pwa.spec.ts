@@ -15,6 +15,51 @@ async function dispatchInstallPrompt(page: import("@playwright/test").Page) {
   });
 }
 
+async function mockServiceWorker(
+  page: import("@playwright/test").Page,
+  { online = true, hasController = false, hasWaitingWorker = false } = {},
+) {
+  await page.addInitScript(
+    ({ initialOnline, initialHasController, initialHasWaitingWorker }) => {
+      type PwaTestWindow = Window & {
+        __pwaOnline: boolean;
+        __pwaMessages: unknown[];
+      };
+      const testWindow = window as unknown as PwaTestWindow;
+      testWindow.__pwaOnline = initialOnline;
+      testWindow.__pwaMessages = [];
+
+      Object.defineProperty(navigator, "onLine", {
+        configurable: true,
+        get: () => testWindow.__pwaOnline,
+      });
+
+      const waitingWorker = initialHasWaitingWorker
+        ? {
+            postMessage: (message: unknown) => testWindow.__pwaMessages.push(message),
+          }
+        : null;
+      const registration = Object.assign(new EventTarget(), {
+        waiting: waitingWorker,
+        installing: null,
+      });
+      const serviceWorker = Object.assign(new EventTarget(), {
+        controller: initialHasController ? {} : null,
+        register: async () => registration,
+      });
+      Object.defineProperty(navigator, "serviceWorker", {
+        configurable: true,
+        value: serviceWorker,
+      });
+    },
+    {
+      initialOnline: online,
+      initialHasController: hasController,
+      initialHasWaitingWorker: hasWaitingWorker,
+    },
+  );
+}
+
 test("install prompt button calls the deferred browser prompt", async ({ page }) => {
   await page.goto("/en");
 
@@ -72,4 +117,38 @@ test("standalone display mode hides install affordance", async ({ page }) => {
   await page.goto("/en");
   await dispatchInstallPrompt(page);
   await expect(page.getByTestId("install-app")).toHaveCount(0);
+});
+
+test("global offline status clears when the connection returns", async ({ page }) => {
+  await mockServiceWorker(page, { online: false });
+  await page.goto("/en");
+
+  const status = page.getByTestId("pwa-offline-status");
+  await expect(status).toBeVisible();
+  await expect(status).toContainText(DICTS.en.ui.offlineAppNotice);
+
+  await page.evaluate(() => {
+    (window as unknown as Window & { __pwaOnline: boolean }).__pwaOnline = true;
+    window.dispatchEvent(new Event("online"));
+  });
+  await expect(status).toBeHidden();
+});
+
+test("waiting update activates only after the visitor refreshes", async ({ page }) => {
+  await mockServiceWorker(page, { hasController: true, hasWaitingWorker: true });
+  await page.goto("/en");
+
+  const update = page.getByTestId("pwa-update-ready");
+  await expect(update).toBeVisible();
+  await expect(update).toContainText(DICTS.en.ui.updateAvailable);
+  await update.getByRole("button", { name: DICTS.en.ui.refresh, exact: true }).click();
+  await expect
+    .poll(() => page.evaluate(() => (window as unknown as Window & { __pwaMessages: unknown[] }).__pwaMessages))
+    .toEqual([{ type: "SKIP_WAITING" }]);
+});
+
+test("first install does not show an update prompt", async ({ page }) => {
+  await mockServiceWorker(page, { hasWaitingWorker: true });
+  await page.goto("/en");
+  await expect(page.getByTestId("pwa-update-ready")).toHaveCount(0);
 });

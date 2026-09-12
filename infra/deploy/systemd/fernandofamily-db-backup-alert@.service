@@ -1,0 +1,8 @@
+[Unit]
+Description=Notify operations about Fernando Family Astrology backup failure (%i)
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/ubuntu/workspace/projects/fernandofamily-astrology
+EnvironmentFile=/etc/fernandofamily-astrology/database-backup.env
+ExecStart=/usr/bin/env bash infra/deploy/database-backup-alert.sh %i

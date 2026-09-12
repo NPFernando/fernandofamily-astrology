@@ -88,6 +88,28 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
         </div>
       </section>
 
+      <section aria-labelledby="journeys-title" className="rounded-2xl border border-accent/25 bg-accent/[.06] p-5 sm:p-6">
+        <h2 id="journeys-title" className="text-xl font-bold sm:text-2xl">{dict.landing.journeysTitle}</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-relaxed opacity-80">{dict.landing.journeysBody}</p>
+        <div className="mt-5 grid gap-3 md:grid-cols-3" data-testid="quick-start-journeys">
+          {[
+            { key: "today", href: "/daily-guide", icon: "daily-guide" as const, title: dict.landing.todayTitle, body: dict.landing.todayBody },
+            { key: "person", href: "/birth-nakshatra", icon: "birth-nakshatra" as const, title: dict.landing.personTitle, body: dict.landing.personBody },
+            { key: "family", href: "/family-almanac", icon: "family-almanac" as const, title: dict.landing.familyTitle, body: dict.landing.familyBody },
+          ].map((journey) => (
+            <Link
+              key={journey.key}
+              href={`/${locale}${journey.href}`}
+              className="rounded-xl border border-black/10 bg-background/65 p-4 transition hover:border-accent/60 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent dark:border-white/10"
+            >
+              <FeatureIcon feature={journey.icon} className="text-2xl text-accent" />
+              <h3 className="mt-3 font-semibold">{journey.title}</h3>
+              <p className="mt-1 text-sm leading-relaxed opacity-75">{journey.body}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       <section aria-label={dict.ui.availableTools} className="grid auto-rows-fr gap-4 sm:grid-cols-2">
         {features.map((f) => {
           const visual = isFeatureVisualId(f.icon) ? f.icon : null;
@@ -95,17 +117,18 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
             <Link
               key={f.id}
               href={`/${locale}${f.route}`}
-              className="group flex h-full flex-col overflow-hidden rounded-lg border border-black/10 bg-white/30 shadow-sm transition hover:border-accent/50 hover:shadow-md motion-safe:hover:-translate-y-0.5 dark:border-white/10 dark:bg-white/[.03]"
+              className="group flex h-full flex-col overflow-hidden rounded-lg border border-black/10 bg-white/30 shadow-sm transition hover:border-accent/50 hover:shadow-md motion-safe:hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 dark:border-white/10 dark:bg-white/[.03] dark:focus-visible:ring-offset-background"
             >
               {visual && (
-                <div className="relative aspect-[16/7] overflow-hidden bg-black/10">
+                <div className="relative aspect-[16/7] overflow-hidden bg-gradient-to-br from-slate-950 to-amber-950 shadow-inner">
                   <Image
                     src={FEATURE_POSTERS[visual]}
                     alt=""
                     fill
                     sizes="(min-width: 640px) 50vw, 100vw"
-                    className="object-cover transition duration-300 group-hover:scale-[1.025]"
+                    className="object-cover transition duration-300 group-hover:scale-[1.025] group-focus-visible:scale-[1.025]"
                   />
+                  <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-white/5 ring-1 ring-inset ring-black/15 dark:ring-white/10" />
                 </div>
               )}
               <div className="flex flex-1 flex-col p-5">

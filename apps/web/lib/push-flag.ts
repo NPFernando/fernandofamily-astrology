@@ -11,6 +11,15 @@ export const pushEnabled: boolean = Boolean(
     process.env.VAPID_SUBJECT,
 );
 
+export function vapidConfigurationValid(): boolean {
+  const subject = process.env.VAPID_SUBJECT ?? "";
+  return Boolean(
+    process.env.VAPID_PUBLIC_KEY &&
+      process.env.VAPID_PRIVATE_KEY &&
+      /^(mailto:|https?:\/\/)/i.test(subject),
+  );
+}
+
 export function vapidPublicKey(): string {
   return process.env.VAPID_PUBLIC_KEY ?? "";
 }

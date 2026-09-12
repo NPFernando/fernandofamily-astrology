@@ -79,6 +79,10 @@ def test_health_ready_does_not_expose_verification_details(monkeypatch):
         "run_verification",
         lambda _mode: (_ for _ in ()).throw(VerificationError("internal path: /srv/vendor")),
     )
+    health.reset_readiness_cache()
     response = TestClient(app).get("/api/v1/health/ready")
     assert response.status_code == 503
     assert response.json() == {"status": "not_ready", "failed_check": "vendor_verification_failed"}
+    monkeypatch.undo()
+    health.reset_readiness_cache()
+    health.initialize_readiness()

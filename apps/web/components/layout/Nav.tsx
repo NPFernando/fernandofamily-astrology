@@ -9,6 +9,7 @@ import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { LanguageSwitch } from "@/components/layout/LanguageSwitch";
 import { AccountMenu } from "@/components/layout/AccountMenu";
 import { InstallAppButton } from "@/components/layout/InstallAppButton";
+import { LocalVaultControl } from "@/components/layout/LocalVaultControl";
 
 export function Nav() {
   const { locale, dict } = useLocale();
@@ -78,6 +79,7 @@ export function Nav() {
           <LanguageSwitch />
           <ThemeToggle />
           <InstallAppButton />
+          <LocalVaultControl />
           <AccountMenu />
         </div>
       </nav>

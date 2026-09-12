@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
+import { useLocalVault } from "@/components/LocalVaultProvider";
+import { mostRecentVaultLocation, setMostRecentVaultLocation } from "@/lib/vault-location-cache";
 
 export type LocationValue = {
   name: string;
@@ -10,32 +12,7 @@ export type LocationValue = {
   iana_tz: string;
 };
 
-const RECENT_LOCATIONS_KEY = "ff_recent_locations";
 const MAX_RECENT = 5;
-
-function loadRecent(): LocationValue[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(RECENT_LOCATIONS_KEY);
-    return raw ? (JSON.parse(raw) as LocationValue[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-// Only name/lat/lon/tz are ever persisted here — never birth date/time.
-function saveRecent(loc: LocationValue) {
-  const existing = loadRecent().filter(
-    (l) => !(l.latitude === loc.latitude && l.longitude === loc.longitude),
-  );
-  const next = [loc, ...existing].slice(0, MAX_RECENT);
-  window.localStorage.setItem(RECENT_LOCATIONS_KEY, JSON.stringify(next));
-  return next;
-}
-
-export function clearRecentLocations() {
-  window.localStorage.removeItem(RECENT_LOCATIONS_KEY);
-}
 
 // The platform's configured default (Colombo) — used when something needs a
 // location before the user has picked one, e.g. scheduling from a saved
@@ -57,7 +34,15 @@ const SRI_LANKA_LOCATIONS = [
 ] as const;
 
 export function mostRecentLocation(): LocationValue | null {
-  return loadRecent()[0] ?? null;
+  return mostRecentVaultLocation();
+}
+
+// Use this in client components that need to rehydrate when a vault is
+// unlocked in the current tab. `mostRecentLocation` remains for imperative
+// callers that need the same in-memory value outside React.
+export function useVaultRecentLocation(): LocationValue | null {
+  const { data } = useLocalVault();
+  return data.recentLocations?.[0] ?? null;
 }
 
 type Tab = "device" | "search" | "manual";
@@ -79,6 +64,7 @@ export function LocationPicker({
   onChange: (loc: LocationValue) => void;
 }) {
   const { dict, locale } = useLocale();
+  const { data: vaultData, update: updateVault, unlocked } = useLocalVault();
   const [tab, setTab] = useState<Tab>("device");
   // Whenever a location is already known (seeded from the last-used one, or
   // already picked), show a compact one-line summary instead of the full
@@ -116,12 +102,29 @@ export function LocationPicker({
     // first client render identical to the server's ([]) and only updates
     // afterward.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setRecent(loadRecent());
-  }, []);
+    setRecent(vaultData.recentLocations ?? []);
+  }, [vaultData.recentLocations]);
 
   function commit(loc: LocationValue) {
     onChange(loc);
-    setRecent(saveRecent(loc));
+    // Keep an explicit location available across same-tab tool/method changes
+    // even when the user has chosen not to unlock persistent storage.
+    setMostRecentVaultLocation(loc);
+    const next = [loc, ...(vaultData.recentLocations ?? []).filter(
+      (item) => item.latitude !== loc.latitude || item.longitude !== loc.longitude,
+    )].slice(0, MAX_RECENT);
+    setRecent(next);
+    if (unlocked) {
+      void updateVault((current) => ({
+        ...current,
+        recentLocations: [
+          loc,
+          ...(current.recentLocations ?? []).filter(
+            (item) => item.latitude !== loc.latitude || item.longitude !== loc.longitude,
+          ),
+        ].slice(0, MAX_RECENT),
+      }));
+    }
     setStatus(null);
     setEditing(false);
   }
@@ -452,8 +455,9 @@ export function LocationPicker({
             <button
               type="button"
               onClick={() => {
-                clearRecentLocations();
                 setRecent([]);
+                setMostRecentVaultLocation(null);
+                if (unlocked) void updateVault((current) => ({ ...current, recentLocations: [] }));
               }}
               className="text-xs underline opacity-70 hover:opacity-100"
             >

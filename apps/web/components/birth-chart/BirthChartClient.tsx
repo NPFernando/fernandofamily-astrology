@@ -7,16 +7,19 @@ import {
   DEFAULT_LOCATION,
   LocationPicker,
   mostRecentLocation,
+  useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
 import { TargetDateTimeFields } from "@/components/pancha-pakshi/TargetDateTimeFields";
 import { BirthChartIcon } from "@/components/icons/features";
 import { BirthChartChart } from "@/components/birth-chart/BirthChartChart";
 import { YogataraTable } from "@/components/birth-chart/YogataraTable";
-import { mostRecentBirthDetails, saveRecentBirthDetails } from "@/lib/recent-birth-details";
+import { useRecentBirthDetails } from "@/lib/recent-birth-details";
 
 export function BirthChartClient() {
   const { dict } = useLocale();
+  const { recent, saveRecentBirthDetails } = useRecentBirthDetails();
+  const vaultLocation = useVaultRecentLocation();
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
   const [location, setLocation] = useState<LocationValue | null>(null);
@@ -29,15 +32,14 @@ export function BirthChartClient() {
     // Hydrate after mount because recent locations/birth details live in
     // localStorage.
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
-    setLocation(mostRecentLocation() ?? DEFAULT_LOCATION);
-    const recent = mostRecentBirthDetails();
+    setLocation(vaultLocation ?? mostRecentLocation() ?? DEFAULT_LOCATION);
     if (recent) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
+
       setBirthDate(recent.birth_date);
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
+
       setBirthTime(recent.birth_time);
     }
-  }, []);
+  }, [recent, vaultLocation]);
 
   const canCalculate = birthDate !== "" && birthTime !== "" && location !== null;
 
@@ -56,7 +58,7 @@ export function BirthChartClient() {
         iana_tz: location!.iana_tz,
       });
       setResult(data);
-      saveRecentBirthDetails({ birth_date: birthDate, birth_time: normalizedTime });
+      void saveRecentBirthDetails({ birth_date: birthDate, birth_time: normalizedTime });
     } catch (e) {
       setError(e instanceof ApiError ? dict.ui.error : dict.ui.error);
     } finally {

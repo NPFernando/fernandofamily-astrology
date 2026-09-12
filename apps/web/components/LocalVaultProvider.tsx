@@ -28,6 +28,7 @@ import type {
 import type { BirdId, DailyPanchanga, ScheduleRequest, ScheduleResponse } from "@/lib/api-client";
 import type { VaultFamilyGroup, VaultPlan } from "@/lib/planner";
 import type { PrivatePerson } from "@/lib/private-people";
+import { loadAccountPreferences, saveAccountPreferences } from "@/lib/account-preferences";
 
 export type CachedDailyGuide = {
   request: ScheduleRequest;
@@ -39,6 +40,7 @@ export type CachedDailyGuide = {
 
 export type LocalVaultData = {
   privatePeople?: PrivatePerson[];
+  defaultLocation?: { name: string; latitude: number; longitude: number; iana_tz: string };
   recentBirthDetails?: { birth_date: string; birth_time: string }[];
   recentLocations?: { name: string; latitude: number; longitude: number; iana_tz: string }[];
   cachedSchedule?: CachedSchedule;
@@ -205,6 +207,31 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
     },
     [key],
   );
+
+  // Older releases stored the account's default location on the server. Once
+  // the user unlocks the local vault, preserve that setting locally and clear
+  // the legacy server copy. New clients never write a location to the account.
+  useEffect(() => {
+    if (!ready || !key) return;
+    let cancelled = false;
+    void (async () => {
+      const result = await loadAccountPreferences();
+      const legacyLocation = result.preferences?.default_location;
+      if (cancelled || !legacyLocation) return;
+      if (!dataRef.current.defaultLocation) {
+        await update((current) => ({ ...current, defaultLocation: legacyLocation }));
+      }
+      const cleared = await saveAccountPreferences({ default_location: null });
+      if (!cancelled && !cleared.available) {
+        console.warn("Could not clear the legacy account location; it will retry after the next vault unlock.");
+      }
+    })().catch(() => {
+      if (!cancelled) console.warn("Could not migrate the legacy account location to the private vault.");
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [key, ready, sessionVersion, update]);
 
   const clear = useCallback(() => {
     sessionEpochRef.current += 1;

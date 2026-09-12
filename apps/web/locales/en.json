@@ -463,6 +463,7 @@
     "resetAccountDefaults": "Reset",
     "defaultBird": "Default bird",
     "defaultLocation": "Default location",
+    "unlockVaultForDefaultLocation": "Unlock the private vault to set or migrate your saved default location.",
     "clearDefault": "Clear",
     "language": "Language",
     "theme": "Theme",

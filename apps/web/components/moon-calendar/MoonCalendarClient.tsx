@@ -12,7 +12,6 @@ import {
   type MonthPanchangaDay,
   type MoonPhaseKey,
 } from "@/lib/api-client";
-import { loadAccountPreferences } from "@/lib/account-preferences";
 import {
   DEFAULT_LOCATION,
   LocationPicker,
@@ -81,7 +80,7 @@ function phaseTone(phase: MoonPhaseKey, isPoya: boolean): string {
 
 export function MoonCalendarClient() {
   const { dict, locale } = useLocale();
-  const { unlocked } = useLocalVault();
+  const { data: vaultData, unlocked } = useLocalVault();
   const vaultLocation = useVaultRecentLocation();
   const privatePeople = usePrivatePeople();
   const searchParams = useSearchParams();
@@ -122,9 +121,8 @@ export function MoonCalendarClient() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const account = await loadAccountPreferences();
       if (cancelled) return;
-      const loc = account.preferences?.default_location ?? (unlocked ? privatePeople.person?.current_location ?? privatePeople.person?.birthplace ?? vaultLocation : null) ?? DEFAULT_LOCATION;
+      const loc = (unlocked ? vaultData.defaultLocation ?? privatePeople.person?.current_location ?? privatePeople.person?.birthplace ?? vaultLocation : null) ?? DEFAULT_LOCATION;
       const targetDate = requestedDate ?? todayIsoForLocation(loc);
       const initialMonth = monthFromDate(targetDate);
       setLocation(loc);
@@ -136,7 +134,7 @@ export function MoonCalendarClient() {
       cancelled = true;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps -- rerun on unlock, not every user location write.
-  }, [requestedDate, run, unlocked, privatePeople.person]);
+  }, [requestedDate, run, unlocked, privatePeople.person, vaultData.defaultLocation]);
 
   const selectedDay = useMemo(
     () => data?.days.find((d) => d.date === selectedDate) ?? data?.days[0] ?? null,

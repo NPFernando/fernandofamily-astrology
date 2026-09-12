@@ -1148,6 +1148,7 @@ export function MuhurtaClient() {
     let cancelled = false;
     (async () => {
       const initial = await resolveDefaultScheduleRequest({
+        defaultLocation: unlocked ? vaultData.defaultLocation ?? null : null,
         recentLocation: unlocked ? privatePeople.person?.current_location ?? privatePeople.person?.birthplace ?? vaultLocation : null,
         derivedIdentitySeed: unlocked ? vaultData.derivedIdentitySeed ?? null : null,
         selectedBird: unlocked ? vaultData.selectedBird ?? null : null,

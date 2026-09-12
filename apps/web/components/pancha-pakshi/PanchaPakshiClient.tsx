@@ -162,6 +162,7 @@ export function PanchaPakshiClient() {
     let cancelled = false;
     (async () => {
       const request = await resolveDefaultScheduleRequest({
+        defaultLocation: unlocked ? vaultData.defaultLocation ?? null : null,
         recentLocation: unlocked ? vaultData.recentLocations?.[0] ?? null : null,
         derivedIdentitySeed: unlocked ? vaultData.derivedIdentitySeed ?? null : null,
         selectedBird: unlocked ? vaultData.selectedBird ?? null : null,
@@ -173,7 +174,7 @@ export function PanchaPakshiClient() {
     return () => {
       cancelled = true;
     };
-  }, [unlocked, vaultData.derivedIdentitySeed, vaultData.recentLocations, vaultData.selectedBird, vaultData.sessionSchedule, vaultReady, runSchedule]);
+  }, [unlocked, vaultData.defaultLocation, vaultData.derivedIdentitySeed, vaultData.recentLocations, vaultData.selectedBird, vaultData.sessionSchedule, vaultReady, runSchedule]);
 
   const refetch = useCallback(() => {
     if (lastRequest && isOnline) runSchedule(lastRequest);

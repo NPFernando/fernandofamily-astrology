@@ -12,7 +12,6 @@ import {
 import {
   DEFAULT_LOCATION,
   LocationPicker,
-  mostRecentLocation,
   useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
@@ -23,12 +22,16 @@ import { addProfile } from "@/lib/profiles";
 import { useSessionProbe } from "@/lib/use-session-probe";
 import { useLocalVault } from "@/components/LocalVaultProvider";
 import { derivedIdentitySeedFor, setEphemeralDerivedIdentitySeed } from "@/lib/pancha-schedule-state";
+import { usePrivatePeople } from "@/lib/use-private-people";
+import { PrivatePersonPicker } from "@/components/private-people/PrivatePersonPicker";
+import { PrivatePersonSaveButton } from "@/components/private-people/PrivatePersonSaveButton";
 
 export function BirthNakshatraClient() {
   const { dict, locale } = useLocale();
   const router = useRouter();
   const probe = useSessionProbe();
   const { unlocked, update: updateVault } = useLocalVault();
+  const privatePeople = usePrivatePeople();
   const vaultLocation = useVaultRecentLocation();
   const signedIn = Boolean(probe.user?.email);
   const [birthDate, setBirthDate] = useState("");
@@ -41,10 +44,18 @@ export function BirthNakshatraClient() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Hydrate after mount because recent locations live in localStorage.
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
-    setLocation(vaultLocation ?? mostRecentLocation() ?? DEFAULT_LOCATION);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate only from the unlocked vault.
+    setLocation(vaultLocation ?? DEFAULT_LOCATION);
   }, [vaultLocation]);
+
+  useEffect(() => {
+    if (!privatePeople.person) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate form fields when the active encrypted person changes.
+    setBirthDate(privatePeople.person.birth_date);
+    setBirthTime(privatePeople.person.birth_time);
+    setLocation(privatePeople.person.birthplace);
+    setResult(null);
+  }, [privatePeople.person]);
 
   const canCalculate = birthDate !== "" && birthTime !== "" && location !== null;
 
@@ -84,7 +95,7 @@ export function BirthNakshatraClient() {
     }
   }
 
-  function openTool(path: "/pancha-pakshi" | "/daily-guide") {
+  function openTool(path: "/pancha-pakshi" | "/daily-guide" | "/muhurta") {
     seedResult();
     router.push(`/${locale}${path}`);
   }
@@ -109,6 +120,11 @@ export function BirthNakshatraClient() {
     }
   }
 
+  async function savePrivatePerson(label: string) {
+    if (!birthDate || !birthTime || !location || !privatePeople.unlocked) return;
+    await privatePeople.savePerson({ label, birth_date: birthDate, birth_time: birthTime.length === 5 ? `${birthTime}:00` : birthTime, birthplace: location });
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <header className="max-w-3xl">
@@ -129,6 +145,7 @@ export function BirthNakshatraClient() {
           {dict.birthNakshatra.birthDetailsTitle}
         </h2>
         <div className="mt-4 flex flex-col gap-4">
+          <PrivatePersonPicker people={privatePeople.people} selectedId={privatePeople.selectedId} unlocked={privatePeople.unlocked} onSelect={privatePeople.selectPerson} onDelete={privatePeople.removePerson} />
           <TargetDateTimeFields
             value={{ date: birthDate, time: birthTime }}
             onChange={(value) => {
@@ -150,6 +167,7 @@ export function BirthNakshatraClient() {
           >
             {loading ? dict.ui.loading : dict.birthNakshatra.calculate}
           </button>
+          {privatePeople.unlocked && <PrivatePersonSaveButton disabled={!canCalculate} onSave={savePrivatePerson} />}
         </div>
       </section>
 
@@ -166,7 +184,7 @@ export function BirthNakshatraClient() {
             <div
               key={i}
               aria-hidden
-              className="h-20 rounded-lg border border-black/10 bg-black/[.04] motion-safe:animate-pulse dark:border-white/10 dark:bg-white/[.06]"
+              className="h-20 rounded-lg skeleton-shimmer"
             />
           ))}
         </div>
@@ -212,6 +230,13 @@ export function BirthNakshatraClient() {
                 className="rounded-lg border border-accent/40 px-4 py-2 text-sm font-semibold text-accent hover:bg-accent/10"
               >
                 {dict.birthNakshatra.openDailyGuide}
+              </button>
+              <button
+                type="button"
+                onClick={() => openTool("/muhurta")}
+                className="rounded-lg border border-accent/40 px-4 py-2 text-sm font-semibold text-accent hover:bg-accent/10"
+              >
+                {dict.birthNakshatra.openMuhurta}
               </button>
               <button
                 type="button"

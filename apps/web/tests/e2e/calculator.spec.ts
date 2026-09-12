@@ -107,6 +107,8 @@ test("saved profiles: save → chip → schedule from chip → delete", async ({
   await expect(chip.first()).toBeVisible();
   await chip.first().click();
   await waitForSchedule(page, "en");
+  await expect(chip.first()).toHaveAttribute("aria-pressed", "true");
+  await expect(chip.first().locator("xpath=..")).toContainText(dict.ui.activeProfile);
   // Delete the chip (remove affordance next to it).
   await page.getByRole("button", { name: dict.ui.deleteProfile }).first().click();
   await expect(page.getByText("Amma")).toBeHidden();
@@ -171,7 +173,7 @@ test("pancha pakshi guidance appears in best windows and legend", async ({ page 
   await expect(panel.getByText(DICTS.en.guidance.disclaimer)).toBeVisible();
 });
 
-test("signed-in account defaults drive zero-click and can be changed/reset", async ({ page }) => {
+test("signed-in account bird defaults drive zero-click while saved locations stay vault-local", async ({ page }) => {
   const dict = DICTS.en;
   const updates: unknown[] = [];
   let preferences = {
@@ -208,7 +210,8 @@ test("signed-in account defaults drive zero-click and can be changed/reset", asy
   await page.goto("/en/pancha-pakshi");
   await waitForSchedule(page, "en");
   await expectMainBird(page, "en", "cock");
-  await expect(page.getByText("Kandy, Sri Lanka").first()).toBeVisible();
+  await expect(page.getByText("Kandy, Sri Lanka").first()).not.toBeVisible();
+  await expect(page.getByText("Colombo, Sri Lanka").first()).toBeVisible();
 
   await page.getByRole("button", { name: /E2E User/ }).click();
   const panel = page.getByTestId("account-defaults-panel");

@@ -13,6 +13,7 @@ RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 COPY apps/api/app ./app
 COPY apps/api/scripts ./scripts
 COPY apps/api/vendor ./vendor
+COPY packages/feature-registry/features.json ./packages/feature-registry/features.json
 # Verify the complete repo vendor tree first, then assemble the trimmed copy
 # the image actually ships: everything except data/ephe, plus only the
 # ephemeris files covering 1800-2399 (all realistic births + targets — the
@@ -42,6 +43,7 @@ WORKDIR /app
 COPY --from=builder /install /usr/local
 COPY --from=builder /build/app ./app
 COPY --from=builder /build/scripts ./scripts
+COPY --from=builder /build/packages/feature-registry ./packages/feature-registry
 COPY --from=builder /trimmed-vendor ./vendor
 RUN chown -R app:app /app
 USER app

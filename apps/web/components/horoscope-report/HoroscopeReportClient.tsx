@@ -19,7 +19,6 @@ import {
 import {
   DEFAULT_LOCATION,
   LocationPicker,
-  mostRecentLocation,
   useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
@@ -33,6 +32,9 @@ import { useSessionProbe } from "@/lib/use-session-probe";
 import { useLocalVault } from "@/components/LocalVaultProvider";
 import { derivedIdentitySeedFor, setEphemeralDerivedIdentitySeed } from "@/lib/pancha-schedule-state";
 import { useRecentBirthDetails } from "@/lib/recent-birth-details";
+import { usePrivatePeople } from "@/lib/use-private-people";
+import { PrivatePersonPicker } from "@/components/private-people/PrivatePersonPicker";
+import { PrivatePersonSaveButton } from "@/components/private-people/PrivatePersonSaveButton";
 
 type ReportResult = {
   request: BirthNakshatraRequest;
@@ -80,6 +82,7 @@ function replaceTokens(template: string, values: Record<string, string | number>
 export function HoroscopeReportClient() {
   const { dict, locale } = useLocale();
   const { recent, saveRecentBirthDetails } = useRecentBirthDetails();
+  const privatePeople = usePrivatePeople();
   const { unlocked, update: updateVault } = useLocalVault();
   const vaultLocation = useVaultRecentLocation();
   const router = useRouter();
@@ -97,14 +100,22 @@ export function HoroscopeReportClient() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Hydrate after mount because recent locations/birth details live in localStorage.
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
-    setLocation(vaultLocation ?? mostRecentLocation() ?? DEFAULT_LOCATION);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate only from the unlocked vault.
+    setLocation(vaultLocation ?? DEFAULT_LOCATION);
     if (recent) {
       setBirthDate(recent.birth_date);
       setBirthTime(recent.birth_time);
     }
   }, [recent, vaultLocation]);
+
+  useEffect(() => {
+    if (!privatePeople.person) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate form fields when the active encrypted person changes.
+    setBirthDate(privatePeople.person.birth_date);
+    setBirthTime(privatePeople.person.birth_time);
+    setLocation(privatePeople.person.birthplace);
+    setResult(null);
+  }, [privatePeople.person]);
 
   const canCalculate = birthDate !== "" && birthTime !== "" && location !== null;
   const currentDasha = useMemo(() => (result ? findCurrentDasha(result.dasha.periods, todayKey()) : null), [result]);
@@ -178,6 +189,11 @@ export function HoroscopeReportClient() {
     }
   }
 
+  async function savePrivatePerson(label: string) {
+    if (!birthDate || !birthTime || !location || !privatePeople.unlocked) return;
+    await privatePeople.savePerson({ label, birth_date: birthDate, birth_time: birthTime.length === 5 ? `${birthTime}:00` : birthTime, birthplace: location });
+  }
+
   async function shareReport() {
     if (!result) return;
     setSharing(true);
@@ -218,6 +234,7 @@ export function HoroscopeReportClient() {
           {dict.horoscopeReport.birthDetailsTitle}
         </h2>
         <div className="mt-4 flex flex-col gap-4">
+          <PrivatePersonPicker people={privatePeople.people} selectedId={privatePeople.selectedId} unlocked={privatePeople.unlocked} onSelect={privatePeople.selectPerson} onDelete={privatePeople.removePerson} />
           <TargetDateTimeFields
             value={{ date: birthDate, time: birthTime }}
             onChange={(value) => {
@@ -239,6 +256,7 @@ export function HoroscopeReportClient() {
           >
             {loading ? dict.ui.loading : dict.horoscopeReport.calculate}
           </button>
+          {privatePeople.unlocked && <PrivatePersonSaveButton disabled={!canCalculate} onSave={savePrivatePerson} />}
         </div>
       </section>
 
@@ -255,7 +273,7 @@ export function HoroscopeReportClient() {
             <div
               key={i}
               aria-hidden
-              className="h-24 rounded-xl border border-black/10 bg-black/[.04] motion-safe:animate-pulse dark:border-white/10 dark:bg-white/[.06]"
+              className="h-24 rounded-xl skeleton-shimmer"
             />
           ))}
         </div>

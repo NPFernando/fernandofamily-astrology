@@ -1,42 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { NAKSHATRAS, nakshatraName } from "@/lib/i18n";
 import type { NakshatraPakshaInput, PakshaId } from "@/lib/api-client";
-import { LocationPicker, mostRecentLocation, useVaultRecentLocation, type LocationValue } from "./LocationPicker";
+import { LocationPicker, type LocationValue } from "./LocationPicker";
 import { TargetDateTimeFields, nowAsTargetDateTime, type TargetDateTime } from "./TargetDateTimeFields";
 
 export function NakshatraPakshaForm({
+  location,
+  onLocationChange,
   onSubmit,
 }: {
+  location: LocationValue | null;
+  onLocationChange: (location: LocationValue) => void;
   onSubmit: (input: NakshatraPakshaInput) => void;
 }) {
   const { dict, locale } = useLocale();
-  const vaultLocation = useVaultRecentLocation();
   const [nakshatraId, setNakshatraId] = useState<number | null>(null);
   const [paksha, setPaksha] = useState<PakshaId | null>(null);
-  const [target, setTarget] = useState<TargetDateTime>(nowAsTargetDateTime());
+  const [target, setTarget] = useState<TargetDateTime | null>(null);
   const [targetTouched, setTargetTouched] = useState(false);
-  const [location, setLocation] = useState<LocationValue | null>(null);
-
-  useEffect(() => {
-    // Carries the last-used location over between method tabs and between
-    // Pancha Pakshi and Panchanga, instead of always starting empty. Seeded
-    // post-mount (not a lazy initializer) since mostRecentLocation() reads
-    // localStorage — matching the hydration-safe pattern LocationPicker
-    // itself and PanchangaClient already use.
-    const recent = vaultLocation ?? mostRecentLocation();
-    if (recent) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
-      setLocation(recent);
-      setTarget(nowAsTargetDateTime(recent.iana_tz));
-    }
-  }, [vaultLocation]);
+  const effectiveTarget = target ?? nowAsTargetDateTime(location?.iana_tz);
 
   const canSubmit = nakshatraId !== null && paksha !== null && location !== null;
   function chooseLocation(next: LocationValue) {
-    setLocation(next);
+    onLocationChange(next);
     if (!targetTouched) setTarget(nowAsTargetDateTime(next.iana_tz));
   }
 
@@ -81,7 +70,7 @@ export function NakshatraPakshaForm({
       </div>
 
       <TargetDateTimeFields
-        value={target}
+        value={effectiveTarget}
         onChange={(next) => {
           setTarget(next);
           setTargetTouched(true);
@@ -103,8 +92,8 @@ export function NakshatraPakshaForm({
             nakshatra_index: nakshatraId!,
             paksha: paksha!,
             moon_rashi_index: null,
-            target_date: target.date,
-            target_time: target.time,
+            target_date: effectiveTarget.date,
+            target_time: effectiveTarget.time,
             location_name: location!.name,
             latitude: location!.latitude,
             longitude: location!.longitude,

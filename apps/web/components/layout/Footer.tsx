@@ -21,6 +21,9 @@ export function Footer() {
           <Link href={`/${locale}/methodology`} className="hover:underline">
             {dict.nav.methodology}
           </Link>
+          <Link href={`/${locale}/roadmap`} className="hover:underline">
+            {dict.roadmap.title}
+          </Link>
           <Link href={`/${locale}/privacy`} className="hover:underline">
             {dict.nav.privacy}
           </Link>

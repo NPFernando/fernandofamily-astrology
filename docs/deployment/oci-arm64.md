@@ -35,6 +35,10 @@ curl http://127.0.0.1:8100/metrics
 a reverse proxy (nginx, Caddy, or otherwise) is required to actually expose
 the site publicly. See [`dns-and-https.md`](dns-and-https.md).
 
+Production monitoring is also loopback-only and opt-in. Follow
+[`monitoring.md`](monitoring.md) to create its file-backed secrets, enable
+the `monitoring` Compose profile, and reach Grafana through an SSH tunnel.
+
 ## Subsequent deploys (CI/CD)
 
 Once GHCR images are being published by `build.yml`, production deploys can
@@ -53,8 +57,9 @@ be automated via `.github/workflows/deploy.yml`, which:
    its input is a bare image tag before doing anything), never an arbitrary
    remote shell.
 4. Runs `infra/deploy/deploy.sh <image-tag>`, which pulls the new images,
-   brings the stack up, health-checks it, and rolls back to the last known
-   good tag on failure.
+   brings the stack up, verifies API readiness plus the local web shell,
+   manifest, service worker, and deployed commit, then rolls back to the last
+   known-good tag on failure.
 
 Required repository secrets for this: `DEPLOY_SSH_HOST`, `DEPLOY_SSH_USER`,
 `DEPLOY_SSH_KEY` (the private half of the restricted deploy key). None of

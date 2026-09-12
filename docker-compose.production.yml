@@ -41,3 +41,106 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+  prometheus:
+    # Started only with `--profile monitoring`; its UI is loopback-only and
+    # the API allows the compose-network scrape source by default.
+    image: prom/prometheus:v3.11.3
+    profiles: ["monitoring"]
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --web.enable-lifecycle=false
+    volumes:
+      - ./infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./infra/monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+    depends_on:
+      - api
+      - alertmanager
+      - blackbox-exporter
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  blackbox-exporter:
+    # Probes the public HTTPS edge from the production network. It has no
+    # published port; Prometheus reaches it only over the Compose network.
+    image: prom/blackbox-exporter:v0.28.0
+    profiles: ["monitoring"]
+    command:
+      - --config.file=/config/blackbox.yml
+    volumes:
+      - ./infra/monitoring/blackbox.yml:/config/blackbox.yml:ro
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  alertmanager:
+    image: prom/alertmanager:v0.30.1
+    profiles: ["monitoring"]
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+      - --enable-feature=utf8-strict-mode
+    volumes:
+      - ./infra/monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    secrets:
+      - alert_webhook_url
+    ports:
+      - "127.0.0.1:9093:9093"
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  grafana:
+    image: grafana/grafana:12.4.3-security-02
+    profiles: ["monitoring"]
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_USERS_ALLOW_ORG_CREATE: "false"
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://127.0.0.1:3200}
+      GF_DATAPROXY_ALLOWED_URLS: http://prometheus:9090
+    volumes:
+      - ./infra/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    secrets:
+      - grafana_admin_password
+    ports:
+      - "127.0.0.1:3200:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  prometheus-data:
+  alertmanager-data:
+  grafana-data:
+
+secrets:
+  alert_webhook_url:
+    file: ${ALERT_WEBHOOK_URL_FILE:-.monitoring/alert-webhook-url}
+  grafana_admin_password:
+    file: ${GRAFANA_ADMIN_PASSWORD_FILE:-.monitoring/grafana-admin-password}

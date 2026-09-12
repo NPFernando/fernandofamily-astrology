@@ -11,6 +11,7 @@ import { useLocale } from "@/lib/locale-context";
 import { translateEnum } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme-context";
 import type { BirdId } from "@/lib/api-client";
+import { useLocalVault } from "@/components/LocalVaultProvider";
 import {
   LocationPicker,
   type LocationValue,
@@ -21,6 +22,7 @@ const BIRDS: BirdId[] = ["vulture", "owl", "crow", "cock", "peacock"];
 export function AccountDefaultsPanel() {
   const { dict, locale } = useLocale();
   const { theme } = useTheme();
+  const { data: vaultData, unlocked, update: updateVault } = useLocalVault();
   const [preferences, setPreferences] = useState<AccountPreferences | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -56,20 +58,43 @@ export function AccountDefaultsPanel() {
     void save({ default_bird: bird });
   }
 
-  function saveLocation(loc: LocationValue) {
-    void save({ default_location: loc });
+  async function saveLocation(loc: LocationValue) {
+    if (!unlocked) {
+      setStatus(dict.ui.unlockVaultForDefaultLocation);
+      return;
+    }
+    setSaving(true);
+    setStatus(null);
+    await updateVault((current) => ({ ...current, defaultLocation: loc }));
+    if (preferences?.default_location) {
+      const result = await saveAccountPreferences({ default_location: null });
+      if (result.available) setPreferences(result.preferences);
+    }
+    setSaving(false);
+    setStatus(dict.ui.accountDefaultsSaved);
+    window.setTimeout(() => setStatus(null), 1800);
   }
 
-  function clearLocation() {
-    void save({ default_location: null });
+  async function clearLocation() {
+    if (!unlocked) return;
+    setSaving(true);
+    await updateVault((current) => ({ ...current, defaultLocation: undefined }));
+    if (preferences?.default_location) {
+      const result = await saveAccountPreferences({ default_location: null });
+      if (result.available) setPreferences(result.preferences);
+    }
+    setSaving(false);
+    setStatus(dict.ui.accountDefaultsSaved);
+    window.setTimeout(() => setStatus(null), 1800);
   }
 
-  function resetDefaults() {
+  async function resetDefaults() {
+    if (unlocked) await updateVault((current) => ({ ...current, defaultLocation: undefined }));
     void save({ locale: null, theme: null, default_bird: null, default_location: null });
   }
 
   const defaultBird = preferences?.default_bird ?? null;
-  const defaultLocation = preferences?.default_location ?? null;
+  const defaultLocation = unlocked ? vaultData.defaultLocation ?? null : null;
 
   return (
     <section
@@ -137,21 +162,26 @@ export function AccountDefaultsPanel() {
       <div className="mt-3 px-2">
         <div className="mb-1 flex items-center justify-between gap-2">
           <p className="text-xs font-medium opacity-70">{dict.ui.defaultLocation}</p>
-          {defaultLocation && (
+          {defaultLocation && unlocked && (
             <button
               type="button"
               onClick={clearLocation}
-              disabled={saving}
+              disabled={saving || !unlocked}
               className="text-xs text-accent underline underline-offset-2 disabled:opacity-50"
             >
               {dict.ui.clearDefault}
             </button>
           )}
         </div>
-        {loaded ? (
+        {preferences?.default_location && !unlocked && (
+          <p className="mb-2 text-xs opacity-70">{dict.ui.unlockVaultForDefaultLocation}</p>
+        )}
+        {loaded && unlocked ? (
           <LocationPicker value={defaultLocation} onChange={saveLocation} />
-        ) : (
+        ) : !loaded ? (
           <p className="text-xs opacity-70">{dict.ui.loading}</p>
+        ) : (
+          <p className="text-xs opacity-70">{dict.ui.unlockVaultForDefaultLocation}</p>
         )}
       </div>
 

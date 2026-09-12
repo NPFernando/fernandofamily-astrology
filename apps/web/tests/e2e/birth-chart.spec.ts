@@ -32,6 +32,15 @@ for (const locale of ["en", "si"] as const) {
     await expect(page.locator('[data-testid="rasi-overlay-chitra"]')).toBeVisible();
     await expect(page.locator('[data-testid="rasi-overlay-chitra"]')).toContainText("Spica");
   });
+
+  test(`birth chart (${locale}): result explanation is available without cluttering the chart`, async ({ page }) => {
+    const dict = DICTS[locale];
+    await calculateBirthChart(page, locale);
+    const explanation = page.locator('[data-testid="result-explanation"]');
+    await expect(explanation).not.toHaveAttribute("open");
+    await explanation.getByText(dict.ui.resultGuideTitle).click();
+    await expect(explanation).toContainText(dict.ui.resultGuideBody);
+  });
 }
 
 test("birth chart: invalid location shows a validation error, not a crash", async ({ page }) => {

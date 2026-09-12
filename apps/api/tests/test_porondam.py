@@ -348,11 +348,22 @@ def test_porondam_match_endpoint_invalid_location_rejected():
     assert res.status_code == 422
 
 
-def test_platform_metadata_does_not_list_porondam_yet():
-    # Porondam is not registered in feature-registry/metadata this round --
-    # it's reached only via its own route, not surfaced as a public feature
-    # tile until the frontend build-out (a later step in this same plan).
+def test_platform_metadata_lists_all_public_features():
     res = client.get("/api/v1/metadata")
     assert res.status_code == 200
     ids = {item["id"] for item in res.json()["features"]}
-    assert "porondam" not in ids
+    assert ids == {
+        "birth-nakshatra",
+        "pancha-pakshi",
+        "panchanga",
+        "moon-calendar",
+        "daily-guide",
+        "family-almanac",
+        "muhurta",
+        "compatibility",
+        "divisional-charts",
+        "porondam",
+        "birth-chart",
+        "horoscope-report",
+        "dasha",
+    }

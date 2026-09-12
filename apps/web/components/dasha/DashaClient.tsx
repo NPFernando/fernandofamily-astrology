@@ -6,7 +6,6 @@ import { ApiError, fetchDasha, type DashaTimeline as DashaTimelineData } from "@
 import {
   DEFAULT_LOCATION,
   LocationPicker,
-  mostRecentLocation,
   useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
@@ -14,10 +13,15 @@ import { TargetDateTimeFields } from "@/components/pancha-pakshi/TargetDateTimeF
 import { DashaIcon } from "@/components/icons/features";
 import { DashaTimeline } from "@/components/dasha/DashaTimeline";
 import { useRecentBirthDetails } from "@/lib/recent-birth-details";
+import { ResultExplanation } from "@/components/ui/ResultExplanation";
+import { usePrivatePeople } from "@/lib/use-private-people";
+import { PrivatePersonPicker } from "@/components/private-people/PrivatePersonPicker";
+import { PrivatePersonSaveButton } from "@/components/private-people/PrivatePersonSaveButton";
 
 export function DashaClient() {
   const { dict } = useLocale();
   const { recent, saveRecentBirthDetails } = useRecentBirthDetails();
+  const privatePeople = usePrivatePeople();
   const vaultLocation = useVaultRecentLocation();
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
@@ -28,9 +32,8 @@ export function DashaClient() {
 
   useEffect(() => {
     // Hydrate after mount because recent locations/birth details live in
-    // localStorage.
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
-    setLocation(vaultLocation ?? mostRecentLocation() ?? DEFAULT_LOCATION);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate only from the unlocked vault.
+    setLocation(vaultLocation ?? DEFAULT_LOCATION);
     if (recent) {
 
       setBirthDate(recent.birth_date);
@@ -38,6 +41,20 @@ export function DashaClient() {
       setBirthTime(recent.birth_time);
     }
   }, [recent, vaultLocation]);
+
+  useEffect(() => {
+    if (!privatePeople.person) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate form fields when the active encrypted person changes.
+    setBirthDate(privatePeople.person.birth_date);
+    setBirthTime(privatePeople.person.birth_time);
+    setLocation(privatePeople.person.birthplace);
+    setResult(null);
+  }, [privatePeople.person]);
+
+  async function savePrivatePerson(label: string) {
+    if (!birthDate || !birthTime || !location || !privatePeople.unlocked) return;
+    await privatePeople.savePerson({ label, birth_date: birthDate, birth_time: birthTime.length === 5 ? `${birthTime}:00` : birthTime, birthplace: location });
+  }
 
   const canCalculate = birthDate !== "" && birthTime !== "" && location !== null;
 
@@ -82,6 +99,7 @@ export function DashaClient() {
           {dict.dasha.birthDetailsTitle}
         </h2>
         <div className="mt-4 flex flex-col gap-4">
+          <PrivatePersonPicker people={privatePeople.people} selectedId={privatePeople.selectedId} unlocked={privatePeople.unlocked} onSelect={privatePeople.selectPerson} onDelete={privatePeople.removePerson} />
           <TargetDateTimeFields
             value={{ date: birthDate, time: birthTime }}
             onChange={(value) => {
@@ -103,6 +121,7 @@ export function DashaClient() {
           >
             {loading ? dict.ui.loading : dict.dasha.calculate}
           </button>
+          {privatePeople.unlocked && <PrivatePersonSaveButton disabled={!canCalculate} onSave={savePrivatePerson} />}
         </div>
       </section>
 
@@ -115,7 +134,7 @@ export function DashaClient() {
       {loading && !result && (
         <div role="status" className="flex flex-col gap-2">
           <span className="sr-only">{dict.ui.loading}</span>
-          <div aria-hidden className="flex flex-col gap-2 motion-safe:animate-pulse">
+          <div aria-hidden className="flex flex-col gap-2 skeleton-shimmer">
             {Array.from({ length: 9 }, (_, i) => (
               <div
                 key={i}
@@ -129,6 +148,7 @@ export function DashaClient() {
       {result && (
         <section data-testid="dasha-result" className="flex flex-col gap-3">
           <h2 className="text-sm font-semibold uppercase text-accent">{dict.dasha.resultTitle}</h2>
+          <ResultExplanation title={dict.ui.resultGuideTitle} body={dict.ui.resultGuideBody} />
           <DashaTimeline periods={result.periods} />
         </section>
       )}

@@ -129,6 +129,9 @@ reverse proxy is required to expose them publicly (see below).
   **not** use a self-hosted runner
 - [`docs/deployment/rollback.md`](docs/deployment/rollback.md) — automatic
   and manual rollback
+- [`docs/deployment/database-backups.md`](docs/deployment/database-backups.md)
+  — confidential local and encrypted off-host PostgreSQL backups, with
+  isolated monthly restore drills
 
 ## Environment variables
 

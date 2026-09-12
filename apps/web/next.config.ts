@@ -5,6 +5,10 @@ import path from "node:path";
 // backend so the frontend can always call same-origin relative URLs, matching
 // production where nginx does this proxying instead.
 const API_PROXY_TARGET = process.env.API_PROXY_TARGET ?? "http://127.0.0.1:8100";
+const SHARP_LIBVIPS_TRACE = [
+  "./node_modules/.pnpm/@img+sharp-libvips-linux-arm64@*/node_modules/@img/sharp-libvips-linux-arm64/lib/**",
+  "./node_modules/.pnpm/@img+sharp-libvips-linux-x64@*/node_modules/@img/sharp-libvips-linux-x64/lib/**",
+];
 
 const nextConfig: NextConfig = {
   output: "standalone",
@@ -17,6 +21,14 @@ const nextConfig: NextConfig = {
   // monorepo root) — tell Next.js's bundler that's the real project root so
   // it resolves those files instead of treating apps/web as an island.
   outputFileTracingRoot: path.join(__dirname, "../.."),
+  // Sharp loads libvips via a native module at runtime. Its JavaScript package
+  // is traced through serverExternalPackages, but the shared library is not,
+  // leaving share-card requests as 500s in a standalone deployment.
+  outputFileTracingIncludes: {
+    "/api/share-card": SHARP_LIBVIPS_TRACE,
+    "/api/share-family-card": SHARP_LIBVIPS_TRACE,
+    "/api/share-horoscope-report": SHARP_LIBVIPS_TRACE,
+  },
   turbopack: {
     root: path.join(__dirname, "../.."),
   },

@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { useLocale } from "@/lib/locale-context";
+import { formatLocalDate } from "@/lib/formatters";
 
 function shiftDate(iso: string, days: number): string {
   const d = new Date(`${iso}T12:00:00`); // noon avoids DST-midnight edge shifts
@@ -26,10 +27,7 @@ export function DateNav({
   const min = boundIso(-366);
   const max = boundIso(366);
 
-  const display = new Date(`${date}T12:00:00`).toLocaleDateString(
-    locale === "si" ? "si-LK" : "en-US",
-    { weekday: "short", year: "numeric", month: "short", day: "numeric" },
-  );
+  const display = formatLocalDate(date, locale, { weekday: "short", year: "numeric", month: "short", day: "numeric" });
 
   return (
     <div className="flex items-center gap-1 print:hidden">

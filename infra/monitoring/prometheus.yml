@@ -1,0 +1,35 @@
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+rule_files:
+  - /etc/prometheus/alerts.yml
+
+scrape_configs:
+  - job_name: astrology-api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["api:8000"]
+
+  # These targets deliberately use the public hostname, so the probe covers
+  # DNS, TLS, and reverse-proxy routing rather than only the Compose service.
+  - job_name: public-https
+    metrics_path: /probe
+    params:
+      module: [public_https]
+    static_configs:
+      - targets:
+          - https://astrology.fernandofamily.com/en
+          - https://astrology.fernandofamily.com/api/v1/health/ready
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115

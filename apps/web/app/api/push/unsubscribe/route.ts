@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { isMissingTableError, requirePushEnabled, requirePushStorage } from "@/lib/push-api";
+import { isPushStorageUnavailableError, requirePushEnabled, requirePushStorage } from "@/lib/push-api";
 
 export async function POST(request: Request) {
   const gate = requirePushEnabled();
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     await query(`DELETE FROM push_subscriptions WHERE endpoint = $1`, [body.endpoint]);
     await query(`DELETE FROM push_sent WHERE endpoint = $1`, [body.endpoint]);
   } catch (e) {
-    if (isMissingTableError(e)) {
+    if (isPushStorageUnavailableError(e)) {
       return NextResponse.json({ error: "storage_unavailable" }, { status: 503 });
     }
     throw e;

@@ -58,6 +58,8 @@ for (const locale of ["en", "si"] as const) {
     const dict = DICTS[locale];
 
     await expect(page.locator('[data-testid="daily-guide-summary"]')).toBeVisible();
+    await expect(page.locator('[data-testid="daily-guide-command-center"]')).toBeVisible();
+    await expect(page.locator('[data-testid="daily-guide-command-center"]')).toContainText(DICTS[locale].dailyGuide.todayCommandCenterTitle);
     await expect(page.locator('[data-testid="daily-guide-timing-timeline"]')).toBeVisible();
     await expect(page.locator('[data-testid="daily-guide-timing-timeline-strip"]')).toBeVisible();
     await expect(page.locator('[data-testid="daily-guide-family-board"]')).toBeVisible();
@@ -74,6 +76,16 @@ for (const locale of ["en", "si"] as const) {
     watcher.assertClean();
   });
 }
+
+test("daily guide: result navigation and source context are available", async ({ page }) => {
+  await openDailyGuide(page, "en");
+  const navigation = page.locator('[data-testid="result-navigation"]');
+  await expect(navigation).toContainText(DICTS.en.dailyGuide.currentTitle);
+  const source = page.locator('[data-testid="source-context"]');
+  await expect(source).toContainText(DICTS.en.ui.sourceContextTitle);
+  await source.getByText(DICTS.en.ui.sourceContextTitle).click();
+  await expect(source).toContainText(DICTS.en.ui.sourceContextBody);
+});
 
 test("daily guide: real Poya date shows Poya badge and ordinary date shows next Poya", async ({
   page,
@@ -209,6 +221,18 @@ test("daily guide: changing bird refreshes the guide identity", async ({ page })
     DICTS.en.enums.birds.owl,
     { timeout: 20_000 },
   );
+});
+
+test("daily guide: the tab's active derived profile is used ahead of the newest profile", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("ff_saved_profiles", JSON.stringify([
+      { id: "active-owl", label: "Active Owl", bird: "owl", nakshatra_index: null, paksha: null, moon_rashi_index: null, created_at: "2026-08-05T00:00:00.000Z" },
+      { id: "newer-peacock", label: "Newer Peacock", bird: "peacock", nakshatra_index: null, paksha: null, moon_rashi_index: null, created_at: "2026-08-05T00:01:00.000Z" },
+    ]));
+    window.sessionStorage.setItem("ff_active_profile_id", "active-owl");
+  });
+  await openDailyGuide(page, "en");
+  await expect(page.locator('[data-testid="daily-guide-summary"]')).toContainText(DICTS.en.enums.birds.owl);
 });
 
 test("@mobile daily guide keeps cards within 360px", async ({ page }) => {

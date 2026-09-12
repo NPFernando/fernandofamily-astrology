@@ -6,7 +6,6 @@ import { ApiError, fetchNavamsaChart, type NavamsaChart as NavamsaChartData } fr
 import {
   DEFAULT_LOCATION,
   LocationPicker,
-  mostRecentLocation,
   useVaultRecentLocation,
   type LocationValue,
 } from "@/components/pancha-pakshi/LocationPicker";
@@ -14,10 +13,15 @@ import { TargetDateTimeFields } from "@/components/pancha-pakshi/TargetDateTimeF
 import { DivisionalChartsIcon } from "@/components/icons/features";
 import { NavamsaChart } from "@/components/divisional-charts/NavamsaChart";
 import { useRecentBirthDetails } from "@/lib/recent-birth-details";
+import { ResultExplanation } from "@/components/ui/ResultExplanation";
+import { usePrivatePeople } from "@/lib/use-private-people";
+import { PrivatePersonPicker } from "@/components/private-people/PrivatePersonPicker";
+import { PrivatePersonSaveButton } from "@/components/private-people/PrivatePersonSaveButton";
 
 export function DivisionalChartsClient() {
   const { dict } = useLocale();
   const { recent, saveRecentBirthDetails } = useRecentBirthDetails();
+  const privatePeople = usePrivatePeople();
   const vaultLocation = useVaultRecentLocation();
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
@@ -28,9 +32,8 @@ export function DivisionalChartsClient() {
 
   useEffect(() => {
     // Hydrate after mount because recent locations/birth details live in
-    // localStorage.
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount hydration from localStorage.
-    setLocation(vaultLocation ?? mostRecentLocation() ?? DEFAULT_LOCATION);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate only from the unlocked vault.
+    setLocation(vaultLocation ?? DEFAULT_LOCATION);
     if (recent) {
 
       setBirthDate(recent.birth_date);
@@ -38,6 +41,20 @@ export function DivisionalChartsClient() {
       setBirthTime(recent.birth_time);
     }
   }, [recent, vaultLocation]);
+
+  useEffect(() => {
+    if (!privatePeople.person) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate form fields when the active encrypted person changes.
+    setBirthDate(privatePeople.person.birth_date);
+    setBirthTime(privatePeople.person.birth_time);
+    setLocation(privatePeople.person.birthplace);
+    setResult(null);
+  }, [privatePeople.person]);
+
+  async function savePrivatePerson(label: string) {
+    if (!birthDate || !birthTime || !location || !privatePeople.unlocked) return;
+    await privatePeople.savePerson({ label, birth_date: birthDate, birth_time: birthTime.length === 5 ? `${birthTime}:00` : birthTime, birthplace: location });
+  }
 
   const canCalculate = birthDate !== "" && birthTime !== "" && location !== null;
 
@@ -84,6 +101,7 @@ export function DivisionalChartsClient() {
           {dict.divisionalCharts.birthDetailsTitle}
         </h2>
         <div className="mt-4 flex flex-col gap-4">
+          <PrivatePersonPicker people={privatePeople.people} selectedId={privatePeople.selectedId} unlocked={privatePeople.unlocked} onSelect={privatePeople.selectPerson} onDelete={privatePeople.removePerson} />
           <TargetDateTimeFields
             value={{ date: birthDate, time: birthTime }}
             onChange={(value) => {
@@ -105,6 +123,7 @@ export function DivisionalChartsClient() {
           >
             {loading ? dict.ui.loading : dict.divisionalCharts.calculate}
           </button>
+          {privatePeople.unlocked && <PrivatePersonSaveButton disabled={!canCalculate} onSave={savePrivatePerson} />}
         </div>
       </section>
 
@@ -117,7 +136,7 @@ export function DivisionalChartsClient() {
       {loading && !result && (
         <div role="status" className="flex flex-col gap-3">
           <span className="sr-only">{dict.ui.loading}</span>
-          <div aria-hidden className="motion-safe:animate-pulse">
+          <div aria-hidden className="skeleton-shimmer">
             <div className="aspect-square max-w-md rounded-xl border border-black/10 bg-black/[.04] dark:border-white/10 dark:bg-white/[.06]" />
           </div>
         </div>
@@ -126,6 +145,7 @@ export function DivisionalChartsClient() {
       {result && (
         <section data-testid="divisional-charts-result" className="flex flex-col gap-3">
           <h2 className="text-sm font-semibold uppercase text-accent">{dict.divisionalCharts.chartTitle}</h2>
+          <ResultExplanation title={dict.ui.resultGuideTitle} body={dict.ui.resultGuideBody} />
           <NavamsaChart chart={result} />
         </section>
       )}

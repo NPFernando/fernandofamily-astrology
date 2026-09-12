@@ -36,6 +36,7 @@ const FEATURES = [
   { id: "divisional-charts", titleKey: "features.divisionalCharts.title", descriptionKey: "features.divisionalCharts.description" },
   { id: "porondam", titleKey: "features.porondam.title", descriptionKey: "features.porondam.description" },
   { id: "birth-chart", titleKey: "features.birthChart.title", descriptionKey: "features.birthChart.description" },
+  { id: "horoscope-report", titleKey: "features.horoscopeReport.title", descriptionKey: "features.horoscopeReport.description" },
   { id: "dasha", titleKey: "features.dasha.title", descriptionKey: "features.dasha.description" },
 ];
 

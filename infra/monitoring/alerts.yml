@@ -1,0 +1,76 @@
+groups:
+  - name: fernandofamily-astrology
+    rules:
+      - alert: AstrologyApiDown
+        expr: up{job="astrology-api"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Astrology API scrape is down
+          runbook: docs/deployment/monitoring.md#api-down
+
+      - alert: PublicHttpsEndpointDown
+        expr: |
+          up{job="public-https"} == 0
+          or probe_success{job="public-https"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Public HTTPS endpoint probe is failing
+          runbook: docs/deployment/monitoring.md#public-https-endpoint-down
+
+      - alert: PublicHttpsCertificateExpiringSoon
+        expr: |
+          (probe_ssl_earliest_cert_expiry{job="public-https",instance="https://astrology.fernandofamily.com/en"} - time()) < 1209600
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: Public HTTPS certificate expires in less than 14 days
+          runbook: docs/deployment/monitoring.md#public-https-certificate-expiring
+
+      - alert: AstrologyApiServerErrors
+        expr: |
+          sum(rate(astrology_api_requests_total{status_code=~"5.."}[5m]))
+          / clamp_min(sum(rate(astrology_api_requests_total[5m])), 0.01) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: More than 5% of API requests are returning 5xx responses
+          runbook: docs/deployment/monitoring.md#server-errors
+
+      - alert: AstrologyApiRateLimited
+        expr: sum(rate(astrology_api_requests_total{status_code="429"}[10m])) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: API rate limiting is affecting more than three requests per minute
+          runbook: docs/deployment/monitoring.md#rate-limits
+
+      - alert: AstrologyApiSlowResponses
+        expr: |
+          histogram_quantile(0.95,
+            sum by (le) (rate(astrology_api_request_duration_seconds_bucket[5m]))
+          ) > 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: API p95 response time is above one second
+          runbook: docs/deployment/monitoring.md#slow-responses
+
+      - alert: PushDispatchFailures
+        expr: |
+          sum(rate(astrology_api_requests_total{
+            path="/api/internal/push-dispatch",status_code=~"5.."
+          }[15m])) > 0
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: Push dispatch has returned a server error
+          runbook: docs/deployment/monitoring.md#push-dispatch-failures

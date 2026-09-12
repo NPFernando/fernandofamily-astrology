@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { requireAccountSession } from "@/lib/account-api";
-import { normalizeAccountLocation } from "@/lib/account-location";
 
 const BIRDS = ["vulture", "owl", "crow", "cock", "peacock"];
 const LOCALES = ["en", "si"];
@@ -9,14 +8,6 @@ const THEMES = ["light", "dark"];
 
 function hasOwn(body: Record<string, unknown>, key: string): boolean {
   return Object.prototype.hasOwnProperty.call(body, key);
-}
-
-function normalizeLocation(value: unknown): string | null {
-  const normalized = normalizeAccountLocation(value);
-  if (normalized === null) return null;
-  if (normalized === "invalid") return "invalid";
-  const raw = JSON.stringify(normalized);
-  return raw.length > 500 ? "invalid" : raw;
 }
 
 export async function GET() {
@@ -58,13 +49,9 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "invalid_bird" }, { status: 422 });
   }
   const hasDefaultLocation = hasOwn(body, "default_location");
-  let defaultLocation: string | null = null;
-  if (hasDefaultLocation) {
-    // default_location is a {name, latitude, longitude, iana_tz} the user
-    // explicitly chose as their default — bounded to keep the jsonb small.
-    const normalized = normalizeLocation(body.default_location);
-    if (normalized === "invalid") return NextResponse.json({ error: "invalid_location" }, { status: 422 });
-    defaultLocation = normalized;
+  const defaultLocation: string | null = null;
+  if (hasDefaultLocation && body.default_location !== null) {
+    return NextResponse.json({ error: "location_requires_local_vault" }, { status: 410 });
   }
 
   // Partial-update semantics: omitted fields stay unchanged, explicit null

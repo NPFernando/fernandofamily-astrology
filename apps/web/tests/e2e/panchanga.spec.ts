@@ -76,16 +76,19 @@ for (const locale of ["en", "si"] as const) {
 // so it would make this test flaky for the wrong reason.
 const REAL_POYA_DATE = "2026-07-29";
 
-async function gotoDate(page: import("@playwright/test").Page, date: string) {
+async function gotoDate(page: import("@playwright/test").Page, locale: LocaleKey, date: string) {
+  const before = await page.locator('[data-testid="panchanga-result"] > p').first().textContent();
   await page.locator('input[type="date"]').fill(date);
-  await page.waitForTimeout(300);
+  // Changing the native date input starts an asynchronous recalculation. A
+  // short sleep can leave assertions reading the previously selected day.
+  await waitForPanchangaTextChange(page, locale, before);
 }
 
 for (const locale of ["en", "si"] as const) {
   test(`panchanga (${locale}): Poya badge shows on a real gazetted Poya day`, async ({ page }) => {
     await openPanchanga(page, locale);
     const dict = DICTS[locale];
-    await gotoDate(page, REAL_POYA_DATE);
+    await gotoDate(page, locale, REAL_POYA_DATE);
     const badge = page.locator('[data-testid="panchanga-poya-badge"]');
     await expect(badge).toBeVisible({ timeout: 20_000 });
     await expect(badge).toContainText(dict.panchanga.poyaTodayLabel);
@@ -100,7 +103,7 @@ test("panchanga: no Poya badge on an ordinary day, and the next-Poya line is pre
 }) => {
   await openPanchanga(page, "en");
   const dict = DICTS.en;
-  await gotoDate(page, "2026-07-15"); // the day after this real Poya is 07-29
+  await gotoDate(page, "en", "2026-07-15"); // the day after this real Poya is 07-29
   await expect(page.locator('[data-testid="panchanga-poya-badge"]')).toHaveCount(0);
   const nextPoya = page.locator('[data-testid="panchanga-next-poya"]');
   await expect(nextPoya).toBeVisible();
@@ -112,7 +115,7 @@ test("panchanga (si): Sinhala Poya month is the primary name shown, not the Sans
   page,
 }) => {
   await openPanchanga(page, "si");
-  await gotoDate(page, "2026-07-15"); // amanta "ashadha" / Sinhala "esala"
+  await gotoDate(page, "si", "2026-07-15"); // amanta "ashadha" / Sinhala "esala"
   const dict = DICTS.si;
   const monthCard = page.locator('[data-testid="panchanga-sinhala-month"]');
   await expect(monthCard).toContainText(dict.enums.sinhalaMonths.esala);

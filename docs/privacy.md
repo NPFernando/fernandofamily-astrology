@@ -1,21 +1,27 @@
 # Privacy
 
-## Accounts are optional; birth data never lives on the server
+## Accounts are optional; saved birth details stay in your local vault
 
-This app doesn't require an account. Everything works anonymously, with all
-data kept on your device. Each calculation request is processed and its
-result returned; nothing about the request itself is retained afterward.
+This app doesn't require an account. Birth details and precise locations are
+sent in POST request bodies to calculate the result you requested. The
+calculation service processes the request and returns a result; application
+access logs use an explicit allow-list and never include request bodies.
+Calculation inputs are not retained afterward, put in URLs, or sent to
+analytics.
 
 An **invite-only Google sign-in** exists for syncing saved profiles and
-preferences across devices. When signed in, saved profiles store only: a
-label you chose, plus the derived bird — or nakshatra, paksha, and
-optionally the derived Moon sign. Account defaults may store language,
-theme, default bird, and a default location you explicitly chose — that
-location is **rounded to ~1 km before storage** (2 decimal places), the same
-bound applied everywhere else a location is kept server-side. **Raw birth
-date, time, and event-specific coordinates are never stored server-side,
-signed in or not** (they're not even sent to the account endpoints). Who may
-sign in is controlled by an explicit server-side allowlist.
+preferences across devices. When signed in, saved profiles store only a
+label you chose plus derived astrology fields. New account defaults store
+language, theme, and default bird; a default location is kept in the
+passphrase-protected local vault, not on the server. Older app versions could
+store an account default location server-side. On the next successful vault
+unlock, that legacy value is copied into the encrypted vault (unless a vault
+location is already set) and then the server copy is cleared. If the vault
+write or server clear fails, migration is retried after a later unlock; the
+app does not delete the only copy before an encrypted save succeeds. Raw
+birth dates, times, and event-specific coordinates are not persisted to
+account storage. Who may sign in is controlled by an explicit server-side
+allowlist.
 
 Birth data and precise coordinates are never:
 
@@ -33,14 +39,15 @@ precise location. The Privacy-page clear action removes them.
 
 Raw birth details, selected/direct bird, precise recent locations, cached
 schedules, live schedule requests, and derived identity seeds are sensitive
-calculator state. They are stored only in the passphrase-protected local vault
-using AES-GCM encryption; its derived key exists only in the current tab's
-memory. Locking the vault clears those in-memory values and a new tab must be
-unlocked again. The vault backup/download contains only encrypted ciphertext
-and its salt—never the passphrase or plaintext—and can be restored only with
-the original passphrase. Changing the passphrase re-encrypts the vault with a
-new salt; download a fresh encrypted backup afterward. Older backup files still
-need the former passphrase until you securely remove those copies.
+calculator state. When saved, they are stored in the passphrase-protected
+local vault using AES-GCM encryption; its derived key exists only in the
+current tab's memory. Locking the vault clears those in-memory values and a
+new tab must be unlocked again. The vault backup/download contains only
+encrypted ciphertext and its salt—never the passphrase or plaintext—and can
+be restored only with the original passphrase. Changing the passphrase
+re-encrypts the vault with a new salt; download a fresh encrypted backup
+afterward. Older backup files still need the former passphrase until you
+securely remove those copies.
 
 The vault's encrypted ciphertext and salt remain in browser storage so the
 user can unlock later. Use **Clear saved preferences** to remove both the

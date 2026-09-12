@@ -155,6 +155,7 @@ export function PanchaPakshiLiveView() {
     let cancelled = false;
     (async () => {
       const request = await resolveDefaultScheduleRequest({
+        defaultLocation: unlocked ? vaultData.defaultLocation ?? null : null,
         recentLocation: unlocked
           ? privatePeople.person?.current_location
             ?? privatePeople.person?.birthplace
@@ -169,7 +170,7 @@ export function PanchaPakshiLiveView() {
     return () => {
       cancelled = true;
     };
-  }, [privatePeople.person, unlocked, vaultData.cachedSchedule, vaultData.derivedIdentitySeed, vaultData.liveScheduleSeed, vaultData.recentLocations, vaultData.selectedBird, vaultReady, runSchedule]);
+  }, [privatePeople.person, unlocked, vaultData.cachedSchedule, vaultData.defaultLocation, vaultData.derivedIdentitySeed, vaultData.liveScheduleSeed, vaultData.recentLocations, vaultData.selectedBird, vaultReady, runSchedule]);
 
   const skewMs = serverTime ? serverTime.getTime() - fetchedAtClientMs : 0;
 

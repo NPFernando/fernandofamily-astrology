@@ -18,7 +18,8 @@ export type AccountPreferencePatch = Partial<{
   locale: Locale | null;
   theme: AccountTheme | null;
   default_bird: BirdId | null;
-  default_location: LocationValue | null;
+  // Null is retained only to clear values written by older releases.
+  default_location: null;
 }>;
 
 export type AccountPreferenceResult =

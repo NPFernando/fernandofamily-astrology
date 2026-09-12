@@ -90,10 +90,12 @@ export function requestFromSchedule(schedule: ScheduleResponse): ScheduleRequest
 }
 
 export async function resolveDefaultScheduleRequest({
+  defaultLocation,
   recentLocation,
   derivedIdentitySeed,
   selectedBird,
 }: {
+  defaultLocation?: VaultLocation | null;
   recentLocation?: VaultLocation | null;
   derivedIdentitySeed?: DerivedIdentitySeed | null;
   selectedBird?: BirdId | null;
@@ -105,7 +107,7 @@ export async function resolveDefaultScheduleRequest({
   // birth date, time, or exact location.
   const active = localProfiles.find((profile) => profile.id === activeProfileId());
   const newest = active ?? localProfiles[localProfiles.length - 1];
-  const location = account.preferences?.default_location ?? recentLocation ?? {
+  const location = defaultLocation ?? recentLocation ?? {
     name: "Colombo, Sri Lanka",
     latitude: 6.9271,
     longitude: 79.8612,

@@ -48,6 +48,44 @@ test("legacy private data receives a visible migration deadline before vault cre
   await expect(page.getByText("2027-02-01", { exact: false })).toBeVisible();
 });
 
+test("legacy account location moves into the unlocked vault and is removed from account preferences", async ({ page }) => {
+  let preferences = {
+    locale: "en",
+    theme: "dark",
+    default_bird: "owl",
+    default_location: LOCATION,
+    updated_at: new Date().toISOString(),
+  };
+  const updates: unknown[] = [];
+
+  await page.route("**/api/auth/session", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ user: { email: "vault-migration@example.com", name: "Vault User" } }),
+    });
+  });
+  await page.route("**/api/account/preferences", async (route) => {
+    if (route.request().method() === "PUT") {
+      const body = route.request().postDataJSON() as Partial<typeof preferences>;
+      updates.push(body);
+      preferences = { ...preferences, ...body };
+    }
+    await route.fulfill({ contentType: "application/json", body: JSON.stringify({ preferences }) });
+  });
+
+  await page.goto("/en/birth-chart");
+  await createVault(page);
+  await expect.poll(() => updates).toContainEqual({ default_location: null });
+  await page.getByRole("button", { name: /Vault User/ }).click();
+  const panel = page.getByTestId("account-defaults-panel");
+  await expect(panel).toContainText(LOCATION.name);
+
+  const encryptedStorage = await page.evaluate(() => window.localStorage.getItem("ff_private_vault_v1") ?? "");
+  expect(encryptedStorage).not.toContain(LOCATION.name);
+  expect(encryptedStorage).not.toContain(String(LOCATION.latitude));
+  expect(preferences.default_location).toBeNull();
+});
+
 test("privacy page: private data center hides counts while the vault is locked", async ({ page }) => {
   await page.goto("/en/privacy");
   const center = page.locator('[data-testid="privacy-data-center"]');

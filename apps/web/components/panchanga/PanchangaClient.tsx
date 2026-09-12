@@ -12,7 +12,6 @@ import { usePrivatePeople } from "@/lib/use-private-people";
 import { PrivatePersonPicker } from "@/components/private-people/PrivatePersonPicker";
 import { PanchangaIcon } from "@/components/icons/features";
 import { FullMoonIcon } from "@/components/icons/moon";
-import { loadAccountPreferences } from "@/lib/account-preferences";
 import { SkyTodayPanel } from "@/components/panchanga/SkyTodayPanel";
 import { DailyTimingTimeline } from "@/components/panchanga/DailyTimingTimeline";
 import { formatLocalDate, formatLocalDateTime, formatLocalTime } from "@/lib/formatters";
@@ -60,7 +59,7 @@ function formatDateTime(iso: string, locale: string) {
 
 export function PanchangaClient() {
   const { dict, locale } = useLocale();
-  const { unlocked } = useLocalVault();
+  const { data: vaultData, unlocked } = useLocalVault();
   const vaultLocation = useVaultRecentLocation();
   const privatePeople = usePrivatePeople();
   const [date, setDate] = useState<string>(() => todayIso());
@@ -106,9 +105,8 @@ export function PanchangaClient() {
     // calculator.
     let cancelled = false;
     (async () => {
-      const account = await loadAccountPreferences();
       if (cancelled) return;
-      const loc = account.preferences?.default_location ?? (unlocked ? privatePeople.person?.current_location ?? privatePeople.person?.birthplace ?? vaultLocation : null) ?? DEFAULT_LOCATION;
+      const loc = (unlocked ? vaultData.defaultLocation ?? privatePeople.person?.current_location ?? privatePeople.person?.birthplace ?? vaultLocation : null) ?? DEFAULT_LOCATION;
       // "Today" must be resolved in the LOCATION's timezone, not the
       // browser's — otherwise a device whose system clock is in a different
       // zone than the (possibly default Colombo) location can load the
@@ -123,7 +121,7 @@ export function PanchangaClient() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unlocked, privatePeople.person]);
+  }, [unlocked, privatePeople.person, vaultData.defaultLocation]);
 
   const onDateChange = useCallback(
     (next: string) => {

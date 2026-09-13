@@ -14,7 +14,8 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const source = readFileSync(path.join(here, "../lib/profiles.ts"), "utf8");
 
 function extractFunction(name) {
-  const start = source.indexOf(`export function ${name}(`);
+  const exported = source.indexOf(`export function ${name}(`);
+  const start = exported >= 0 ? exported : source.indexOf(`function ${name}(`);
   if (start === -1) throw new Error(`${name} not found in lib/profiles.ts`);
   // Balance braces from the function's opening brace to find its real end —
   // simple slice-to-next-blank-line would break if the function ever grows
@@ -35,14 +36,22 @@ function extractFunction(name) {
   return source
     .slice(start, end)
     .replace(/^export /, "")
+    .replace(/: unknown/g, "")
+    .replace(/: SavedProfile\[\]/g, "")
     .replace(/: SavedProfile/g, "")
     .replace(/: boolean/g, "");
 }
 
-const js = `${extractFunction("normalizeProfile")}\n${extractFunction("sameIdentity")}`;
+const js = `${extractFunction("normalizeProfile")}\n${extractFunction("sanitizeProfileList")}\n${extractFunction("loadLocal")}\n${extractFunction("sameIdentity")}`;
 const loaded = { exports: {} };
-new Function("module", "exports", `${js}\nmodule.exports = { normalizeProfile, sameIdentity };`)(loaded, loaded.exports);
-const { normalizeProfile, sameIdentity } = loaded.exports;
+const storageKey = "ff_saved_profiles";
+new Function(
+  "module",
+  "exports",
+  "window",
+  `const STORAGE_KEY = ${JSON.stringify(storageKey)};\n${js}\nmodule.exports = { normalizeProfile, sanitizeProfileList, loadLocal, sameIdentity };`,
+)(loaded, loaded.exports, globalThis.window);
+const { normalizeProfile, sanitizeProfileList, sameIdentity } = loaded.exports;
 
 let failures = 0;
 function assert(condition, message) {
@@ -73,6 +82,46 @@ assert(normalized.moon_rashi_index === null, "missing moon_rashi_index should no
 
 const explicit = normalizeProfile({ ...base, moon_rashi_index: 4 });
 assert(explicit.moon_rashi_index === 4, "an explicit moon_rashi_index should be preserved");
+
+const legacySensitive = sanitizeProfileList([{
+  ...base,
+  birth_date: "1988-04-03",
+  birth_time: "06:30:00",
+  birthplace: { name: "Colombo", latitude: 6.9271, longitude: 79.8612 },
+}]);
+assert(legacySensitive.length === 1, "a valid derived profile should be retained");
+assert(!("birth_date" in legacySensitive[0]), "raw birth date must not survive profile normalization");
+assert(!("birth_time" in legacySensitive[0]), "raw birth time must not survive profile normalization");
+assert(!("birthplace" in legacySensitive[0]), "birth location must not survive profile normalization");
+assert(
+  Object.keys(legacySensitive[0]).sort().join(",") ===
+    "bird,created_at,id,label,moon_rashi_index,nakshatra_index,paksha",
+  "only the documented derived-profile fields should be retained",
+);
+
+const rawStoredProfiles = JSON.stringify([{
+  ...base,
+  birth_date: "1988-04-03",
+  birthplace: { name: "Colombo", latitude: 6.9271, longitude: 79.8612 },
+}]);
+const mockStorage = {
+  value: rawStoredProfiles,
+  getItem(key) { return key === storageKey ? this.value : null; },
+  setItem(key, value) { if (key === storageKey) this.value = value; },
+};
+const mockModule = { exports: {} };
+new Function(
+  "module",
+  "exports",
+  "window",
+  `const STORAGE_KEY = ${JSON.stringify(storageKey)};\n${js}\nmodule.exports = { loadLocal };`,
+)(mockModule, mockModule.exports, { localStorage: mockStorage });
+const sanitizedStored = mockModule.exports.loadLocal();
+assert(sanitizedStored.length === 1, "legacy profile should remain readable after scrubbing");
+assert(
+  !JSON.parse(mockStorage.value)[0].birth_date && !JSON.parse(mockStorage.value)[0].birthplace,
+  "loading a legacy profile should rewrite storage without raw birth details or location",
+);
 
 // sameIdentity: the exact dedup rule mergeLocalToServerOnce and listProfiles
 // rely on to avoid duplicating a user's saved profile across local/server.

@@ -22,21 +22,36 @@ const ACTIVE_PROFILE_SESSION_KEY = "ff_active_profile_id";
 const PROFILE_LAST_USED_STORAGE_KEY = "ff_profile_last_used_at";
 
 // Exported (not otherwise needed outside this module) so
-// scripts/check-profiles.mjs can exercise the real identity/normalization
-// logic directly, matching the check-ics-generator.mjs /
-// check-account-location-rounding.mjs pattern for pure, dedup-relevant logic.
+// scripts/check-profiles.mjs can exercise the real normalization and privacy
+// boundary directly, matching the other lightweight pure-logic checks.
 export function normalizeProfile(profile: SavedProfile): SavedProfile {
   return {
-    ...profile,
+    id: profile.id,
+    label: profile.label,
+    bird: profile.bird,
+    nakshatra_index: profile.nakshatra_index,
+    paksha: profile.paksha,
     moon_rashi_index: profile.moon_rashi_index ?? null,
+    created_at: profile.created_at,
   };
+}
+
+export function sanitizeProfileList(value: unknown): SavedProfile[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((profile) => profile !== null && typeof profile === "object" && !Array.isArray(profile))
+    .map((profile) => normalizeProfile(profile));
 }
 
 function loadLocal(): SavedProfile[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as SavedProfile[]).map(normalizeProfile) : [];
+    if (!raw) return [];
+    const profiles = sanitizeProfileList(JSON.parse(raw));
+    const sanitized = JSON.stringify(profiles);
+    if (sanitized !== raw) window.localStorage.setItem(STORAGE_KEY, sanitized);
+    return profiles;
   } catch {
     return [];
   }

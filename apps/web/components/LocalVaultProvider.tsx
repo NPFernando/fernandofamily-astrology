@@ -29,6 +29,7 @@ import type { BirdId, DailyPanchanga, ScheduleRequest, ScheduleResponse } from "
 import type { VaultFamilyGroup, VaultPlan } from "@/lib/planner";
 import type { PrivatePerson } from "@/lib/private-people";
 import { loadAccountPreferences, saveAccountPreferences } from "@/lib/account-preferences";
+import { listLocalProfiles } from "@/lib/profiles";
 
 export type CachedDailyGuide = {
   request: ScheduleRequest;
@@ -97,6 +98,9 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     let cancelled = false;
     void (async () => {
+      // Strip unsupported properties from the derived-only profile cache at
+      // app startup, including any legacy birth details or coordinates.
+      listLocalProfiles();
       const retainedKey = activeVaultKey();
       if (retainedKey) {
         const retainedData = await readVault<LocalVaultData>(retainedKey);

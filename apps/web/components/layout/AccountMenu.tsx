@@ -5,6 +5,9 @@ import { signIn, signOut } from "next-auth/react";
 import { useLocale } from "@/lib/locale-context";
 import { useSessionProbe } from "@/lib/use-session-probe";
 import { AccountDefaultsPanel } from "@/components/layout/AccountDefaultsPanel";
+import { useLocalVault } from "@/components/LocalVaultProvider";
+
+const EXPIRED_ACCOUNT_SESSION_KEY = "ff_account_session_expired_email";
 
 // Self-detecting via the shared session probe (one network request per page
 // load, shared with SavedProfiles — see lib/use-session-probe.ts). When auth
@@ -18,8 +21,58 @@ import { AccountDefaultsPanel } from "@/components/layout/AccountDefaultsPanel";
 export function AccountMenu() {
   const { dict } = useLocale();
   const { loaded, enabled, user: session } = useSessionProbe();
+  const { lock: lockPrivateData } = useLocalVault();
   const [open, setOpen] = useState(false);
+  const [expiredSessionEmail, setExpiredSessionEmail] = useState<string | null>(
+    () =>
+      typeof window === "undefined"
+        ? null
+        : window.sessionStorage.getItem(EXPIRED_ACCOUNT_SESSION_KEY),
+  );
+  const sessionExpired = Boolean(session?.email && expiredSessionEmail === session.email);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!session?.email) return;
+    const email = session.email;
+    if (window.sessionStorage.getItem(EXPIRED_ACCOUNT_SESSION_KEY) === email) return;
+
+    let checking = false;
+    async function verifyAccountSession() {
+      if (checking || document.visibilityState === "hidden") return;
+      checking = true;
+      try {
+        const response = await fetch("/api/auth/session", { cache: "no-store" });
+        if (!response.ok) return;
+        const current = await response.json();
+        if (current?.user?.email === email) {
+          window.sessionStorage.removeItem(EXPIRED_ACCOUNT_SESSION_KEY);
+          if (expiredSessionEmail === email) setExpiredSessionEmail(null);
+          return;
+        }
+        window.sessionStorage.setItem(EXPIRED_ACCOUNT_SESSION_KEY, email);
+        setExpiredSessionEmail(email);
+        lockPrivateData();
+      } catch {
+        // A network failure is not proof that authentication has expired.
+      } finally {
+        checking = false;
+      }
+    }
+
+    const timer = window.setInterval(() => void verifyAccountSession(), 60_000);
+    const onFocus = () => void verifyAccountSession();
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") void verifyAccountSession();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [expiredSessionEmail, lockPrivateData, session?.email]);
 
   useEffect(() => {
     function onOutside(e: MouseEvent) {
@@ -31,7 +84,7 @@ export function AccountMenu() {
 
   if (!loaded || !enabled) return null;
 
-  if (!session) {
+  if (!session || sessionExpired) {
     return (
       <button
         type="button"
@@ -66,7 +119,12 @@ export function AccountMenu() {
           <p className="truncate px-2 py-1 text-xs opacity-70">{session.email}</p>
           <button
             type="button"
-            onClick={() => signOut()}
+            onClick={() => {
+              window.sessionStorage.setItem(EXPIRED_ACCOUNT_SESSION_KEY, session.email);
+              setExpiredSessionEmail(session.email);
+              lockPrivateData();
+              void signOut();
+            }}
             className="w-full rounded px-2 py-1.5 text-left hover:bg-black/5 dark:hover:bg-white/10"
           >
             {dict.ui.signOut}

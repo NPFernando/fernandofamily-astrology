@@ -1,5 +1,6 @@
 import { access, readdir, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { runInNewContext } from "node:vm";
 
 const root = resolve(import.meta.dirname, "..");
 const migrations = ["001_init.sql", "002_push.sql", "003_profile_moon_rashi.sql", "003_push_quiet_hours.sql", "004_push_alert_rules.sql"];
@@ -25,6 +26,34 @@ if (!serviceWorker.includes("CACHE_NAME") || !serviceWorker.includes("/icons/app
 if (!serviceWorker.includes('request.mode === "navigate"') || !serviceWorker.includes('cache: "no-store"')) {
   throw new Error("Service worker must refresh navigation documents online before falling back offline.");
 }
+const serviceWorkerListeners = new Map();
+let skippedWaiting = false;
+const workerScope = {
+  location: { origin: "https://astrology.example.test" },
+  clients: {
+    get: async (id) => id === "same-origin-client"
+      ? { url: "https://astrology.example.test/en/", id }
+      : null,
+  },
+  addEventListener: (type, listener) => serviceWorkerListeners.set(type, listener),
+  skipWaiting: () => { skippedWaiting = true; },
+};
+runInNewContext(serviceWorker, { self: workerScope, URL });
+const onWorkerMessage = serviceWorkerListeners.get("message");
+if (!onWorkerMessage) throw new Error("Service worker message handler is missing.");
+let completion = Promise.resolve();
+const dispatchWorkerMessage = (origin) => onWorkerMessage({
+  origin,
+  source: { id: "same-origin-client" },
+  data: { type: "SKIP_WAITING" },
+  waitUntil: (promise) => { completion = promise; },
+});
+dispatchWorkerMessage("https://attacker.example");
+await completion;
+if (skippedWaiting) throw new Error("Service worker accepted a cross-origin update message.");
+dispatchWorkerMessage(workerScope.location.origin);
+await completion;
+if (!skippedWaiting) throw new Error("Service worker rejected a same-origin update message.");
 for (const route of ["/en/daily-guide/planner", "/en/roadmap", "/en/privacy"]) {
   if (!serviceWorker.includes(route)) throw new Error(`Service worker is missing the offline shell route: ${route}`);
 }

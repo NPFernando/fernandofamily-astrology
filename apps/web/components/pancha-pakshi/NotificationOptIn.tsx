@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { formatLocalWeekday } from "@/lib/formatters";
 import { usePushSupport } from "@/lib/use-push-support";
+import { removePushSubscription } from "@/lib/push-subscription";
 import type { BirdId, PakshaId } from "@/lib/api-client";
 
 const LEAD_OPTIONS = [5, 10, 15, 30, 60];
@@ -140,12 +141,11 @@ export function NotificationOptIn({
       const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.getSubscription();
       if (sub) {
-        await fetch("/api/push/unsubscribe", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ endpoint: sub.endpoint }),
-        }).catch(() => undefined);
-        await sub.unsubscribe();
+        const removed = await removePushSubscription(sub.endpoint, () => sub.unsubscribe());
+        if (!removed) {
+          setStatus(dict.ui.error);
+          return;
+        }
       }
       setSubscribed(false);
     } catch {

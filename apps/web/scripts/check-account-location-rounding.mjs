@@ -8,6 +8,8 @@ import path from "node:path";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const source = readFileSync(path.join(here, "../lib/account-location.ts"), "utf8");
+const accountRoute = readFileSync(path.join(here, "../app/api/account/preferences/route.ts"), "utf8");
+const migrationRoute = readFileSync(path.join(here, "../app/api/account/preferences/migrate-location/route.ts"), "utf8");
 
 const js = source
   .replace(/export type NormalizedAccountLocation = \{[\s\S]*?\};/, "")
@@ -30,9 +32,8 @@ function assert(condition, message) {
   }
 }
 
-// The bug this guards: full-precision device coordinates must never reach
-// storage — everything gets rounded to 2 decimals (~1km), same bound as
-// push_subscriptions.
+// Legacy account locations are normalized only for the one-time encrypted-vault
+// migration. New precise-location writes are rejected by the account API.
 const rounded = normalizeAccountLocation({
   name: "Kandy, Sri Lanka",
   latitude: 7.290572123456,
@@ -56,8 +57,22 @@ assert(normalizeAccountLocation({ name: "x", latitude: 0, longitude: 0, iana_tz:
 assert(normalizeAccountLocation({ name: "", latitude: 0, longitude: 0, iana_tz: "Asia/Colombo" }) === "invalid",
   "an empty name should be invalid");
 
+assert(accountRoute.includes('error: "location_requires_private_vault"'),
+  "new account-level location writes should be rejected");
+assert(accountRoute.includes("default_location: null"),
+  "ordinary account-preference responses must redact legacy location data");
+assert(migrationRoute.includes("updated_at::text AS revision") &&
+  migrationRoute.includes("updated_at = $2::timestamptz"),
+  "legacy cleanup must use a compare-and-clear revision guard");
+assert(migrationRoute.includes("body.discard_invalid === true") &&
+  migrationRoute.includes("location_is_valid_and_must_be_migrated"),
+  "invalid legacy cleanup must be explicit and refuse valid locations");
+assert(migrationRoute.includes("latitude: Number(raw.latitude)") &&
+  migrationRoute.includes("longitude: Number(raw.longitude)"),
+  "vault migration must preserve legacy coordinate precision");
+
 if (failures > 0) {
   console.error(`${failures} failure(s) in check-account-location-rounding.mjs`);
   process.exit(1);
 }
-console.log("Account-location rounding check passed: server-side ~1km rounding, validation, and null-clears all correct.");
+console.log("Account-location privacy check passed: validation, redaction, vault migration, and compare-and-clear are present.");

@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { defineConfig, devices } from "@playwright/test";
 import webpush from "web-push";
 
@@ -13,27 +12,64 @@ const API_PORT = 8199;
 // "push off" (3199) and "push on" (3197) servers. push.spec.ts targets the
 // push port explicitly; every other spec keeps the flag-off baseURL.
 const PUSH_WEB_PORT = 3197;
+const E2E_AUTH_SECRET = "isolated-e2e-only-auth-secret-not-for-deployment";
+const SESSION_COOKIE = "authjs.session-token";
 
 const vapidKeys = webpush.generateVAPIDKeys();
 
-// The push-enabled server gets the astrology DB when the repo .env has one
-// (host-side connections use 127.0.0.1, not the container-only
-// host.docker.internal alias). Without it, subscribe answers a clean 503 —
-// push.spec.ts accepts either outcome and reports which ran.
-function astrologyDbUrl(): string {
+// Never inherit the repository/runtime database configuration for browser
+// tests. Persistence coverage is opt-in and restricted to a disposable,
+// loopback-only database with a dedicated role and database name.
+function astrologyE2eDbUrl(): string {
+  const raw = process.env.ASTROLOGY_E2E_DATABASE_URL?.trim();
+  if (!raw) return "";
+
+  let parsed: URL;
   try {
-    const env = readFileSync("../../.env", "utf8");
-    const m = env.match(/^ASTROLOGY_DATABASE_URL=(.+)$/m);
-    return m ? m[1].trim().replace("host.docker.internal", "127.0.0.1") : "";
+    parsed = new URL(raw);
   } catch {
-    return "";
+    throw new Error("ASTROLOGY_E2E_DATABASE_URL must be a valid PostgreSQL URL");
   }
+  if (parsed.protocol !== "postgres:" && parsed.protocol !== "postgresql:") {
+    throw new Error("ASTROLOGY_E2E_DATABASE_URL must use PostgreSQL");
+  }
+  if (!["localhost", "127.0.0.1", "::1"].includes(parsed.hostname)) {
+    throw new Error("ASTROLOGY_E2E_DATABASE_URL must target loopback only");
+  }
+  if (decodeURIComponent(parsed.username) !== "astrology_e2e_app" || parsed.pathname !== "/astrology_e2e") {
+    throw new Error("ASTROLOGY_E2E_DATABASE_URL must use astrology_e2e_app@astrology_e2e");
+  }
+  return raw;
 }
+
+const e2eDbUrl = astrologyE2eDbUrl();
 
 export const PUSH_E2E = {
   baseURL: `http://127.0.0.1:${PUSH_WEB_PORT}`,
   dispatchKey: "e2e-dispatch-key",
+  databaseEnabled: Boolean(e2eDbUrl),
 };
+
+export const AUTH_E2E = {
+  cookieName: SESSION_COOKIE,
+  secret: E2E_AUTH_SECRET,
+};
+
+const isolatedAuthEnv = e2eDbUrl
+  ? {
+      AUTH_URL: `http://127.0.0.1:${WEB_PORT}`,
+      AUTH_SECRET: E2E_AUTH_SECRET,
+      AUTH_ALLOWED_EMAILS: "astrology-e2e@example.test,other-e2e@example.test",
+      GOOGLE_CLIENT_ID: "isolated-e2e-client",
+      GOOGLE_CLIENT_SECRET: "isolated-e2e-secret",
+    }
+  : {
+      AUTH_URL: "",
+      AUTH_SECRET: "",
+      AUTH_ALLOWED_EMAILS: "",
+      GOOGLE_CLIENT_ID: "",
+      GOOGLE_CLIENT_SECRET: "",
+    };
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -57,20 +93,24 @@ export default defineConfig({
     {
       command: `bash -c "cd ../api && RATE_LIMIT_DISABLED=1 .venv/bin/uvicorn app.main:app --port ${API_PORT}"`,
       url: `http://127.0.0.1:${API_PORT}/api/v1/health/ready`,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: process.env.PLAYWRIGHT_REUSE_SERVER === "1",
       timeout: 30_000,
     },
     {
       command: `bash -c "mkdir -p .next/standalone/apps/web/.next/static .next/standalone/apps/web/public && cp -a .next/static/. .next/standalone/apps/web/.next/static/ && cp -a public/. .next/standalone/apps/web/public/ && PORT=${WEB_PORT} node .next/standalone/apps/web/server.js"`,
       url: `http://127.0.0.1:${WEB_PORT}/en`,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: process.env.PLAYWRIGHT_REUSE_SERVER === "1",
       timeout: 60_000,
-      env: { API_PROXY_TARGET: `http://127.0.0.1:${API_PORT}` },
+      env: {
+        API_PROXY_TARGET: `http://127.0.0.1:${API_PORT}`,
+        ASTROLOGY_DATABASE_URL: e2eDbUrl,
+        ...isolatedAuthEnv,
+      },
     },
     {
       command: `bash -c "mkdir -p .next/standalone/apps/web/.next/static .next/standalone/apps/web/public && cp -a .next/static/. .next/standalone/apps/web/.next/static/ && cp -a public/. .next/standalone/apps/web/public/ && PORT=${PUSH_WEB_PORT} node .next/standalone/apps/web/server.js"`,
       url: `http://127.0.0.1:${PUSH_WEB_PORT}/en`,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: process.env.PLAYWRIGHT_REUSE_SERVER === "1",
       timeout: 60_000,
       env: {
         API_PROXY_TARGET: `http://127.0.0.1:${API_PORT}`,
@@ -78,7 +118,8 @@ export default defineConfig({
         VAPID_PRIVATE_KEY: vapidKeys.privateKey,
         VAPID_SUBJECT: "mailto:e2e@example.com",
         INTERNAL_DISPATCH_KEY: PUSH_E2E.dispatchKey,
-        ASTROLOGY_DATABASE_URL: astrologyDbUrl(),
+        ASTROLOGY_DATABASE_URL: e2eDbUrl,
+        ...isolatedAuthEnv,
       },
     },
   ],

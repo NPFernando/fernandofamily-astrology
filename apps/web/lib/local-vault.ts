@@ -1,275 +1,291 @@
-"use client";
+'use client'
 
 // Browser storage is readable by anyone with access to this browser profile.
 // Sensitive calculator inputs therefore go through this small AES-GCM vault;
 // the passphrase-derived key is deliberately held only in memory.
-const SALT_KEY = "ff_private_vault_salt_v1";
-const VAULT_KEY = "ff_private_vault_v1";
-const VAULT_TRANSACTION_JOURNAL_STORAGE = "ff-vault-transaction";
-const VAULT_BACKUP_RECOMMENDED_STORAGE = "ff_private_vault_backup_recommended_v1";
-const ITERATIONS = 310_000;
+const SALT_KEY = 'ff_private_vault_salt_v1'
+const VAULT_KEY = 'ff_private_vault_v1'
+export const LOCAL_VAULT_SALT_STORAGE_KEY = SALT_KEY
+export const LOCAL_VAULT_PAYLOAD_STORAGE_KEY = VAULT_KEY
+export const LOCAL_VAULT_LOCK_SIGNAL_KEY = 'ff_private_vault_lock_signal_v1'
+const VAULT_TRANSACTION_JOURNAL_STORAGE = 'ff-vault-transaction'
+const VAULT_BACKUP_RECOMMENDED_STORAGE = 'ff_private_vault_backup_recommended_v1'
+const ITERATIONS = 310_000
 
 // Legacy browser-storage migration is deliberately time-bounded. The UI tells
 // affected users about this date before the read/import support is removed in
 // a later compatibility-breaking release. Do not make this an automatic
 // deletion deadline: losing a user's only private data copy would be worse
 // than retaining an explicit, opt-in migration path during the notice period.
-export const LEGACY_VAULT_MIGRATION_DEADLINE = "2027-02-01";
+export const LEGACY_VAULT_MIGRATION_DEADLINE = '2027-02-01'
 
 // Module state is scoped to the current browser tab. It survives React layout
 // remounts (such as an /en -> /si navigation) without ever being serialized.
-let activeKey: CryptoKey | null = null;
+let activeKey: CryptoKey | null = null
 
 // These keys predate the vault. They are read once during successful vault
 // creation/unlock, encrypted as part of the vault payload, and then removed.
 // Keeping the list here makes the privacy clear action use the exact same
 // boundary as migration.
 export const LEGACY_SENSITIVE_LOCAL_STORAGE_KEYS = [
-  "ff_recent_birth_details",
-  "ff_recent_locations",
-  "ff_last_schedule_cache",
-  "ff_selected_bird",
-] as const;
+  'ff_recent_birth_details',
+  'ff_recent_locations',
+  'ff_last_schedule_cache',
+  'ff_selected_bird'
+] as const
 
 export const LEGACY_SENSITIVE_SESSION_STORAGE_KEYS = [
-  "ff_session_schedule",
-  "ff_live_schedule_seed",
-  "ff_derived_identity_seed",
-] as const;
+  'ff_session_schedule',
+  'ff_live_schedule_seed',
+  'ff_derived_identity_seed'
+] as const
 
 type EncryptedPayload = {
-  version: 1;
-  iv: string;
-  ciphertext: string;
-};
+  version: 1
+  iv: string
+  ciphertext: string
+}
 
 type VaultStorage = {
-  salt: string;
-  payload: EncryptedPayload;
-};
+  salt: string
+  payload: EncryptedPayload
+}
 
 type VaultRotationJournal = {
-  version: 1;
-  previous: VaultStorage;
-  next: VaultStorage;
-};
+  version: 1
+  previous: VaultStorage
+  next: VaultStorage
+}
 
 export type VaultBackup = {
-  format: "fernandofamily-private-vault";
-  version: 1;
-  exportedAt: string;
-  salt: string;
-  payload: EncryptedPayload;
-};
+  format: 'fernandofamily-private-vault'
+  version: 1
+  exportedAt: string
+  salt: string
+  payload: EncryptedPayload
+}
 
-export type VaultBackupImportResult = "imported" | "existing_vault" | "invalid_backup";
+export type VaultBackupImportResult = 'imported' | 'existing_vault' | 'invalid_backup'
 
 function toBase64(value: Uint8Array): string {
-  let binary = "";
-  for (const byte of value) binary += String.fromCharCode(byte);
-  return btoa(binary);
+  let binary = ''
+  for (const byte of value) binary += String.fromCharCode(byte)
+  return btoa(binary)
 }
 
 function fromBase64(value: string): Uint8Array {
-  const binary = atob(value);
-  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  const binary = atob(value)
+  return Uint8Array.from(binary, char => char.charCodeAt(0))
 }
 
 function validBase64(value: unknown, expectedLength?: number): value is string {
-  if (typeof value !== "string" || !value) return false;
+  if (typeof value !== 'string' || !value) return false
   try {
-    const decoded = fromBase64(value);
-    return expectedLength === undefined ? decoded.byteLength > 0 : decoded.byteLength === expectedLength;
+    const decoded = fromBase64(value)
+    return expectedLength === undefined ? decoded.byteLength > 0 : decoded.byteLength === expectedLength
   } catch {
-    return false;
+    return false
   }
 }
 
 function parseEncryptedPayload(value: unknown): EncryptedPayload | null {
-  if (!value || typeof value !== "object") return null;
-  const payload = value as Partial<EncryptedPayload>;
-  if (payload.version !== 1 || !validBase64(payload.iv, 12) || !validBase64(payload.ciphertext)) return null;
-  return { version: 1, iv: payload.iv, ciphertext: payload.ciphertext };
+  if (!value || typeof value !== 'object') return null
+  const payload = value as Partial<EncryptedPayload>
+  if (payload.version !== 1 || !validBase64(payload.iv, 12) || !validBase64(payload.ciphertext)) return null
+  return { version: 1, iv: payload.iv, ciphertext: payload.ciphertext }
 }
 
 function parseVaultStorage(value: unknown): VaultStorage | null {
-  if (!value || typeof value !== "object") return null;
-  const storage = value as Partial<VaultStorage>;
-  if (!validBase64(storage.salt, 16)) return null;
-  const payload = parseEncryptedPayload(storage.payload);
-  return payload ? { salt: storage.salt, payload } : null;
+  if (!value || typeof value !== 'object') return null
+  const storage = value as Partial<VaultStorage>
+  if (!validBase64(storage.salt, 16)) return null
+  const payload = parseEncryptedPayload(storage.payload)
+  return payload ? { salt: storage.salt, payload } : null
 }
 
 function parseVaultRotationJournal(value: unknown): VaultRotationJournal | null {
-  if (!value || typeof value !== "object") return null;
-  const journal = value as Partial<VaultRotationJournal>;
-  if (journal.version !== 1) return null;
-  const previous = parseVaultStorage(journal.previous);
-  const next = parseVaultStorage(journal.next);
-  return previous && next ? { version: 1, previous, next } : null;
+  if (!value || typeof value !== 'object') return null
+  const journal = value as Partial<VaultRotationJournal>
+  if (journal.version !== 1) return null
+  const previous = parseVaultStorage(journal.previous)
+  const next = parseVaultStorage(journal.next)
+  return previous && next ? { version: 1, previous, next } : null
 }
 
 function parseVaultBackup(value: unknown): VaultBackup | null {
-  if (!value || typeof value !== "object") return null;
-  const backup = value as Partial<VaultBackup>;
+  if (!value || typeof value !== 'object') return null
+  const backup = value as Partial<VaultBackup>
   if (
-    backup.format !== "fernandofamily-private-vault" ||
+    backup.format !== 'fernandofamily-private-vault' ||
     backup.version !== 1 ||
-    typeof backup.exportedAt !== "string" ||
+    typeof backup.exportedAt !== 'string' ||
     Number.isNaN(Date.parse(backup.exportedAt)) ||
     !validBase64(backup.salt, 16)
   ) {
-    return null;
+    return null
   }
-  const payload = parseEncryptedPayload(backup.payload);
-  return payload ? { format: backup.format, version: 1, exportedAt: backup.exportedAt, salt: backup.salt, payload } : null;
+  const payload = parseEncryptedPayload(backup.payload)
+  return payload
+    ? { format: backup.format, version: 1, exportedAt: backup.exportedAt, salt: backup.salt, payload }
+    : null
 }
 
 function asBufferSource(value: Uint8Array): ArrayBuffer {
-  return value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength) as ArrayBuffer;
+  return value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength) as ArrayBuffer
 }
 
 function vaultSalt(): Uint8Array {
-  recoverPendingVaultRotation();
-  const existing = window.localStorage.getItem(SALT_KEY);
-  if (existing) return fromBase64(existing);
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  window.localStorage.setItem(SALT_KEY, toBase64(salt));
-  return salt;
+  recoverPendingVaultRotation()
+  const existing = window.localStorage.getItem(SALT_KEY)
+  if (existing) return fromBase64(existing)
+  const salt = crypto.getRandomValues(new Uint8Array(16))
+  window.localStorage.setItem(SALT_KEY, toBase64(salt))
+  return salt
 }
 
 async function deriveVaultKeyForSalt(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {
-  if (!passphrase.trim()) throw new Error("A vault passphrase is required.");
-  const material = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(passphrase),
-    "PBKDF2",
-    false,
-    ["deriveKey"],
-  );
+  if (!passphrase.trim()) throw new Error('A vault passphrase is required.')
+  const material = await crypto.subtle.importKey('raw', new TextEncoder().encode(passphrase), 'PBKDF2', false, [
+    'deriveKey'
+  ])
   return crypto.subtle.deriveKey(
-    { name: "PBKDF2", salt: asBufferSource(salt), iterations: ITERATIONS, hash: "SHA-256" },
+    { name: 'PBKDF2', salt: asBufferSource(salt), iterations: ITERATIONS, hash: 'SHA-256' },
     material,
-    { name: "AES-GCM", length: 256 },
+    { name: 'AES-GCM', length: 256 },
     false,
-    ["encrypt", "decrypt"],
-  );
+    ['encrypt', 'decrypt']
+  )
 }
 
 export async function deriveVaultKey(passphrase: string): Promise<CryptoKey> {
-  return deriveVaultKeyForSalt(passphrase, vaultSalt());
+  return deriveVaultKeyForSalt(passphrase, vaultSalt())
 }
 
 async function encryptVaultPayload(key: CryptoKey, value: unknown): Promise<EncryptedPayload> {
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const plaintext = new TextEncoder().encode(JSON.stringify(value));
-  const ciphertext = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: asBufferSource(iv) },
-    key,
-    plaintext,
-  );
+  const iv = crypto.getRandomValues(new Uint8Array(12))
+  const plaintext = new TextEncoder().encode(JSON.stringify(value))
+  const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: asBufferSource(iv) }, key, plaintext)
   return {
     version: 1,
     iv: toBase64(iv),
-    ciphertext: toBase64(new Uint8Array(ciphertext)),
-  };
+    ciphertext: toBase64(new Uint8Array(ciphertext))
+  }
 }
 
 function currentVaultStorage(): VaultStorage | null {
-  const salt = window.localStorage.getItem(SALT_KEY);
-  const rawPayload = window.localStorage.getItem(VAULT_KEY);
-  if (!validBase64(salt, 16) || !rawPayload) return null;
+  const salt = window.localStorage.getItem(SALT_KEY)
+  const rawPayload = window.localStorage.getItem(VAULT_KEY)
+  if (!validBase64(salt, 16) || !rawPayload) return null
   try {
-    const payload = parseEncryptedPayload(JSON.parse(rawPayload));
-    return payload ? { salt, payload } : null;
+    const payload = parseEncryptedPayload(JSON.parse(rawPayload))
+    return payload ? { salt, payload } : null
   } catch {
-    return null;
+    return null
   }
 }
 
 function sameVaultStorage(left: VaultStorage, right: VaultStorage): boolean {
-  return left.salt === right.salt && JSON.stringify(left.payload) === JSON.stringify(right.payload);
+  return left.salt === right.salt && JSON.stringify(left.payload) === JSON.stringify(right.payload)
 }
 
 // localStorage does not offer a multi-key transaction. The small journal lets
 // the next vault operation restore the last authenticated pair if a tab closes
 // between writing the new salt and ciphertext.
 function recoverPendingVaultRotation(): void {
-  if (typeof window === "undefined") return;
-  const rawJournal = window.localStorage.getItem(VAULT_TRANSACTION_JOURNAL_STORAGE);
-  if (!rawJournal) return;
+  if (typeof window === 'undefined') return
+  const rawJournal = window.localStorage.getItem(VAULT_TRANSACTION_JOURNAL_STORAGE)
+  if (!rawJournal) return
   try {
-    const journal = parseVaultRotationJournal(JSON.parse(rawJournal));
-    if (!journal) throw new Error("Invalid vault rotation journal.");
-    const current = currentVaultStorage();
+    const journal = parseVaultRotationJournal(JSON.parse(rawJournal))
+    if (!journal) throw new Error('Invalid vault rotation journal.')
+    const current = currentVaultStorage()
     if (!current || !sameVaultStorage(current, journal.next)) {
       // The journal contains only an AES-GCM ciphertext pair and a public KDF
       // salt; no plaintext or passphrase is ever persisted here.
       // codeql[js/clear-text-storage-of-sensitive-information]
-      window.localStorage.setItem(SALT_KEY, journal.previous.salt);
+      window.localStorage.setItem(SALT_KEY, journal.previous.salt)
       // codeql[js/clear-text-storage-of-sensitive-information]
-      window.localStorage.setItem(VAULT_KEY, JSON.stringify(journal.previous.payload));
+      window.localStorage.setItem(VAULT_KEY, JSON.stringify(journal.previous.payload))
     }
   } finally {
-    window.localStorage.removeItem(VAULT_TRANSACTION_JOURNAL_STORAGE);
+    window.localStorage.removeItem(VAULT_TRANSACTION_JOURNAL_STORAGE)
   }
 }
 
 export async function readVault<T>(key: CryptoKey): Promise<T | null> {
-  recoverPendingVaultRotation();
-  const raw = window.localStorage.getItem(VAULT_KEY);
-  if (!raw) return null;
+  recoverPendingVaultRotation()
+  const raw = window.localStorage.getItem(VAULT_KEY)
+  if (!raw) return null
   try {
-    const encrypted = JSON.parse(raw) as EncryptedPayload;
-    if (encrypted.version !== 1) return null;
+    const encrypted = JSON.parse(raw) as EncryptedPayload
+    if (encrypted.version !== 1) return null
     const plaintext = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: asBufferSource(fromBase64(encrypted.iv)) },
+      { name: 'AES-GCM', iv: asBufferSource(fromBase64(encrypted.iv)) },
       key,
-      asBufferSource(fromBase64(encrypted.ciphertext)),
-    );
-    return JSON.parse(new TextDecoder().decode(plaintext)) as T;
+      asBufferSource(fromBase64(encrypted.ciphertext))
+    )
+    return JSON.parse(new TextDecoder().decode(plaintext)) as T
   } catch {
     // A wrong passphrase and a damaged ciphertext are intentionally
     // indistinguishable to callers.
-    return null;
+    return null
   }
 }
 
-export async function writeVault(key: CryptoKey, value: unknown): Promise<void> {
-  recoverPendingVaultRotation();
-  window.localStorage.setItem(VAULT_KEY, JSON.stringify(await encryptVaultPayload(key, value)));
+export async function writeVault(
+  key: CryptoKey,
+  value: unknown,
+  canCommit: () => boolean = () => true,
+): Promise<boolean> {
+  if (!canCommit()) return false
+  recoverPendingVaultRotation()
+  const payload = await encryptVaultPayload(key, value)
+  if (!canCommit()) return false
+  window.localStorage.setItem(VAULT_KEY, JSON.stringify(payload))
+  return true
 }
 
 export function hasVault(): boolean {
-  if (typeof window === "undefined") return false;
-  recoverPendingVaultRotation();
-  return window.localStorage.getItem(VAULT_KEY) !== null;
+  if (typeof window === 'undefined') return false
+  recoverPendingVaultRotation()
+  return window.localStorage.getItem(VAULT_KEY) !== null
 }
 
 export function activeVaultKey(): CryptoKey | null {
-  return activeKey;
+  return activeKey
 }
 
 export function setActiveVaultKey(key: CryptoKey | null): void {
-  activeKey = key;
+  activeKey = key
+}
+
+/** Notify other same-origin tabs to discard decrypted in-memory vault state. */
+export function announceVaultLock(): void {
+  if (typeof window === 'undefined') return
+  try {
+    const nonce = crypto.getRandomValues(new Uint32Array(2))
+    window.localStorage.setItem(LOCAL_VAULT_LOCK_SIGNAL_KEY, `${Date.now()}-${nonce[0]}-${nonce[1]}`)
+  } catch {
+    // Locking this tab must still work when storage is unavailable.
+  }
 }
 
 export function clearVault(): void {
-  window.localStorage.removeItem(VAULT_KEY);
-  window.localStorage.removeItem(SALT_KEY);
-  window.localStorage.removeItem(VAULT_TRANSACTION_JOURNAL_STORAGE);
-  window.localStorage.removeItem(VAULT_BACKUP_RECOMMENDED_STORAGE);
-  activeKey = null;
+  window.localStorage.removeItem(VAULT_KEY)
+  window.localStorage.removeItem(SALT_KEY)
+  window.localStorage.removeItem(VAULT_TRANSACTION_JOURNAL_STORAGE)
+  window.localStorage.removeItem(VAULT_BACKUP_RECOMMENDED_STORAGE)
+  activeKey = null
 }
 
 export function vaultBackupRecommended(): boolean {
-  return typeof window !== "undefined" && window.localStorage.getItem(VAULT_BACKUP_RECOMMENDED_STORAGE) === "1";
+  return typeof window !== 'undefined' && window.localStorage.getItem(VAULT_BACKUP_RECOMMENDED_STORAGE) === '1'
 }
 
 export function setVaultBackupRecommended(recommended: boolean): void {
-  if (typeof window === "undefined") return;
-  if (recommended) window.localStorage.setItem(VAULT_BACKUP_RECOMMENDED_STORAGE, "1");
-  else window.localStorage.removeItem(VAULT_BACKUP_RECOMMENDED_STORAGE);
+  if (typeof window === 'undefined') return
+  if (recommended) window.localStorage.setItem(VAULT_BACKUP_RECOMMENDED_STORAGE, '1')
+  else window.localStorage.removeItem(VAULT_BACKUP_RECOMMENDED_STORAGE)
 }
 
 // A caller can still abort after the expensive KDF/encryption work (for
@@ -278,33 +294,33 @@ export function setVaultBackupRecommended(recommended: boolean): void {
 export async function applyVaultPassphraseRotation(
   passphrase: string,
   value: unknown,
-  canCommit: () => boolean,
+  canCommit: () => boolean
 ): Promise<CryptoKey | null> {
-  const saltBytes = crypto.getRandomValues(new Uint8Array(16));
-  const key = await deriveVaultKeyForSalt(passphrase, saltBytes);
+  const saltBytes = crypto.getRandomValues(new Uint8Array(16))
+  const key = await deriveVaultKeyForSalt(passphrase, saltBytes)
   const next: VaultStorage = {
     salt: toBase64(saltBytes),
-    payload: await encryptVaultPayload(key, value),
-  };
-  if (!canCommit()) return null;
-  recoverPendingVaultRotation();
-  const previous = currentVaultStorage();
-  if (!previous) return null;
+    payload: await encryptVaultPayload(key, value)
+  }
+  if (!canCommit()) return null
+  recoverPendingVaultRotation()
+  const previous = currentVaultStorage()
+  if (!previous) return null
   try {
-    const journal: VaultRotationJournal = { version: 1, previous, next };
+    const journal: VaultRotationJournal = { version: 1, previous, next }
     // `journal` contains only AES-GCM ciphertext and a public KDF salt. It is
     // a recovery transaction, never a plaintext copy of vault data.
     // codeql[js/clear-text-storage-of-sensitive-information]
-    window.localStorage.setItem(VAULT_TRANSACTION_JOURNAL_STORAGE, JSON.stringify(journal));
+    window.localStorage.setItem(VAULT_TRANSACTION_JOURNAL_STORAGE, JSON.stringify(journal))
     // codeql[js/clear-text-storage-of-sensitive-information]
-    window.localStorage.setItem(SALT_KEY, next.salt);
+    window.localStorage.setItem(SALT_KEY, next.salt)
     // codeql[js/clear-text-storage-of-sensitive-information]
-    window.localStorage.setItem(VAULT_KEY, JSON.stringify(next.payload));
-    window.localStorage.removeItem(VAULT_TRANSACTION_JOURNAL_STORAGE);
-    return key;
+    window.localStorage.setItem(VAULT_KEY, JSON.stringify(next.payload))
+    window.localStorage.removeItem(VAULT_TRANSACTION_JOURNAL_STORAGE)
+    return key
   } catch {
-    recoverPendingVaultRotation();
-    return null;
+    recoverPendingVaultRotation()
+    return null
   }
 }
 
@@ -312,50 +328,50 @@ export async function applyVaultPassphraseRotation(
 // salt. It never decrypts the vault, includes no passphrase, and is portable
 // only for someone who knows the original passphrase.
 export function exportVaultBackup(): VaultBackup | null {
-  recoverPendingVaultRotation();
-  const storage = currentVaultStorage();
-  if (!storage) return null;
+  recoverPendingVaultRotation()
+  const storage = currentVaultStorage()
+  if (!storage) return null
   return {
-    format: "fernandofamily-private-vault",
+    format: 'fernandofamily-private-vault',
     version: 1,
     exportedAt: new Date().toISOString(),
     salt: storage.salt,
-    payload: storage.payload,
-  };
+    payload: storage.payload
+  }
 }
 
 // Import is intentionally fail-closed: a device with a vault must be cleared
 // first, so an uploaded file can never silently replace private local data.
 export function importVaultBackup(serialized: string): VaultBackupImportResult {
-  recoverPendingVaultRotation();
-  if (hasVault()) return "existing_vault";
+  recoverPendingVaultRotation()
+  if (hasVault()) return 'existing_vault'
   try {
-    const backup = parseVaultBackup(JSON.parse(serialized));
-    if (!backup) return "invalid_backup";
-    window.localStorage.setItem(SALT_KEY, backup.salt);
-    window.localStorage.setItem(VAULT_KEY, JSON.stringify(backup.payload));
-    window.localStorage.removeItem(VAULT_TRANSACTION_JOURNAL_STORAGE);
-    activeKey = null;
-    return "imported";
+    const backup = parseVaultBackup(JSON.parse(serialized))
+    if (!backup) return 'invalid_backup'
+    window.localStorage.setItem(SALT_KEY, backup.salt)
+    window.localStorage.setItem(VAULT_KEY, JSON.stringify(backup.payload))
+    window.localStorage.removeItem(VAULT_TRANSACTION_JOURNAL_STORAGE)
+    activeKey = null
+    return 'imported'
   } catch {
     // No existing vault was present before this operation, so a failed write
     // must leave no partial salt/ciphertext pair behind.
-    window.localStorage.removeItem(SALT_KEY);
-    window.localStorage.removeItem(VAULT_KEY);
-    return "invalid_backup";
+    window.localStorage.removeItem(SALT_KEY)
+    window.localStorage.removeItem(VAULT_KEY)
+    return 'invalid_backup'
   }
 }
 
 export function clearLegacySensitiveStorage(): void {
-  if (typeof window === "undefined") return;
-  for (const key of LEGACY_SENSITIVE_LOCAL_STORAGE_KEYS) window.localStorage.removeItem(key);
-  for (const key of LEGACY_SENSITIVE_SESSION_STORAGE_KEYS) window.sessionStorage.removeItem(key);
+  if (typeof window === 'undefined') return
+  for (const key of LEGACY_SENSITIVE_LOCAL_STORAGE_KEYS) window.localStorage.removeItem(key)
+  for (const key of LEGACY_SENSITIVE_SESSION_STORAGE_KEYS) window.sessionStorage.removeItem(key)
 }
 
 export function hasLegacySensitiveStorage(): boolean {
-  if (typeof window === "undefined") return false;
+  if (typeof window === 'undefined') return false
   return (
-    LEGACY_SENSITIVE_LOCAL_STORAGE_KEYS.some((key) => window.localStorage.getItem(key) !== null) ||
-    LEGACY_SENSITIVE_SESSION_STORAGE_KEYS.some((key) => window.sessionStorage.getItem(key) !== null)
-  );
+    LEGACY_SENSITIVE_LOCAL_STORAGE_KEYS.some(key => window.localStorage.getItem(key) !== null) ||
+    LEGACY_SENSITIVE_SESSION_STORAGE_KEYS.some(key => window.sessionStorage.getItem(key) !== null)
+  )
 }

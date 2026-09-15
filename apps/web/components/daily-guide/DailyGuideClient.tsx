@@ -512,7 +512,7 @@ export function DailyGuideClient() {
   // Vault writes also change vaultLocation after a user selects a place; this
   // bootstrap should rerun only for navigation or an unlock transition.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [requestedDate, run, unlocked, privatePeople.person]);
+  }, [requestedDate, run, unlocked, privatePeople.person, vaultData.defaultLocation, vaultLocation]);
 
   const viewingToday = Boolean(location && date === todayFor(location).date);
   const currentPeriod = viewingToday ? data?.schedule.current_period ?? null : null;

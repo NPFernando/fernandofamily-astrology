@@ -135,15 +135,13 @@ export function PanchaPakshiClient() {
     initializedForUnlock.current = unlocked;
     // Restores a schedule lost to the remount that happens when switching
     // language (the locale segment changing navigates to a new pathname,
-    // which unmounts this page). Same-tab-session only, so this never
-    // resurrects genuinely old data across a new visit — see
-    // vault state. Locked sessions intentionally do not restore encrypted
-    // calculations.
+    // which unmounts this page). The value lives only in the encrypted vault;
+    // locked sessions intentionally do not restore private calculations.
     const restored = unlocked && !vaultData.derivedIdentitySeed ? vaultData.sessionSchedule ?? null : null;
     if (restored) {
       /* eslint-disable react-hooks/set-state-in-effect -- one-time hydration
-         from sessionStorage on mount, same pattern as the isOnline effect
-         above; there's no "external system" to subscribe to here instead. */
+         from the encrypted vault on mount, same pattern as the isOnline
+         effect above; there's no external system to subscribe to here. */
       setSchedule(restored.schedule);
       setServerTime(restored.serverTimeIso ? new Date(restored.serverTimeIso) : null);
       setFetchedAtClientMs(restored.fetchedAtClientMs);

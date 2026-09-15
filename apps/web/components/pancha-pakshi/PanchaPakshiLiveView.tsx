@@ -123,7 +123,7 @@ export function PanchaPakshiLiveView() {
     initializedForUnlock.current = unlocked;
     const seed = unlocked ? vaultData.liveScheduleSeed ?? null : null;
     if (seed) {
-      /* eslint-disable react-hooks/set-state-in-effect -- one-time hydration from sessionStorage. */
+      /* eslint-disable react-hooks/set-state-in-effect -- one-time hydration from the unlocked encrypted vault. */
       setSchedule(seed.schedule);
       setLastRequest(seed.request);
       setServerTime(seed.serverTimeIso ? new Date(seed.serverTimeIso) : null);

@@ -121,7 +121,7 @@ export function PanchangaClient() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unlocked, privatePeople.person, vaultData.defaultLocation]);
+  }, [unlocked, privatePeople.person, vaultData.defaultLocation, vaultLocation]);
 
   const onDateChange = useCallback(
     (next: string) => {

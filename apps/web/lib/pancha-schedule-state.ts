@@ -3,30 +3,23 @@
 import {
   fetchScheduleWithServerTime,
   type BirdId,
-  type PakshaId,
   type ScheduleRequest,
   type ScheduleResponse,
 } from "@/lib/api-client";
-import { loadAccountPreferences } from "@/lib/account-preferences";
 import { activeProfileId, listLocalProfiles } from "@/lib/profiles";
+import { getEphemeralDerivedIdentitySeed } from "@/lib/ephemeral-derived-identity";
+import type { DerivedIdentitySeed } from "@/lib/ephemeral-derived-identity";
+import { loadAccountPreferences } from "@/lib/account-preferences";
 import { nowAsTargetDateTime } from "@/components/pancha-pakshi/TargetDateTimeFields";
+export { clearEphemeralDerivedIdentitySeed, setEphemeralDerivedIdentitySeed } from "@/lib/ephemeral-derived-identity";
+export type { DerivedIdentitySeed } from "@/lib/ephemeral-derived-identity";
 
 export type CachedSchedule = { schedule: ScheduleResponse; cachedAtIso: string };
 export type SessionSchedule = { schedule: ScheduleResponse; serverTimeIso: string | null; fetchedAtClientMs: number };
 export type LiveScheduleSeed = SessionSchedule & { request: ScheduleRequest };
-export type DerivedIdentitySeed = {
-  bird: BirdId;
-  nakshatra_index: number | null;
-  paksha: PakshaId | null;
-  moon_rashi_index: number | null;
-  savedAtIso: string;
-};
-
 // A derived bird/nakshatra result is not raw birth data or a precise
 // location. Preserve the existing same-tab quick-action flow while locked,
 // but never serialize it outside the encrypted vault.
-let ephemeralDerivedIdentitySeed: DerivedIdentitySeed | null = null;
-
 export type VaultLocation = {
   name: string;
   latitude: number;
@@ -65,14 +58,6 @@ export function derivedIdentitySeedFor(
   seed: Omit<DerivedIdentitySeed, "savedAtIso">,
 ): DerivedIdentitySeed {
   return { ...seed, savedAtIso: new Date().toISOString() };
-}
-
-export function setEphemeralDerivedIdentitySeed(seed: DerivedIdentitySeed): void {
-  ephemeralDerivedIdentitySeed = seed;
-}
-
-export function clearEphemeralDerivedIdentitySeed(): void {
-  ephemeralDerivedIdentitySeed = null;
 }
 
 export function requestFromSchedule(schedule: ScheduleResponse): ScheduleRequest {
@@ -123,7 +108,7 @@ export async function resolveDefaultScheduleRequest({
     iana_tz: location.iana_tz,
   };
 
-  const identitySeed = derivedIdentitySeed ?? ephemeralDerivedIdentitySeed;
+  const identitySeed = derivedIdentitySeed ?? getEphemeralDerivedIdentitySeed();
 
   if (identitySeed?.nakshatra_index && identitySeed.paksha) {
     return {

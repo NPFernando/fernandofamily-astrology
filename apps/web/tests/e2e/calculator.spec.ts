@@ -180,12 +180,6 @@ test("signed-in account bird defaults drive zero-click while saved locations sta
     locale: "en",
     theme: "dark",
     default_bird: "cock",
-    default_location: {
-      name: "Kandy, Sri Lanka",
-      latitude: 7.2906,
-      longitude: 80.6337,
-      iana_tz: "Asia/Colombo",
-    },
     updated_at: new Date().toISOString(),
   };
 
@@ -229,7 +223,6 @@ test("signed-in account bird defaults drive zero-click while saved locations sta
       locale: null,
       theme: null,
       default_bird: null,
-      default_location: null,
     }),
   );
 });

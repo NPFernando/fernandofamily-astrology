@@ -1,10 +1,46 @@
 import { test, expect } from "@playwright/test";
 import { PUSH_E2E } from "../../playwright.config";
+import { removePushSubscription } from "../../lib/push-subscription";
 import { openToolsContext } from "./helpers";
 
 // Flag-off behavior runs against the default (no-VAPID) server via baseURL;
 // everything push-enabled targets PUSH_E2E.baseURL — a second `next start`
 // of the same build with throwaway VAPID keys (see playwright.config.ts).
+
+test("failed server deletion retains the browser subscription for retry", async () => {
+  let browserSubscriptionRemoved = false;
+  const removed = await removePushSubscription(
+    "https://push.example/device-1",
+    async () => {
+      browserSubscriptionRemoved = true;
+      return true;
+    },
+    async () => ({ ok: false, json: async () => ({ error: "storage_unavailable" }) }),
+  );
+
+  expect(removed).toBe(false);
+  expect(browserSubscriptionRemoved).toBe(false);
+});
+
+test("successful server deletion then removes the browser subscription", async () => {
+  let requestedEndpoint: string | undefined;
+  let browserSubscriptionRemoved = false;
+  const removed = await removePushSubscription(
+    "https://push.example/device-2",
+    async () => {
+      browserSubscriptionRemoved = true;
+      return true;
+    },
+    async (_input, init) => {
+      requestedEndpoint = JSON.parse(String(init?.body)).endpoint;
+      return { ok: true, json: async () => ({ unsubscribed: true }) };
+    },
+  );
+
+  expect(removed).toBe(true);
+  expect(requestedEndpoint).toBe("https://push.example/device-2");
+  expect(browserSubscriptionRemoved).toBe(true);
+});
 
 test.describe("push disabled (default server)", () => {
   test("public-key 404s and the opt-in card is absent", async ({ page, request }) => {
@@ -42,6 +78,7 @@ test.describe("push enabled (VAPID server)", () => {
     await card.click(); // expand the <details>
     await expect(page.getByRole("button", { name: "Enable alerts" })).toBeVisible();
     await expect(page.getByText("Alert lead time")).toBeVisible();
+    await expect(page.getByText(/push address.*rounded to roughly 1 km/i)).toBeVisible();
     await context.close();
     // The real pushManager.subscribe can't complete in headless Chromium
     // (no push service is available in the sandbox) — the route itself is
@@ -58,9 +95,8 @@ test.describe("push enabled (VAPID server)", () => {
     });
     expect(bad.status()).toBe(422);
 
-    // Valid shape: 200 when the astrology DB (with migration 002) is
-    // reachable from this environment; a clean 503 when it isn't — both
-    // prove the route logic; the console line records which path ran.
+    // Database persistence is asserted only when an explicitly configured,
+    // isolated E2E database is present. No production .env fallback exists.
     const good = await request.post(url, {
       data: {
         subscription: { endpoint, keys: { p256dh: "e2e-p256dh-key", auth: "e2e-auth" } },
@@ -73,8 +109,11 @@ test.describe("push enabled (VAPID server)", () => {
         locale: "en",
       },
     });
-    expect([200, 503]).toContain(good.status());
-    console.log(`push subscribe returned ${good.status()} (${good.status() === 200 ? "DB reachable" : "storage unavailable in this env"})`);
+    if (PUSH_E2E.databaseEnabled) {
+      expect(good.status()).toBe(200);
+    } else {
+      expect(good.status()).toBe(503);
+    }
 
     if (good.status() === 200) {
       // Clean up the test row.
@@ -95,8 +134,8 @@ test.describe("push enabled (VAPID server)", () => {
     expect(wrongKey.status()).toBe(401);
 
     const ok = await request.post(url, { headers: { "x-internal-key": PUSH_E2E.dispatchKey } });
-    // 200 with the DB (shape-checked), clean 503 without it.
-    expect([200, 503]).toContain(ok.status());
+    // 200 with the explicitly isolated DB (shape-checked), clean 503 without it.
+    expect(ok.status()).toBe(PUSH_E2E.databaseEnabled ? 200 : 503);
     if (ok.status() === 200) {
       const data = await ok.json();
       expect(data.dry).toBe(true);

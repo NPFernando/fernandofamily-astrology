@@ -13,12 +13,21 @@ import type { PrivatePerson } from "@/lib/private-people";
 // their birth values, precise locations, or profile identities into the DOM.
 export function PrivacyDataCenter() {
   const { dict } = useLocale();
-  const { data, ready, unlocked, hasEncryptedData, legacyMigrationPending } = useLocalVault();
+  const {
+    data,
+    ready,
+    unlocked,
+    hasEncryptedData,
+    legacyMigrationPending,
+    invalidLegacyAccountLocation,
+    discardInvalidLegacyAccountLocation,
+  } = useLocalVault();
   const privatePeople = usePrivatePeople();
   const localProfileCount = useMemo(() => listLocalProfiles().length, []);
   const [device, setDevice] = useState({ online: false, serviceWorkerReady: false });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Omit<PrivatePerson, "id" | "created_at" | "updated_at"> | null>(null);
+  const [migrationError, setMigrationError] = useState(false);
 
   useEffect(() => {
     const update = () => setDevice({
@@ -46,6 +55,12 @@ export function PrivacyDataCenter() {
     await privatePeople.savePerson({ ...draft, label: draft.label.trim() }, editingId ?? undefined);
     setDraft(null);
     setEditingId(null);
+  }
+
+  async function discardInvalidLocation() {
+    if (!window.confirm(dict.ui.dataCenterDiscardInvalidLocationConfirm)) return;
+    setMigrationError(false);
+    if (!(await discardInvalidLegacyAccountLocation())) setMigrationError(true);
   }
 
   function downloadDerivedProfiles() {
@@ -98,6 +113,13 @@ export function PrivacyDataCenter() {
         {dict.ui.dataCenterExportProfiles}
       </button>
       {legacyMigrationPending && <p role="status" className="mt-3 text-sm text-accent">{dict.ui.dataCenterMigrationPending}</p>}
+      {unlocked && invalidLegacyAccountLocation && <div className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-sm">
+        <p>{dict.ui.dataCenterInvalidLegacyLocation}</p>
+        <button type="button" onClick={() => void discardInvalidLocation()} className="mt-2 rounded border border-amber-700/40 px-3 py-1.5 text-xs font-semibold hover:bg-amber-500/10">
+          {dict.ui.dataCenterDiscardInvalidLocation}
+        </button>
+        {migrationError && <p role="alert" className="mt-2 text-xs text-red-700 dark:text-red-300">{dict.ui.dataCenterDiscardInvalidLocationFailed}</p>}
+      </div>}
       <section id="private-people-manager" className="mt-6 rounded-lg border border-black/10 p-3 dark:border-white/10" data-testid="private-people-manager">
         <div className="flex items-center justify-between gap-2">
           <div><h3 className="font-semibold">{dict.ui.privatePeopleTitle}</h3><p className="mt-1 text-xs opacity-70">{dict.ui.privatePeopleBody}</p></div>

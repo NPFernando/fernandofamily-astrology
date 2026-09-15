@@ -52,6 +52,9 @@ isolated restore drill are documented in
 [`database-backups.md`](database-backups.md). Never point the drill at the
 production database. A production data restore requires a separate approved
 incident runbook and two-person review of the archive and destination.
+For host PostgreSQL connectivity, role grants, and explicit schema upgrades,
+use the [astrology database access runbook](astrology-database-access.md);
+image rollback does not reverse those changes.
 
 ## Verifying a rollback worked
 

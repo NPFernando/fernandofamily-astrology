@@ -1162,7 +1162,7 @@ export function MuhurtaClient() {
       cancelled = true;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps -- rerun on unlock, not every user location write.
-  }, [run, unlocked, privatePeople.person]);
+  }, [run, unlocked, privatePeople.person, vaultData.defaultLocation, vaultLocation]);
 
   const currentBird = useMemo(() => {
     if (identityRequest?.method === "bird") return identityRequest.bird;

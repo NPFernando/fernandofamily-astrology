@@ -65,32 +65,38 @@ export function AccountDefaultsPanel() {
     }
     setSaving(true);
     setStatus(null);
-    await updateVault((current) => ({ ...current, defaultLocation: loc }));
-    if (preferences?.default_location) {
-      const result = await saveAccountPreferences({ default_location: null });
-      if (result.available) setPreferences(result.preferences);
+    try {
+      await updateVault((current) => ({ ...current, defaultLocation: loc }));
+      setStatus(dict.ui.accountDefaultsSaved);
+      window.setTimeout(() => setStatus(null), 1800);
+    } catch {
+      setStatus(dict.ui.accountDefaultsError);
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    setStatus(dict.ui.accountDefaultsSaved);
-    window.setTimeout(() => setStatus(null), 1800);
   }
 
   async function clearLocation() {
     if (!unlocked) return;
     setSaving(true);
-    await updateVault((current) => ({ ...current, defaultLocation: undefined }));
-    if (preferences?.default_location) {
-      const result = await saveAccountPreferences({ default_location: null });
-      if (result.available) setPreferences(result.preferences);
+    try {
+      await updateVault((current) => {
+        const next = { ...current };
+        delete next.defaultLocation;
+        return next;
+      });
+      setStatus(dict.ui.accountDefaultsSaved);
+      window.setTimeout(() => setStatus(null), 1800);
+    } catch {
+      setStatus(dict.ui.accountDefaultsError);
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    setStatus(dict.ui.accountDefaultsSaved);
-    window.setTimeout(() => setStatus(null), 1800);
   }
 
-  async function resetDefaults() {
-    if (unlocked) await updateVault((current) => ({ ...current, defaultLocation: undefined }));
-    void save({ locale: null, theme: null, default_bird: null, default_location: null });
+  function resetDefaults() {
+    void save({ locale: null, theme: null, default_bird: null });
+    void clearLocation();
   }
 
   const defaultBird = preferences?.default_bird ?? null;
@@ -173,15 +179,12 @@ export function AccountDefaultsPanel() {
             </button>
           )}
         </div>
-        {preferences?.default_location && !unlocked && (
-          <p className="mb-2 text-xs opacity-70">{dict.ui.unlockVaultForDefaultLocation}</p>
-        )}
-        {loaded && unlocked ? (
-          <LocationPicker value={defaultLocation} onChange={saveLocation} />
+        {!unlocked ? (
+          <p className="text-xs opacity-70">{dict.ui.unlockVaultForDefaultLocation}</p>
         ) : !loaded ? (
           <p className="text-xs opacity-70">{dict.ui.loading}</p>
         ) : (
-          <p className="text-xs opacity-70">{dict.ui.unlockVaultForDefaultLocation}</p>
+          <LocationPicker value={defaultLocation} onChange={saveLocation} />
         )}
       </div>
 

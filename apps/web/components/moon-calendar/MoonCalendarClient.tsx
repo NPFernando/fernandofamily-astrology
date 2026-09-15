@@ -133,8 +133,7 @@ export function MoonCalendarClient() {
     return () => {
       cancelled = true;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- rerun on unlock, not every user location write.
-  }, [requestedDate, run, unlocked, privatePeople.person, vaultData.defaultLocation]);
+  }, [requestedDate, run, unlocked, privatePeople.person, vaultData.defaultLocation, vaultLocation]);
 
   const selectedDay = useMemo(
     () => data?.days.find((d) => d.date === selectedDate) ?? data?.days[0] ?? null,

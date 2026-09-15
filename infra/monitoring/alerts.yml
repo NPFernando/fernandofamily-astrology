@@ -63,6 +63,15 @@ groups:
           summary: API p95 response time is above one second
           runbook: docs/deployment/monitoring.md#slow-responses
 
+      - alert: AstrologyApiMemoryPressure
+        expr: astrology_api_process_resident_memory_bytes > 805306368
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: API process resident memory is above 768 MiB
+          runbook: docs/deployment/monitoring.md#memory-pressure
+
       - alert: PushDispatchFailures
         expr: |
           sum(rate(astrology_api_requests_total{

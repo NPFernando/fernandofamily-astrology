@@ -60,6 +60,7 @@ inspection; Alertmanager is port 9093 for silences and delivery diagnostics.
 | `AstrologyApiServerErrors` | 5xx ratio exceeds 5% for 10 minutes | [Server errors](#server-errors) |
 | `AstrologyApiRateLimited` | More than 3 rate-limited requests/minute for 10 minutes | [Rate limits](#rate-limits) |
 | `AstrologyApiSlowResponses` | API p95 exceeds 1 second for 10 minutes | [Slow responses](#slow-responses) |
+| `AstrologyApiMemoryPressure` | API process RSS exceeds 768 MiB for 10 minutes | [Memory pressure](#memory-pressure) |
 | `PushDispatchFailures` | Internal push dispatch returns a 5xx for 15 minutes | [Push dispatch failures](#push-dispatch-failures) |
 
 ### API down
@@ -125,6 +126,21 @@ Compare p95 latency with 5xx and request-rate panels. Confirm readiness and
 container resource pressure, then inspect only aggregate route metrics and
 request IDs. Roll back a correlated release rather than changing engine data
 or vendor files during an incident.
+
+### Memory pressure
+
+`AstrologyApiMemoryPressure` uses the API process's aggregate resident-memory
+metric and fires above 768 MiB for 10 minutes. It contains no request labels or
+user data. Check container memory and recent release state before restarting:
+
+```bash
+docker stats --no-stream fernandofamily-astrology-api-1
+docker compose -f docker-compose.yml -f docker-compose.production.yml logs --tail=200 api
+```
+
+If memory continues to rise or the container was OOM-killed, use the recorded
+image tag and rollback procedure; do not increase limits or disable the alert
+without identifying the allocation source.
 
 ### Push dispatch failures
 

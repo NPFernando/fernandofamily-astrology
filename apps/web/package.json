@@ -14,7 +14,7 @@
     "e2e:isolated": "bash scripts/e2e-isolated.sh"
   },
   "dependencies": {
-    "next": "16.3.4",
+    "next": "16.3.5",
     "next-auth": "5.0.0-beta.32",
     "pg": "^8.22.0",
     "react": "19.2.8",

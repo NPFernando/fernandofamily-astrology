@@ -3,6 +3,7 @@ import threading
 import time
 from collections import defaultdict
 from collections.abc import Awaitable, Callable
+from pathlib import Path
 
 from fastapi import APIRouter, Request
 from starlette.responses import PlainTextResponse, Response
@@ -63,6 +64,17 @@ def observe_request(method: str, path: str, status_code: int, duration_seconds: 
                 buckets[index] += 1
 
 
+def _resident_memory_bytes() -> int:
+    """Return the current process RSS without exporting any request data."""
+    try:
+        for line in Path("/proc/self/status").read_text(encoding="utf-8").splitlines():
+            if line.startswith("VmRSS:"):
+                return int(line.split()[1]) * 1024
+    except (OSError, ValueError, IndexError):
+        pass
+    return 0
+
+
 async def metrics_middleware(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
     if request.url.path == "/metrics":
         return await call_next(request)
@@ -95,6 +107,9 @@ def render_metrics() -> str:
             }
         )
         + "} 1",
+        "# HELP astrology_api_process_resident_memory_bytes Current API process RSS.",
+        "# TYPE astrology_api_process_resident_memory_bytes gauge",
+        f"astrology_api_process_resident_memory_bytes {_resident_memory_bytes()}",
         "# HELP astrology_api_requests_total Total HTTP requests served by the API.",
         "# TYPE astrology_api_requests_total counter",
     ]

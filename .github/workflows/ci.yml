@@ -64,6 +64,10 @@ jobs:
         working-directory: apps/web
         run: pnpm build
 
+      - name: Check JavaScript and CSS bundle budgets
+        working-directory: apps/web
+        run: pnpm run check:bundle
+
       - name: Test (i18n hygiene, no-birth-fields-in-URL)
         working-directory: apps/web
         run: pnpm test

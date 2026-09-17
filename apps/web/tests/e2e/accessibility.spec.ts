@@ -98,3 +98,41 @@ for (const locale of ["en", "si"] as const) {
     assertNoSevereViolations(results.violations);
   });
 }
+
+test.describe("WCAG browser checks", () => {
+  test("public routes have no WCAG 2A/2AA axe violations", async ({ page }) => {
+    for (const route of ["/en", "/en/birth-chart", "/en/daily-guide/planner", "/en/privacy"]) {
+      await page.goto(route);
+      await expect(page.locator("main")).toBeVisible();
+      const report = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
+      expect(report.violations, `${route}: ${JSON.stringify(report.violations)}`).toEqual([]);
+    }
+  });
+
+  test("visible controls expose names and keyboard focus", async ({ page }) => {
+    await page.goto("/en/privacy");
+    const controls = page.locator("a:visible, button:visible, input:visible, select:visible, textarea:visible");
+    const count = await controls.count();
+    expect(count).toBeGreaterThan(0);
+    for (let index = 0; index < count; index += 1) {
+      const name = await controls.nth(index).evaluate((element) => {
+        const labelledBy = element.getAttribute("aria-labelledby");
+        const labelledText = labelledBy
+          ? labelledBy.split(/\s+/).map((id) => document.getElementById(id)?.textContent ?? "").join(" ")
+          : "";
+        return (element.getAttribute("aria-label") || labelledText || element.getAttribute("title") ||
+          (element as HTMLInputElement).labels?.[0]?.textContent || element.textContent || "")
+          .replace(/\s+/g, " ").trim();
+      });
+      expect(name, `unnamed visible control at index ${index}`).not.toBe("");
+    }
+    await page.keyboard.press("Tab");
+    await expect(page.locator(":focus")).toHaveCount(1);
+    await expect(page.locator(":focus")).toBeVisible();
+    for (let index = 0; index < Math.min(count, 12); index += 1) {
+      await page.keyboard.press("Tab");
+      await expect(page.locator(":focus")).toHaveCount(1);
+      await expect(page.locator(":focus")).toBeVisible();
+    }
+  });
+});

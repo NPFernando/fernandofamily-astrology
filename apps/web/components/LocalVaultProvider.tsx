@@ -76,6 +76,7 @@ type VaultContextValue = {
   unlock: (passphrase: string) => Promise<boolean>
   lock: () => void
   update: (updater: (current: LocalVaultData) => LocalVaultData) => Promise<void>
+  clearEphemeralData: () => Promise<void>
   rotatePassphrase: (passphrase: string) => Promise<boolean>
   exportBackup: () => VaultBackup | null
   importBackup: (serialized: string) => VaultBackupImportResult
@@ -365,6 +366,20 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
     [key]
   )
 
+  const clearEphemeralData = useCallback(async () => {
+    if (!key) throw new Error('Unlock the private data vault before clearing history.')
+    await update((current) => ({
+      ...current,
+      recentBirthDetails: undefined,
+      recentLocations: undefined,
+      cachedSchedule: undefined,
+      cachedDailyGuide: undefined,
+      sessionSchedule: undefined,
+      liveScheduleSeed: undefined,
+      derivedIdentitySeed: undefined,
+    }))
+  }, [key, update])
+
   const clear = useCallback(() => {
     announceVaultLock()
     sessionEpochRef.current += 1
@@ -499,6 +514,7 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
       unlock,
       lock,
       update,
+      clearEphemeralData,
       rotatePassphrase,
       exportBackup,
       importBackup,
@@ -520,7 +536,8 @@ export function LocalVaultProvider({ children }: { children: React.ReactNode }) 
       ready,
       rotatePassphrase,
       unlock,
-      update
+      update,
+      clearEphemeralData,
     ]
   )
   return (

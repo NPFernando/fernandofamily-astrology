@@ -110,6 +110,7 @@ export function VaultBackupControls() {
           ref={inputRef}
           type="file"
           accept="application/json,.json"
+          aria-label={dict.ui.restoreVaultBackup}
           data-testid="vault-backup-upload"
           className="sr-only"
           disabled={hasEncryptedData}

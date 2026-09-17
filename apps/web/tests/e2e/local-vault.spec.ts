@@ -257,6 +257,16 @@ test('local vault migrates sensitive legacy values, restores them after unlock, 
   await expect(page.locator('input[type="time"]')).toHaveValue(BIRTH_TIME)
 
   await page.goto('/en/privacy')
+  await page.getByRole('button', { name: 'Unlock private data' }).click()
+  await page.getByLabel('Vault passphrase').fill(PASSPHRASE)
+  await page.getByRole('button', { name: 'Unlock', exact: true }).click()
+  await expect(page.getByRole('button', { name: DICTS.en.ui.dataCenterClearEphemeral })).toBeVisible()
+  page.once('dialog', dialog => dialog.accept())
+  await page.getByRole('button', { name: DICTS.en.ui.dataCenterClearEphemeral }).click()
+  await expect(page.getByTestId('privacy-data-center')).toContainText(DICTS.en.ui.dataCenterClearEphemeralDone)
+  await expect(page.getByTestId('privacy-data-center')).toContainText(`${DICTS.en.ui.dataCenterBirthDetails}0`)
+  await expect(page.getByTestId('privacy-data-center')).toContainText(`${DICTS.en.ui.dataCenterCachedGuides}0`)
+
   page.once('dialog', dialog => dialog.accept())
   await page.getByRole('button', { name: 'Clear saved preferences' }).click()
   const cleared = await page.evaluate(
@@ -569,7 +579,7 @@ test('vault backup is ciphertext-only and restores only after the original passp
   await expect(
     restored.getByText('Backup restored. Unlock the vault with its original passphrase.', { exact: true })
   ).toBeVisible()
-  await expect(restored.getByRole('button', { name: 'Restore encrypted backup' })).toBeDisabled()
+  await expect(restored.getByText('Restore encrypted backup', { exact: true })).toBeDisabled()
 
   await restored.goto('/en/birth-chart')
   await restored.getByRole('button', { name: 'Unlock private data' }).click()

@@ -14,9 +14,35 @@ permissions:
   contents: read
 
 jobs:
-  deploy:
+  freshness:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    outputs:
+      deploy: ${{ steps.check.outputs.deploy }}
+    steps:
+      - name: Require the build to be current main
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUILD_SHA: ${{ github.event.workflow_run.head_sha }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          current_sha="$(gh api "repos/$REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          if [[ "$BUILD_SHA" != "$current_sha" ]]; then
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Stale deployment skipped::Build $BUILD_SHA is no longer current main ($current_sha)."
+            exit 0
+          fi
+          echo "deploy=true" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: freshness
+    if: ${{ needs.freshness.outputs.deploy == 'true' }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: false
     environment: production
     steps:
       # The deploy key's authorized_keys entry on the production host uses a

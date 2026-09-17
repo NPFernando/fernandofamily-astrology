@@ -15,18 +15,18 @@
     "e2e:isolated": "bash scripts/e2e-isolated.sh"
   },
   "dependencies": {
-    "next": "16.3.4",
+    "next": "16.3.5",
     "next-auth": "5.0.0-beta.32",
     "pg": "^8.22.0",
     "react": "19.2.8",
-    "react-dom": "19.2.4",
+    "react-dom": "19.2.8",
     "sharp": "^0.35.4",
     "tz-lookup": "^6.1.25",
     "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
-    "@playwright/test": "^1.62.0",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^26",
     "@types/pg": "^8.20.0",
@@ -35,7 +35,7 @@
     "@types/tz-lookup": "^6.1.2",
     "@types/web-push": "^3.6.4",
     "eslint": "^9",
-    "eslint-config-next": "16.3.0",
+    "eslint-config-next": "16.3.5",
     "openapi-typescript": "^7.13.0",
     "tailwindcss": "^4",
     "typescript": "^5"

@@ -3,6 +3,7 @@ name: Build and publish images
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -26,6 +27,7 @@ jobs:
   build-api:
     needs: vars
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
       API_IMAGE: ghcr.io/${{ needs.vars.outputs.owner }}/fernandofamily-astrology-api
     steps:
@@ -55,6 +57,7 @@ jobs:
   build-web:
     needs: vars
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
       WEB_IMAGE: ghcr.io/${{ needs.vars.outputs.owner }}/fernandofamily-astrology-web
     steps:

@@ -39,6 +39,12 @@ def test_metrics_endpoint_allows_loopback_scrape():
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/plain")
     assert "astrology_api_build_info" in response.text
+    memory_line = next(
+        line
+        for line in response.text.splitlines()
+        if line.startswith("astrology_api_process_resident_memory_bytes ")
+    )
+    assert int(memory_line.rsplit(" ", 1)[1]) > 0
     assert (
         'astrology_api_requests_total{method="GET",path="/api/v1/health/live",status_code="200"} 1'
         in response.text

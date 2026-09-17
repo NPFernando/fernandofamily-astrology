@@ -50,6 +50,6 @@ jobs:
       # Pinned to gitleaks-action v2.3.9. It scans the Git history for the
       # push/PR range and redacts matching values from workflow output.
       - name: Scan tracked history for leaked credentials
-        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

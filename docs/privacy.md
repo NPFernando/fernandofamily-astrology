@@ -53,6 +53,16 @@ The vault's encrypted ciphertext and salt remain in browser storage so the
 user can unlock later. Use **Clear saved preferences** to remove both the
 vault and the ordinary preferences from this browser.
 
+### User-controlled retention
+
+The Privacy data center includes **Clear recent history and caches** for an
+unlocked vault. This removes recent birth details, recent precise locations,
+cached schedules/guides, and short-lived session-derived calculator state from
+the encrypted payload. It deliberately preserves saved people, plans, family
+groups, derived profiles, and the vault passphrase/ciphertext. The action is
+explicitly confirmed in the browser and does not call the account migration
+endpoint or delete server-side data.
+
 ### Legacy browser-storage migration window
 
 Older versions stored some calculator state in browser storage without vault

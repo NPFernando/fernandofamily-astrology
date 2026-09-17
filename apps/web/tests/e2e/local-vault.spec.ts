@@ -258,6 +258,12 @@ test('local vault migrates sensitive legacy values, restores them after unlock, 
 
   await page.goto('/en/privacy')
   page.once('dialog', dialog => dialog.accept())
+  await page.getByRole('button', { name: DICTS.en.ui.dataCenterClearEphemeral }).click()
+  await expect(page.getByTestId('privacy-data-center')).toContainText(DICTS.en.ui.dataCenterClearEphemeralDone)
+  await expect(page.getByTestId('privacy-data-center')).toContainText(`${DICTS.en.ui.dataCenterBirthDetails}0`)
+  await expect(page.getByTestId('privacy-data-center')).toContainText(`${DICTS.en.ui.dataCenterCachedGuides}0`)
+
+  page.once('dialog', dialog => dialog.accept())
   await page.getByRole('button', { name: 'Clear saved preferences' }).click()
   const cleared = await page.evaluate(
     keys => ({

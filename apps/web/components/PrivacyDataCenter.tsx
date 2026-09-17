@@ -21,6 +21,7 @@ export function PrivacyDataCenter() {
     legacyMigrationPending,
     invalidLegacyAccountLocation,
     discardInvalidLegacyAccountLocation,
+    clearEphemeralData,
   } = useLocalVault();
   const privatePeople = usePrivatePeople();
   const localProfileCount = useMemo(() => listLocalProfiles().length, []);
@@ -28,6 +29,7 @@ export function PrivacyDataCenter() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Omit<PrivatePerson, "id" | "created_at" | "updated_at"> | null>(null);
   const [migrationError, setMigrationError] = useState(false);
+  const [retentionMessage, setRetentionMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const update = () => setDevice({
@@ -75,6 +77,12 @@ export function PrivacyDataCenter() {
     anchor.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 0);
   }
+
+  async function clearEphemeralRetention() {
+    if (!window.confirm(dict.ui.dataCenterClearEphemeralConfirm)) return;
+    await clearEphemeralData();
+    setRetentionMessage(dict.ui.dataCenterClearEphemeralDone);
+  }
   const items = [
     [dict.ui.dataCenterBirthDetails, data.recentBirthDetails?.length ?? 0],
     [dict.ui.dataCenterLocations, data.recentLocations?.length ?? 0],
@@ -112,6 +120,14 @@ export function PrivacyDataCenter() {
       <button type="button" onClick={downloadDerivedProfiles} className="mt-4 rounded-full border border-black/10 px-4 py-2 text-sm hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10">
         {dict.ui.dataCenterExportProfiles}
       </button>
+      {unlocked && <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
+        <h3 className="text-sm font-semibold">{dict.ui.dataCenterRetentionTitle}</h3>
+        <p className="mt-1 text-xs opacity-75">{dict.ui.dataCenterRetentionBody}</p>
+        <button type="button" onClick={() => void clearEphemeralRetention()} className="mt-3 rounded border border-amber-700/40 px-3 py-1.5 text-xs font-semibold hover:bg-amber-500/10">
+          {dict.ui.dataCenterClearEphemeral}
+        </button>
+        {retentionMessage && <p role="status" className="mt-2 text-xs text-accent">{retentionMessage}</p>}
+      </div>}
       {legacyMigrationPending && <p role="status" className="mt-3 text-sm text-accent">{dict.ui.dataCenterMigrationPending}</p>}
       {unlocked && invalidLegacyAccountLocation && <div className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-sm">
         <p>{dict.ui.dataCenterInvalidLegacyLocation}</p>

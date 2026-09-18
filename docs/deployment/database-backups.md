@@ -119,6 +119,25 @@ to the report.
 
 ## Retention and provider immutability
 
+Use the checked-in configuration wizard to validate a provider destination and
+write only non-secret Restic settings. It requires an existing independent
+Restic password file with mode `0600`; it never accepts or prints the password.
+It refuses to overwrite an environment file unless `--replace` is explicit.
+
+```bash
+sudo bash infra/deploy/configure-offsite-backup.sh \
+  --provider s3 \
+  --repository 's3:https://<provider-endpoint>/<bucket>/fernandofamily-astrology' \
+  --password-file /etc/fernandofamily-astrology/restic-password \
+  --env-file /etc/fernandofamily-astrology/database-backup.env
+```
+
+Supported provider labels are `s3`, `b2`, `r2`, `oci`, and `custom`; the
+repository must use a Restic `s3:`, `b2:`, `rclone:`, or `sftp:` URL. Configure
+provider access variables separately in the same restricted environment file.
+The wizard always leaves `ASTROLOGY_OFFSITE_IMMUTABILITY_CONFIRMED=0` until an
+operator verifies provider-side retention and changes it deliberately.
+
 The checked-in Restic policy retains 14 daily, 8 weekly, and 12 monthly
 tagged snapshots by default. The operator must separately enable immutable
 retention at the storage provider before the first production upload—for

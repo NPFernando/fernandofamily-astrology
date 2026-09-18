@@ -14,14 +14,14 @@ output="$(bash "$REPO_ROOT/infra/deploy/configure-offsite-backup.sh" \
   --password-file "$password_file" --env-file "$env_file" \
   --retention-daily 10 --retention-weekly 4 --retention-monthly 6)"
 grep -Fq 'Provider: s3' <<<"$output"
-! grep -Fq 'do-not-print-this-secret' <<<"$output"
+if grep -Fq 'do-not-print-this-secret' <<<"$output"; then exit 1; fi
 [[ "$(stat -c '%a' "$env_file")" == "600" ]]
 grep -Fxq 'RESTIC_KEEP_DAILY=10' "$env_file"
 grep -Fxq 'RESTIC_KEEP_WEEKLY=4' "$env_file"
 grep -Fxq 'RESTIC_KEEP_MONTHLY=6' "$env_file"
 grep -Fxq 'ASTROLOGY_OFFSITE_IMMUTABILITY_CONFIRMED=0' "$env_file"
 grep -Fq "RESTIC_PASSWORD_FILE=$password_file" "$env_file"
-! grep -Fq 'do-not-print-this-secret' "$env_file"
+if grep -Fq 'do-not-print-this-secret' "$env_file"; then exit 1; fi
 
 if bash "$REPO_ROOT/infra/deploy/configure-offsite-backup.sh" \
   --provider s3 --repository 's3:https://objects.example.invalid/bucket/astrology' \

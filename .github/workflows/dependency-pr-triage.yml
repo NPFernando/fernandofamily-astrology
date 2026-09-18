@@ -1,0 +1,25 @@
+name: Dependency PR triage
+
+on:
+  schedule:
+    - cron: "23 6 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      REPOSITORY_OWNER_LOGIN: ${{ vars.REPOSITORY_OWNER_LOGIN || github.repository_owner }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - name: Generate dependency triage report
+        run: node scripts/dependency-pr-triage.mjs | tee "$RUNNER_TEMP/dependency-pr-triage.md" >> "$GITHUB_STEP_SUMMARY"

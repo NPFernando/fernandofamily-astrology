@@ -82,6 +82,17 @@ the workflow never logs the state or account email. Rotate the state whenever
 the Google session expires or the account is changed. The workflow fails
 closed when the secret is absent or invalid.
 
+## `dependency-pr-triage.yml`
+
+Runs on weekdays and manually to produce a read-only summary of open dependency
+pull requests. It records check state, draft state, merge state, and whether the
+author matches `REPOSITORY_OWNER_LOGIN` (defaulting to the GitHub repository
+owner). Owner-authored, non-draft PRs with passing checks are marked
+`owner-merge-eligible`; all other PRs remain `review-required`. The workflow
+does not merge, approve, comment, or weaken branch protection. Configure
+required reviews and status checks in repository settings for the enforcement
+boundary.
+
 ## `security.yml`
 
 Runs CodeQL's extended security queries for Python and JavaScript/TypeScript

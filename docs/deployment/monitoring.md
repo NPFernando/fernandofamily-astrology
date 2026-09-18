@@ -50,6 +50,32 @@ Family Astrology — Production** dashboard is read-only and uses the local
 Prometheus source. Prometheus is available at port 9090 for target/alert
 inspection; Alertmanager is port 9093 for silences and delivery diagnostics.
 
+## Privacy-vault migration telemetry
+
+The internal `GET /api/internal/privacy-vault-telemetry` route is an
+operator-only readiness signal for the legacy account-location migration. It
+returns only aggregate account counts and one of `complete`, `pending`,
+`needs_review`, or `no_accounts`; it never returns email addresses, profile
+labels, birth fields, coordinates, location names, or timezone values. The
+route is loopback-only through the reverse proxy and requires
+`PRIVACY_VAULT_TELEMETRY_KEY` (or the existing `INTERNAL_DISPATCH_KEY` for
+backward-compatible installations) in `x-internal-key`.
+
+Example from the production host, without printing the key:
+
+```bash
+KEY="$(grep '^PRIVACY_VAULT_TELEMETRY_KEY=' .env | cut -d= -f2-)"
+curl --fail --silent --show-error \
+  -H "x-internal-key: ${KEY}" \
+  http://127.0.0.1:3100/api/internal/privacy-vault-telemetry
+unset KEY
+```
+
+Treat `needs_review` as a privacy migration incident: investigate only the
+affected account through the authenticated migration UI, and do not export
+the underlying location value into dashboards or logs. The static contract
+check is included in `pnpm test` as `check-privacy-vault-telemetry.mjs`.
+
 ## Alerts and first response
 
 | Alert | Condition | First response |

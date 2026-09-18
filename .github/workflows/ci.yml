@@ -117,6 +117,9 @@ jobs:
       - name: Verify database backup and restore-drill guards
         run: bash infra/deploy/tests/test-database-backup.sh
 
+      - name: Verify deploy prunes stale release images
+        run: bash infra/deploy/tests/test-deploy-image-retention.sh
+
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 10

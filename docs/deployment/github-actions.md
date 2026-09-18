@@ -70,6 +70,18 @@ signal for DNS, TLS, edge-routing, and stale-asset failures. Set the optional
 repository variable `PUBLIC_SMOKE_BASE_URL` before changing the canonical
 public domain; it is not a secret.
 
+## `authenticated-production-smoke.yml`
+
+Runs after a successful `Deploy` workflow and can also be started manually. It
+uses a Playwright storage-state secret for a dedicated, allowlisted Google
+account to verify the real production session, protected preferences/profiles
+endpoints, browser rendering, and deployed commit metadata. Configure the
+repository secret `ASTROLOGY_AUTH_STORAGE_STATE_B64` with base64-encoded
+Playwright storage-state JSON. Generate it from a dedicated test account only;
+the workflow never logs the state or account email. Rotate the state whenever
+the Google session expires or the account is changed. The workflow fails
+closed when the secret is absent or invalid.
+
 ## `security.yml`
 
 Runs CodeQL's extended security queries for Python and JavaScript/TypeScript

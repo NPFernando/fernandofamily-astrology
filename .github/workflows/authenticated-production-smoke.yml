@@ -1,0 +1,45 @@
+name: Authenticated production smoke
+
+on:
+  workflow_run:
+    workflows: ["Deploy"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      expected_commit:
+        description: "Optional deployed main commit to verify"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: authenticated-production-smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      DEPLOY_URL: ${{ vars.PUBLIC_SMOKE_BASE_URL || 'https://astrology.fernandofamily.com' }}
+      EXPECTED_COMMIT: ${{ inputs.expected_commit || github.event.workflow_run.head_sha }}
+      ASTROLOGY_AUTH_STORAGE_STATE_B64: ${{ secrets.ASTROLOGY_AUTH_STORAGE_STATE_B64 }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - name: Enable Corepack (pnpm)
+        run: corepack enable
+      - name: Install web test dependencies
+        working-directory: apps/web
+        run: pnpm install --frozen-lockfile
+      - name: Install Playwright Chromium
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+      - name: Run authenticated production browser smoke
+        working-directory: apps/web
+        run: node scripts/authenticated-production-smoke.mjs
